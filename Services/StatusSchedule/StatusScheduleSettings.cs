@@ -33,7 +33,7 @@ public class StatusScheduleSettings
 
     private static string SavePath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "VRCNext", "statusschedule_settings.json");
+        AppInfo.AppName, "statusschedule_settings.json");
 
     [JsonIgnore] public string? LastSaveError { get; set; }
 

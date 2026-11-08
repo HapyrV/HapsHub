@@ -35,7 +35,7 @@ internal static class CrashHandler
     {
         var logsDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "VRCNext", "Logs");
+            AppInfo.AppName, "Logs");
         _crashDir         = Path.Combine(logsDir, "Crashes");
         _sentinelPath     = Path.Combine(logsDir, "session.sentinel");
         _pendingCrashPath = Path.Combine(logsDir, "pending_crash.txt");
@@ -171,7 +171,7 @@ internal static class CrashHandler
             var sb = new StringBuilder();
 
             sb.AppendLine("═══════════════════════════════════════════════════════════════");
-            sb.AppendLine("                    VRCNext Crash Report");
+            sb.AppendLine("                    HapsHub Crash Report");
             sb.AppendLine("═══════════════════════════════════════════════════════════════");
             sb.AppendLine();
 
@@ -248,7 +248,7 @@ internal static class CrashHandler
             sb.AppendLine();
 
             sb.AppendLine("─── Possible Causes ───────────────────────────────────────────");
-            sb.AppendLine("  Known crash-prone areas in VRCNext:");
+            sb.AppendLine("  Known crash-prone areas in HapsHub:");
             sb.AppendLine("  • async void OnNewFile (PhotosController) — webhook/post exception");
             sb.AppendLine("  • MemoryTrimService Task.Run — GC.Collect / P/Invoke failure");
             sb.AppendLine("  • SystemTray STA thread — WinForms pump exception");

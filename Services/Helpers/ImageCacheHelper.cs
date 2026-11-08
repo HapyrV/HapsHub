@@ -38,7 +38,7 @@ public static class ImageCacheHelper
     {
         _baseDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "VRCNext", "Caches", "ImageCache");
+            AppInfo.AppName, "Caches", "ImageCache");
         _http = http;
 
         Directory.CreateDirectory(Path.Combine(_baseDir, "Worlds"));

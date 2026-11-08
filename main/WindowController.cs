@@ -327,7 +327,7 @@ public class WindowController
                 }
                 var surface = window.CreateSurface(new Photino.NET.PhotinoSurfaceOptions
                 {
-                    Title = msg["title"]?.ToString() ?? "VRCNext",
+                    Title = msg["title"]?.ToString() ?? AppInfo.AppName,
                     Width = width,
                     Height = height,
                     MinWidth = 560,
@@ -496,7 +496,7 @@ public class WindowController
             case "ttsTest":
             {
                 VRCNext.Services.Helpers.TtsService.Speak(
-                    msg["text"]?.ToString() ?? "VRCNext text to speech is working.",
+                    msg["text"]?.ToString() ?? "HapsHub text to speech is working.",
                     msg["engine"]?.ToString() ?? VRCNext.Services.Helpers.TtsService.EngineSapi,
                     msg["voice"]?.ToString() ?? "",
                     VRCNext.Services.Helpers.AudioSelection.From(msg["deviceId"]?.ToString(), msg["deviceName"]?.ToString()),

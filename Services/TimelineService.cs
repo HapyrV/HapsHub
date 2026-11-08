@@ -148,10 +148,10 @@ public class TimelineService : IDisposable
 
     private static readonly string LegacyEventsJson = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "VRCNext", "timeline_events.json");
+        AppInfo.AppName, "timeline_events.json");
     private static readonly string LegacyKnownUsersJson = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "VRCNext", "timeline_known_users.json");
+        AppInfo.AppName, "timeline_known_users.json");
 
     public bool KnownUsersSeeded => _knownUsersSeeded;
 

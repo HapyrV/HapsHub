@@ -7,8 +7,8 @@ namespace VRCNext.Services;
 
 public static class DeepLinkService
 {
-    public const string Scheme = "vrcn";
-    private const string PipeName = "VRCNext_DeepLink";
+    public const string Scheme = "hapshub";
+    private const string PipeName = "HapsHub_DeepLink";
 
     private static bool IsUuid(string s) => Guid.TryParseExact(s, "D", out _);
 
@@ -105,7 +105,7 @@ public static class DeepLinkService
             if (string.IsNullOrEmpty(exe)) return;
 
             using var root = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{Scheme}");
-            root.SetValue("", "URL:VRCNext Protocol");
+            root.SetValue("", "URL:HapsHub Protocol");
             root.SetValue("URL Protocol", "");
             using (var icon = root.CreateSubKey("DefaultIcon"))
                 icon.SetValue("", $"\"{exe}\",0");

@@ -787,10 +787,10 @@ namespace VRCNext.Services
                 }
 
                 // Create world (non-dashboard) overlay
-                var oErr = OpenVR.Overlay.CreateOverlay("vrcnext.wristoverlay", "VRCNext Wrist", ref _overlayHandle);
+                var oErr = OpenVR.Overlay.CreateOverlay("hapshub.wristoverlay", "HapsHub Wrist", ref _overlayHandle);
                 if (oErr == EVROverlayError.KeyInUse)
                 {
-                    OpenVR.Overlay.FindOverlay("vrcnext.wristoverlay", ref _overlayHandle);
+                    OpenVR.Overlay.FindOverlay("hapshub.wristoverlay", ref _overlayHandle);
                     _log("[VROverlay] Found existing overlay handle");
                 }
                 else if (oErr != EVROverlayError.None)
@@ -852,9 +852,9 @@ namespace VRCNext.Services
                 }
 
                 // Toast overlay (HMD-attached, separate from wrist overlay).
-                var tErr = OpenVR.Overlay.CreateOverlay("vrcnext.toast", "VRCNext Toast", ref _toastHandle);
+                var tErr = OpenVR.Overlay.CreateOverlay("hapshub.toast", "HapsHub Toast", ref _toastHandle);
                 if (tErr == EVROverlayError.KeyInUse)
-                    OpenVR.Overlay.FindOverlay("vrcnext.toast", ref _toastHandle);
+                    OpenVR.Overlay.FindOverlay("hapshub.toast", ref _toastHandle);
                 if (_toastHandle != 0)
                 {
                     OpenVR.Overlay.SetOverlayWidthInMeters(_toastHandle, 0.10f + _toastSize * 0.002f);
@@ -1005,7 +1005,7 @@ namespace VRCNext.Services
         private async Task EnsureMaterialSymbolsAsync()
         {
             if (_matSymFamily != null) return;
-            string cacheDir  = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VRCNext");
+            string cacheDir  = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), AppInfo.AppName);
             string fontPath  = Path.Combine(cacheDir, "MaterialSymbolsRounded.ttf");
             if (!File.Exists(fontPath))
             {
@@ -1888,9 +1888,9 @@ namespace VRCNext.Services
         {
             if (OpenVR.Overlay == null) return;
 
-            var lErr = OpenVR.Overlay.CreateOverlay("vrcnext.laser", "VRCNext Laser", ref _laserHandle);
+            var lErr = OpenVR.Overlay.CreateOverlay("hapshub.laser", "HapsHub Laser", ref _laserHandle);
             if (lErr == EVROverlayError.KeyInUse)
-                OpenVR.Overlay.FindOverlay("vrcnext.laser", ref _laserHandle);
+                OpenVR.Overlay.FindOverlay("hapshub.laser", ref _laserHandle);
             if (_laserHandle != 0)
             {
                 OpenVR.Overlay.SetOverlayWidthInMeters(_laserHandle, 1f);
@@ -1900,9 +1900,9 @@ namespace VRCNext.Services
                 UploadPointerTexture(_laserHandle, BuildBeamTexture(), LaserTexSize, LaserTexSize);
             }
 
-            var dErr = OpenVR.Overlay.CreateOverlay("vrcnext.laserdot", "VRCNext Pointer", ref _dotHandle);
+            var dErr = OpenVR.Overlay.CreateOverlay("hapshub.laserdot", "HapsHub Pointer", ref _dotHandle);
             if (dErr == EVROverlayError.KeyInUse)
-                OpenVR.Overlay.FindOverlay("vrcnext.laserdot", ref _dotHandle);
+                OpenVR.Overlay.FindOverlay("hapshub.laserdot", ref _dotHandle);
             if (_dotHandle != 0)
             {
                 OpenVR.Overlay.SetOverlayWidthInMeters(_dotHandle, 1f);

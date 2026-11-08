@@ -11,7 +11,7 @@ public static class PopularityReporter
 
     private static readonly string _syncFile = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "VRCNext", "vrcndb_synced_likes.txt");
+        AppInfo.AppName, "vrcndb_synced_likes.txt");
     private static readonly object _syncLock = new();
     private static HashSet<string>? _synced;
 

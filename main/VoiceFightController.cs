@@ -260,7 +260,7 @@ public class VoiceFightController : IDisposable
 
             case "vfGetBlockList":
                 {
-                    var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCNext", "block.txt");
+                    var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppInfo.AppName, "block.txt");
                     if (!System.IO.File.Exists(path))
                     {
                         System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);
@@ -284,7 +284,7 @@ public class VoiceFightController : IDisposable
 
             case "vfSetBlockList":
                 {
-                    var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCNext", "block.txt");
+                    var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppInfo.AppName, "block.txt");
                     var words = msg["words"]?.ToObject<List<string>>() ?? new List<string>();
                     var lines = new List<string>
                     {

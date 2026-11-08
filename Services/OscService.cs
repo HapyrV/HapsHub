@@ -141,7 +141,7 @@ namespace VRCNext
             {
                 _oscQueryTcpPort = Extensions.GetAvailableTcpPort();
                 _oscQuery = new OSCQueryServiceBuilder()
-                    .WithServiceName("VRCNext")
+                    .WithServiceName(AppInfo.AppName)
                     .WithHostIP(IPAddress.Loopback)
                     .WithTcpPort(_oscQueryTcpPort)
                     .WithUdpPort(_oscReceivePort)
@@ -151,7 +151,7 @@ namespace VRCNext
                     .AdvertiseOSCQuery()
                     .Build();
                 _oscQuery.RefreshServices();
-                _log($"[OSC] OSCQuery advertising as 'VRCNext' (osc :{_oscReceivePort}, query :{_oscQueryTcpPort})");
+                _log($"[OSC] OSCQuery advertising as 'HapsHub' (osc :{_oscReceivePort}, query :{_oscQueryTcpPort})");
             }
             catch (Exception ex)
             {

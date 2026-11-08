@@ -2510,7 +2510,7 @@ public partial class AppShell
                         {
                             var vrcnLogs = Path.Combine(
                                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                                "VRCNext", "Logs");
+                                AppInfo.AppName, "Logs");
                             var crashDir = Path.Combine(vrcnLogs, "Crashes");
                             var vrcDir   = VRCNext.Services.Helpers.VrcPathsHelper.AppDataDir();
 
@@ -3942,7 +3942,7 @@ public partial class AppShell
                         "vrchat_crash" => VrcPathsHelper.CrashDumpDir(),
                         "vrcn_data"    => Path.Combine(
                                               Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                                              "VRCNext"),
+                                              AppInfo.AppName),
                         _ => null
                     };
                     if (!string.IsNullOrEmpty(dir))

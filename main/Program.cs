@@ -37,14 +37,14 @@ static class Program
 
         if (args.Length >= 4 && args[0] == "--watchdog")
         {
-            if (!AcquireMutex("Global\\VRCNext_Watchdog", out var wdMutex)) return;
+            if (!AcquireMutex("Global\\HapsHub_Watchdog", out var wdMutex)) return;
             using (wdMutex) WatchdogRunner.Run(args);
             return;
         }
 
         if (args.Length >= 1 && args[0] == "--vr-subprocess")
         {
-            if (!AcquireMutex("Global\\VRCNext_VROverlay", out var vrMutex)) return;
+            if (!AcquireMutex("Global\\HapsHub_VROverlay", out var vrMutex)) return;
             using (vrMutex) VRSubprocess.Run();
             return;
         }
@@ -60,7 +60,7 @@ static class Program
             try { System.Diagnostics.Process.GetProcessById(waitPid).WaitForExit(10000); } catch { }
         }
 
-        if (!AcquireMutex("Global\\VRCNext", out var mainMutex, waitMs: isRelaunch ? 10000 : 0))
+        if (!AcquireMutex("Global\\HapsHub", out var mainMutex, waitMs: isRelaunch ? 10000 : 0))
         {
             if (deepLink != null) { DeepLinkService.Forward(deepLink); return; }
             ShowAlreadyRunningMessage();
@@ -69,7 +69,7 @@ static class Program
         using (mainMutex)
         {
             if (OperatingSystem.IsWindows())
-                SetCurrentProcessExplicitAppUserModelID("com.shinyflvre.vrcnext");
+                SetCurrentProcessExplicitAppUserModelID("com.hapshub.app");
             CrashHandler.Register();
             Velopack.VelopackApp.Build().Run();
             new AppShell(args).Run();
@@ -111,7 +111,7 @@ static class Program
     {
         var text = GetAlreadyRunningMessage();
 #if WINDOWS
-        MessageBox.Show(text, "VRCNext", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        MessageBox.Show(text, AppInfo.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information);
 #else
         Console.Error.WriteLine(text);
         try
@@ -119,7 +119,7 @@ static class Program
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
                 FileName = "notify-send",
-                ArgumentList = { "VRCNext", text.Replace('\n', ' ') },
+                ArgumentList = { AppInfo.AppName, text.Replace('\n', ' ') },
                 UseShellExecute = false,
             });
         }
@@ -133,23 +133,23 @@ static class Program
         {
             var path = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "VRCNext", "settings.json");
+                AppInfo.AppName, "settings.json");
             var json = File.ReadAllText(path);
             var match = System.Text.RegularExpressions.Regex.Match(json, "\"[Ll]anguage\"\\s*:\\s*\"([^\"]+)\"");
             var lang = match.Success ? match.Groups[1].Value : "en";
             return lang switch
             {
-                "de"    => "VRCNext läuft bereits.\nBitte schließe die laufende Instanz zuerst.",
-                "es"    => "VRCNext ya está en ejecución.\nCierra la instancia en ejecución primero.",
-                "fr"    => "VRCNext est déjà en cours d'exécution.\nVeuillez d'abord fermer l'instance en cours.",
-                "ja"    => "VRCNextはすでに起動しています。\n実行中のインスタンスを先に閉じてください。",
-                "zh-CN" => "VRCNext已在运行。\n请先关闭正在运行的实例。",
-                _       => "VRCNext is already running.\nPlease close the running instance first.",
+                "de"    => "HapsHub läuft bereits.\nBitte schließe die laufende Instanz zuerst.",
+                "es"    => "HapsHub ya está en ejecución.\nCierra la instancia en ejecución primero.",
+                "fr"    => "HapsHub est déjà en cours d'exécution.\nVeuillez d'abord fermer l'instance en cours.",
+                "ja"    => "HapsHubはすでに起動しています。\n実行中のインスタンスを先に閉じてください。",
+                "zh-CN" => "HapsHub已在运行。\n请先关闭正在运行的实例。",
+                _       => "HapsHub is already running.\nPlease close the running instance first.",
             };
         }
         catch
         {
-            return "VRCNext is already running.\nPlease close the running instance first.";
+            return "HapsHub is already running.\nPlease close the running instance first.";
         }
     }
 }

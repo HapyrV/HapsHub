@@ -28,7 +28,7 @@ public class ActionFlowSettings
 
     private static string SavePath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "VRCNext", "actionflow_settings.json");
+        AppInfo.AppName, "actionflow_settings.json");
 
     [Newtonsoft.Json.JsonIgnore] public string? LastSaveError { get; set; }
 

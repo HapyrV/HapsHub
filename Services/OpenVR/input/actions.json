@@ -84,7 +84,7 @@
   "localization": [
     {
       "language_tag": "en_US",
-      "/actions/vrcnext": "VRCNext",
+      "/actions/vrcnext": "HapsHub",
       "/actions/vrcnext/in/a_click": "A Click",
       "/actions/vrcnext/in/a_touch": "A Touch",
       "/actions/vrcnext/in/b_click": "B Click",

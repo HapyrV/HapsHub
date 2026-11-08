@@ -320,7 +320,7 @@ public class RelayController : IDisposable
 
     public static readonly string VcExePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "VRCNext", "Tools", "VRCVideoCacher", "VRCVideoCacher.exe");
+        AppInfo.AppName, "Tools", "VRCVideoCacher", "VRCVideoCacher.exe");
 
     private object GetVcState()
     {
@@ -665,7 +665,7 @@ public class RelayController : IDisposable
 
         Invoke(() =>
         {
-            _core.SendToJS("log", new { msg = $"VRChat session detected ({(vr ? "VR" : "Desktop")}{(byUs ? ", launched by VRCNext" : "")}) — running auto-start...", color = "sec" });
+            _core.SendToJS("log", new { msg = $"VRChat session detected ({(vr ? "VR" : "Desktop")}{(byUs ? ", launched by HapsHub" : "")}) — running auto-start...", color = "sec" });
             if (launchApps) LaunchExtraApps(apps, log: true, vr: vr);
             _core.SendToJS("vrcLaunched", new { vr });
         });

@@ -320,9 +320,9 @@ namespace VRCNext.Services
                     return false;
                 }
 
-                var oErr = OpenVR.Overlay.CreateOverlay("vrcnext.frameshot", "VRCNext FrameShot", ref _overlayHandle);
+                var oErr = OpenVR.Overlay.CreateOverlay("hapshub.frameshot", "HapsHub FrameShot", ref _overlayHandle);
                 if (oErr == EVROverlayError.KeyInUse)
-                    OpenVR.Overlay.FindOverlay("vrcnext.frameshot", ref _overlayHandle);
+                    OpenVR.Overlay.FindOverlay("hapshub.frameshot", ref _overlayHandle);
                 else if (oErr != EVROverlayError.None)
                 {
                     LastError = $"CreateOverlay: {oErr}";
@@ -1147,7 +1147,7 @@ namespace VRCNext.Services
 
             try
             {
-                _videoSessionDir = Path.Combine(Path.GetTempPath(), "VRCNext_FrameShot_" + Guid.NewGuid().ToString("N"));
+                _videoSessionDir = Path.Combine(Path.GetTempPath(), "HapsHub_FrameShot_" + Guid.NewGuid().ToString("N"));
                 Directory.CreateDirectory(_videoSessionDir);
             }
             catch (Exception ex)
@@ -1357,7 +1357,7 @@ namespace VRCNext.Services
             var ffmpeg = FindFfmpegPath();
             if (ffmpeg == null)
             {
-                _log("[FrameShot] ffmpeg.exe not found — install or place next to VRCNext.exe");
+                _log("[FrameShot] ffmpeg.exe not found — install or place next to HapsHub.exe");
                 return false;
             }
             int targetW = _videoTargetW, targetH = _videoTargetH;

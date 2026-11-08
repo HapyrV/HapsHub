@@ -61,7 +61,7 @@
                                 <div class="toggle-track"><div class="toggle-knob"></div></div>
                             </label>
                         </div>
-                        <div class="set-desc" data-i18n="settings.crash.restart_after_crash_desc">VRCNext will automatically restart after an unexpected crash. Does not apply when the app is closed normally or force-quit via Task Manager.</div>
+                        <div class="set-desc" data-i18n="settings.crash.restart_after_crash_desc">HapsHub will automatically restart after an unexpected crash. Does not apply when the app is closed normally or force-quit via Task Manager.</div>
                     </div>
 
                     <!-- LANGUAGE -->
@@ -71,7 +71,7 @@
                         <div class="theme-grid" id="languageGrid"></div>
                         <div id="langRestartHint" style="display:none;margin-top:10px;">
                             <span class="set-desc" data-i18n="settings.language.restart_hint">It is recommended to restart the app once you change the language.</span>
-                            <button class="vrcn-button" style="margin-top:8px;" onclick="sendToCS({action:'restartApp'})"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="settings.language.restart_btn">Restart VRCNext</span></button>
+                            <button class="vrcn-button" style="margin-top:8px;" onclick="sendToCS({action:'restartApp'})"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="settings.language.restart_btn">Restart HapsHub</span></button>
                         </div>
                     </div>
 
@@ -102,7 +102,7 @@
                                     <div class="toggle-track"><div class="toggle-knob"></div></div>
                                 </label>
                             </div>
-                            <div class="set-desc" data-i18n="settings.perf.v8_heap.desc">Increases the JavaScript engine memory limit from 64 MB to 128 MB. Useful if VRCNext runs sluggishly with large friend lists or many open tabs.</div>
+                            <div class="set-desc" data-i18n="settings.perf.v8_heap.desc">Increases the JavaScript engine memory limit from 64 MB to 128 MB. Useful if HapsHub runs sluggishly with large friend lists or many open tabs.</div>
                             <div class="sf-toggle-row" style="margin-top:14px;">
                                 <span data-i18n="settings.perf.render_proc.label">Use 2 Render Processes</span>
                                 <label class="toggle">
@@ -118,7 +118,7 @@
                                     <div class="toggle-track"><div class="toggle-knob"></div></div>
                                 </label>
                             </div>
-                            <div class="set-desc" data-i18n="settings.perf.efficiency.desc">Runs the VRCNext process and its WebView processes in Windows Efficiency Mode (EcoQoS). Lowers power usage and background CPU impact; the leaf icon appears in Task Manager. May slightly reduce responsiveness. Applies immediately, no restart needed.</div>
+                            <div class="set-desc" data-i18n="settings.perf.efficiency.desc">Runs the HapsHub process and its WebView processes in Windows Efficiency Mode (EcoQoS). Lowers power usage and background CPU impact; the leaf icon appears in Task Manager. May slightly reduce responsiveness. Applies immediately, no restart needed.</div>
                             <div class="sf-toggle-row" style="margin-top:14px;">
                                 <span data-i18n="settings.perf.reduced_background.label">Reduced Background Usage</span>
                                 <label class="toggle">
@@ -126,7 +126,7 @@
                                     <div class="toggle-track"><div class="toggle-knob"></div></div>
                                 </label>
                             </div>
-                            <div class="set-desc" data-i18n="settings.perf.reduced_background.desc">Pauses rendering and releases GPU memory while VRCNext is minimized or hidden in the tray. Notifications, the friends list and all background features keep running at full speed. Rendering resumes instantly when the window is shown again. Applies immediately, no restart needed.</div>
+                            <div class="set-desc" data-i18n="settings.perf.reduced_background.desc">Pauses rendering and releases GPU memory while HapsHub is minimized or hidden in the tray. Notifications, the friends list and all background features keep running at full speed. Rendering resumes instantly when the window is shown again. Applies immediately, no restart needed.</div>
                         </div>
                         <div data-linux-only style="display:none;">
                             <div class="sf-toggle-row">
@@ -136,7 +136,7 @@
                                     <div class="toggle-track"><div class="toggle-knob"></div></div>
                                 </label>
                             </div>
-                            <div class="set-desc" data-i18n="settings.perf.linux_gpu.desc">Lets WebKitGTK use the GPU for rendering. Recommended on real hardware with working graphics drivers. Keep it off in virtual machines or when the window stays blank or shows glitches; VRCNext then uses safe software rendering.</div>
+                            <div class="set-desc" data-i18n="settings.perf.linux_gpu.desc">Lets WebKitGTK use the GPU for rendering. Recommended on real hardware with working graphics drivers. Keep it off in virtual machines or when the window stays blank or shows glitches; HapsHub then uses safe software rendering.</div>
                         </div>
                         <div class="sf-toggle-row" style="margin-top:14px;">
                             <span data-i18n="settings.perf.animations.label">Animations and Transitions</span>
@@ -145,7 +145,7 @@
                                 <div class="toggle-track"><div class="toggle-knob"></div></div>
                             </label>
                         </div>
-                        <div class="set-desc" data-i18n="settings.perf.animations.desc">Disables all animations and transitions in VRCNext. This can speed up opening dialogs and switching between them, and may also save a little bit of CPU costs.</div>
+                        <div class="set-desc" data-i18n="settings.perf.animations.desc">Disables all animations and transitions in HapsHub. This can speed up opening dialogs and switching between them, and may also save a little bit of CPU costs.</div>
                         <div class="sf-toggle-row" style="margin-top:14px;">
                             <span data-i18n="settings.perf.blur.label">Blur Filters</span>
                             <label class="toggle">
@@ -156,11 +156,11 @@
                         <div class="set-desc" data-i18n="settings.perf.blur.desc">Disables blur filters on modals and overlays. Instead of a blurred background, a dark overlay (75%) is shown. Especially useful when GPU acceleration is disabled, as blur effects are CPU-intensive. It is recommended to disable Blur Filters when using the app without GPU acceleration.</div>
                         <div id="perfRestartHint" style="display:none;margin-top:10px;">
                             <span class="set-desc" data-i18n="settings.perf.restart_hint">A restart is required to apply performance changes.</span>
-                            <button class="vrcn-button" style="margin-top:8px;" onclick="sendToCS({action:'restartApp'})"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="settings.language.restart_btn">Restart VRCNext</span></button>
+                            <button class="vrcn-button" style="margin-top:8px;" onclick="sendToCS({action:'restartApp'})"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="settings.language.restart_btn">Restart HapsHub</span></button>
                         </div>
                         <div id="linuxPerfRestartHint" style="display:none;margin-top:10px;">
                             <span class="set-desc" data-i18n="settings.perf.restart_hint">A restart is required to apply performance changes.</span>
-                            <button class="vrcn-button" style="margin-top:8px;" onclick="sendToCS({action:'restartApp'})"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="settings.language.restart_btn">Restart VRCNext</span></button>
+                            <button class="vrcn-button" style="margin-top:8px;" onclick="sendToCS({action:'restartApp'})"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="settings.language.restart_btn">Restart HapsHub</span></button>
                         </div>
                     </div>
 
@@ -227,7 +227,7 @@
 <!-- FONTS -->
                     <div class="vrcn-panel-card" data-section="appearance" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">text_fields</span> <span data-i18n="settings.design.fonts.title">Fonts</span></div>
-                        <div class="set-desc" style="margin:12px 0 14px;" data-i18n="settings.design.fonts.desc">Choose the font VRCNext uses for its interface. All fonts ship with the app, so nothing is downloaded while you browse them.</div>
+                        <div class="set-desc" style="margin:12px 0 14px;" data-i18n="settings.design.fonts.desc">Choose the font HapsHub uses for its interface. All fonts ship with the app, so nothing is downloaded while you browse them.</div>
                         <div class="font-grid" id="fontGrid"></div>
                         <div class="sf-section-label" style="margin-top:18px;" data-i18n="settings.design.fonts.custom">Installed Font</div>
                         <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.design.fonts.custom_desc">Pick any font installed on your system. Choosing one overrides the selection above.</div>
@@ -252,7 +252,7 @@
                     <!-- THEMES -->
                     <div class="vrcn-panel-card" data-section="appearance" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">brush</span> <span data-i18n="settings.design.tabs.themes">Themes</span></div>
-                        <div class="set-desc" style="margin-top:12px;" data-i18n="settings.design.themes.desc">Drop theme folders into the <code>custom-themes</code> folder next to VRCNext. Each folder can contain any number of CSS files.</div>
+                        <div class="set-desc" style="margin-top:12px;" data-i18n="settings.design.themes.desc">Drop theme folders into the <code>custom-themes</code> folder next to HapsHub. Each folder can contain any number of CSS files.</div>
                         <div id="customThemesList" style="margin-top:10px;display:flex;flex-direction:column;gap:6px;"></div>
                     </div>
 
@@ -263,30 +263,30 @@
                             <span data-i18n="settings.window.remember_size">Remember Window Size</span>
                             <label class="toggle"><input type="checkbox" id="setRememberWindowSize" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
                         </div>
-                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.window.remember_size_desc">Restores the window to its last used size when VRCNext starts.</div>
+                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.window.remember_size_desc">Restores the window to its last used size when HapsHub starts.</div>
                         <div class="sf-toggle-row">
                             <span data-i18n="settings.window.remember_position">Remember Window Position</span>
                             <label class="toggle"><input type="checkbox" id="setRememberWindowPosition" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
                         </div>
-                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.window.remember_position_desc">Restores the window to its last screen position when VRCNext starts. Resets to the default monitor if the previous monitor is no longer connected.</div>
+                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.window.remember_position_desc">Restores the window to its last screen position when HapsHub starts. Resets to the default monitor if the previous monitor is no longer connected.</div>
                         <div class="sf-toggle-row" style="margin-top:6px;">
                             <span data-i18n="settings.debug.text_tools.label">Enable Text Tools</span>
                             <label class="toggle"><input type="checkbox" id="setTextToolsEnabled" onchange="toggleTextTools(this.checked)"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
                         </div>
-                        <div class="set-desc" data-i18n="settings.debug.text_tools.desc">When enabled, all text in VRCNext becomes selectable. You can copy it via the right-click context menu or with Ctrl&nbsp;+&nbsp;C.</div>
+                        <div class="set-desc" data-i18n="settings.debug.text_tools.desc">When enabled, all text in HapsHub becomes selectable. You can copy it via the right-click context menu or with Ctrl&nbsp;+&nbsp;C.</div>
                     </div>
 
                     <!-- SYSTEM TRAY -->
                     <div class="vrcn-panel-card" data-section="general">
                         <div class="vrcn-panel-card-header"><span class="msi" style="font-size:16px;">notifications_active</span> <span data-i18n="settings.system.tray.title">System Tray</span></div>
                         <div class="sf-toggle-row">
-                            <span id="labelStartWithSystem" data-i18n="settings.launch.auto_start_windows">Auto-start VRCNext with Windows</span>
+                            <span id="labelStartWithSystem" data-i18n="settings.launch.auto_start_windows">Auto-start HapsHub with Windows</span>
                             <label class="toggle">
                                 <input type="checkbox" id="setStartWithWindows" onchange="autoSave()">
                                 <div class="toggle-track"><div class="toggle-knob"></div></div>
                             </label>
                         </div>
-                        <div class="set-desc" id="descStartWithSystem" data-i18n="settings.launch.auto_start_windows_desc">VRCNext launches automatically when Windows starts. It will appear in the system tray.</div>
+                        <div class="set-desc" id="descStartWithSystem" data-i18n="settings.launch.auto_start_windows_desc">HapsHub launches automatically when Windows starts. It will appear in the system tray.</div>
                         <div class="sf-toggle-row" style="margin-top:14px;" data-windows-only>
                             <span data-i18n="settings.system.hide_in_tray">Hide in System Tray</span>
                             <label class="toggle">
@@ -294,7 +294,7 @@
                                 <div class="toggle-track"><div class="toggle-knob"></div></div>
                             </label>
                         </div>
-                        <div class="set-desc" data-windows-only data-i18n="settings.system.hide_in_tray_desc">When closing VRCNext, it minimizes to the system tray instead of exiting. Click the tray icon to restore the window.</div>
+                        <div class="set-desc" data-windows-only data-i18n="settings.system.hide_in_tray_desc">When closing HapsHub, it minimizes to the system tray instead of exiting. Click the tray icon to restore the window.</div>
                         <div class="sf-toggle-row" style="margin-top:14px;" id="trayNotifRow" data-windows-only>
                             <span data-i18n="settings.system.tray.notifications">Show notifications on system tray</span>
                             <label class="toggle">
@@ -302,7 +302,7 @@
                                 <div class="toggle-track"><div class="toggle-knob"></div></div>
                             </label>
                         </div>
-                        <div class="set-desc" id="trayNotifDesc" data-windows-only data-i18n="settings.system.tray.notifications_desc">Displays a notification when a new VRChat notification arrives while VRCNext is hidden in the system tray.</div>
+                        <div class="set-desc" id="trayNotifDesc" data-windows-only data-i18n="settings.system.tray.notifications_desc">Displays a notification when a new VRChat notification arrives while HapsHub is hidden in the system tray.</div>
                     </div>
 
                     <!-- VRC+ DECORATIONS -->
@@ -545,7 +545,7 @@
                             <span data-i18n="settings.launch.start_always_with_vrc">Start always with VRChat</span>
                             <label class="toggle"><input type="checkbox" id="setStartAlwaysWithVrc" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
                         </div>
-                        <div class="set-desc" data-i18n="settings.launch.start_always_with_vrc_desc">When enabled, VRCNext will launch the startup apps even if VRChat is started outside of VRCNext, for example when you start VRChat through Steam.</div>
+                        <div class="set-desc" data-i18n="settings.launch.start_always_with_vrc_desc">When enabled, HapsHub will launch the startup apps even if VRChat is started outside of HapsHub, for example when you start VRChat through Steam.</div>
                     </div>
 
                     <!-- AUTO-BACKUPS -->
@@ -555,7 +555,7 @@
                             <span data-i18n="settings.backup.registry_enabled">Enable VRChat Registry Backups</span>
                             <label class="toggle"><input type="checkbox" id="setRegBackupEnabled" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
                         </div>
-                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.backup.registry_enabled_desc">Automatically backs up your VRChat registry settings at the selected interval. Backups are saved to your VRCNext data folder.</div>
+                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.backup.registry_enabled_desc">Automatically backs up your VRChat registry settings at the selected interval. Backups are saved to your HapsHub data folder.</div>
                         <div class="sf-section-label" data-i18n="settings.backup.registry_cycle">Registry Backup Cycle</div>
                         <select id="setRegBackupCycle" class="vrcn-dropdown" onchange="autoSave()" style="margin-bottom:14px;">
                             <option value="14" data-i18n="settings.backup.days_14">14 Days</option>
@@ -567,7 +567,7 @@
                             <span data-i18n="settings.backup.db_enabled">Enable VRCN Database Backups</span>
                             <label class="toggle"><input type="checkbox" id="setDbAutoBackupEnabled" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
                         </div>
-                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.backup.db_enabled_desc">Automatically backs up your VRCNext database at the selected interval. Backups are saved to your VRCNext data folder.</div>
+                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.backup.db_enabled_desc">Automatically backs up your HapsHub database at the selected interval. Backups are saved to your HapsHub data folder.</div>
                         <div class="sf-section-label" data-i18n="settings.backup.db_cycle">Database Backup Cycle</div>
                         <select id="setDbAutoBackupCycle" class="vrcn-dropdown" onchange="autoSave()" style="margin-bottom:14px;">
                             <option value="60" data-i18n="settings.backup.days_60">60 Days</option>
@@ -596,7 +596,7 @@
                     <!-- DEBUGGING -->
                     <div class="vrcn-panel-card" data-section="advanced" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">bug_report</span> <span data-i18n="settings.debug.title">Debugging</span></div>
-                        <div class="set-desc" style="margin-bottom:12px;" data-i18n="settings.debug.desc">Use these options if something isn't working correctly or you want to reconfigure VRCNext from scratch.</div>
+                        <div class="set-desc" style="margin-bottom:12px;" data-i18n="settings.debug.desc">Use these options if something isn't working correctly or you want to reconfigure HapsHub from scratch.</div>
                         <div style="display:flex;gap:8px;flex-wrap:wrap;">
                             <button class="vrcn-button" onclick="sendToCS({action:'resetSetup'})"><span class="msi" style="font-size:16px;">restart_alt</span> <span data-i18n="settings.debug.redo_setup">Redo Setup Wizard</span></button>
                             <button class="vrcn-button" id="btnForceFfc" onclick="forceFfcAll()"><span class="msi" style="font-size:16px;">cloud_download</span> <span data-i18n="settings.debug.force_ffc_all">Force FFC All</span></button>
@@ -605,7 +605,7 @@
                             <span data-i18n="settings.debug.memory_trim">Enable Memory Trim</span>
                             <label class="toggle"><input type="checkbox" id="setMemoryTrimEnabled" checked onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
                         </div>
-                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.debug.memory_trim_desc">Memory Trim periodically frees unused memory from VRCNext. While the app already cleans up automatically during normal use, enabling this triggers a more frequent garbage collection pass every 15 minutes.</div>
+                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.debug.memory_trim_desc">Memory Trim periodically frees unused memory from HapsHub. While the app already cleans up automatically during normal use, enabling this triggers a more frequent garbage collection pass every 15 minutes.</div>
                         <button class="vrcn-button" onclick="sendToCS({action:'forceTrim'})"><span class="msi" style="font-size:16px;">memory</span> <span data-i18n="settings.debug.force_memory_trim">Force Memory Trim</span></button>
                         <div id="ffcProgressWrap" style="display:none;margin-top:12px;">
                             <div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);margin-bottom:6px;" id="ffcProgressLabel" data-i18n="settings.debug.ffc_progress.caching">Caching...</div>
@@ -656,7 +656,7 @@
                             <span data-i18n="settings.multitasking.newwindow.label">Open in new Window</span>
                             <label class="toggle"><input type="checkbox" id="setOpenModalsInWindow" onchange="onOpenModalsInWindowChange(this)"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
                         </div>
-                        <div class="set-desc" id="openModalsInWindowDesc" data-windows-only data-i18n="settings.multitasking.newwindow.desc">Modals opened in Multi-Task mode (SHIFT + Left Mouse) appear as separate desktop windows instead of floating windows inside the app. The windows share the app's single browser instance, so no additional WebView is loaded. Windows only. Takes effect after a restart of VRCNext.</div>
+                        <div class="set-desc" id="openModalsInWindowDesc" data-windows-only data-i18n="settings.multitasking.newwindow.desc">Modals opened in Multi-Task mode (SHIFT + Left Mouse) appear as separate desktop windows instead of floating windows inside the app. The windows share the app's single browser instance, so no additional WebView is loaded. Windows only. Takes effect after a restart of HapsHub.</div>
                         <div class="sf-toggle-row" style="margin-top:14px;" id="tilingManagerRow">
                             <span data-i18n="settings.multitasking.tiling.label">Tiling Manager</span>
                             <label class="toggle"><input type="checkbox" id="setTilingManager" onchange="onTilingManagerChange(this)"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
@@ -668,7 +668,7 @@
                     <div class="vrcn-panel-card-pair" data-section="performance" style="display:none;">
                     <div class="vrcn-panel-card">
                         <div class="vrcn-panel-card-header"><span class="msi">cached</span> <span data-i18n="settings.image_cache.title">Image Cache</span></div>
-                        <div class="set-desc" data-i18n="settings.image_cache.desc">VRCNext caches avatar, world, and profile images locally for instant loading. Over time this can grow to several gigabytes. Set a limit and the oldest cached images will be removed automatically when it is reached (~2 GB per cleanup pass).</div>
+                        <div class="set-desc" data-i18n="settings.image_cache.desc">HapsHub caches avatar, world, and profile images locally for instant loading. Over time this can grow to several gigabytes. Set a limit and the oldest cached images will be removed automatically when it is reached (~2 GB per cleanup pass).</div>
                         <div class="sf-toggle-row" style="margin-top:10px;">
                             <div>
                                 <span data-i18n="settings.image_cache.optimize.label">Optimize Caching</span>
@@ -711,7 +711,7 @@
                     <!-- FAST FETCH CACHE -->
                     <div class="vrcn-panel-card">
                         <div class="vrcn-panel-card-header"><span class="msi">bolt</span> <span data-i18n="settings.ffc.title">Fast Fetch Cache</span></div>
-                        <div class="set-desc" data-i18n="settings.ffc.desc">Fast Fetch Cache stores user profiles, worlds, groups, and avatars locally to improve load times. When enabled, VRCNext instantly shows cached content (descriptions, texts, images) while silently refreshing it in the background. When disabled, all data is freshly downloaded on every request with no cache stored or used.</div>
+                        <div class="set-desc" data-i18n="settings.ffc.desc">Fast Fetch Cache stores user profiles, worlds, groups, and avatars locally to improve load times. When enabled, HapsHub instantly shows cached content (descriptions, texts, images) while silently refreshing it in the background. When disabled, all data is freshly downloaded on every request with no cache stored or used.</div>
                         <div class="sf-toggle-row">
                             <span data-i18n="settings.ffc.enable">Enable FFC</span>
                             <label class="toggle"><input type="checkbox" id="setFfcEnabled" checked onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
@@ -748,7 +748,7 @@
                         <div class="set-desc" style="margin-bottom:8px;" data-i18n="settings.db.cleanup.user_cache">It will delete all cached non-friended users from the whole database. This is mostly safe as it does not contain any important information. Time Spent and Meet Counts are still present on those profiles and will not be wiped.</div>
                         <div class="set-desc" style="margin-bottom:8px;" data-i18n="settings.db.cleanup.events">It will also delete certain events in your Personal and Friends Timeline. In the Personal Timeline, all notifications and URL entries will be wiped. In the Friends Timeline, all "Online", "Offline", and "Status Change" entries, for example "Ask Me" > "Join Me", will be wiped.</div>
                         <div class="set-desc" style="margin-bottom:4px;" data-i18n="settings.db.cleanup.instructions">Run the analysis first. After that, you will see what will be wiped. It is recommended to create a backup of your database in case you still need those entries. Your database is usually stored at:</div>
-                        <div class="set-desc" id="dbPathHint" style="font-family:monospace;color:var(--tx3);">C:\Users\USERNAME\AppData\Roaming\VRCNext</div>
+                        <div class="set-desc" id="dbPathHint" style="font-family:monospace;color:var(--tx3);">C:\Users\USERNAME\AppData\Roaming\HapsHub</div>
                         <div style="margin-top:12px;padding:10px 12px;border:1px solid var(--warn);border-radius:8px;background:color-mix(in srgb, var(--warn) 12%, transparent);">
                             <div style="font-weight:700;color:var(--warn);margin-bottom:6px;display:flex;align-items:center;gap:6px;"><span class="msi" style="font-size:16px;">warning</span> <span data-i18n="settings.db.warn.title">What gets deleted, and what stays</span></div>
                             <div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx1);line-height:1.5;">
@@ -783,7 +783,7 @@
                             <button class="fd-tab" onclick="switchAvtrdbTab('reports',this)" data-i18n="settings.avtrdb.tabs.reports">Reports</button>
                         </div>
                         <div id="avtrdbTabSupport">
-                            <div class="set-desc" data-i18n="settings.avtrdb.support.deleted_desc">Help improve the avatar databases by reporting deleted avatars. When enabled, VRCNext will notify the respective database whenever you encounter a deleted or DMCA'd avatar, but only if that avatar exists in that database.</div>
+                            <div class="set-desc" data-i18n="settings.avtrdb.support.deleted_desc">Help improve the avatar databases by reporting deleted avatars. When enabled, HapsHub will notify the respective database whenever you encounter a deleted or DMCA'd avatar, but only if that avatar exists in that database.</div>
                             <div class="sf-toggle-row">
                                 <span data-i18n="settings.avtrdb.support.deleted_toggle">Report deleted avatars to Avtrdb</span>
                                 <label class="toggle"><input type="checkbox" id="setAvtrdbReport" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
@@ -792,7 +792,7 @@
                                 <span data-i18n="settings.avtrdb.support.deleted_toggle_icu">Report deleted avatars to Avtr.icu</span>
                                 <label class="toggle"><input type="checkbox" id="setAvtrIcuReport" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
                             </div>
-                            <div class="set-desc" style="margin-top:14px;" data-i18n="settings.avtrdb.support.submit_desc">Submit new public avatars you encounter in-game to the avatar databases. When you switch to an avatar that isn't indexed yet, VRCNext will automatically submit it. This helps expand the databases and makes more avatars discoverable for everyone.</div>
+                            <div class="set-desc" style="margin-top:14px;" data-i18n="settings.avtrdb.support.submit_desc">Submit new public avatars you encounter in-game to the avatar databases. When you switch to an avatar that isn't indexed yet, HapsHub will automatically submit it. This helps expand the databases and makes more avatars discoverable for everyone.</div>
                             <div class="sf-toggle-row">
                                 <span data-i18n="settings.avtrdb.support.submit_toggle">Submit new avatars to Avtrdb</span>
                                 <label class="toggle"><input type="checkbox" id="setAvtrdbSubmit" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
@@ -844,7 +844,7 @@
 
                     <div class="vrcn-panel-card" id="vrcxImportCard" data-section="vrcx" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">download</span> <span data-i18n="settings.vrcx.title">Import data from VRCX</span></div>
-                        <div class="set-desc"><span data-i18n="settings.vrcx.desc_prefix">Imports your VRCX history into VRCNext: world time, friend time, instance joins, GPS events, online/offline, status and bio changes. Existing data is preserved and values are added on top. Select your</span> <code>VRCX.sqlite3</code> <span data-i18n="settings.vrcx.desc_suffix">file to begin.</span></div>
+                        <div class="set-desc"><span data-i18n="settings.vrcx.desc_prefix">Imports your VRCX history into HapsHub: world time, friend time, instance joins, GPS events, online/offline, status and bio changes. Existing data is preserved and values are added on top. Select your</span> <code>VRCX.sqlite3</code> <span data-i18n="settings.vrcx.desc_suffix">file to begin.</span></div>
                         <div style="margin-top:10px;padding:12px 14px;background:rgba(var(--err-rgb,220,50,50),.10);border:1px solid rgba(var(--err-rgb,220,50,50),.30);border-radius:10px;line-height:1.7;">
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                                 <span class="msi" style="font-size:20px;color:var(--err);">warning</span>
@@ -883,10 +883,11 @@
                     <!-- COPYRIGHT AND INFORMATION -->
                     <div class="vrcn-panel-card" data-section="about" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">info</span> <span data-i18n="settings.info.title">Copyright And Information</span></div>
+                        <div class="set-desc" style="margin-bottom:10px;">HapsHub is a personal fork of VRCNext, the original project by shinyflvre and the VRCNext contributors.</div>
                         <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.info.p1">VRCNext is a VRChat assistant application that brings together tools and ideas from different applications into one unified app. It is designed for managing friends, groups, worlds, and analytics, and also provides communication features and a toolbox to make everything easier in a single place.</div>
-                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.info.p2">VRCNext is not endorsed by VRChat and does not reflect the views or opinions of the VRChat staff or anyone officially involved in the development or management of VRChat. VRChat is a registered trademark of VRChat Inc.</div>
-                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.info.p3">Shinyflvres and all contributors are not responsible for any issues that may be caused by VRCNext. In general, VRCNext is not a problem for VRChat, but misuse such as abusing features, exploiting others, or generating excessive request spam may result in moderation by VRChat.</div>
-                        <div class="set-desc" data-i18n="settings.info.p4">Your User ID and the VRCNext Client ID are used to communicate with the VRChat API. Use VRCNext respectfully and do not attempt to exploit, manipulate, or generate spam requests, as this may lead to moderation.</div>
+                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.info.p2">HapsHub is not endorsed by VRChat and does not reflect the views or opinions of the VRChat staff or anyone officially involved in the development or management of VRChat. VRChat is a registered trademark of VRChat Inc.</div>
+                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.info.p3">Shinyflvres and all contributors are not responsible for any issues that may be caused by HapsHub. In general, HapsHub is not a problem for VRChat, but misuse such as abusing features, exploiting others, or generating excessive request spam may result in moderation by VRChat.</div>
+                        <div class="set-desc" data-i18n="settings.info.p4">Your User ID and the HapsHub Client ID are used to communicate with the VRChat API. Use HapsHub respectfully and do not attempt to exploit, manipulate, or generate spam requests, as this may lead to moderation.</div>
                     </div>
 
                     <!-- ACCOUNTS -->
@@ -918,7 +919,7 @@
                     <!-- ATTRIBUTION -->
                     <div class="vrcn-panel-card" data-section="attribution" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">copyright</span> <span data-i18n="settings.attribution.title">Third-Party Licenses</span></div>
-                        <div class="set-desc" style="margin-bottom:16px;" data-i18n="settings.attribution.desc">VRCNext is built with the following open-source libraries. All copyright notices are retained as required by their respective licenses.</div>
+                        <div class="set-desc" style="margin-bottom:16px;" data-i18n="settings.attribution.desc">HapsHub is built with the following open-source libraries. All copyright notices are retained as required by their respective licenses.</div>
                         <div style="display:flex;flex-direction:column;gap:4px;">
 
                             <!-- DiscordRichPresence -->
@@ -1269,7 +1270,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                                             <pre class="attrib-license-text">Apache License
 Version 2.0, January 2004
 
-Material Symbols Rounded is bundled with VRCNext in the Fonts folder, subsetted to the icons the app actually uses. It is not fetched from the Google Fonts API at runtime.
+Material Symbols Rounded is bundled with HapsHub in the Fonts folder, subsetted to the icons the app actually uses. It is not fetched from the Google Fonts API at runtime.
 
 Copyright (c) Google LLC
 
@@ -1291,7 +1292,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
                                         </div>
                                         <div class="attrib-body">
                                             <div class="attrib-copy">© Google LLC</div>
-                                            <pre class="attrib-license-text">Google Sans and Google Sans Mono are bundled with VRCNext in the Fonts folder. They are not fetched from the Google Fonts API at runtime.
+                                            <pre class="attrib-license-text">Google Sans and Google Sans Mono are bundled with HapsHub in the Fonts folder. They are not fetched from the Google Fonts API at runtime.
 
 Copyright (c) Google LLC
 
@@ -1310,7 +1311,7 @@ https://developers.google.com/fonts/terms</pre>
                                         </div>
                                         <div class="attrib-body">
                                             <div class="attrib-copy">© the respective font authors</div>
-                                            <pre class="attrib-license-text">The fonts selectable under Appearance &gt; Fonts are bundled with VRCNext in the Fonts folder and are never fetched at runtime:
+                                            <pre class="attrib-license-text">The fonts selectable under Appearance &gt; Fonts are bundled with HapsHub in the Fonts folder and are never fetched at runtime:
 
 Inter, Roboto, Open Sans, Lato, Montserrat, Poppins, Nunito, Rubik, Manrope, Quicksand
 

@@ -10,7 +10,7 @@
     <OutputType Condition="'$(_LinuxBuild)'=='true'">Exe</OutputType>
 
     <RootNamespace>VRCNext</RootNamespace>
-    <AssemblyName>VRCNext</AssemblyName>
+    <AssemblyName>HapsHub</AssemblyName>
     <RollForward>latestMajor</RollForward>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>

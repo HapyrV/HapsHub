@@ -145,7 +145,7 @@ public class MediaLibraryStore : IDisposable
                 if (GetMeta("migrated_json") == "1") return false;
 
                 var baseDir = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCNext");
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppInfo.AppName);
                 var favPath = Path.Combine(baseDir, "favorited_images.json");
                 var ratPath = Path.Combine(baseDir, "photo_ratings.json");
 

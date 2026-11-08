@@ -44,7 +44,7 @@ public class FriendsController
 
     // Chat Storage
     private static readonly string _chatDir = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCNext", "chat");
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppInfo.AppName, "chat");
     public record ChatEntry(string id, string from, string text, string time, string? type = null, string? emoji = null);
 
     // Public Accessors (for other domains)

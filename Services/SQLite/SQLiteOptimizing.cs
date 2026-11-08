@@ -424,7 +424,7 @@ public static class SQLiteOptimizing
     {
         var backupDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "VRCNext", "Backup");
+            AppInfo.AppName, "Backup");
         Directory.CreateDirectory(backupDir);
 
         var stamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
@@ -442,7 +442,7 @@ public static class SQLiteOptimizing
     {
         var backupDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "VRCNext", "Backup");
+            AppInfo.AppName, "Backup");
         Directory.CreateDirectory(backupDir);
 
         var stamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");

@@ -127,7 +127,7 @@ public class SystemTrayService : IDisposable
         _trayIcon = new NotifyIcon
         {
             Icon = _warningIcon ?? _defaultIcon,
-            Text = "VRCNext",
+            Text = AppInfo.AppName,
             Visible = _pendingVisible,
         };
         _trayIcon.MouseClick += (_, e) =>
@@ -195,7 +195,7 @@ public class SystemTrayService : IDisposable
             if (_trayIcon != null && (statusChanged || !_loggedIn))
             {
                 _trayIcon.Icon = _statusIcons.TryGetValue(status, out var sIcon) ? sIcon : _defaultIcon;
-                _trayIcon.Text = $"VRCNext · {name}";
+                _trayIcon.Text = $"HapsHub · {name}";
             }
             _loggedIn = true;
             _popup?.UpdateUserData(name, status, statusDesc);
@@ -211,7 +211,7 @@ public class SystemTrayService : IDisposable
             _trayIcon.Icon = loggedIn
                 ? (_statusIcons.TryGetValue(_status, out var sIcon) ? sIcon : _defaultIcon)
                 : (_warningIcon ?? _defaultIcon);
-            if (!loggedIn) _trayIcon.Text = "VRCNext";
+            if (!loggedIn) _trayIcon.Text = AppInfo.AppName;
         }, null);
     }
 
@@ -908,7 +908,7 @@ public class SystemTrayService : IDisposable
             using (var nf = PxFont(14, FontStyle.Bold))
             using (var nb = new SolidBrush(_theme.Tx1))
             {
-                var nameStr = string.IsNullOrEmpty(_name) ? "VRCNext" : _name;
+                var nameStr = string.IsNullOrEmpty(_name) ? AppInfo.AppName : _name;
                 g.DrawString(nameStr, nf, nb, new RectangleF(tx, avRect.Y + S(2), tw, S(18)), noWrap);
             }
 

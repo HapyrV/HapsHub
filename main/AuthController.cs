@@ -1968,7 +1968,7 @@ public class AuthController
     {
         try
         {
-            _core.Settings.BotName = data["botName"]?.ToString() ?? "VRCNext";
+            _core.Settings.BotName = data["botName"]?.ToString() ?? AppInfo.AppName;
             _core.Settings.BotAvatarUrl = data["botAvatar"]?.ToString() ?? "";
             var newVrcPath = data["vrcPath"]?.ToString() ?? "";
             if (PathSafety.IsSafeVrcPath(newVrcPath)) _core.Settings.VrcPath = newVrcPath;
@@ -2474,22 +2474,22 @@ public class AuthController
         if (key == null) return;
         var exe = Environment.ProcessPath ?? "";
         if (enable)
-            key.SetValue("VRCNext", $"\"{exe}\" --minimized");
+            key.SetValue(AppInfo.AppName, $"\"{exe}\" --minimized");
         else
-            key.DeleteValue("VRCNext", throwOnMissingValue: false);
+            key.DeleteValue(AppInfo.AppName, throwOnMissingValue: false);
 #else
         var dir  = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "autostart");
-        var file = Path.Combine(dir, "VRCNext.desktop");
+        var file = Path.Combine(dir, "HapsHub.desktop");
         if (enable)
         {
             Directory.CreateDirectory(dir);
             var exe = AppInfo.SelfExecutable;
-            if (string.IsNullOrEmpty(exe)) exe = "VRCNext";
+            if (string.IsNullOrEmpty(exe)) exe = AppInfo.AppName;
             File.WriteAllText(file,
                 "[Desktop Entry]\n" +
                 "Type=Application\n" +
-                "Name=VRCNext\n" +
+                "Name=HapsHub\n" +
                 $"Exec=\"{exe}\" --minimized\n" +
                 "Hidden=false\n" +
                 "NoDisplay=false\n" +
@@ -2975,13 +2975,6 @@ public class AuthController
             if (version == null) return;
 
             Invoke(() => _core.SendToJS("updateAvailable", new { version }));
-
-            await _core.UpdateService.DownloadAsync(p =>
-                Invoke(() => _core.SendToJS("updateProgress", p)));
-
-            Invoke(() => _core.SendToJS("updateReady", null));
-            await Task.Delay(800);
-            Invoke(() => _core.UpdateService.ApplyAndRestart());
         }
         catch { }
     }

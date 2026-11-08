@@ -7,7 +7,7 @@ public class KikitanXDSettings
 {
     private static readonly string FilePath = System.IO.Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "VRCNext", "kikitan_xd.json");
+        AppInfo.AppName, "kikitan_xd.json");
     public string ApiKey { get; set; } = "";
     public string GoogleApiKey { get; set; } = "";
     public string Model { get; set; } = "groq";

@@ -15,7 +15,7 @@ public sealed class LocalAiManager
 {
     public static readonly string Root = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "VRCNext", "LocalLLM");
+        AppInfo.AppName, "LocalLLM");
 
     public event Action<string, int, long, long>? OnProgress;
     public event Action<string, bool, string?>? OnFinished;

@@ -185,9 +185,9 @@ namespace VRCNext.Services
 
                 if (OpenVR.Overlay != null)
                 {
-                    var oErr = OpenVR.Overlay.CreateDashboardOverlay("vrcnext.spaceflight", "VRCNext Space Flight", ref _overlayHandle, ref _thumbHandle);
+                    var oErr = OpenVR.Overlay.CreateDashboardOverlay("hapshub.spaceflight", "HapsHub Space Flight", ref _overlayHandle, ref _thumbHandle);
                     if (oErr == EVROverlayError.KeyInUse)
-                        OpenVR.Overlay.FindOverlay("vrcnext.spaceflight", ref _overlayHandle);
+                        OpenVR.Overlay.FindOverlay("hapshub.spaceflight", ref _overlayHandle);
                     _log($"[SteamVR] Overlay: {oErr}");
                 }
 
@@ -220,8 +220,8 @@ namespace VRCNext.Services
             try
             {
                 var dir = AppDomain.CurrentDomain.BaseDirectory;
-                var exe = Path.GetFileName(Environment.ProcessPath ?? "VRCNext.exe");
-                var path = Path.Combine(dir, "vrcnext.vrmanifest");
+                var exe = Path.GetFileName(Environment.ProcessPath ?? "HapsHub.exe");
+                var path = Path.Combine(dir, "hapshub.vrmanifest");
                 var json = JsonSerializer.Serialize(new
                 {
                     source = "builtin",
@@ -229,11 +229,11 @@ namespace VRCNext.Services
                     {
                         new
                         {
-                            app_key = "vrcnext.spaceflight.overlay",
+                            app_key = "hapshub.spaceflight.overlay",
                             launch_type = "binary",
                             binary_path_windows = exe,
                             is_dashboard_overlay = true,
-                            strings = new { en_us = new { name = "VRCNext Space Flight" } }
+                            strings = new { en_us = new { name = "HapsHub Space Flight" } }
                         }
                     }
                 }, new JsonSerializerOptions { WriteIndented = true });

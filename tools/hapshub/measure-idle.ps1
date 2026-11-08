@@ -1,4 +1,4 @@
-param([string]$Name = 'VRCNext', [int]$Seconds = 60)
+param([string]$Name = 'HapsHub', [int]$Seconds = 60)
 
 function Get-Tree([string]$RootName) {
     $all = Get-CimInstance Win32_Process

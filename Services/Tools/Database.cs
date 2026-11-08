@@ -7,7 +7,7 @@ namespace VRCNext.Services;
 internal static class Database
 {
     private static readonly string BaseDir = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCNext");
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppInfo.AppName);
     private static readonly string PrimaryDbPath = Path.Combine(BaseDir, "VRCNData.db");
 
     private static string _currentDbPath = PrimaryDbPath;

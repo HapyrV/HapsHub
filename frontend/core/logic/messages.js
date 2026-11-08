@@ -1342,19 +1342,19 @@ case 'vrcNews':
                 const lbl = document.getElementById('labelStartWithSystem');
                 if (lbl) {
                     lbl.setAttribute('data-i18n', 'settings.launch.auto_start_linux');
-                    lbl.textContent = t('settings.launch.auto_start_linux', 'Auto-start VRCNext with Linux');
+                    lbl.textContent = t('settings.launch.auto_start_linux', 'Auto-start HapsHub with Linux');
                 }
                 const lblDesc = document.getElementById('descStartWithSystem');
                 if (lblDesc) {
                     lblDesc.setAttribute('data-i18n', 'settings.launch.auto_start_linux_desc');
-                    lblDesc.textContent = t('settings.launch.auto_start_linux_desc', 'VRCNext launches automatically when Linux starts. It will open minimized.');
+                    lblDesc.textContent = t('settings.launch.auto_start_linux_desc', 'HapsHub launches automatically when Linux starts. It will open minimized.');
                 }
                 const vrcPathInput = document.getElementById('setVrcPath');
                 if (vrcPathInput) { vrcPathInput.value = 'steam://rungameid/438100'; vrcPathInput.readOnly = true; vrcPathInput.style.opacity = '0.5'; }
                 const browseVrcBtn = document.getElementById('browseVrcBtn');
                 if (browseVrcBtn) browseVrcBtn.style.display = 'none';
                 const dbHint = document.getElementById('dbPathHint');
-                if (dbHint) dbHint.textContent = '~/.config/VRCNext';
+                if (dbHint) dbHint.textContent = '~/.config/HapsHub';
                 if (typeof applyDashLayout === 'function') applyDashLayout();
             }
             break;

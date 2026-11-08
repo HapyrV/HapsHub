@@ -7,7 +7,7 @@ public static class AutoStartShortcutHelper
 {
     private static readonly string Root = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "VRCNext", "AutoStart");
+        AppInfo.AppName, "AutoStart");
 
     public static string CategoryDir(bool vr) => Path.Combine(Root, vr ? "VR" : "Desktop");
 

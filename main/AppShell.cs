@@ -367,15 +367,15 @@ public partial class AppShell
 
         _thumbCacheDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "VRCNext", "ThumbCache");
+            AppInfo.AppName, "ThumbCache");
         Directory.CreateDirectory(_thumbCacheDir);
         _activityLogDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "VRCNext", "Logs");
+            AppInfo.AppName, "Logs");
         Directory.CreateDirectory(_activityLogDir);
         _customThemesDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "VRCNext", "custom-themes");
+            AppInfo.AppName, "custom-themes");
         Directory.CreateDirectory(_customThemesDir);
         _core.CustomThemesDir = _customThemesDir;
         SeedBuiltInThemes();
@@ -524,11 +524,11 @@ public partial class AppShell
         var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "frontend", "logo.png");
         var webView2DataDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "VRCNext", "WebView2");
+            AppInfo.AppName, "WebView2");
         Directory.CreateDirectory(webView2DataDir);
 
         var windowBuilder = new PhotinoWindow()
-            .SetTitle("VRCNext")
+            .SetTitle(AppInfo.AppName)
             .SetLogVerbosity(0)
             .SetUseOsDefaultSize(false)
             .SetSize(startW, startH)
@@ -1333,7 +1333,7 @@ public partial class AppShell
                 var rel  = Uri.UnescapeDataString(path["/imgcache/".Length..]).Replace('/', Path.DirectorySeparatorChar);
                 var imgBase = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "VRCNext", "Caches", "ImageCache");
+                    AppInfo.AppName, "Caches", "ImageCache");
                 var file = Path.GetFullPath(Path.Combine(imgBase, rel));
                 if (!file.StartsWith(imgBase + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
                 {
@@ -1712,7 +1712,7 @@ public partial class AppShell
         var ffmpeg = FindFfmpegPath();
         if (ffmpeg == null)
         {
-            _core.SendToJS("log", new { msg = "[VideoThumb] ffmpeg not found — install it or place it next to the VRCNext executable", color = "err" });
+            _core.SendToJS("log", new { msg = "[VideoThumb] ffmpeg not found — install it or place it next to the HapsHub executable", color = "err" });
             return false;
         }
         if (TryFfmpegThumb(ffmpeg, srcFile, thumbPath, useSeek: true))  return true;

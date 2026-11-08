@@ -342,15 +342,15 @@ function onBackendMessage(e) {
                 var browseBtn = document.getElementById('vrcBrowseBtn');
                 if (browseBtn) browseBtn.style.display = 'none';
                 var vrcDesc = document.getElementById('vrcPathDesc');
-                if (vrcDesc) vrcDesc.innerHTML = 'VRChat is launched through <strong>Steam</strong> on Linux. VRCNext automatically uses the Steam command below &mdash; no manual path selection needed.';
+                if (vrcDesc) vrcDesc.innerHTML = 'VRChat is launched through <strong>Steam</strong> on Linux. HapsHub automatically uses the Steam command below &mdash; no manual path selection needed.';
                 var vrcHint = document.getElementById('vrcPathHint');
                 if (vrcHint) vrcHint.innerHTML = '<span class="msi" style="font-size:13px;vertical-align:middle;color:var(--accent);">info</span> VRChat runs via Proton. Steam handles the launch automatically.';
 
                 [
                     ['welcomeStep10Title', 'setup.page2.step10_title_linux', 'Start with Linux'],
-                    ['welcomeStep10Desc',  'setup.page2.step10_desc_linux',  'Launch VRCNext automatically when Linux boots'],
+                    ['welcomeStep10Desc',  'setup.page2.step10_desc_linux',  'Launch HapsHub automatically when Linux boots'],
                     ['startupPageTitle',   'setup.page7.title_linux',        'Start with Linux'],
-                    ['startupPageDesc',    'setup.page7.desc_linux',         'Should VRCNext launch automatically when Linux starts? It will open minimized so it is ready when you need it.'],
+                    ['startupPageDesc',    'setup.page7.desc_linux',         'Should HapsHub launch automatically when Linux starts? It will open minimized so it is ready when you need it.'],
                     ['startupToggleTitle', 'setup.page7.toggle_title_linux', 'Auto-start with Linux'],
                     ['startupToggleSub',   'setup.page7.toggle_sub_linux',   'Opens minimized when Linux boots'],
                 ].forEach(function (m) {

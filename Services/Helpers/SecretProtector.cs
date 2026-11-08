@@ -14,7 +14,7 @@ public static class SecretProtector
     private static byte[]? _key;
 
     private static string BaseDir => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCNext");
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppInfo.AppName);
 
     private static string KeyPath => Path.Combine(BaseDir, ".secret.key");
 

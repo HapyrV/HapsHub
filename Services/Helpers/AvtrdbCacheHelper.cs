@@ -10,7 +10,7 @@ public static class AvtrdbCacheHelper
 
     private static readonly string _dbPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "VRCNext", "AvatarDB", "Avatars.db");
+        AppInfo.AppName, "AvatarDB", "Avatars.db");
 
     private static readonly object _lock = new();
     private static SqliteConnection? _conn;

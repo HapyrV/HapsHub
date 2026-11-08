@@ -263,7 +263,7 @@ public class CbCustomLineConverter : JsonConverter<CbCustomLine>
 // App Settings - persisted to JSON in %AppData%
 public class AppSettings
 {
-    public string BotName { get; set; } = "VRCNext";
+    public string BotName { get; set; } = AppInfo.AppName;
     public string BotAvatarUrl { get; set; } = "";
     public List<WebhookSlot> Webhooks { get; set; } = new()
     {
@@ -814,7 +814,7 @@ public class AppSettings
 
     private static readonly string FilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "VRCNext", "settings.json");
+        AppInfo.AppName, "settings.json");
     private static readonly string BackupPath = FilePath + ".bak";
     private static readonly object _saveLock = new();
 
@@ -971,7 +971,7 @@ public class VoiceFightSettings
 
     private static string SavePath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "VRCNext", "voicefight_settings.json");
+        AppInfo.AppName, "voicefight_settings.json");
 
     public static VoiceFightSettings Load()
     {
@@ -1043,7 +1043,7 @@ public class PhotoPlayersStore : IDisposable
 
     private static readonly string LegacyFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "VRCNext", "photo_players.json");
+        AppInfo.AppName, "photo_players.json");
 
     private PhotoPlayersStore(SqliteConnection db) { _db = db; }
 

@@ -39,7 +39,7 @@ internal static class WatchdogRunner
 
             var sb = new StringBuilder();
             sb.AppendLine("═══════════════════════════════════════════════════════════════");
-            sb.AppendLine("             VRCNext Watchdog Crash Report");
+            sb.AppendLine("             HapsHub Watchdog Crash Report");
             sb.AppendLine("═══════════════════════════════════════════════════════════════");
             sb.AppendLine();
             sb.AppendLine("The monitored process exited without a clean-shutdown marker.");
@@ -110,7 +110,7 @@ internal static class WatchdogRunner
         {
             var settingsPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "VRCNext", "settings.json");
+                AppInfo.AppName, "settings.json");
             if (!File.Exists(settingsPath)) return true; // default on
 
             var json = File.ReadAllText(settingsPath, Encoding.UTF8);

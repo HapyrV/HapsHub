@@ -28,7 +28,7 @@ public class FriendFetchController
 
     private static string StatePath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "VRCNext", "Caches", "friend_fetch.json");
+        AppInfo.AppName, "Caches", "friend_fetch.json");
 
     private static DateTime? ReadLastRun()
     {

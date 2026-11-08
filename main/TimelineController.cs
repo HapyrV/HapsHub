@@ -1438,7 +1438,7 @@ public class TimelineController
                     }
                 }
 
-            _core.SendToJS("vrcxImportProgress", new { status = "Merging into VRCNext...", percent = 75 });
+            _core.SendToJS("vrcxImportProgress", new { status = "Merging into HapsHub...", percent = 75 });
 
             // 6. Merge into VRCNext
             _core.TimeEngine.BulkMergeWorlds(worldMerge);

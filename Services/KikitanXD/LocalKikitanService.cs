@@ -387,7 +387,7 @@ public sealed class LocalKikitanService : IKikitanSpeechService
         try
         {
             if (gpu != _loadedGpu && _llamaConfigured)
-                Log("Kikitan XD: GPU switch applies to translation only after restarting VRCNext");
+                Log("Kikitan XD: GPU switch applies to translation only after restarting HapsHub");
 
             EnsureNatives(gpu, Log);
 

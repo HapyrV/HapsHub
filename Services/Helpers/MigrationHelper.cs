@@ -7,7 +7,7 @@ public static class FavoritedImagesStore
 {
     private static readonly string FilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "VRCNext", "favorited_images.json");
+        AppInfo.AppName, "favorited_images.json");
 
     public static List<string> Load()
     {
@@ -56,7 +56,7 @@ public static class MigrationHelper
     {
         var dir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "VRCNext", "custom-themes", "Dashboard Theme");
+            AppInfo.AppName, "custom-themes", "Dashboard Theme");
         try { if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true); } catch { }
 
         bool changed = settings.ActiveCustomThemes.Remove("Dashboard Theme");
@@ -310,7 +310,7 @@ public static class MigrationHelper
 
     public static void MigrateCachesToSubdir()
     {
-        var root  = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRCNext");
+        var root  = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppInfo.AppName);
         var subdir = Path.Combine(root, "Caches");
 
         string[] files =

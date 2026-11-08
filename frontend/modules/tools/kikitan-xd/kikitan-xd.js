@@ -242,7 +242,7 @@ function kxdTtsTest() {
     const dev = audioDeviceValue('kxdTtsDevice') || { id: '', name: '' };
     sendToCS({
         action: 'ttsTest',
-        text: t('kikitan.tts.test_line', 'VRCNext text to speech is working.'),
+        text: t('kikitan.tts.test_line', 'HapsHub text to speech is working.'),
         engine: document.getElementById('kxdTtsEngine')?.value || 'sapi',
         voice: document.getElementById('kxdTtsVoice')?.value || '',
         deviceId: dev.id,

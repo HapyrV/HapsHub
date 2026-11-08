@@ -491,7 +491,7 @@ function afDefineBlocks() {
         this.setOutput(true, 'Boolean');
         this.setInputsInline(true);
         this.setColour(COLOR_PARAM);
-        this.setTooltip(aft('friend.is_favorite_tooltip', 'True when the user is in this favorite friend group. Works with both VRChat groups and VRCNext local groups.'));
+        this.setTooltip(aft('friend.is_favorite_tooltip', 'True when the user is in this favorite friend group. Works with both VRChat groups and HapsHub local groups.'));
     } };
 
     B.Blocks['af_invite_from_friend'] = { init() {
@@ -808,7 +808,7 @@ function afDefineBlocks() {
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
         this.setColour(COLOR_VRCN);
-        this.setTooltip(aft('action.set_feature_tooltip', 'Turns a VRCNext feature on or off. true starts it, false stops it. Does nothing when the feature is already in that state.'));
+        this.setTooltip(aft('action.set_feature_tooltip', 'Turns a HapsHub feature on or off. true starts it, false stops it. Does nothing when the feature is already in that state.'));
     } };
 
     function makeOscSetBlock(typeName, labelKey, labelFallback, wantType, check) {

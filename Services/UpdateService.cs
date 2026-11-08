@@ -1,38 +1,15 @@
-using Velopack;
-using Velopack.Sources;
-
 namespace VRCNext.Services;
 
+// HapsHub only reports upstream VRCNext releases. It must never install them:
+// Velopack would replace this fork with the stock upstream build.
 public class UpdateService
 {
     private const string RepoUrl = "https://github.com/shinyflvre/VRCNext";
     private const string ApiLatest = "https://api.github.com/repos/shinyflvre/VRCNext/releases/latest";
 
-    private UpdateManager? _mgr;
-    private UpdateInfo?    _pending;
-    private string?        _ghReleaseUrl;
+    private string? _ghReleaseUrl;
 
-    public UpdateService()
-    {
-        try { _mgr = new UpdateManager(new GithubSource(RepoUrl, null, false)); }
-        catch (Exception ex) { CrashHandler.WriteEntry("UpdateService.Ctor", ex); }
-    }
-
-    public async Task<string?> CheckAsync()
-    {
-        if (_mgr != null)
-        {
-            try
-            {
-                _pending = await _mgr.CheckForUpdatesAsync();
-                return _pending?.TargetFullRelease.Version.ToString();
-            }
-            catch { return null; }
-        }
-        if (!OperatingSystem.IsWindows())
-            return await CheckGithubAsync();
-        return null;
-    }
+    public Task<string?> CheckAsync() => CheckGithubAsync();
 
     private async Task<string?> CheckGithubAsync()
     {
@@ -56,24 +33,14 @@ public class UpdateService
         catch { return null; }
     }
 
-    public async Task DownloadAsync(Action<int> onProgress)
+    public Task DownloadAsync(Action<int> onProgress)
     {
-        if (_mgr != null && _pending != null)
-        {
-            await _mgr.DownloadUpdatesAsync(_pending, onProgress);
-            return;
-        }
         onProgress(100);
+        return Task.CompletedTask;
     }
 
     public void ApplyAndRestart()
     {
-        if (_mgr != null && _pending != null)
-        {
-            _mgr.ApplyUpdatesAndRestart(_pending);
-            return;
-        }
-
         var url = _ghReleaseUrl ?? $"{RepoUrl}/releases/latest";
         try
         {

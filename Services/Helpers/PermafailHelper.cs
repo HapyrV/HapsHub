@@ -30,7 +30,7 @@ public static class PermafailHelper
     {
         _dbPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "VRCNext", "Caches", "Permafail", "Permafail.db");
+            AppInfo.AppName, "Caches", "Permafail", "Permafail.db");
 
         Directory.CreateDirectory(Path.GetDirectoryName(_dbPath)!);
 

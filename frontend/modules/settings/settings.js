@@ -1355,8 +1355,8 @@ function translateVrcxStatus(status) {
             return t('settings.vrcx.progress.reading_friend_events', 'Reading friend events...');
         case 'Generating meet events...':
             return t('settings.vrcx.progress.generating_meet_events', 'Generating meet events...');
-        case 'Merging into VRCNext...':
-            return t('settings.vrcx.progress.merging', 'Merging into VRCNext...');
+        case 'Merging into HapsHub...':
+            return t('settings.vrcx.progress.merging', 'Merging into HapsHub...');
         case 'Saving timeline...':
             return t('settings.vrcx.progress.saving_timeline', 'Saving timeline...');
         case 'Done':
@@ -1595,7 +1595,7 @@ function showVrcndbConsent(firstRun) {
         <div class="modal-title">${esc(t('settings.vrcndb.consent.title_support', 'Avatar Database Support'))}</div>
         ${row('vrcndbConsentSubmit',
             t('settings.vrcndb.consent.submit_all_toggle', 'Submit avatars to VRCNDb, Avtrdb and Cute Avatar Search'),
-            t('settings.vrcndb.consent.submit_all_desc', 'When enabled, VRCNext reads the avatars in your current instance from the VRChat SDK logs and your avatar cache and sends them to the avatar database providers to help with avatar indexing. Deleted avatars are reported as well. This is optional.'))}
+            t('settings.vrcndb.consent.submit_all_desc', 'When enabled, HapsHub reads the avatars in your current instance from the VRChat SDK logs and your avatar cache and sends them to the avatar database providers to help with avatar indexing. Deleted avatars are reported as well. This is optional.'))}
         ${row('vrcndbConsentSync',
             t('settings.vrcndb.consent.sync_toggle', 'Sync favorite likes and worn avatars to VRCNDb'),
             t('settings.vrcndb.consent.sync_desc', 'When enabled, your favorited avatars count as a like and the avatars you wear count as worn on VRCNDb. This is anonymous and helps show which avatars are popular.'))}

@@ -14,7 +14,7 @@ static class Program
         Translator? backend = null;
 
         var win = new PhotinoWindow()
-            .SetTitle("VRCNext – Translation Editor")
+            .SetTitle("HapsHub – Translation Editor")
             .SetSize(1440, 900)
             .SetMinSize(960, 600)
             .Center()

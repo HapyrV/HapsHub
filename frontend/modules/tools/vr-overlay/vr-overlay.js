@@ -461,7 +461,7 @@ function vroTtsTest() {
     const dev = audioDeviceValue('vroTtsDevice') || { id: '', name: '' };
     sendToCS({
         action: 'ttsTest',
-        text: t('vro.notifications.tts_test_line', 'VRCNext text to speech is working.'),
+        text: t('vro.notifications.tts_test_line', 'HapsHub text to speech is working.'),
         engine: document.getElementById('vroTtsEngine')?.value || 'sapi',
         voice: document.getElementById('vroTtsVoice')?.value || '',
         deviceId: dev.id,

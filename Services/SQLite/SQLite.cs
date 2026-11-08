@@ -48,10 +48,10 @@ public class UnifiedTimeEngine : IDisposable
 
     private static readonly string UserLegacyPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "VRCNext", "user_tracking.json");
+        AppInfo.AppName, "user_tracking.json");
     private static readonly string WorldLegacyPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "VRCNext", "world_tracking.json");
+        AppInfo.AppName, "world_tracking.json");
 
     private UnifiedTimeEngine(SqliteConnection db) { _db = db; }
 

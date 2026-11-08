@@ -2,10 +2,11 @@
 
 public static class AppInfo
 {
+    public const string AppName = "HapsHub";
     public const string Version = "2026.62.3";
-    public const string ContactEmail = "vrcn@shinyflvres.com";
+    public const string ContactEmail = "hapyr.businesss@gmail.com";
     public const string Website = "vrcn.shinyflvres.com";
-    public const string UserAgent = $"VRCNext/{Version} ({ContactEmail})";
+    public const string UserAgent = $"{AppName}/{Version} ({ContactEmail})";
 
     public static string SelfExecutable
     {
