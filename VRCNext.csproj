@@ -3,8 +3,8 @@
     <!-- Detect Linux OS directly, or via -r linux-x64 flag if cross-compiling -->
     <_LinuxBuild Condition="$([MSBuild]::IsOSPlatform('Linux')) or ($(RuntimeIdentifier) != '' and $(RuntimeIdentifier.StartsWith('linux')))">true</_LinuxBuild>
 
-    <TargetFramework Condition="'$(_LinuxBuild)'!='true'">net9.0-windows10.0.19041.0</TargetFramework>
-    <TargetFramework Condition="'$(_LinuxBuild)'=='true'">net9.0</TargetFramework>
+    <TargetFramework Condition="'$(_LinuxBuild)'!='true'">net10.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework Condition="'$(_LinuxBuild)'=='true'">net10.0</TargetFramework>
 
     <OutputType Condition="'$(_LinuxBuild)'!='true'">WinExe</OutputType>
     <OutputType Condition="'$(_LinuxBuild)'=='true'">Exe</OutputType>
@@ -28,18 +28,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.14" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="VRChat.OSCQuery" Version="0.0.7" />
     <ProjectReference Include="external\photino.NET\Photino.NET\Photino.NET.csproj" />
     <PackageReference Include="NativeFileDialogSharp" Version="0.5.0" />
     <PackageReference Include="Rsync.Delta" Version="1.0.1" />
-    <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="10.0.14" Condition="'$(_LinuxBuild)'=='true'" />
     <PackageReference Include="SkiaSharp" Version="2.88.8" />
     <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="2.88.8" Condition="'$(_LinuxBuild)'!='true'" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.8" Condition="'$(_LinuxBuild)'=='true'" />
-    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="9.0.0" Condition="'$(_LinuxBuild)'!='true'" />
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.0" Condition="'$(_LinuxBuild)'!='true'" />
     <PackageReference Include="Vortice.Direct3D11" Version="3.8.2" Condition="'$(_LinuxBuild)'!='true'" />
     <PackageReference Include="Vortice.Direct2D1" Version="3.8.2" Condition="'$(_LinuxBuild)'!='true'" />
     <PackageReference Include="Velopack" Version="0.0.915" />
@@ -47,7 +45,7 @@
     <PackageReference Include="Whisper.net" Version="1.9.1" Condition="'$(_LinuxBuild)'!='true'" />
     <PackageReference Include="LLamaSharp" Version="0.27.0" Condition="'$(_LinuxBuild)'!='true'" />
     <PackageReference Include="NAudio" Version="3.0.0" Condition="'$(_LinuxBuild)'!='true'" />
-    <PackageReference Include="System.Speech" Version="9.0.0" Condition="'$(_LinuxBuild)'!='true'" />
+    <PackageReference Include="System.Speech" Version="10.0.14" Condition="'$(_LinuxBuild)'!='true'" />
     <PackageReference Include="NAudio.Vorbis" Version="1.5.0" Condition="'$(_LinuxBuild)'!='true'" />
     <PackageReference Include="DiscordRichPresence" Version="1.6.1.70" Condition="'$(_LinuxBuild)'!='true'" />
     <PackageReference Include="ZXing.Net" Version="0.16.11" />
@@ -100,11 +98,6 @@
     <ItemGroup>
       <Compile Include="$(MSBuildProjectDirectory)\BuildSecrets.cs" />
     </ItemGroup>
-  </Target>
-
-  <!-- Embed custom icon into apphost (VRCNext.exe) after each build on Windows -->
-  <Target Name="StampIconIntoAppHost" AfterTargets="Build" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-    <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\tools\stamp_icon.ps1&quot;" />
   </Target>
 
 </Project>
