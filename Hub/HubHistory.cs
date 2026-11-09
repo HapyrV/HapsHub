@@ -113,8 +113,9 @@ public sealed class HubHistoryModule : IHubModule
                 }
 
                 var isNew = !_known.TryGetValue(userId, out var was);
-                var nameNow = name.Length > 0 ? name : was.Name;
-                var trustNow = trust.Length > 0 ? trust : was.Trust;
+                // A first sighting has no earlier values, and a friend can arrive without tags.
+                var nameNow = name.Length > 0 ? name : was.Name ?? "";
+                var trustNow = trust.Length > 0 ? trust : was.Trust ?? "";
                 if (!isNew && nameNow == was.Name && trustNow == was.Trust) return;
 
                 using var transaction = connection.BeginTransaction();
@@ -144,8 +145,9 @@ public sealed class HubHistoryModule : IHubModule
                 _known[userId] = (nameNow, trustNow);
             }
         }
-        catch (SqliteException ex)
+        catch (Exception ex)
         {
+            // One bad entry must not stop the rest of the list, or reach the caller.
             _context?.Log($"Could not record a friend change: {ex.Message}");
             return;
         }

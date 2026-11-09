@@ -1118,6 +1118,18 @@ await Check("history: the first sighting of a friend isn't a change, later ones 
     await registry.StopAllAsync(TimeSpan.FromSeconds(5));
 });
 
+await Check("history: a friend first seen without a name or trust doesn't stop the rest of the list", async () =>
+{
+    var (module, registry) = await NewHistory("history-no-tags");
+    module.ObserveFriends(new[] { ("usr_no_trust", "Nina", ""), ("usr_no_name", "", "User"), ("usr_next", "Nate", "User") });
+    module.ObserveFriend("usr_next", "Nathan", "User");
+    var changes = module.ReadFriendChanges();
+    Assert(changes.Count == 1 && changes[0].New == "Nathan", "the friend after the empty ones wasn't remembered");
+    module.ObserveFriend("usr_no_trust", "Nina", "Known User");
+    Assert(module.ReadFriendChanges().Count == 1, "learning a missing trust was recorded as a change");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
 await Check("history: a full friend list is quick, the first time and every time after", async () =>
 {
     var (module, registry) = await NewHistory("history-many");
