@@ -4159,5 +4159,10 @@
   "hub.forwarding.card_title": "アバターデータを送信",
   "hub.forwarding.card_desc": "以下すべての主スイッチです。オフの間、HapsHubはどのアバターデータベースにも何も送信しません。",
   "timespent.summary.friends_met": "ゲーム内で会ったフレンド",
-  "timespent.summary.friends_tip": "全フレンドのうち、インスタンスを共にしたことのあるフレンド。残りは記録上一度も同じインスタンスにいません。"
+  "timespent.summary.friends_tip": "全フレンドのうち、インスタンスを共にしたことのあるフレンド。残りは記録上一度も同じインスタンスにいません。",
+  "hub.fonts.letter_sample": "いろはにほへと ちりぬるを わかよたれそ つねならむ 0123456789",
+  "context_menu.avatar.make_public": "公開にする",
+  "context_menu.avatar.make_private": "非公開にする",
+  "avatars.visibility.now_public": "{name} を公開にしました",
+  "avatars.visibility.now_private": "{name} を非公開にしました"
 }

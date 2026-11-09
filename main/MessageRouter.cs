@@ -703,7 +703,7 @@ public partial class AppShell
                 case "vrcGetVisitedWorlds":
                     _ = Task.Run(async () =>
                     {
-                        var ids = _core.Timeline.GetRecentVisitedWorldIds(100);
+                        var ids = _core.Timeline.GetRecentVisitedWorldIds(999);
                         var worlds = await _core.World.GetWorldsByIdsAsync(ids);
                         foreach (JObject w in worlds.OfType<JObject>())
                         {

@@ -1517,6 +1517,14 @@
             { icon: 'style', label: cm('avatar.similar', 'Similar Avatars'), action: () => { showTab(4); setAvatarFilter('search'); setTimeout(() => { const inp = document.getElementById('avatarSearchInput'); if (inp) { inp.value = 'similar: ' + id; doAvatarSearch(); } }, 100); } },
             'sep',
         ];
+        const own = (typeof avatarsData !== 'undefined') && avatarsData.find(a => a.id === id);
+        if (own) {
+            const isPublic = own.releaseStatus === 'public';
+            items.push(isPublic
+                ? { icon: 'lock', label: cm('avatar.make_private', 'Make Private'), action: () => avSetVisibility(id, 'private'), confirm: true }
+                : { icon: 'public', label: cm('avatar.make_public', 'Make Public'), action: () => avSetVisibility(id, 'public'), confirm: true });
+            items.push('sep');
+        }
         if (favEntry) {
             tools.push({ icon: 'favorite', filled: true, label: cm('avatar.remove_favorites', 'Remove from Favorites'), action: () => removeAvatarFavorite(id, favEntry.favoriteId) });
             items.push({ icon: 'drive_file_move', label: cm('avatar.move_to_category', 'Move to Category'), submenuFn: btn => showAvMoveToGroupSubmenu(id, favEntry, btn) });

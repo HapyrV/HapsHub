@@ -4159,5 +4159,10 @@
   "hub.forwarding.card_title": "Send avatar data",
   "hub.forwarding.card_desc": "The master switch for everything below. While it's off, HapsHub sends nothing to any avatar database, whatever the switches below say.",
   "timespent.summary.friends_met": "Friends met in-game",
-  "timespent.summary.friends_tip": "Friends you have shared an instance with, out of all your friends. The rest have never been in an instance with you on record."
+  "timespent.summary.friends_tip": "Friends you have shared an instance with, out of all your friends. The rest have never been in an instance with you on record.",
+  "hub.fonts.letter_sample": "The quick brown fox jumps over the lazy dog. 0123456789",
+  "context_menu.avatar.make_public": "Make Public",
+  "context_menu.avatar.make_private": "Make Private",
+  "avatars.visibility.now_public": "{name} is now public",
+  "avatars.visibility.now_private": "{name} is now private"
 }

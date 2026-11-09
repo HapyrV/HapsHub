@@ -5,7 +5,7 @@
 let _tlScrollTarget = null;
 
 // Personal Timeline pagination state
-const TL_PAGE_SIZES = [10, 15, 20, 25, 50, 100];
+const TL_PAGE_SIZES = [10, 15, 20, 25, 50, 100, 250, 500, 1000];
 const TL_PAGE_SIZE_KEY = 'vrcn_tl_page_size';
 let tlPageSize = (() => {
     try {

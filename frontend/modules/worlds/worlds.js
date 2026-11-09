@@ -85,9 +85,12 @@ function renderVisitedWorlds(worlds) {
         lvKeepScroll(el, () => _worldsListPage(el, list, _worldRecentPage, 'worldRecentPaginatorBar', 'worldRecentGoPage', p => { _worldRecentPage = p; }));
         return;
     }
-    setPaginator('worldRecentPaginatorBar', '');
+    const per = 100;
+    const pages = Math.ceil(list.length / per) || 1;
+    if (_worldRecentPage >= pages) _worldRecentPage = pages - 1;
+    setPaginator('worldRecentPaginatorBar', pages > 1 ? buildPaginator(_worldRecentPage, pages, 'worldRecentGoPage') : '');
     el.classList.add('search-grid');
-    el.innerHTML = list.map(w => renderWorldCard(w)).join('');
+    el.innerHTML = list.slice(_worldRecentPage * per, (_worldRecentPage + 1) * per).map(w => renderWorldCard(w)).join('');
 }
 
 let _myWorldsData = [];

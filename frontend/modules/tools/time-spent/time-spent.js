@@ -23,7 +23,22 @@ let _tsTotalWorlds = 0;
 let _tsTotalPersons = 0;
 let _tsAllUniqueWorlds = 0;
 let _tsAllUniquePersons = 0;
-const TS_PAGE_SIZE = 100;
+const TS_PAGE_SIZES = [100, 250, 500, 1000];
+let TS_PAGE_SIZE = (() => {
+    try {
+        const v = parseInt(localStorage.getItem('vrcn_ts_page_size'), 10);
+        return TS_PAGE_SIZES.includes(v) ? v : 100;
+    } catch { return 100; }
+})();
+
+function setTsPageSize(value) {
+    const n = parseInt(value, 10);
+    if (!TS_PAGE_SIZES.includes(n) || n === TS_PAGE_SIZE) return;
+    TS_PAGE_SIZE = n;
+    try { localStorage.setItem('vrcn_ts_page_size', String(n)); } catch {}
+    _tsWorldPage = 0; _tsPersonPage = 0; _tsGroupPage = 0;
+    tsRefresh();
+}
 
 // Global stats — always reflect full dataset regardless of search/pagination
 let _tsGlobalFriendCount = 0;
@@ -132,7 +147,7 @@ function _tsLoad() {
 
     const query = _tsView === 'worlds' ? _tsWorldQuery : _tsView === 'groups' ? _tsGroupQuery : _tsPersonQuery;
     const page  = _tsView === 'worlds' ? _tsWorldPage  : _tsView === 'groups' ? _tsGroupPage  : _tsPersonPage;
-    sendToCS({ action: 'vrcGetTimeSpent', view: _tsView, query: query.trim(), page, reqId: ++_tsReqId });
+    sendToCS({ action: 'vrcGetTimeSpent', view: _tsView, query: query.trim(), page, pageSize: TS_PAGE_SIZE, reqId: ++_tsReqId });
 }
 
 function tsOnData(payload) {
@@ -401,7 +416,9 @@ function tsPersonGoPage(page) {
 
 function _tsSetPaginator(html) {
     const bar = document.getElementById('tsPaginatorBar');
-    if (bar) bar.innerHTML = html;
+    const opts = TS_PAGE_SIZES.map(n => `<option value="${n}"${n === TS_PAGE_SIZE ? ' selected' : ''}>${n}</option>`).join('');
+    const picker = `<select class="vrcn-dropdown tl-page-size" onchange="setTsPageSize(this.value)" title="${esc(t('timeline.page_size', 'Entries per page'))}">${opts}</select>`;
+    if (bar) bar.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;gap:8px;">${html || ''}${picker}</div>`;
 }
 
 function _tsBuildPaginator(page, totalPages, total, onPageFn) {

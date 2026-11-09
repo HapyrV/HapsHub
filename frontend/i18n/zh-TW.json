@@ -4159,5 +4159,10 @@
   "hub.forwarding.card_title": "傳送模型資料",
   "hub.forwarding.card_desc": "下面所有選項的總開關。關閉時，HapsHub 不會向任何模型資料庫傳送任何內容。",
   "timespent.summary.friends_met": "遊戲中見過的好友",
-  "timespent.summary.friends_tip": "所有好友中與你同處過一個實例的好友。其餘好友在紀錄中從未與你同處一個實例。"
+  "timespent.summary.friends_tip": "所有好友中與你同處過一個實例的好友。其餘好友在紀錄中從未與你同處一個實例。",
+  "hub.fonts.letter_sample": "天地玄黃，宇宙洪荒。日月盈昃，辰宿列張。0123456789",
+  "context_menu.avatar.make_public": "設為公開",
+  "context_menu.avatar.make_private": "設為私人",
+  "avatars.visibility.now_public": "{name} 已設為公開",
+  "avatars.visibility.now_private": "{name} 已設為私人"
 }

@@ -505,7 +505,7 @@ function setAllFriendsStatusFilter(filter) {
 
 let peopleViewMode = localStorage.getItem('vrcn_peopleView') === 'list' ? 'list' : 'grid';
 
-const PL_PAGE_SIZES = [10, 15, 20, 25, 50, 100];
+const PL_PAGE_SIZES = [10, 15, 20, 25, 50, 100, 250, 500, 1000];
 const PL_PAGE_SIZE_KEY = 'vrcn_people_page_size';
 let peopleListPageSize = (() => {
     try {
@@ -1252,7 +1252,6 @@ function _friendEditSyncActions() {
     show('favFriendEditAddFavWrap', isAll);
     show('favFriendEditMoveWrap', !isAll);
     show('favFriendEditRemoveBtn', !isAll);
-    show('friendCreateLocalWrap', !isAll);
 }
 
 function exitFriendEditMode() {

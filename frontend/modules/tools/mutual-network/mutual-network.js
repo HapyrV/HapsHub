@@ -1040,8 +1040,10 @@ class MutualGraph {
         if (this._edgesChanged || !this._edgeCounts || this._edgeCounts.length !== n) {
             const counts = new Array(n).fill(0);
             this.edges.forEach(e => { counts[e.a]++; counts[e.b]++; });
+            // More mutuals, bigger circle: from 5 px up to 28 px for whoever shares the most.
+            const maxCount = Math.max(1, ...counts);
             nodes.forEach((nd, i) => {
-                const base = Math.min(12, 5 + counts[i] * 0.3);
+                const base = 5 + 23 * Math.sqrt(counts[i] / maxCount);
                 nd.r = (_netCommunities && nd.commHub) ? base * NET_HUB_SCALE : base;
             });
             this._edgeCounts = counts;

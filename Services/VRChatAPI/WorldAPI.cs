@@ -357,9 +357,13 @@ public class WorldAPI
         var arr = new JArray();
         if (!ctx.IsLoggedIn) return arr;
         var list = ids.Where(id => !string.IsNullOrEmpty(id)).ToList();
+        // Most come from the cache; the rest go out four at a time so a long list can't flood the API.
+        using var gate = new SemaphoreSlim(4);
         var fetched = await Task.WhenAll(list.Select(async id =>
         {
+            await gate.WaitAsync();
             try { return await GetWorldAsync(id); } catch { return null; }
+            finally { gate.Release(); }
         }));
         foreach (var w in fetched) if (w != null) arr.Add(w);
         return arr;

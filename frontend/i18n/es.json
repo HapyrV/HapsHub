@@ -4159,5 +4159,10 @@
   "hub.forwarding.card_title": "Enviar datos de avatares",
   "hub.forwarding.card_desc": "El interruptor principal de todo lo de abajo. Mientras esté apagado, HapsHub no envía nada a ninguna base de datos de avatares.",
   "timespent.summary.friends_met": "Amigos vistos en el juego",
-  "timespent.summary.friends_tip": "Amigos con los que has compartido una instancia, del total. Con el resto no hay ninguna instancia compartida registrada."
+  "timespent.summary.friends_tip": "Amigos con los que has compartido una instancia, del total. Con el resto no hay ninguna instancia compartida registrada.",
+  "hub.fonts.letter_sample": "El veloz murciélago hindú comía feliz cardillo y kiwi. 0123456789",
+  "context_menu.avatar.make_public": "Hacer público",
+  "context_menu.avatar.make_private": "Hacer privado",
+  "avatars.visibility.now_public": "{name} ahora es público",
+  "avatars.visibility.now_private": "{name} ahora es privado"
 }

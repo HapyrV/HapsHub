@@ -4159,5 +4159,10 @@
   "hub.forwarding.card_title": "아바타 데이터 보내기",
   "hub.forwarding.card_desc": "아래 모든 항목의 주 스위치입니다. 꺼져 있는 동안 HapsHub는 어떤 아바타 데이터베이스에도 아무것도 보내지 않습니다.",
   "timespent.summary.friends_met": "게임에서 만난 친구",
-  "timespent.summary.friends_tip": "전체 친구 중 같은 인스턴스에 있었던 친구입니다. 나머지는 기록상 함께 있었던 적이 없습니다."
+  "timespent.summary.friends_tip": "전체 친구 중 같은 인스턴스에 있었던 친구입니다. 나머지는 기록상 함께 있었던 적이 없습니다.",
+  "hub.fonts.letter_sample": "다람쥐 헌 쳇바퀴에 타고파. 0123456789",
+  "context_menu.avatar.make_public": "공개로 전환",
+  "context_menu.avatar.make_private": "비공개로 전환",
+  "avatars.visibility.now_public": "{name}이(가) 공개로 바뀌었습니다",
+  "avatars.visibility.now_private": "{name}이(가) 비공개로 바뀌었습니다"
 }

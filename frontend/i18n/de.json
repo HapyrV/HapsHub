@@ -4159,5 +4159,10 @@
   "hub.forwarding.card_title": "Avatardaten senden",
   "hub.forwarding.card_desc": "Der Hauptschalter für alles darunter. Solange er aus ist, sendet HapsHub nichts an Avatar-Datenbanken, egal was die Schalter darunter sagen.",
   "timespent.summary.friends_met": "Im Spiel getroffene Freunde",
-  "timespent.summary.friends_tip": "Freunde, mit denen du eine Instanz geteilt hast, von allen deinen Freunden. Mit den übrigen gibt es keine gemeinsame Instanz in den Daten."
+  "timespent.summary.friends_tip": "Freunde, mit denen du eine Instanz geteilt hast, von allen deinen Freunden. Mit den übrigen gibt es keine gemeinsame Instanz in den Daten.",
+  "hub.fonts.letter_sample": "Zwölf Boxkämpfer jagen Viktor quer über den großen Sylter Deich. 0123456789",
+  "context_menu.avatar.make_public": "Öffentlich machen",
+  "context_menu.avatar.make_private": "Privat machen",
+  "avatars.visibility.now_public": "{name} ist jetzt öffentlich",
+  "avatars.visibility.now_private": "{name} ist jetzt privat"
 }

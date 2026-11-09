@@ -941,6 +941,7 @@ window.external.receiveMessage(rawMsg => {
                 break;
             case 'vrcAvatarUpdateResult':
                 if (typeof avBulkUpdateConsume === 'function' && avBulkUpdateConsume(payload)) break;
+                if (typeof avVisibilityConsume === 'function' && avVisibilityConsume(payload)) break;
                 onAvatarUpdateResult(payload);
                 break;
             case 'vrcWorldUpdateResult':

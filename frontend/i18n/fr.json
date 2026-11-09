@@ -4159,5 +4159,10 @@
   "hub.forwarding.card_title": "Envoyer les données d'avatars",
   "hub.forwarding.card_desc": "L'interrupteur principal de tout ce qui suit. Tant qu'il est désactivé, HapsHub n'envoie rien aux bases de données d'avatars.",
   "timespent.summary.friends_met": "Amis croisés en jeu",
-  "timespent.summary.friends_tip": "Amis avec qui tu as partagé une instance, sur l'ensemble de tes amis. Aucune instance commune n'est enregistrée avec les autres."
+  "timespent.summary.friends_tip": "Amis avec qui tu as partagé une instance, sur l'ensemble de tes amis. Aucune instance commune n'est enregistrée avec les autres.",
+  "hub.fonts.letter_sample": "Portez ce vieux whisky au juge blond qui fume. 0123456789",
+  "context_menu.avatar.make_public": "Rendre public",
+  "context_menu.avatar.make_private": "Rendre privé",
+  "avatars.visibility.now_public": "{name} est maintenant public",
+  "avatars.visibility.now_private": "{name} est maintenant privé"
 }

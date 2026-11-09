@@ -689,7 +689,7 @@ public class InstanceController
                 var tsQuery   = (msg["query"]?.ToString() ?? "").Trim().ToLowerInvariant();
                 var tsPage    = msg["page"]?.ToObject<int>() ?? 0;
                 var tsReqId   = msg["reqId"]?.ToObject<long>() ?? 0;
-                const int tsPageSize = 100;
+                var tsPageSize = Math.Clamp(msg["pageSize"]?.ToObject<int>() ?? 100, 10, 1000);
 
                 _ = Task.Run(async () =>
                 {

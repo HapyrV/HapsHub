@@ -4163,5 +4163,10 @@
   "hub.forwarding.card_title": "Отправка данных аватаров",
   "hub.forwarding.card_desc": "Главный переключатель для всего ниже. Пока он выключен, HapsHub ничего не отправляет в базы аватаров.",
   "timespent.summary.friends_met": "Друзья, встреченные в игре",
-  "timespent.summary.friends_tip": "Друзья, с которыми вы были в одном инстансе, из всех друзей. С остальными общих инстансов в записях нет."
+  "timespent.summary.friends_tip": "Друзья, с которыми вы были в одном инстансе, из всех друзей. С остальными общих инстансов в записях нет.",
+  "hub.fonts.letter_sample": "Съешь же ещё этих мягких французских булок да выпей чаю. 0123456789",
+  "context_menu.avatar.make_public": "Сделать публичным",
+  "context_menu.avatar.make_private": "Сделать приватным",
+  "avatars.visibility.now_public": "{name} теперь публичный",
+  "avatars.visibility.now_private": "{name} теперь приватный"
 }

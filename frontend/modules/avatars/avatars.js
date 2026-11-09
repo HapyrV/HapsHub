@@ -1818,3 +1818,31 @@ function _avSyncEditBtn() {
     const btn = document.getElementById('avatarEditModeBtn');
     if (btn) btn.style.display = (avatarFilter === 'favorites' || avatarFilter === 'own') ? '' : 'none';
 }
+
+// ---- Make one of your avatars public or private from its right-click menu ----
+
+const _avVisPending = new Set();
+
+function avSetVisibility(id, releaseStatus) {
+    const a = (avatarsData || []).find(x => x.id === id);
+    if (!a || _avVisPending.has(id)) return;
+    _avVisPending.add(id);
+    sendToCS({ action: 'vrcUpdateAvatar', avatarId: id, name: a.name || '', description: a.description || '', releaseStatus, tags: a.tags || [] });
+}
+
+// True when the result belongs to a right-click change, so the avatar window's handler skips it.
+function avVisibilityConsume(payload) {
+    if (!payload || !_avVisPending.has(payload.avatarId)) return false;
+    _avVisPending.delete(payload.avatarId);
+    if (payload.ok) {
+        const a = (avatarsData || []).find(x => x.id === payload.avatarId);
+        if (a && payload.releaseStatus) a.releaseStatus = payload.releaseStatus;
+        showToast(true, payload.releaseStatus === 'public'
+            ? tf('avatars.visibility.now_public', { name: a?.name || '' }, '{name} is now public')
+            : tf('avatars.visibility.now_private', { name: a?.name || '' }, '{name} is now private'));
+        if (avatarFilter === 'own' && typeof filterOwnAvatars === 'function') filterOwnAvatars();
+    } else {
+        showToast(false, payload.error || t('avatars.detail.toast.update_failed', 'Update failed'));
+    }
+    return true;
+}
