@@ -4190,5 +4190,14 @@
   "inventory.bulk.selected": "{count}개 선택됨",
   "inventory.bulk.n_prints": "프린트 {count}장",
   "inventory.bulk.deleting": "프린트 {count}장 삭제 중...",
-  "inventory.bulk.done": "{total}장 중 {ok}장 삭제됨"
+  "inventory.bulk.done": "{total}장 중 {ok}장 삭제됨",
+  "hub.welcome.title": "환영 메시지",
+  "hub.welcome.desc": "대시보드는 켜진 메시지 중 하나로 무작위로 인사합니다. 직접 추가할 수 있으며, 이름이 들어갈 자리에 {name}을 쓰세요.",
+  "hub.welcome.search": "메시지 검색...",
+  "hub.welcome.all_on": "모두 켜기",
+  "hub.welcome.all_off": "모두 끄기",
+  "hub.welcome.add_placeholder": "안녕 {name}, 오늘 밤 준비됐어?",
+  "hub.welcome.add": "추가",
+  "hub.welcome.count": "{total}개 중 {on}개 켜짐",
+  "hub.welcome.sample_name": "이름"
 }

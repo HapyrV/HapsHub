@@ -19,6 +19,7 @@ function hubUiApply(modules) {
     _hubUiSettings = modules;
     _hubApplyDashboard();
     _hubApplyLetterSpacing();
+    hubWelcomeRender();
     _hubApplyForwardingNote(_hubSetting(modules, 'hub.forwarding', 'forward_avatar_data') === 'true');
 }
 
@@ -282,3 +283,91 @@ function onHubVrcxArchive(payload) {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch); else watch();
     setTimeout(watch, 3000);
 })();
+
+// ---- Welcome messages: switch built-in ones off, add your own ----
+
+const HUB_WELCOME_BUILTIN = 37;
+const HUB_WELCOME_MAX_LEN = 120;
+
+function _hubWelcomeOff() {
+    const raw = _hubUiSettings ? (_hubSetting(_hubUiSettings, 'hub.ui', 'welcome_off') || '') : '';
+    return new Set(raw.split(',').map(Number).filter(n => n >= 1 && n <= HUB_WELCOME_BUILTIN));
+}
+
+function _hubWelcomeCustom() {
+    try {
+        const list = JSON.parse((_hubUiSettings && _hubSetting(_hubUiSettings, 'hub.ui', 'welcome_custom')) || '[]');
+        return Array.isArray(list) ? list.filter(x => typeof x === 'string' && x.trim()) : [];
+    } catch { return []; }
+}
+
+// Every message that's switched on: { idx } for built-in ones, { text } for the user's own.
+function hubWelcomePool() {
+    const off = _hubWelcomeOff();
+    const pool = [];
+    for (let i = 1; i <= HUB_WELCOME_BUILTIN; i++) if (!off.has(i)) pool.push({ idx: i });
+    for (const text of _hubWelcomeCustom()) pool.push({ text });
+    return pool;
+}
+
+function _hubWelcomeSave(off, custom) {
+    sendToCS({ action: 'hubSetSetting', module: 'hub.ui', key: 'welcome_off', value: [...off].sort((a, b) => a - b).join(',') });
+    sendToCS({ action: 'hubSetSetting', module: 'hub.ui', key: 'welcome_custom', value: JSON.stringify(custom) });
+}
+
+function hubWelcomeRender() {
+    const list = document.getElementById('welcomeList');
+    if (!list) return;
+    const off = _hubWelcomeOff();
+    const custom = _hubWelcomeCustom();
+    const name = `<span style="color:var(--accent)">${esc(currentVrcUser?.displayName || t('hub.welcome.sample_name', 'Name'))}</span>`;
+    const q = (document.getElementById('welcomeSearch')?.value || '').toLowerCase();
+    const rows = [];
+    for (let i = 1; i <= HUB_WELCOME_BUILTIN; i++) {
+        const plain = t(`dashboard.welcome.greeting.${i}`, '');
+        if (q && !plain.toLowerCase().includes(q)) continue;
+        rows.push(`<label class="hub-welcome-row${off.has(i) ? ' is-off' : ''}">
+            <input type="checkbox" ${off.has(i) ? '' : 'checked'} onchange="hubWelcomeToggle(${i}, this.checked)">
+            <span>${tf(`dashboard.welcome.greeting.${i}`, { name }, '')}</span>
+        </label>`);
+    }
+    custom.forEach((text, i) => {
+        if (q && !text.toLowerCase().includes(q)) return;
+        rows.push(`<div class="hub-welcome-row is-custom">
+            <span class="msi" style="font-size:16px;color:var(--accent-lt);">edit_note</span>
+            <span>${esc(text).split('{name}').join(name)}</span>
+            <button class="exe-remove" onclick="hubWelcomeRemove(${i})" title="${esc(t('common.remove', 'Remove'))}"><span class="msi" style="font-size:16px;">close</span></button>
+        </div>`);
+    });
+    list.innerHTML = rows.join('') || `<div class="folder-empty">${esc(t('common.none', 'None'))}</div>`;
+    const count = document.getElementById('welcomeCount');
+    if (count) count.textContent = tf('hub.welcome.count', { on: hubWelcomePool().length, total: HUB_WELCOME_BUILTIN + custom.length }, '{on} of {total} on');
+}
+
+function hubWelcomeToggle(idx, on) {
+    const off = _hubWelcomeOff();
+    if (on) off.delete(idx); else off.add(idx);
+    _hubWelcomeSave(off, _hubWelcomeCustom());
+}
+
+function hubWelcomeAdd() {
+    const input = document.getElementById('welcomeNewInput');
+    const text = (input?.value || '').trim().slice(0, HUB_WELCOME_MAX_LEN);
+    if (!text) return;
+    const custom = _hubWelcomeCustom();
+    if (!custom.includes(text)) custom.push(text);
+    if (input) input.value = '';
+    _hubWelcomeSave(_hubWelcomeOff(), custom);
+}
+
+function hubWelcomeRemove(i) {
+    const custom = _hubWelcomeCustom();
+    custom.splice(i, 1);
+    _hubWelcomeSave(_hubWelcomeOff(), custom);
+}
+
+function hubWelcomeAll(on) {
+    const off = new Set();
+    if (!on) for (let i = 1; i <= HUB_WELCOME_BUILTIN; i++) off.add(i);
+    _hubWelcomeSave(off, _hubWelcomeCustom());
+}

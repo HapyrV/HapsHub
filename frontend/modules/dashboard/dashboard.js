@@ -127,14 +127,33 @@ function applyDashHeroBg() {
 
 const DASH_GREETING_COUNT = 37;
 let _dashGreetingIdx = 1 + Math.floor(Math.random() * DASH_GREETING_COUNT);
-function _dashRollGreeting() { _dashGreetingIdx = 1 + Math.floor(Math.random() * DASH_GREETING_COUNT); }
+let _dashGreetingText = null; // set when the pick is one of the user's own messages
+function _dashRollGreeting() {
+    const pool = typeof hubWelcomePool === 'function' ? hubWelcomePool() : [];
+    if (!pool.length) { _dashGreetingIdx = 1 + Math.floor(Math.random() * DASH_GREETING_COUNT); _dashGreetingText = null; return; }
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    _dashGreetingIdx = pick.idx || 0;
+    _dashGreetingText = pick.text || null;
+}
+
+// The greeting stays put between redraws unless its message was switched off.
+function _dashGreetingHtml(name) {
+    if (typeof hubWelcomePool === 'function') {
+        const pool = hubWelcomePool();
+        const stillOn = pool.some(p => _dashGreetingText ? p.text === _dashGreetingText : p.idx === _dashGreetingIdx);
+        if (pool.length && !stillOn) _dashRollGreeting();
+    }
+    const nameHtml = `<span style="color:var(--accent)">${esc(name)}</span>`;
+    if (_dashGreetingText) return esc(_dashGreetingText).split('{name}').join(nameHtml);
+    return tf(`dashboard.welcome.greeting.${_dashGreetingIdx}`, { name: nameHtml }, 'Welcome back, {name}!');
+}
 
 function renderDashboard() {
     const _tab0 = document.getElementById('tab0');
     if (_tab0 && !_tab0.classList.contains('active')) return;
     const name = currentVrcUser?.displayName;
     document.getElementById('dashWelcome').innerHTML = name
-        ? tf(`dashboard.welcome.greeting.${_dashGreetingIdx}`, { name: `<span style="color:var(--accent)">${esc(name)}</span>` }, 'Welcome back, {name}!')
+        ? _dashGreetingHtml(name)
         : esc(t('dashboard.welcome.default', 'Welcome!'));
     updateDashSub();
     updateDashHeroStats();

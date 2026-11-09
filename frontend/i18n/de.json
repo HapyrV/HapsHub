@@ -4190,5 +4190,14 @@
   "inventory.bulk.selected": "{count} ausgewählt",
   "inventory.bulk.n_prints": "{count} Drucke",
   "inventory.bulk.deleting": "Lösche {count} Drucke...",
-  "inventory.bulk.done": "{ok} von {total} Drucken gelöscht"
+  "inventory.bulk.done": "{ok} von {total} Drucken gelöscht",
+  "hub.welcome.title": "Begrüßungen",
+  "hub.welcome.desc": "Das Dashboard begrüßt dich mit einer zufälligen eingeschalteten Nachricht. Füge eigene hinzu; schreibe {name}, wo dein Name stehen soll.",
+  "hub.welcome.search": "Nachrichten suchen...",
+  "hub.welcome.all_on": "Alle an",
+  "hub.welcome.all_off": "Alle aus",
+  "hub.welcome.add_placeholder": "Hi {name}, bereit für heute Abend?",
+  "hub.welcome.add": "Hinzufügen",
+  "hub.welcome.count": "{on} von {total} an",
+  "hub.welcome.sample_name": "Name"
 }

@@ -528,3 +528,27 @@
 .te-foot { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--brd); flex-shrink: 0; }
 .te-foot .vrcn-input, .te-foot .vrcn-button { flex: 0 0 calc(50% - 4px); width: calc(50% - 4px); min-width: 0; height: 32px; box-sizing: border-box; padding-top: 0; padding-bottom: 0; margin: 0; }
 .te-foot .vrcn-button { justify-content: center; }
+
+/* Welcome messages list (HapsHub) */
+.hub-welcome-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 6px;
+    max-height: 340px;
+    overflow-y: auto;
+}
+.hub-welcome-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--bg-input);
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-size: calc(12px + var(--fs-off, 0px));
+}
+.hub-welcome-row:hover { border-color: var(--brd); }
+.hub-welcome-row.is-off { opacity: .45; }
+.hub-welcome-row.is-custom { cursor: default; }
+.hub-welcome-row .exe-remove { margin-left: auto; }

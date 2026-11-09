@@ -16,6 +16,9 @@ public sealed class HubUiModule : IHubModule
         new HubSettingDefinition("dash_friends", "Show friends in game", HubSettingKind.Toggle, "true"),
         new HubSettingDefinition("dash_web", "Show friends on web", HubSettingKind.Toggle, "true"),
         new HubSettingDefinition("letter_spacing", "Letter spacing", HubSettingKind.Number, "0"),
+        // Welcome messages: built-in numbers switched off (comma-separated) and the user's own, as a JSON array.
+        new HubSettingDefinition("welcome_off", "Welcome messages switched off", HubSettingKind.Text, ""),
+        new HubSettingDefinition("welcome_custom", "Your welcome messages", HubSettingKind.Text, "[]"),
     };
 
     public Task StartAsync(HubModuleContext context, CancellationToken cancellationToken) => Task.CompletedTask;

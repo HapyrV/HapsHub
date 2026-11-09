@@ -4190,5 +4190,14 @@
   "inventory.bulk.selected": "{count} 件選択中",
   "inventory.bulk.n_prints": "プリント {count} 枚",
   "inventory.bulk.deleting": "プリント {count} 枚を削除中...",
-  "inventory.bulk.done": "{total} 枚中 {ok} 枚を削除しました"
+  "inventory.bulk.done": "{total} 枚中 {ok} 枚を削除しました",
+  "hub.welcome.title": "ウェルカムメッセージ",
+  "hub.welcome.desc": "ダッシュボードはオンのメッセージからランダムに挨拶します。自分のメッセージも追加できます。名前を入れる場所に {name} と書いてください。",
+  "hub.welcome.search": "メッセージを検索...",
+  "hub.welcome.all_on": "すべてオン",
+  "hub.welcome.all_off": "すべてオフ",
+  "hub.welcome.add_placeholder": "やあ {name}、今夜の準備はいい？",
+  "hub.welcome.add": "追加",
+  "hub.welcome.count": "{total} 件中 {on} 件オン",
+  "hub.welcome.sample_name": "名前"
 }

@@ -4194,5 +4194,14 @@
   "inventory.bulk.selected": "Выбрано: {count}",
   "inventory.bulk.n_prints": "Отпечатков: {count}",
   "inventory.bulk.deleting": "Удаление отпечатков: {count}...",
-  "inventory.bulk.done": "Удалено {ok} из {total}"
+  "inventory.bulk.done": "Удалено {ok} из {total}",
+  "hub.welcome.title": "Приветствия",
+  "hub.welcome.desc": "Панель приветствует вас случайным сообщением из включённых. Добавляйте свои; пишите {name} там, где должно быть ваше имя.",
+  "hub.welcome.search": "Поиск сообщений...",
+  "hub.welcome.all_on": "Включить все",
+  "hub.welcome.all_off": "Выключить все",
+  "hub.welcome.add_placeholder": "Привет, {name}, готов к вечеру?",
+  "hub.welcome.add": "Добавить",
+  "hub.welcome.count": "Включено {on} из {total}",
+  "hub.welcome.sample_name": "Имя"
 }

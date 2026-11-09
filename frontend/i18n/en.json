@@ -4190,5 +4190,14 @@
   "inventory.bulk.selected": "{count} selected",
   "inventory.bulk.n_prints": "{count} prints",
   "inventory.bulk.deleting": "Deleting {count} prints...",
-  "inventory.bulk.done": "Deleted {ok} of {total} prints"
+  "inventory.bulk.done": "Deleted {ok} of {total} prints",
+  "hub.welcome.title": "Welcome Messages",
+  "hub.welcome.desc": "The dashboard greets you with a random message from the ones switched on. Add your own; write {name} where your name goes.",
+  "hub.welcome.search": "Search messages...",
+  "hub.welcome.all_on": "All on",
+  "hub.welcome.all_off": "All off",
+  "hub.welcome.add_placeholder": "Hi {name}, ready for tonight?",
+  "hub.welcome.add": "Add",
+  "hub.welcome.count": "{on} of {total} on",
+  "hub.welcome.sample_name": "Name"
 }

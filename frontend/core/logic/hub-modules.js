@@ -24,7 +24,11 @@ function hubSettingChanged(input) {
 }
 
 // Settings shown on another settings page instead of under General > Hub modules.
-const _HUB_MOVED_SETTINGS = { 'hub.forwarding': { forward_avatar_data: 'hubForwardingSlot' } };
+// A slot id that doesn't exist hides the setting; its own page edits it.
+const _HUB_MOVED_SETTINGS = {
+    'hub.forwarding': { forward_avatar_data: 'hubForwardingSlot' },
+    'hub.ui': { welcome_off: 'hubOwnPage', welcome_custom: 'hubOwnPage' },
+};
 
 function _hubModuleRow(module, onlyKey) {
     const moved = _HUB_MOVED_SETTINGS[module.id] || {};

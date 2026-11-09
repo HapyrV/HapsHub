@@ -4190,5 +4190,14 @@
   "inventory.bulk.selected": "{count} sélectionnés",
   "inventory.bulk.n_prints": "{count} impressions",
   "inventory.bulk.deleting": "Suppression de {count} impressions...",
-  "inventory.bulk.done": "{ok} impressions supprimées sur {total}"
+  "inventory.bulk.done": "{ok} impressions supprimées sur {total}",
+  "hub.welcome.title": "Messages d'accueil",
+  "hub.welcome.desc": "Le tableau de bord t'accueille avec un message au hasard parmi ceux activés. Ajoute les tiens ; écris {name} à la place de ton nom.",
+  "hub.welcome.search": "Rechercher des messages...",
+  "hub.welcome.all_on": "Tout activer",
+  "hub.welcome.all_off": "Tout désactiver",
+  "hub.welcome.add_placeholder": "Salut {name}, prêt pour ce soir ?",
+  "hub.welcome.add": "Ajouter",
+  "hub.welcome.count": "{on} sur {total} activés",
+  "hub.welcome.sample_name": "Nom"
 }

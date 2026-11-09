@@ -222,6 +222,22 @@
                         </div>
                     </div>
 
+<!-- WELCOME MESSAGES -->
+                    <div class="vrcn-panel-card" data-section="appearance" style="display:none;">
+                        <div class="vrcn-panel-card-header"><span class="msi">waving_hand</span> <span data-i18n="hub.welcome.title">Welcome Messages</span> <span class="vrcn-badge" id="welcomeCount" style="margin-left:auto;"></span></div>
+                        <div class="set-desc" style="margin:12px 0 10px;" data-i18n="hub.welcome.desc">The dashboard greets you with a random message from the ones switched on. Add your own; write {name} where your name goes.</div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+                            <input type="text" id="welcomeSearch" class="vrcn-input" style="flex:1;min-width:160px;" placeholder="Search messages..." data-i18n-placeholder="hub.welcome.search" oninput="hubWelcomeRender()">
+                            <button class="vrcn-button" onclick="hubWelcomeAll(true)" data-i18n="hub.welcome.all_on">All on</button>
+                            <button class="vrcn-button" onclick="hubWelcomeAll(false)" data-i18n="hub.welcome.all_off">All off</button>
+                        </div>
+                        <div id="welcomeList" class="hub-welcome-list vrcn-scrollbar"></div>
+                        <div style="display:flex;gap:8px;margin-top:10px;">
+                            <input type="text" id="welcomeNewInput" class="vrcn-input" style="flex:1;" maxlength="120" placeholder="Hi {name}, ready for tonight?" data-i18n-placeholder="hub.welcome.add_placeholder" onkeydown="if(event.key==='Enter')hubWelcomeAdd()">
+                            <button class="vrcn-button vrcn-btn-primary" onclick="hubWelcomeAdd()"><span class="msi" style="font-size:16px;">add</span> <span data-i18n="hub.welcome.add">Add</span></button>
+                        </div>
+                    </div>
+
 <!-- FONTS -->
                     <div class="vrcn-panel-card" data-section="appearance" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">text_fields</span> <span data-i18n="settings.design.fonts.title">Fonts</span></div>

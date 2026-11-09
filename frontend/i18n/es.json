@@ -4190,5 +4190,14 @@
   "inventory.bulk.selected": "{count} seleccionados",
   "inventory.bulk.n_prints": "{count} impresiones",
   "inventory.bulk.deleting": "Eliminando {count} impresiones...",
-  "inventory.bulk.done": "Eliminadas {ok} de {total} impresiones"
+  "inventory.bulk.done": "Eliminadas {ok} de {total} impresiones",
+  "hub.welcome.title": "Mensajes de bienvenida",
+  "hub.welcome.desc": "El panel te saluda con un mensaje al azar de los activados. Añade los tuyos; escribe {name} donde va tu nombre.",
+  "hub.welcome.search": "Buscar mensajes...",
+  "hub.welcome.all_on": "Todos activados",
+  "hub.welcome.all_off": "Todos desactivados",
+  "hub.welcome.add_placeholder": "Hola {name}, ¿listo para esta noche?",
+  "hub.welcome.add": "Añadir",
+  "hub.welcome.count": "{on} de {total} activados",
+  "hub.welcome.sample_name": "Nombre"
 }
