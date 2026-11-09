@@ -322,8 +322,11 @@ try {
     await main.eval(`(() => {
         document.getElementById('fschTimezone').value = 'UTC';
         document.getElementById('fschScope').value = 'former';
-        const monday = Date.UTC(2026, 10, 2, 10);
-        const week = 7 * 86400000, rows = [], history = [['2026-01-01T00:00:00.000Z', 1, 'usr_a'], ['2026-11-08T00:00:00.000Z', 0, 'usr_a']];
+        // The most recent Monday 10:00 UTC at least a day ago, so the weeks stay inside the 30-day range.
+        const now = Date.now(), week = 7 * 86400000, dayMs = 86400000;
+        let monday = Date.UTC(new Date(now - dayMs).getUTCFullYear(), new Date(now - dayMs).getUTCMonth(), new Date(now - dayMs).getUTCDate(), 10);
+        while (new Date(monday).getUTCDay() !== 1 || monday > now - dayMs) monday -= dayMs;
+        const rows = [], history = [[new Date(monday - 8 * week).toISOString(), 1, 'usr_a'], [new Date(now - 3600000).toISOString(), 0, 'usr_a']];
         for (let w = -3; w <= 0; w++) {
             rows.push([new Date(monday + w * week).toISOString(), 1, 'usr_a']);
             rows.push([new Date(monday + w * week + 7200000).toISOString(), 0, 'usr_a']);
@@ -334,7 +337,8 @@ try {
         window.__fschDone = null;
         const show = _fschShow;
         _fschShow = result => { show(result); window.__fschDone = result; };
-        onHubSchedule({ presence: rows, relationships: history, self: [], names: { usr_a: 'Friend A', usr_b: 'Friend B' } });
+        window.__fschRows = { presence: rows, relationships: history, self: [], names: { usr_a: 'Friend A', usr_b: 'Friend B' } };
+        onHubSchedule(window.__fschRows);
     })()`);
     await waitFor('schedule analysis', () => main.eval(`!!window.__fschDone`), 60000);
     const schedule = JSON.parse(await main.eval(`(() => {
@@ -351,6 +355,57 @@ try {
     console.log(`      schedule: Monday 10:00 average ${schedule.monday}, Tuesday 10:00 ${schedule.tuesday}; ${schedule.planner.split('\n')[0]}`);
     check('Friend Schedule finds the Monday pattern through the worker', schedule.monday > 0.9 && schedule.tuesday < schedule.monday, JSON.stringify(schedule));
     check('Friend Schedule draws every cell, the graph, details and planner', schedule.heat === schedule.expected && schedule.graph && schedule.detail.includes('Friend A') && schedule.planner.length > 0, JSON.stringify(schedule));
+
+    // The leftovers: hours left out, picking friends by hand, and saved results.
+    const fschRun = async (what, change) => {
+        await main.eval(`window.__fschDone = null; ${change}`);
+        await waitFor(what, () => main.eval(`!!window.__fschDone`), 60000);
+    };
+    await main.eval(`(() => {
+        window.__fschPosts = 0;
+        const worker = _fschGetWorker(), post = worker.postMessage.bind(worker);
+        worker.postMessage = message => { window.__fschPosts++; post(message); };
+    })()`);
+    await fschRun('hours left out', `document.getElementById('fschExcludeOn').checked = true;
+        document.getElementById('fschExcludeFrom').value = 9; document.getElementById('fschExcludeTo').value = 11; fschOptionChanged();`);
+    const excluded = JSON.parse(await main.eval(`(() => {
+        const r = _fschResult, slots = r.slotsPerDay, at = (day, hour) => r.cells[day * slots + hour * 2];
+        return JSON.stringify({ inside: at(1, 10).excluded, outside: at(1, 12).excluded, drawn: document.querySelectorAll('#fschChart .fsch-excluded').length, expected: 4 * 7,
+            peakOutside: !r.summary.peakCell || r.summary.peakCell.startMinutes < 540 || r.summary.peakCell.startMinutes >= 660,
+            remembered: JSON.parse(localStorage.getItem('fschPrefs')).excludeFrom });
+    })()`));
+    check('Friend Schedule leaves out the chosen hours', excluded.inside && !excluded.outside && excluded.drawn === excluded.expected && excluded.peakOutside && excluded.remembered === 9, JSON.stringify(excluded));
+    await fschRun('hours back', `document.getElementById('fschExcludeOn').checked = false; fschOptionChanged();`);
+
+    await fschRun('nobody chosen', `document.getElementById('fschScope').value = 'selected'; fschOptionChanged();`);
+    const pickerOpen = JSON.parse(await main.eval(`JSON.stringify({ shown: document.getElementById('fschPicker').style.display !== 'none', rows: document.querySelectorAll('#fschPickList input').length, status: document.getElementById('fschStatus').textContent })`));
+    check('Friend Schedule lists history for picking, and asks when nobody is chosen', pickerOpen.shown && pickerOpen.rows === 2 && pickerOpen.status.length > 0, JSON.stringify(pickerOpen));
+    await fschRun('one friend chosen', `(() => {
+        const box = [...document.querySelectorAll('#fschPickList input')].find(input => input.dataset.id === 'usr_a');
+        box.checked = true; fschTogglePick(box);
+    })()`);
+    const picked = JSON.parse(await main.eval(`(() => {
+        const r = _fschResult, slots = r.slotsPerDay, index = 1 * slots + 10 * 2;
+        return JSON.stringify({ count: r.summary.selectedFriends, monday: r.cells[index].average, who: (r.contributorsByCell[index] || []).map(person => person.userId),
+            label: document.getElementById('fschPickCount').textContent, remembered: JSON.parse(localStorage.getItem('fschPrefs')).chosen });
+    })()`));
+    check('Friend Schedule counts only the friend picked by hand', picked.count === 1 && picked.monday > 0.9 && picked.who.length === 1 && picked.who[0] === 'usr_a' && picked.remembered[0] === 'usr_a', JSON.stringify(picked));
+
+    // Back to options analysed earlier: no new work, from memory and then from the disk store.
+    const posts = async () => Number(await main.eval(`window.__fschPosts`));
+    const before = await posts();
+    await fschRun('saved result', `document.getElementById('fschScope').value = 'former'; fschOptionChanged();`);
+    const fromMemory = await posts();
+    await main.eval(`new Promise(done => setTimeout(done, 500))`);
+    await fschRun('saved result from disk', `_fschSaved.clear(); document.getElementById('fschScope').value = 'selected'; fschOptionChanged();`);
+    const fromDisk = await posts();
+    const savedStatus = await main.eval(`document.getElementById('fschStatus').textContent`);
+    check('Friend Schedule reuses saved results without working them out again', before === fromMemory && before === fromDisk && savedStatus.length > 0, `${before} ${fromMemory} ${fromDisk} "${savedStatus}"`);
+    await fschRun('more friend-log rows', `window.__fschRows.relationships.push(['2020-01-01T00:00:00.000Z', 1, 'usr_b']); onHubSchedule(window.__fschRows);`);
+    check('Friend Schedule works it out again after an import changes friend history', (await posts()) === fromDisk + 1);
+    await fschRun('forced refresh', `_fschForce = true; onHubSchedule(window.__fschRows);`);
+    check('Friend Schedule refresh ignores saved results', (await posts()) === fromDisk + 2);
+    await main.eval(`localStorage.removeItem('fschPrefs')`);
 
     check('main page has no page errors', main.errors.length === 0, main.errors.join(' | '));
     await main.eval(`sendToCS({action:'windowClose'})`);

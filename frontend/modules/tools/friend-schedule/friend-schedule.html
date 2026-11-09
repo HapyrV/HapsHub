@@ -1,65 +1,82 @@
 <div class="tab-toolbar fsch-toolbar">
     <label class="fsch-field"><span data-i18n="hub.schedule.range">Range</span>
         <select id="fschRange" class="vrcn-dropdown" onchange="fschOptionChanged()">
-            <option value="7">7 days</option>
-            <option value="30" selected>30 days</option>
-            <option value="90">90 days</option>
-            <option value="180">180 days</option>
-            <option value="365">1 year</option>
-            <option value="0">All history</option>
+            <option value="7" data-i18n="hub.schedule.range_7">7 days</option>
+            <option value="30" selected data-i18n="hub.schedule.range_30">30 days</option>
+            <option value="90" data-i18n="hub.schedule.range_90">90 days</option>
+            <option value="180" data-i18n="hub.schedule.range_180">180 days</option>
+            <option value="365" data-i18n="hub.schedule.range_365">1 year</option>
+            <option value="0" data-i18n="hub.schedule.range_all">All history</option>
         </select>
     </label>
     <label class="fsch-field"><span data-i18n="hub.schedule.resolution">Detail</span>
         <select id="fschResolution" class="vrcn-dropdown" onchange="fschOptionChanged()">
-            <option value="15">15 minutes</option>
-            <option value="30" selected>30 minutes</option>
-            <option value="60">1 hour</option>
+            <option value="15" data-i18n="hub.schedule.resolution_15">15 minutes</option>
+            <option value="30" selected data-i18n="hub.schedule.resolution_30">30 minutes</option>
+            <option value="60" data-i18n="hub.schedule.resolution_60">1 hour</option>
         </select>
     </label>
     <label class="fsch-field"><span data-i18n="hub.schedule.metric">Show</span>
         <select id="fschMetric" class="vrcn-dropdown" onchange="fschRender()">
-            <option value="average" selected>Average online</option>
-            <option value="median">Median online</option>
-            <option value="maximum">Maximum online</option>
-            <option value="probability">Chance of the minimum</option>
+            <option value="average" selected data-i18n="hub.schedule.metric_average">Average online</option>
+            <option value="median" data-i18n="hub.schedule.metric_median">Median online</option>
+            <option value="maximum" data-i18n="hub.schedule.metric_maximum">Maximum online</option>
+            <option value="probability" data-i18n="hub.schedule.metric_probability">Chance of the minimum</option>
         </select>
     </label>
     <label class="fsch-field"><span data-i18n="hub.schedule.scope">Friends</span>
         <select id="fschScope" class="vrcn-dropdown" onchange="fschOptionChanged()">
-            <option value="current" selected>Current friends</option>
-            <option value="favorites">Favorites</option>
-            <option value="former">Former friends</option>
+            <option value="current" selected data-i18n="hub.schedule.scope_current">Current friends</option>
+            <option value="favorites" data-i18n="hub.schedule.scope_favorites">Favorites</option>
+            <option value="former" data-i18n="hub.schedule.scope_former">Former friends</option>
+            <option value="selected" data-i18n="hub.schedule.scope_selected">Friends I choose</option>
         </select>
     </label>
     <label class="fsch-field"><span data-i18n="hub.schedule.minimum">Minimum online</span>
         <input id="fschThreshold" class="vrcn-input" type="number" min="1" max="500" value="20" style="width:80px;" onchange="fschOptionChanged()">
     </label>
     <label class="fsch-field"><span data-i18n="hub.schedule.timezone">Time zone</span>
-        <input id="fschTimezone" class="vrcn-input" type="text" placeholder="System" style="width:150px;" onchange="fschOptionChanged()">
+        <input id="fschTimezone" class="vrcn-input" type="text" placeholder="System" data-i18n-placeholder="hub.schedule.timezone_system" style="width:150px;" onchange="fschOptionChanged()">
     </label>
     <label class="fsch-field fsch-check"><input id="fschOnlySelf" type="checkbox" onchange="fschOptionChanged()"> <span data-i18n="hub.schedule.only_self">Only while I was online</span></label>
+    <div class="fsch-field">
+        <label class="fsch-inline"><input id="fschExcludeOn" type="checkbox" onchange="fschOptionChanged()"> <span data-i18n="hub.schedule.exclude">Leave out hours</span></label>
+        <div class="fsch-inline">
+            <input id="fschExcludeFrom" class="vrcn-input" type="number" min="0" max="23" value="0" style="width:60px;" data-i18n-title="hub.schedule.exclude_from" title="From hour" onchange="fschOptionChanged()">
+            <span data-i18n="hub.schedule.exclude_to">to</span>
+            <input id="fschExcludeTo" class="vrcn-input" type="number" min="0" max="23" value="8" style="width:60px;" data-i18n-title="hub.schedule.exclude_until" title="Until hour" onchange="fschOptionChanged()">
+        </div>
+    </div>
     <div class="fsch-actions">
         <button class="vrcn-button-round" id="fschViewBtn" onclick="fschToggleView()"><span data-i18n="hub.schedule.graph">Graph</span></button>
-        <button class="vrcn-button-round" onclick="fschRefresh()"><span data-i18n="common.refresh">Refresh</span></button>
+        <button class="vrcn-button-round" onclick="fschRefresh(true)"><span data-i18n="common.refresh">Refresh</span></button>
     </div>
 </div>
 <div class="fsch-page">
     <div id="fschStatus" class="sf-desc"></div>
+    <div id="fschPicker" class="vrcn-panel-card fsch-picker" style="display:none;">
+        <div class="vrcn-panel-card-header"><span class="msi">group</span> <span data-i18n="hub.schedule.pick_title">Choose friends</span> <span id="fschPickCount" class="fsch-pick-count"></span></div>
+        <div class="fsch-inline">
+            <input id="fschPickSearch" class="vrcn-input" type="text" placeholder="Search by name" data-i18n-placeholder="hub.schedule.pick_search" style="flex:1;min-width:0;" oninput="fschRenderPicker()">
+            <button class="vrcn-button-round" onclick="fschClearPicks()"><span data-i18n="hub.schedule.pick_clear">Clear</span></button>
+        </div>
+        <div id="fschPickList" class="fsch-pick-list"></div>
+    </div>
     <div id="fschSummary" class="fsch-summary"></div>
     <div id="fschChart" class="fsch-chart"></div>
     <div class="fsch-columns">
         <div class="vrcn-panel-card">
             <div class="vrcn-panel-card-header"><span class="msi">group</span> <span id="fschDetailTitle" data-i18n="hub.schedule.selected">Selected period</span></div>
-            <div id="fschDetail" class="sf-desc">Select a period in the chart to see who is usually online.</div>
+            <div id="fschDetail" class="sf-desc" data-i18n="hub.schedule.select_hint">Select a period in the chart to see who is usually online.</div>
         </div>
         <div class="vrcn-panel-card">
             <div class="vrcn-panel-card-header"><span class="msi">event_available</span> <span data-i18n="hub.schedule.planner">Best times to meet</span></div>
             <label class="fsch-field"><span data-i18n="hub.schedule.length">Length</span>
                 <select id="fschMeetHours" class="vrcn-dropdown" onchange="fschRenderPlanner()">
-                    <option value="1">1 hour</option>
-                    <option value="2">2 hours</option>
-                    <option value="3" selected>3 hours</option>
-                    <option value="4">4 hours</option>
+                    <option value="1" data-i18n="hub.schedule.length_1">1 hour</option>
+                    <option value="2" data-i18n="hub.schedule.length_2">2 hours</option>
+                    <option value="3" selected data-i18n="hub.schedule.length_3">3 hours</option>
+                    <option value="4" data-i18n="hub.schedule.length_4">4 hours</option>
                 </select>
             </label>
             <div id="fschPlanner" class="sf-desc" style="margin-top:8px;"></div>

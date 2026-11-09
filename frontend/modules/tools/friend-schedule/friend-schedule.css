@@ -1,7 +1,14 @@
 .fsch-toolbar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: flex-end; height: auto; padding: 10px 14px; }
 .fsch-field { display: flex; flex-direction: column; gap: 4px; font-size: calc(11px + var(--fs-off, 0px)); color: var(--tx2); }
 .fsch-check { flex-direction: row; align-items: center; gap: 6px; padding-bottom: 8px; }
+.fsch-inline { display: flex; align-items: center; gap: 6px; }
 .fsch-actions { display: flex; gap: 6px; margin-left: auto; }
+.fsch-picker { margin: 8px 0 12px; }
+.fsch-pick-count { margin-left: auto; font-weight: 400; color: var(--tx2); font-size: calc(11px + var(--fs-off, 0px)); }
+.fsch-pick-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 2px 12px; max-height: 190px; overflow-y: auto; margin-top: 8px; font-size: calc(12px + var(--fs-off, 0px)); }
+.fsch-pick-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; min-width: 0; cursor: pointer; }
+.fsch-pick-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fsch-pick-former { color: var(--tx3); }
 .fsch-page { padding: 12px 14px 24px; overflow: auto; height: calc(100% - 70px); box-sizing: border-box; }
 .fsch-summary { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 8px 0 12px; }
 .fsch-stat-val { font-size: calc(17px + var(--fs-off, 0px)); font-weight: 700; color: var(--tx0); }
@@ -12,6 +19,7 @@
 .fsch-hour { font-size: calc(10px + var(--fs-off, 0px)); color: var(--tx3); white-space: nowrap; overflow: visible; }
 .fsch-cell { height: 22px; border: 0; padding: 0; border-radius: 2px; background: var(--accent); cursor: pointer; min-width: 0; }
 .fsch-cell.fsch-empty { background: var(--bg-input); cursor: default; opacity: .5; }
+.fsch-cell.fsch-excluded { background: repeating-linear-gradient(45deg, var(--bg-input), var(--bg-input) 3px, transparent 3px, transparent 6px); }
 .fsch-cell.fsch-selected { outline: 2px solid var(--tx0); outline-offset: -1px; }
 .fsch-graph { width: 100%; height: 240px; display: block; min-width: 620px; }
 .fsch-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-top: 14px; }
