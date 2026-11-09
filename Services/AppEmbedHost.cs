@@ -41,14 +41,17 @@ public sealed class AppEmbedHost : IDisposable
         public bool Frozen;
         public DateTime? HungSince;
         public bool Testing;
+        /// <summary>A copy that was already running was started without HapsHub's drawing fix.</summary>
+        public bool StartedHere;
     }
 
     private readonly BlockingCollection<Action> _work = new();
     private readonly Dictionary<string, Slot> _slots = new();
     private readonly Func<nint> _hostWindow;
+    /// <summary>Copies HapsHub started itself, so with the drawing fix. Only the worker touches it.</summary>
+    private readonly HashSet<int> _launched = new();
     private readonly Thread _thread;
     private nint _host;
-    private nint _lastForeground;
     private volatile bool _stopped;
 
     /// <summary>Runs on the worker thread whenever an app's state changes.</summary>
@@ -75,11 +78,17 @@ public sealed class AppEmbedHost : IDisposable
         slot.State = "starting";
         slot.StartDeadline = DateTime.UtcNow + StartLimit;
         // Reuses a running copy, and only starts one when there is none. Eagle keeps a single copy anyway.
-        if (Process.GetProcessesByName(app.ProcessName).Length == 0)
+        var running = Process.GetProcessesByName(app.ProcessName).Select(p => { using (p) return p.Id; }).ToList();
+        slot.StartedHere = running.Count == 0 || running.Any(_launched.Contains);
+        if (running.Count == 0)
         {
             try
             {
-                Process.Start(new ProcessStartInfo(exe) { UseShellExecute = true, WorkingDirectory = Path.GetDirectoryName(exe) ?? "" });
+                var start = new ProcessStartInfo(exe) { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(exe) ?? "" };
+                if (app.WebView2) start.Environment["WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS"] = EmbedWindows.ChromiumArguments;
+                else start.Arguments = EmbedWindows.ChromiumArguments;
+                using var started = Process.Start(start);
+                if (started != null) _launched.Add(started.Id);
             }
             catch (Exception ex) when (ex is Win32Exception or InvalidOperationException or FileNotFoundException)
             {
@@ -168,7 +177,15 @@ public sealed class AppEmbedHost : IDisposable
             var parent = await Run(() => GetParent(slot.Window));
             Add(mode == AppEmbedsModule.ModeChild ? "It's held inside the pane" : "It's a window of its own",
                 mode == AppEmbedsModule.ModeChild ? parent == _host : parent == 0, $"parent {parent}");
-            Add("Focus stayed where it was", GetForegroundWindow() == foreground);
+            // A held window's focus is inside HapsHub, so compare top-level windows.
+            // Taking focus back across the shared input of a held window can lock all three apps up, so it's never
+            // tried. An app grabbing focus for itself while it starts is the app, not HapsHub moving it elsewhere.
+            var nowForeground = GetForegroundWindow();
+            var appPid = await Run(() => slot.Pid);
+            GetWindowThreadProcessId(nowForeground, out var focusPid);
+            Add("Focus stayed where it was",
+                GetAncestor(nowForeground, GA_ROOT) == GetAncestor(foreground, GA_ROOT) || (int)focusPid == appPid,
+                $"now on {Describe(nowForeground)}, was on {Describe(foreground)}");
 
             var placed = await Run(() => WindowIn(slot));
             Add("It fills the pane", placed.Matches(pane), $"{placed} in {pane}");
@@ -189,15 +206,19 @@ public sealed class AppEmbedHost : IDisposable
             Add("It comes back after a menu", await Run(() => IsWindowVisible(slot.Window)));
 
             await Task.Delay(1000);
-            var drawn = await Run(() =>
+            var (drawn, colours, startedHere) = await Run(() =>
             {
                 using var picture = Capture(slot);
-                return picture != null && EmbedWindows.LooksDrawn(Samples(picture));
+                var count = picture == null ? 0 : Samples(picture).Distinct().Count();
+                return (picture != null && EmbedWindows.LooksDrawn(Samples(picture)), count, slot.StartedHere);
             });
-            Add("It draws its page", drawn);
+            Add("It draws its page", drawn, startedHere
+                ? $"{colours} colour(s) in the picture"
+                : $"{colours} colour(s); it was already running, so close {app.Name} and test again to let HapsHub start it");
 
             await Task.Delay(3000);
-            Add("It's still running and responding", await Run(() => IsWindow(slot.Window) && !IsHungAppWindow(slot.Window)));
+            var (exists, hung) = await Run(() => (IsWindow(slot.Window), IsHungAppWindow(slot.Window)));
+            Add("It's still running and responding", exists && !hung, !exists ? "its window is gone" : "it isn't responding");
             return checks;
         }
         finally
@@ -269,7 +290,6 @@ public sealed class AppEmbedHost : IDisposable
             if (slot.State == "starting") TryAttach(slot);
             else if (slot.Attached) Watch(slot);
         }
-        _lastForeground = GetForegroundWindow();
     }
 
     private void TryAttach(Slot slot)
@@ -332,7 +352,7 @@ public sealed class AppEmbedHost : IDisposable
 
         slot.Attached = true;
         slot.State = "open";
-        slot.Message = "";
+        slot.Message = slot.StartedHere ? "" : $"{slot.App.Name} was already running, so it may stay blank here. Close it and press Open here to let HapsHub start it.";
         slot.HungSince = null;
         SetWindowPos(window, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
         Place(slot);
@@ -385,13 +405,15 @@ public sealed class AppEmbedHost : IDisposable
         }
 
         var pane = slot.Pane;
-        var foreground = GetForegroundWindow();
-        var hubWasJustChosen = foreground == _host && _lastForeground != _host;
         var child = slot.Mode == AppEmbedsModule.ModeChild;
+        // Its own window sits directly above HapsHub: on top of the page, and never in front of whatever is above HapsHub.
+        var above = child ? 0 : GetWindow(_host, GW_HWNDPREV);
+        var stacked = child || above == slot.Window;
         var inPlace = IsWindowVisible(slot.Window) && WindowIn(slot).Matches(pane, 0);
-        if (inPlace && (child || !hubWasJustChosen)) return;
+        if (inPlace && stacked) return;
 
         var flags = SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW;
+        var after = HWND_TOP;
         var x = pane.X;
         var y = pane.Y;
         if (!child)
@@ -400,10 +422,11 @@ public sealed class AppEmbedHost : IDisposable
             ClientToScreen(_host, ref origin);
             x = origin.X;
             y = origin.Y;
-            // Only rises with HapsHub. It never gets in front of a game that has focus.
-            if (!hubWasJustChosen) flags |= SWP_NOZORDER;
+            if (stacked) flags |= SWP_NOZORDER;
+            // Going behind an always-on-top window would make it always-on-top too, so it takes the top of the normal ones.
+            else if (above != 0 && (GetWindowLongPtr(above, GWL_EXSTYLE) & WS_EX_TOPMOST) == 0) after = above;
         }
-        SetWindowPos(slot.Window, HWND_TOP, x, y, pane.Width, pane.Height, flags);
+        SetWindowPos(slot.Window, after, x, y, pane.Width, pane.Height, flags);
     }
 
     /// <summary>Where the window is, in the host's client coordinates, to compare with the pane.</summary>
@@ -503,6 +526,18 @@ public sealed class AppEmbedHost : IDisposable
         return picture;
     }
 
+    private static string Describe(nint window)
+    {
+        if (window == 0) return "nothing";
+        GetWindowThreadProcessId(window, out var pid);
+        var title = new char[128];
+        var read = GetWindowText(window, title, title.Length);
+        string name;
+        try { using var process = Process.GetProcessById((int)pid); name = process.ProcessName; }
+        catch (ArgumentException) { name = $"process {pid}"; }
+        return $"{name} \"{new string(title, 0, Math.Max(read, 0))}\"{(GetParent(window) != 0 ? " (held)" : "")}";
+    }
+
     private static IEnumerable<int> Samples(Bitmap picture)
     {
         for (var row = 1; row <= 8; row++)
@@ -510,10 +545,10 @@ public sealed class AppEmbedHost : IDisposable
                 yield return picture.GetPixel(picture.Width * column / 9, picture.Height * row / 9).ToArgb();
     }
 
-    private const int GWL_STYLE = -16, GWL_EXSTYLE = -20, GW_OWNER = 4;
+    private const int GWL_STYLE = -16, GWL_EXSTYLE = -20, GW_OWNER = 4, GW_HWNDPREV = 3, GA_ROOT = 2;
     private const int SW_HIDE = 0, SW_SHOWMINIMIZED = 2, SW_SHOWNOACTIVATE = 4, SW_SHOWMINNOACTIVE = 7;
     private const long WS_CHILD = 0x40000000, WS_POPUP = 0x80000000, WS_CAPTION = 0x00C00000, WS_THICKFRAME = 0x00040000,
-        WS_MINIMIZEBOX = 0x00020000, WS_MAXIMIZEBOX = 0x00010000, WS_SYSMENU = 0x00080000, WS_EX_TOOLWINDOW = 0x00000080;
+        WS_MINIMIZEBOX = 0x00020000, WS_MAXIMIZEBOX = 0x00010000, WS_SYSMENU = 0x00080000, WS_EX_TOOLWINDOW = 0x00000080, WS_EX_TOPMOST = 0x00000008;
     private const uint SWP_NOSIZE = 0x1, SWP_NOMOVE = 0x2, SWP_NOZORDER = 0x4, SWP_NOACTIVATE = 0x10, SWP_FRAMECHANGED = 0x20,
         SWP_SHOWWINDOW = 0x40, SWP_ASYNCWINDOWPOS = 0x4000;
     private const nint HWND_TOP = 0;
@@ -549,6 +584,7 @@ public sealed class AppEmbedHost : IDisposable
     [DllImport("user32.dll")] private static extern bool IsZoomed(nint window);
     [DllImport("user32.dll")] private static extern bool IsHungAppWindow(nint window);
     [DllImport("user32.dll")] private static extern nint GetForegroundWindow();
+    [DllImport("user32.dll")] private static extern nint GetAncestor(nint window, uint flags);
     [DllImport("user32.dll")] private static extern bool PrintWindow(nint window, nint dc, uint flags);
     [DllImport("kernel32.dll", SetLastError = true)] private static extern nint OpenProcess(uint access, bool inherit, int pid);
     [DllImport("kernel32.dll")] private static extern bool CloseHandle(nint handle);

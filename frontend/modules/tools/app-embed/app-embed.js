@@ -1,12 +1,29 @@
 // OyasumiVR and Eagle in a page. Their windows are real windows sitting over the pane, so this only
 // reports where the pane is, and swaps in a picture while a hub menu needs to open over it.
 
-const _aemb = { sent: {}, frozen: {}, covered: {} };
+const _aemb = { sent: {}, frozen: {}, covered: {}, selectOpen: false };
 const _AEMB_APPS = ['oyasumi', 'eagle'];
 
 function _aembEl(app, part) { return document.getElementById(`aemb-${part}-${app}`); }
 
+// A dropdown's list isn't part of the page, so it can't be found by looking. One counts as open from the click
+// that opens it until a choice, Escape, or focus leaving it.
+document.addEventListener('mousedown', event => { _aemb.selectOpen = event.target?.tagName === 'SELECT' && !_aemb.selectOpen; }, true);
+document.addEventListener('change', event => { if (event.target?.tagName === 'SELECT') _aemb.selectOpen = false; }, true);
+document.addEventListener('focusout', event => { if (event.target?.tagName === 'SELECT') _aemb.selectOpen = false; }, true);
+document.addEventListener('keydown', event => {
+    if (event.target?.tagName !== 'SELECT') return;
+    if (event.key === 'Escape' || event.key === 'Enter' || event.key === 'Tab') _aemb.selectOpen = false;
+    else if (event.key === ' ' || (event.altKey && event.key === 'ArrowDown') || event.key === 'F4') _aemb.selectOpen = true;
+}, true);
+
 function _aembCovered(pane, rect) {
+    if (_aemb.selectOpen) return true;
+    // Menus drop in from above, so the top edge is checked closely as well as a grid over the rest.
+    for (let column = 0; column < 16; column++) {
+        const top = document.elementFromPoint(rect.left + (rect.width * (column + 0.5)) / 16, rect.top + 3);
+        if (top && !pane.contains(top)) return true;
+    }
     const steps = 6;
     for (let row = 0; row < steps; row++) {
         for (let column = 0; column < steps; column++) {

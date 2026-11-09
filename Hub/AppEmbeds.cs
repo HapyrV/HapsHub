@@ -1,7 +1,7 @@
 namespace HapsHub.Core;
 
 public sealed record EmbedApp(string Id, string Name, string ProcessName, string PathKey, string ModeKey, string ResultKey,
-    string? KnownPath, string? SteamFolder);
+    string? KnownPath, string? SteamFolder, bool WebView2);
 
 public sealed record EmbedRect(int X, int Y, int Width, int Height)
 {
@@ -30,6 +30,15 @@ public static class EmbedWindows
     /// <summary>A failed capture comes back as one flat colour. Anything drawn has at least two.</summary>
     public static bool LooksDrawn(IEnumerable<int> samples) => samples.Distinct().Take(2).Count() >= 2;
 
+    /// <summary>
+    /// Chromium stops drawing a window it thinks is covered, and a window held inside another app's window always
+    /// looks covered to it, so it went black. Both apps are Chromium inside (OyasumiVR through WebView2, Eagle through
+    /// Electron), so HapsHub starts them with that check off. The msWeb/msPdf/SmartScreen entries are what Tauri sets
+    /// itself, since this replaces its list.
+    /// </summary>
+    public const string ChromiumArguments =
+        "--disable-features=CalculateNativeWinOcclusion,msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-backgrounding-occluded-windows";
+
     public static string Summary(string mode, IReadOnlyList<EmbedCheck> checks, string when)
     {
         var failed = checks.Where(c => !c.Passed).Select(c => c.Name).ToList();
@@ -51,10 +60,10 @@ public sealed class AppEmbedsModule : IHubModule
     public const string ModeTracked = "tracked";
 
     public static readonly EmbedApp Oyasumi = new("oyasumi", "OyasumiVR", "OyasumiVR",
-        "oyasumi_path", "oyasumi_mode", "oyasumi_result", null, "OyasumiVR");
+        "oyasumi_path", "oyasumi_mode", "oyasumi_result", null, "OyasumiVR", WebView2: true);
 
     public static readonly EmbedApp Eagle = new("eagle", "Eagle", "Eagle",
-        "eagle_path", "eagle_mode", "eagle_result", @"C:\Program Files\Eagle\Eagle.exe", null);
+        "eagle_path", "eagle_mode", "eagle_result", @"C:\Program Files\Eagle\Eagle.exe", null, WebView2: false);
 
     public static IReadOnlyList<EmbedApp> Apps { get; } = new[] { Oyasumi, Eagle };
 
