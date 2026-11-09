@@ -35,6 +35,10 @@ public partial class AppShell
                 _ = Task.Run(() => SendSteamBranch(online: true));
                 return true;
 
+            case "hubScheduleData":
+                _ = Task.Run(SendScheduleData);
+                return true;
+
             case "hubVrcxArchive":
                 var vrcxSource = VrcxHistoryModule.DefaultSource;
                 if (msg["choose"]?.Value<bool>() == true)
@@ -108,6 +112,20 @@ public partial class AppShell
                 }),
             }),
         });
+    }
+
+    private void SendScheduleData()
+    {
+        try
+        {
+            var data = _core.Timeline.ReadScheduleData();
+            Invoke(() => SendToJS("hubSchedule", new { presence = data.Presence, relationships = data.Relationships, self = data.Self, names = data.Names }));
+        }
+        catch (Exception ex)
+        {
+            CrashHandler.WriteEntry("SendScheduleData", ex);
+            Invoke(() => SendToJS("hubSchedule", new { error = "Could not read your history." }));
+        }
     }
 
     private void RunVrcxArchive(string source)

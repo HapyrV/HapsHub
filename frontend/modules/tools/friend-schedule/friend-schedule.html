@@ -1,0 +1,68 @@
+<div class="tab-toolbar fsch-toolbar">
+    <label class="fsch-field"><span data-i18n="hub.schedule.range">Range</span>
+        <select id="fschRange" class="vrcn-dropdown" onchange="fschOptionChanged()">
+            <option value="7">7 days</option>
+            <option value="30" selected>30 days</option>
+            <option value="90">90 days</option>
+            <option value="180">180 days</option>
+            <option value="365">1 year</option>
+            <option value="0">All history</option>
+        </select>
+    </label>
+    <label class="fsch-field"><span data-i18n="hub.schedule.resolution">Detail</span>
+        <select id="fschResolution" class="vrcn-dropdown" onchange="fschOptionChanged()">
+            <option value="15">15 minutes</option>
+            <option value="30" selected>30 minutes</option>
+            <option value="60">1 hour</option>
+        </select>
+    </label>
+    <label class="fsch-field"><span data-i18n="hub.schedule.metric">Show</span>
+        <select id="fschMetric" class="vrcn-dropdown" onchange="fschRender()">
+            <option value="average" selected>Average online</option>
+            <option value="median">Median online</option>
+            <option value="maximum">Maximum online</option>
+            <option value="probability">Chance of the minimum</option>
+        </select>
+    </label>
+    <label class="fsch-field"><span data-i18n="hub.schedule.scope">Friends</span>
+        <select id="fschScope" class="vrcn-dropdown" onchange="fschOptionChanged()">
+            <option value="current" selected>Current friends</option>
+            <option value="favorites">Favorites</option>
+            <option value="former">Former friends</option>
+        </select>
+    </label>
+    <label class="fsch-field"><span data-i18n="hub.schedule.minimum">Minimum online</span>
+        <input id="fschThreshold" class="vrcn-input" type="number" min="1" max="500" value="20" style="width:80px;" onchange="fschOptionChanged()">
+    </label>
+    <label class="fsch-field"><span data-i18n="hub.schedule.timezone">Time zone</span>
+        <input id="fschTimezone" class="vrcn-input" type="text" placeholder="System" style="width:150px;" onchange="fschOptionChanged()">
+    </label>
+    <label class="fsch-field fsch-check"><input id="fschOnlySelf" type="checkbox" onchange="fschOptionChanged()"> <span data-i18n="hub.schedule.only_self">Only while I was online</span></label>
+    <div class="fsch-actions">
+        <button class="vrcn-button-round" id="fschViewBtn" onclick="fschToggleView()"><span data-i18n="hub.schedule.graph">Graph</span></button>
+        <button class="vrcn-button-round" onclick="fschRefresh()"><span data-i18n="common.refresh">Refresh</span></button>
+    </div>
+</div>
+<div class="fsch-page">
+    <div id="fschStatus" class="sf-desc"></div>
+    <div id="fschSummary" class="fsch-summary"></div>
+    <div id="fschChart" class="fsch-chart"></div>
+    <div class="fsch-columns">
+        <div class="vrcn-panel-card">
+            <div class="vrcn-panel-card-header"><span class="msi">group</span> <span id="fschDetailTitle" data-i18n="hub.schedule.selected">Selected period</span></div>
+            <div id="fschDetail" class="sf-desc">Select a period in the chart to see who is usually online.</div>
+        </div>
+        <div class="vrcn-panel-card">
+            <div class="vrcn-panel-card-header"><span class="msi">event_available</span> <span data-i18n="hub.schedule.planner">Best times to meet</span></div>
+            <label class="fsch-field"><span data-i18n="hub.schedule.length">Length</span>
+                <select id="fschMeetHours" class="vrcn-dropdown" onchange="fschRenderPlanner()">
+                    <option value="1">1 hour</option>
+                    <option value="2">2 hours</option>
+                    <option value="3" selected>3 hours</option>
+                    <option value="4">4 hours</option>
+                </select>
+            </label>
+            <div id="fschPlanner" class="sf-desc" style="margin-top:8px;"></div>
+        </div>
+    </div>
+</div>

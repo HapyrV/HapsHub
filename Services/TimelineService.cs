@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 namespace VRCNext.Services;
 
 // persists timeline events to SQLite. incremental writes, auto-migrates from legacy JSON.
-public class TimelineService : IDisposable
+public partial class TimelineService : IDisposable
 {
     public class FriendTimelineEvent
     {

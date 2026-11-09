@@ -265,6 +265,44 @@ try {
         check('VRCX database is untouched', after.mtimeMs === before.mtimeMs && after.size === before.size);
     }
 
+    // Friend Schedule: the real page and worker, fed synthetic history. A friend online Monday 10:00 to 12:00 UTC for four weeks.
+    await main.eval(`showTab(30)`);
+    await waitFor('Friend Schedule page', () => main.eval(`!!document.getElementById('fschChart')`));
+    // Let the page's own load finish first, or its empty answer would replace the test data.
+    await waitFor('Friend Schedule first load', () => main.eval(`typeof _fschResult !== 'undefined' && !!_fschResult`), 60000);
+    await main.eval(`(() => {
+        document.getElementById('fschTimezone').value = 'UTC';
+        document.getElementById('fschScope').value = 'former';
+        const monday = Date.UTC(2026, 10, 2, 10);
+        const week = 7 * 86400000, rows = [], history = [['2026-01-01T00:00:00.000Z', 1, 'usr_a'], ['2026-11-08T00:00:00.000Z', 0, 'usr_a']];
+        for (let w = -3; w <= 0; w++) {
+            rows.push([new Date(monday + w * week).toISOString(), 1, 'usr_a']);
+            rows.push([new Date(monday + w * week + 7200000).toISOString(), 0, 'usr_a']);
+            // Other traffic through the week, so the time counts as recorded rather than a gap.
+            for (let h = 2; h < 168; h += 4) { rows.push([new Date(monday + w * week + h * 3600000).toISOString(), 1, 'usr_b']); rows.push([new Date(monday + w * week + (h + 0.1) * 3600000).toISOString(), 0, 'usr_b']); }
+        }
+        rows.sort((x, y) => x[0] < y[0] ? -1 : 1);
+        window.__fschDone = null;
+        const show = _fschShow;
+        _fschShow = result => { show(result); window.__fschDone = result; };
+        onHubSchedule({ presence: rows, relationships: history, self: [], names: { usr_a: 'Friend A', usr_b: 'Friend B' } });
+    })()`);
+    await waitFor('schedule analysis', () => main.eval(`!!window.__fschDone`), 60000);
+    const schedule = JSON.parse(await main.eval(`(() => {
+        const r = window.__fschDone, slots = r.slotsPerDay;
+        const at = (day, hour) => r.cells[day * slots + hour * 2];
+        const heat = document.querySelectorAll('#fschChart .fsch-cell').length;
+        fschSelectCell(1 * slots + 10 * 2);
+        fschToggleView();
+        const graph = !!document.querySelector('#fschChart svg path');
+        fschToggleView();
+        return JSON.stringify({ monday: at(1, 10).average, tuesday: at(2, 10).average, heat, expected: slots * 7, graph,
+            detail: document.getElementById('fschDetail').innerText, planner: document.getElementById('fschPlanner').innerText });
+    })()`));
+    console.log(`      schedule: Monday 10:00 average ${schedule.monday}, Tuesday 10:00 ${schedule.tuesday}; ${schedule.planner.split('\n')[0]}`);
+    check('Friend Schedule finds the Monday pattern through the worker', schedule.monday > 0.9 && schedule.tuesday < schedule.monday, JSON.stringify(schedule));
+    check('Friend Schedule draws every cell, the graph, details and planner', schedule.heat === schedule.expected && schedule.graph && schedule.detail.includes('Friend A') && schedule.planner.length > 0, JSON.stringify(schedule));
+
     check('main page has no page errors', main.errors.length === 0, main.errors.join(' | '));
     await main.eval(`sendToCS({action:'windowClose'})`);
     check('main page exits cleanly', await closeApp(main, seeded));
