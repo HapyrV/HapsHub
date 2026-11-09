@@ -1,4 +1,4 @@
-// The Friend Schedule engine from VRCX-Friend-Schedule, unchanged apart from the wrapper below.
+// The Friend Schedule engine from VRCX-Friend-Schedule, unchanged apart from the wrapper below and findEarliestTimestamp.
 // Loaded as a script for the page and as a worker for long histories.
 (function () {
 'use strict';
@@ -1130,7 +1130,12 @@ function findEarliestTimestamp(payload) {
     ]
         .map((entry) => parseTimestamp(entry.createdAt || entry.created_at))
         .filter((timestamp) => timestamp !== null);
-    return candidates.length ? Math.min(...candidates) : null;
+    // Not Math.min(...candidates): a long history is too many arguments for a worker's stack.
+    let earliest = null;
+    for (const timestamp of candidates) {
+        if (earliest === null || timestamp < earliest) earliest = timestamp;
+    }
+    return earliest;
 }
 
 function normalizeHourWindow(value, defaultEnabled) {

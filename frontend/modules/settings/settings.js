@@ -1375,6 +1375,7 @@ function renderVrcxPreviewRows(p) {
         [t('settings.vrcx.preview.online_offline', 'Online / Offline'), p.onlineOffline],
         [t('settings.vrcx.preview.status_changes', 'Status changes'), p.statuses],
         [t('settings.vrcx.preview.bio_changes', 'Bio changes'), p.bios],
+        [t('hub.vrcx.preview_friend_log', 'Friends added or removed'), p.friendLog],
     ];
     document.getElementById('vrcxPreviewRows').innerHTML = rows.map(([label, val]) =>
         `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 8px;background:var(--bg-input);border-radius:6px;">

@@ -1169,7 +1169,7 @@ public class TimelineController
             var locations   = Count("SELECT COUNT(*) FROM gamelog_location WHERE world_id != ''");
             var friendTimes = Count("SELECT COUNT(DISTINCT user_id) FROM gamelog_join_leave WHERE type='OnPlayerLeft' AND user_id != '' AND time > 0");
 
-            long feedCount(string suffix)
+            long feedCount(string suffix, string where = "")
             {
                 long total = 0;
                 cmd.CommandText = $"SELECT name FROM sqlite_master WHERE name LIKE '%{suffix}' AND type='table'";
@@ -1177,7 +1177,7 @@ public class TimelineController
                 using (var tr = cmd.ExecuteReader()) while (tr.Read()) tables.Add(tr.GetString(0));
                 foreach (var t in tables)
                 {
-                    cmd.CommandText = $"SELECT COUNT(*) FROM \"{t}\"";
+                    cmd.CommandText = $"SELECT COUNT(*) FROM \"{t}\" {where}";
                     total += Convert.ToInt64(cmd.ExecuteScalar() ?? 0L);
                 }
                 return total;
@@ -1187,6 +1187,7 @@ public class TimelineController
             var onlineOf    = feedCount("_feed_online_offline");
             var statuses    = feedCount("_feed_status");
             var bios        = feedCount("_feed_bio");
+            var friendLog   = feedCount("_friend_log_history", "WHERE type IN ('Friend', 'Unfriend')");
 
             _core.SendToJS("vrcxPreview", new
             {
@@ -1198,6 +1199,7 @@ public class TimelineController
                 onlineOffline = onlineOf,
                 statuses,
                 bios,
+                friendLog,
             });
         }
         catch (Exception ex)
@@ -1414,6 +1416,8 @@ public class TimelineController
                         NewValue   = r.GetString(4), // bio
                         OldValue   = r.GetString(5), // previous_bio
                     }, friendEvents);
+
+                ImportFriendLog(vrcx, prefix, friendEvents);
             }
 
             _core.SendToJS("vrcxImportProgress", new { status = "Generating meet events...", percent = 65 });
@@ -1552,6 +1556,35 @@ public class TimelineController
             cmd.CommandText = $"SELECT * FROM \"{tableName}\"";
             using var r = cmd.ExecuteReader();
             while (r.Read()) target.Add(map(r));
+        }
+        catch { /* table may not exist */ }
+    }
+
+    // Who was added and removed, which is how the schedule knows who used to be a friend.
+    // The ID comes from the event itself, so it still matches if VRCX ever renumbers its rows.
+    private static void ImportFriendLog(SqliteConnection vrcx, string prefix, List<TimelineService.FriendTimelineEvent> target)
+    {
+        try
+        {
+            using var cmd = vrcx.CreateCommand();
+            cmd.CommandText = $@"SELECT created_at, type, user_id, IFNULL(display_name, '')
+                FROM ""{prefix}_friend_log_history""
+                WHERE type IN ('Friend', 'Unfriend') AND IFNULL(user_id, '') <> '' AND IFNULL(created_at, '') <> ''";
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+            {
+                var ts   = r.GetString(0);
+                var type = r.GetString(1);
+                var uid  = r.GetString(2);
+                target.Add(new TimelineService.FriendTimelineEvent
+                {
+                    Id         = "vrcx_fl_" + VrcxHash($"{prefix}|{type}|{uid}|{ts}"),
+                    Type       = type == "Friend" ? "friend_added" : "friend_removed",
+                    Timestamp  = ts,
+                    FriendId   = uid,
+                    FriendName = r.GetString(3),
+                });
+            }
         }
         catch { /* table may not exist */ }
     }
