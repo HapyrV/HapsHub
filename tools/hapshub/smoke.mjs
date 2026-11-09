@@ -158,7 +158,9 @@ try {
     check('setup page exits cleanly', await closeApp(setup, fresh));
 
     // Normal launch: the main page, signed out.
-    writeSettings(seeded, { SetupComplete: true, MinimizeToTray: false });
+    const version = readFileSync(join(ROOT, 'main', 'AppInfo.cs'), 'utf8').match(/Version = "([^"]+)"/)[1];
+    // Marks the changelog as seen, because its modal would cover the page.
+    writeSettings(seeded, { SetupComplete: true, MinimizeToTray: false, LastChangelogVersion: version });
     startApp(seeded);
     const main = await Page.connect('index.html');
     // Scripts load in order and replies sent before the message handler registers are lost,
@@ -193,10 +195,16 @@ try {
     const rows = await main.eval(`JSON.stringify([...document.querySelectorAll('.hub-upstream-row')].map(r => r.innerText.replace(/\\s+/g, ' ').trim()))`);
     console.log(`      ${rows}`);
     check('all three sources report', ['VRCNext', 'VRCX', 'Space Calibrator'].every(name => rows.includes(name)), rows);
+    // GitHub allows 60 anonymous requests an hour, so repeated runs can use them up.
+    // That is reported as not checked, never as a pass; any other error is a failure.
+    if (rows.includes('hourly limit')) console.log('NOT CHECKED  live GitHub results: the hourly limit was reached');
+    else check('live GitHub results have no errors', !/couldn't find|didn't answer|answered \d|expected format/.test(rows), rows);
 
     if (screenshotPath) {
-        await main.eval(`document.getElementById('hubUpstreamList').scrollIntoView({block:'center'})`);
-        await sleep(300);
+        // The splash screen covers the page for a few seconds after load.
+        await sleep(6000);
+        await main.eval(`document.getElementById('hubUpstreamList').scrollIntoView({block:'start'})`);
+        await sleep(500);
         const shot = await main.send('Page.captureScreenshot', { format: 'png' });
         writeFileSync(screenshotPath, Buffer.from(shot.result.data, 'base64'));
     }
