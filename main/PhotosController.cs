@@ -709,6 +709,7 @@ public class PhotosController
 
             _core.PhotoPlayersStore.RecordPhoto(fileName, players, wid);
             _core.PhotoPlayersStore.Save();
+            _core.WriteScreenshotDetails?.Invoke(filePath, selfId, selfName, wid, players.Select(p => (p.userId, p.displayName)).ToList());
 
             // Async: fetch missing images and update record
             _ = Task.Run(async () =>

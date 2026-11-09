@@ -137,6 +137,7 @@ async function closeMain(page, dir) {
     return waitFor('clean exit', () => hubLog(dir).split('Hub stopped.').length > logged, 20000).catch(() => false);
 }
 
+let window_removed = '';
 const dir = mkdtempSync(join(tmpdir(), 'hapshub-features-'));
 const version = readFileSync(join(ROOT, 'main', 'AppInfo.cs'), 'utf8').match(/Version = "([^"]+)"/)[1];
 writeFileSync(join(dir, 'settings.json'), JSON.stringify({ SetupComplete: true, MinimizeToTray: false, LastChangelogVersion: version }));
@@ -166,14 +167,16 @@ try {
 
     await main.eval(`openNavEditor()`);
     await waitFor('nav editor rows', () => main.eval(`document.querySelectorAll('#navEditorList .ne-row[data-key]').length > 10`));
-    // The splash screen covers the page for a few seconds after load.
-    await sleep(6000);
-    const source = await main.eval(`(() => {
+    // The splash screen covers the page for a few seconds after load, and the window may still be settling.
+    const source = await waitFor('the row to be reachable', () => main.eval(`(() => {
         const row = document.querySelector('#navEditorList .ne-row[data-key="friend-schedule"]');
         row.scrollIntoView({ block: 'center' });
         const box = row.querySelector('.ne-handle').getBoundingClientRect();
-        return JSON.stringify({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
-    })()`).then(JSON.parse);
+        const x = box.x + box.width / 2, y = box.y + box.height / 2;
+        const top = document.elementFromPoint(x, y);
+        return top?.closest('.ne-handle') ? JSON.stringify({ x, y }) : '';
+    })()`), 45000).then(JSON.parse);
+    await sleep(300);
     // Like a person would: hold the row at the top of the list until it has scrolled, then drop.
     const listTop = await main.eval(`document.getElementById('navEditorList').getBoundingClientRect().top`);
     await main.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: source.x, y: source.y });
@@ -234,6 +237,36 @@ try {
     check('no crash report', crashes(dir) === 0);
 
     // --- History page, on a seeded archive and timeline ---
+    fuzzy: {
+        main = await openMain(dir);
+        const score = (text, query) => main.eval(`hubSearchScore(${JSON.stringify(text)}, ${JSON.stringify(query)})`);
+        const cases = [
+            ['Mizuki', 'mizuki', 0], ['Ｍｉｚｕｋｉ ♡', 'mizuki', 0], ['𝓜𝓲𝔃𝓾𝓴𝓲', 'mizuki', 0], ['Mіzukі', 'mizuki', 0], ['Mí-zú_ki', 'mizuki', 0],
+            ['Mizuki', 'mizuku', 1], ['Mizuki', 'mizkui', 1], ['Mizuki', 'miuki', 1], ['VRChat Pianist', 'painist', 1], ['Cluelss', 'clueless', 1],
+            ['Mizuki', 'xyz', -1], ['Mizuki', 'mi', 0], ['Mizuki', 'mx', -1], ['Bob', 'Rob', 1], ['Bob', 'zed', -1], ['Alexander', 'zzzzzz', -1], ['', 'abc', -1], ['abc', '', -1], ['日本語の名前', '日本語', 0],
+        ];
+        const wrong = [];
+        for (const [text, query, expected] of cases) {
+            const got = await score(text, query);
+            if (got !== expected) wrong.push(`${text} / ${query}: ${got}, expected ${expected}`);
+        }
+        check('search forgives typos and decorated names, without matching everything', wrong.length === 0, wrong.join('; '));
+        await main.eval(`vrcFriendsData = [{ id: 'usr_1', displayName: 'Ｍｉｚｕｋｉ', status: 'active', location: 'offline' }, { id: 'usr_2', displayName: 'Somebody', status: 'active', location: 'offline' }];`);
+        check('friend search finds a typo and an ID', await main.eval(`hubFriendMatches(vrcFriendsData[0], 'mizuku') && !hubFriendMatches(vrcFriendsData[1], 'mizuku') && hubFriendMatches(vrcFriendsData[1], 'usr_2')`));
+        check('fuzzy search has no page errors', main.errors.length === 0, main.errors.join(' | '));
+
+        // The dashboard layout is upstream's, proved here by using it: remove a widget, save, come back.
+        await main.eval(`showTab(0)`);
+        await waitFor('dashboard', () => main.eval(`document.querySelectorAll('#dashSectionsContainer .dash-section-wrap').length > 3`));
+        const before = JSON.parse(await main.eval(`JSON.stringify(_dashLayout.rows)`));
+        window_removed = before[0].filter(Boolean)[0];
+        await main.eval(`openDashLayoutEditor(); dashEditRemoveWidget(0, 0); dashEditDone();`);
+        const after = JSON.parse(await main.eval(`JSON.stringify(_dashLayout.order)`));
+        check('removing a dashboard widget takes it off the page', !after.includes(window_removed) && await main.eval(`document.querySelector('.dash-section-wrap[data-section="${window_removed}"]').hasAttribute('data-hidden')`), JSON.stringify(after));
+        await sleep(1500); // Settings save a moment after a change.
+        check('app exits cleanly after search', await closeMain(main, dir));
+    }
+
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const at = hours => new Date(today.getTime() + hours * 3600000).toISOString();
     const archive = new DatabaseSync(join(dir, 'Hub', 'vrcx-history.db'));
@@ -257,6 +290,21 @@ try {
     timeline.close();
 
     main = await openMain(dir);
+    await waitFor('saved dashboard layout', () => main.eval(`typeof _dashLayout !== 'undefined'`));
+    check('the dashboard layout survives a restart', !(await main.eval(`_dashLayout.order.includes(${JSON.stringify(window_removed)})`)), window_removed);
+    await main.eval(`openDashLayoutEditor(); dashEditReset(); dashEditDone();`);
+    check('resetting the dashboard brings it back', await main.eval(`_dashLayout.order.includes(${JSON.stringify(window_removed)})`));
+
+    // --- Hub settings: a text setting saves, and a bad proxy address is reported, not fatal ---
+    await main.eval(`showTab(9); hubModulesRefresh();`);
+    await waitFor('proxy setting', () => main.eval(`!!document.querySelector('.hub-setting-text[data-module="hub.proxy"]')`));
+    await main.eval(`(() => { const input = document.querySelector('.hub-setting-text[data-module="hub.proxy"]'); input.value = 'not a proxy'; hubSettingChanged(input); })()`);
+    await waitFor('proxy problem to show', () => main.eval(`document.querySelector('.hub-module-row[data-module="hub.proxy"]').innerText.includes('Proxy address not used')`));
+    await main.eval(`(() => { const input = document.querySelector('.hub-setting-text[data-module="hub.proxy"]'); input.value = ''; hubSettingChanged(input); })()`);
+    await waitFor('proxy problem to clear', () => main.eval(`!document.querySelector('.hub-module-row[data-module="hub.proxy"]').innerText.includes('Proxy address not used')`));
+    check('a bad proxy address is reported and can be cleared', true);
+    check('new modules start with their risky options off', await main.eval(`['hub.crash-rejoin', 'hub.photo-metadata'].every(id => [...document.querySelectorAll('.hub-module-row[data-module="' + id + '"] input[type=checkbox]')].every(i => !i.checked))`));
+
     await main.eval(`showTab(31)`);
     const rowsText = () => main.eval(`document.getElementById('hhistBody')?.innerText || ''`);
     await waitFor('name history rows', async () => (await rowsText()).includes('Old name'));

@@ -1202,6 +1202,10 @@ function openPhotoDetail(target) {
 
     if (x.path) _photoNavCache[x.path] = x;
     if (x.path && !x.remote) requestMediaTags();
+    if (x.path && !x.remote && !x.worldId && !(x.players || []).length && !x._hubMetaAsked) {
+        x._hubMetaAsked = true;
+        sendToCS({ action: 'hubPhotoMetadata', path: x.path });
+    }
 
     _photoState.item = x;
     _photoState.scale = 1;
@@ -2028,4 +2032,14 @@ function confirmDeleteAll() {
 // Clipboard.
 function copyToClipboard(_url, path, type) {
     sendToCS({ action: 'copyImageToClipboard', path });
+}
+
+// A picture HapsHub didn't see being taken can still say where it was and who was there.
+function onHubPhotoMetadata(payload) {
+    if (!payload.found) return;
+    const item = libraryFiles.find(file => file.path === payload.path) || _photoNavCache[payload.path];
+    if (!item) return;
+    item.worldId = payload.worldId || item.worldId;
+    item.players = payload.players || item.players;
+    if (_photoState.item === item && document.querySelector('.photo-detail-box')) openPhotoDetail(item);
 }

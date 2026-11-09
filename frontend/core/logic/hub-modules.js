@@ -19,7 +19,7 @@ function hubSettingChanged(input) {
         action: 'hubSetSetting',
         module: input.dataset.module,
         key: input.dataset.key,
-        value: input.checked ? 'true' : 'false',
+        value: input.type === 'checkbox' ? (input.checked ? 'true' : 'false') : input.value,
     });
 }
 
@@ -34,6 +34,11 @@ function _hubModuleRow(module) {
                 <input type="checkbox" data-module="${esc(module.id)}" data-key="${esc(s.key)}" ${s.value === 'true' ? 'checked' : ''} onchange="hubSettingChanged(this)">
                 <div class="toggle-track"><div class="toggle-knob"></div></div>
             </label>
+        </div>`).join('') + (module.settings || []).filter(s => s.kind === 'Text').map(s => `
+        <div style="margin-top:6px;">
+            <div>${esc(s.label)}</div>
+            <input type="text" class="hub-setting-text" style="width:100%;box-sizing:border-box;margin-top:4px;padding:6px 10px;border-radius:8px;border:1px solid transparent;background:var(--bg-input);color:var(--tx0);"
+                data-module="${esc(module.id)}" data-key="${esc(s.key)}" value="${esc(s.value || '')}" spellcheck="false" onchange="hubSettingChanged(this)">
         </div>`).join('');
     return `<div class="hub-module-row" data-module="${esc(module.id)}" style="margin-top:12px;">
         <div><strong>${esc(module.name)}</strong> <span class="sf-desc"${problem ? ' style="color:var(--err);"' : ''}>${esc(status)}</span></div>

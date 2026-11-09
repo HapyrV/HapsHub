@@ -15,8 +15,88 @@ public partial class AppShell
     {
         if (_historyHooked) return;
         _historyHooked = true;
-        _logWatcher.PortalSpawned += () => RecordPortal("spawn");
+        _logWatcher.PortalSpawned += () =>
+        {
+            RecordPortal("spawn");
+            HubModules.OverlayEvents.Raise(OverlayEventsModule.PortalSpawn, "Portal", "A portal opened in your instance");
+        };
         _logWatcher.PortalUsed += () => RecordPortal("used");
+        HubModules.History.FriendChanged += (userId, name, kind, oldValue, newValue) =>
+        {
+            if (kind == "DisplayName") HubModules.OverlayEvents.Raise(OverlayEventsModule.NameChange, name, $"Was {oldValue}", "", userId);
+            else HubModules.OverlayEvents.Raise(OverlayEventsModule.TrustChange, name, $"{oldValue} to {newValue}", "", userId);
+        };
+        HubModules.OverlayEvents.Show += ShowOverlayEvent;
+    }
+
+    private void ShowOverlayEvent(string title, string text, string image, string friendId)
+    {
+        try
+        {
+            // The overlay's Action Flow type is its one general notice: it's always allowed when notifications are on.
+            var time = DateTime.Now.ToString("HH:mm");
+            _core.VrOverlay?.AddNotification("notif_actionflow", title, text, time, image, friendId, "");
+            _core.VrOverlay?.EnqueueToast("notif_actionflow", title, text, time, image, false, friendId);
+        }
+        catch (Exception ex)
+        {
+            CrashHandler.WriteEntry("ShowOverlayEvent", ex);
+        }
+    }
+
+    // Adds what a screenshot's file knows about itself to the library, for pictures HapsHub didn't see being taken.
+    private void SendPhotoMetadata(string path)
+    {
+        try
+        {
+            var fileName = Path.GetFileName(path);
+            if (!path.EndsWith(".png", StringComparison.OrdinalIgnoreCase) || !File.Exists(path) || _core.PhotoPlayersStore.GetPhotoRecord(fileName) != null)
+            {
+                SendToJS("hubPhotoMetadata", new { path, found = false });
+                return;
+            }
+            var metadata = PngMetadata.Read(path);
+            if (metadata == null)
+            {
+                SendToJS("hubPhotoMetadata", new { path, found = false });
+                return;
+            }
+            var people = metadata.Players.Where(p => p.Id.Length > 0).Select(p => (p.Id, p.Name, "")).ToList();
+            if (people.Count > 0 || metadata.WorldId.Length > 0)
+            {
+                _core.PhotoPlayersStore.RecordPhoto(fileName, people, metadata.WorldId);
+                _core.PhotoPlayersStore.Save();
+            }
+            SendToJS("hubPhotoMetadata", new
+            {
+                path, found = true, worldId = metadata.WorldId,
+                players = people.Select(p => new { userId = p.Item1, displayName = p.Item2, image = "" }),
+            });
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            SendToJS("hubPhotoMetadata", new { path, found = false });
+        }
+    }
+
+    /// <summary>Called once a new screenshot's people are known. The game may still hold the file, so it waits and retries.</summary>
+    internal void WritePhotoMetadata(string path, PhotoMetadata metadata)
+    {
+        if (!HubModules.PhotoMetadata.WriteEnabled || !path.EndsWith(".png", StringComparison.OrdinalIgnoreCase)) return;
+        _ = Task.Run(async () =>
+        {
+            for (var attempt = 0; attempt < 4; attempt++)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2 + attempt * 2));
+                try
+                {
+                    PngMetadata.Write(path, metadata);
+                    return;
+                }
+                catch (IOException) { /* Still in use. */ }
+                catch (UnauthorizedAccessException) { return; }
+            }
+        });
     }
 
     private void RecordPortal(string kind)
@@ -49,6 +129,11 @@ public partial class AppShell
                 var to = msg["to"]?.ToString() ?? "";
                 var day = msg["day"]?.ToString() ?? "";
                 _ = Task.Run(() => SendInstanceVisits(from, to, day));
+                return true;
+
+            case "hubPhotoMetadata":
+                var photoPath = msg["path"]?.ToString() ?? "";
+                _ = Task.Run(() => SendPhotoMetadata(photoPath));
                 return true;
 
             case "hubHistoryAccount":

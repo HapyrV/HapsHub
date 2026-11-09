@@ -426,11 +426,7 @@ function filterFriendsList() {
     }
 
     // Search: filter full vrcFriendsData array, show up to 100 results as a flat list
-    const all = vrcFriendsData.filter(f =>
-        (f.displayName || '').toLowerCase().includes(q) ||
-        (f.username || f.userName || '').toLowerCase().includes(q) ||
-        (f.id || '').toLowerCase().includes(q)
-    );
+    const all = vrcFriendsData.filter(f => hubFriendMatches(f, q));
     const capped = all.slice(0, 100);
 
     if (!capped.length) {

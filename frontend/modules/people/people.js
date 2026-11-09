@@ -758,10 +758,7 @@ function filterAllFriends() {
     if (!el) return;
     const q = (document.getElementById('allFriendSearchInput')?.value || '').toLowerCase();
     let all = q
-        ? vrcFriendsData.filter(f =>
-            (f.displayName || '').toLowerCase().includes(q) ||
-            (f.username || f.userName || '').toLowerCase().includes(q) ||
-            (f.id || '').toLowerCase().includes(q))
+        ? vrcFriendsData.filter(f => hubFriendMatches(f, q))
         : [...vrcFriendsData];
     _updateAllFriendsFilterCounts(all);
     if (_allFriendsStatusFilter !== 'all') all = all.filter(f => _allFriendCategory(f) === _allFriendsStatusFilter);

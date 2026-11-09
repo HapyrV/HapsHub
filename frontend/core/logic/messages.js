@@ -1135,6 +1135,7 @@ case 'vrcNews':
             case 'hubCalendarEvents':    onHubCalendarEvents(payload); break;
             case 'hubVrcxRows':          onHubVrcxRows(payload); break;
             case 'hubHistory':           onHubHistory(payload); break;
+            case 'hubPhotoMetadata':     onHubPhotoMetadata(payload); break;
             case 'hubHistoryInstances':  onHubHistoryInstances(payload); break;
             case 'hubHistoryAccount':    onHubHistoryAccount(payload); break;
             case 'hubNotesExported':     onHubNotesExported(payload); break;

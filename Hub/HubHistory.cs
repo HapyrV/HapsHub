@@ -20,6 +20,9 @@ public sealed class HubHistoryModule : IHubModule
     private HubModuleContext? _context;
     private bool _loaded;
 
+    /// <summary>User ID, name now, "DisplayName" or "TrustLevel", old value, new value.</summary>
+    public event Action<string, string, string, string, string>? FriendChanged;
+
     public string Id => ModuleId;
     public string DisplayName => "History log";
 
@@ -86,10 +89,14 @@ public sealed class HubHistoryModule : IHubModule
     {
         var database = _context?.Database;
         if (database == null || string.IsNullOrEmpty(userId)) return;
+        var changes = new List<(string Kind, string Old, string New, string Name)>();
         try
         {
             lock (_lock)
             {
+                // Friend lists arrive in hundreds, nearly always unchanged.
+                if (_loaded && _known.TryGetValue(userId, out var cached)
+                    && (name.Length == 0 || name == cached.Name) && (trust.Length == 0 || trust == cached.Trust)) return;
                 using var connection = database.OpenConnection();
                 if (!_loaded)
                 {
@@ -107,9 +114,15 @@ public sealed class HubHistoryModule : IHubModule
 
                 using var transaction = connection.BeginTransaction();
                 if (!isNew && was.Name.Length > 0 && nameNow != was.Name)
+                {
                     InsertChange(connection, transaction, userId, nameNow, "DisplayName", was.Name, nameNow);
+                    changes.Add(("DisplayName", was.Name, nameNow, nameNow));
+                }
                 if (!isNew && was.Trust.Length > 0 && trustNow != was.Trust)
+                {
                     InsertChange(connection, transaction, userId, nameNow, "TrustLevel", was.Trust, trustNow);
+                    changes.Add(("TrustLevel", was.Trust, trustNow, nameNow));
+                }
                 using (var save = connection.CreateCommand())
                 {
                     save.Transaction = transaction;
@@ -129,7 +142,9 @@ public sealed class HubHistoryModule : IHubModule
         catch (SqliteException ex)
         {
             _context?.Log($"Could not record a friend change: {ex.Message}");
+            return;
         }
+        foreach (var change in changes) FriendChanged?.Invoke(userId, change.Name, change.Kind, change.Old, change.New);
     }
 
     private static void InsertChange(SqliteConnection connection, SqliteTransaction transaction,

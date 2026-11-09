@@ -3308,6 +3308,7 @@ public class FriendsController
             Type = "friend_added", FriendId = e.UserId, FriendName = fname, FriendImage = fimg,
         };
         _core.Timeline.AddFriendEvent(fev);
+        HubModules.OverlayEvents.Raise(OverlayEventsModule.FriendAdded, fname, "is now your friend", fimg, e.UserId);
         _core.SendToJS("friendTimelineEvent", BuildFriendTimelinePayload(fev));
     }
 
@@ -3339,6 +3340,7 @@ public class FriendsController
             Type = "friend_removed", FriendId = e.UserId, FriendName = fname, FriendImage = fimg,
         };
         _core.Timeline.AddFriendEvent(fev);
+        HubModules.OverlayEvents.Raise(OverlayEventsModule.FriendRemoved, fname, "is no longer your friend", fimg, e.UserId);
         _core.SendToJS("friendTimelineEvent", BuildFriendTimelinePayload(fev));
     }
 

@@ -522,9 +522,17 @@ const SmartSearch = (() => {
         if (!q) return [];
         const out = [];
         for (const section of SECTIONS) {
-            let hits = section.getData().filter(item => section.match(item, q));
+            const data = section.getData();
+            let hits = data.filter(item => section.match(item, q));
             if (section.rank) hits.sort((a, b) => section.rank(a, q) - section.rank(b, q));
-            hits = hits.slice(0, section.max || MAX_PER_SECTION);
+            const max = section.max || MAX_PER_SECTION;
+            if (hits.length < max && typeof hubSearchMatches === 'function') {
+                // Near matches only fill the spare room, after everything that matched exactly.
+                const exact = new Set(hits);
+                const nameOf = item => item.displayName || item.name || item.title || item.label || '';
+                hits = hits.concat(data.filter(item => !exact.has(item) && hubSearchMatches(nameOf(item), q)));
+            }
+            hits = hits.slice(0, max);
             if (hits.length) out.push({ section, hits });
         }
         return out;

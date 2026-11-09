@@ -51,6 +51,8 @@ public class VRChatLogWatcher : IDisposable
     public event Action<string>? ScreenshotTaken;
     public event Action? PortalUsed;
     public event Action? PortalSpawned;
+    /// <summary>VRChat logged a normal exit since you last joined a world. It writes nothing like this when it crashes.</summary>
+    public bool ClosedNormally { get; private set; }
     public event Action<string>? ImageLoadError;
     public event Action? AvatarBlockedPerf;
     public event Action? ConnectionLost;
@@ -543,6 +545,9 @@ public class VRChatLogWatcher : IDisposable
     private void ParseLine(string line, bool catchUp)
     {
         if (line.Length < 30) return;
+
+        if (HapsHub.Core.CrashRejoinModule.IsNormalQuitLine(line)) ClosedNormally = true;
+        else if (line.Contains("Joining wrld_")) ClosedNormally = false;
 
         if (AuthenticatedUserId.Length == 0 && line.Contains("User Authenticated:"))
         {

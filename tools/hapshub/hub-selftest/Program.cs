@@ -860,6 +860,233 @@ await Check("backup: copies a database in use, and a missing or bad target only 
 
 // ---- VRCX history archive ----
 
+await Check("overlay events: a toggle decides, and a portal starts off", async () =>
+{
+    var module = new OverlayEventsModule();
+    var registry = new ModuleRegistry(OpenDb(Fresh("overlay-events")));
+    registry.Register(module);
+    await registry.StartAllAsync();
+    var shown = new List<string>();
+    module.Show += (title, text, image, id) => shown.Add($"{title}|{text}|{id}");
+    module.Raise(OverlayEventsModule.PortalSpawn, "Portal", "opened");
+    Assert(shown.Count == 0, "portals must start off");
+    module.Raise(OverlayEventsModule.FriendAdded, "Ann", "added", "", "usr_a");
+    Assert(shown.SequenceEqual(new[] { "Ann|added|usr_a" }), string.Join(",", shown));
+    registry.SetSetting(OverlayEventsModule.ModuleId, OverlayEventsModule.FriendAdded, "false");
+    module.Raise(OverlayEventsModule.FriendAdded, "Ann", "added");
+    Assert(shown.Count == 1, "a toggle was ignored");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+    module.Raise(OverlayEventsModule.NameChange, "Ann", "x");
+    Assert(shown.Count == 1, "a stopped module must not fire");
+});
+
+await Check("proxy: accepts the kinds .NET can use, refuses the rest, and keeps sign-in out of the address", () =>
+{
+    Assert(HubProxyModule.Parse("").Proxy == null && HubProxyModule.Parse("").Problem == null, "empty");
+    Assert(HubProxyModule.Parse("   ").Problem == null, "spaces");
+    foreach (var good in new[] { "http://127.0.0.1:8080", "https://proxy.test:3128", "socks5://127.0.0.1:1080", "socks4://h:1" })
+        Assert(HubProxyModule.Parse(good).Proxy != null, good);
+    foreach (var bad in new[] { "127.0.0.1:8080x y", "ftp://h:1", "nonsense", "file:///c:/x" })
+        Assert(HubProxyModule.Parse(bad).Proxy == null && HubProxyModule.Parse(bad).Problem != null, bad);
+    var signedIn = HubProxyModule.Parse("http://me:p%40ss@host.test:8080").Proxy!;
+    Assert(signedIn.Address!.ToString() == "http://host.test:8080/", signedIn.Address.ToString());
+    var login = (System.Net.NetworkCredential)signedIn.Credentials!;
+    Assert(login.UserName == "me" && login.Password == "p@ss", "sign-in details are wrong");
+    return Task.CompletedTask;
+});
+
+await Check("proxy: every new HttpClient goes through it, and a bad address leaves things alone", async () =>
+{
+    var original = HttpClient.DefaultProxy;
+    var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+    listener.Start();
+    var port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
+    var seen = new System.Collections.Concurrent.ConcurrentBag<string>();
+    _ = Task.Run(async () =>
+    {
+        try
+        {
+            while (true)
+            {
+                using var client = await listener.AcceptTcpClientAsync();
+                var stream = client.GetStream();
+                var buffer = new byte[2048];
+                var read = await stream.ReadAsync(buffer);
+                seen.Add(System.Text.Encoding.ASCII.GetString(buffer, 0, read).Split('\r')[0]);
+                await stream.WriteAsync(System.Text.Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\nok"));
+            }
+        }
+        catch (Exception) { /* The test is over. */ }
+    });
+
+    var module = new HubProxyModule();
+    var registry = new ModuleRegistry(OpenDb(Fresh("proxy")));
+    registry.Register(module);
+    await registry.StartAllAsync();
+    registry.SetSetting(HubProxyModule.ModuleId, "url", $"http://127.0.0.1:{port}");
+    using (var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) })
+    {
+        var answer = await http.GetStringAsync("http://hapshub-proxy-test.invalid/hello");
+        Assert(answer == "ok", answer);
+    }
+    Assert(seen.Any(line => line.Contains("GET http://hapshub-proxy-test.invalid/hello")), string.Join(" | ", seen));
+
+    registry.SetSetting(HubProxyModule.ModuleId, "url", "not a proxy");
+    Assert(!ReferenceEquals(HttpClient.DefaultProxy, null), "default went missing");
+    Assert(HttpClient.DefaultProxy is not System.Net.WebProxy, "a bad address must not be used");
+    Assert(registry.GetModules().Single(m => m.Id == HubProxyModule.ModuleId).Status == HubModuleStatus.Degraded, "a bad address should show as degraded");
+    registry.SetSetting(HubProxyModule.ModuleId, "url", "");
+    Assert(HttpClient.DefaultProxy is not System.Net.WebProxy, "clearing it must remove it");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+    listener.Stop();
+    HttpClient.DefaultProxy = original;
+});
+
+static byte[] TinyPng(params (string Type, byte[] Data)[] extra)
+{
+    using var stream = new MemoryStream();
+    stream.Write(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 });
+    void Chunk(string type, byte[] data)
+    {
+        var length = BitConverter.GetBytes((uint)data.Length); Array.Reverse(length);
+        stream.Write(length);
+        var body = System.Text.Encoding.ASCII.GetBytes(type).Concat(data).ToArray();
+        stream.Write(body);
+        uint c = 0xFFFFFFFF;
+        foreach (var b in body) { c ^= b; for (var k = 0; k < 8; k++) c = (c & 1) != 0 ? 0xEDB88320 ^ (c >> 1) : c >> 1; }
+        var crc = BitConverter.GetBytes(c ^ 0xFFFFFFFF); Array.Reverse(crc);
+        stream.Write(crc);
+    }
+    Chunk("IHDR", new byte[] { 0, 0, 0, 1, 0, 0, 0, 1, 8, 2, 0, 0, 0 });
+    foreach (var (type, data) in extra) Chunk(type, data);
+    Chunk("IDAT", new byte[] { 120, 156, 99, 248, 207, 192, 0, 0, 3, 1, 1, 0 });
+    Chunk("IEND", Array.Empty<byte>());
+    return stream.ToArray();
+}
+
+static byte[] TextEntry(string keyword, string text) =>
+    System.Text.Encoding.Latin1.GetBytes(keyword).Concat(new byte[] { 0, 0, 0, 0, 0 }).Concat(System.Text.Encoding.UTF8.GetBytes(text)).ToArray();
+
+await Check("screenshot details: a write can be read back, keeps the picture and its dates", () =>
+{
+    var path = Path.Combine(Fresh("png-write"), "VRChat_test.png");
+    var original = TinyPng();
+    File.WriteAllBytes(path, original);
+    var date = new DateTime(2024, 5, 6, 7, 8, 9, DateTimeKind.Utc);
+    File.SetLastWriteTimeUtc(path, date);
+    File.SetCreationTimeUtc(path, date);
+    var metadata = new PhotoMetadata("HapsHub", "usr_me", "Mé", "wrld_1", "A World ♡", "wrld_1:9", new[] { new PhotoPerson("usr_a", "Ann"), new PhotoPerson("usr_b", "日本語") });
+    Assert(PngMetadata.Write(path, metadata), "the write was refused");
+    var back = PngMetadata.Read(path)!;
+    Assert(back.WorldId == "wrld_1" && back.WorldName == "A World ♡" && back.Location == "wrld_1:9", "world is wrong");
+    Assert(back.AuthorName == "Mé" && back.Players.Count == 2 && back.Players[1].Name == "日本語", "people are wrong");
+    Assert(File.GetLastWriteTimeUtc(path) == date && File.GetCreationTimeUtc(path) == date, "the dates changed");
+    var written = File.ReadAllBytes(path);
+    Assert(written.AsSpan(0, 33).SequenceEqual(original.AsSpan(0, 33)), "the header changed");
+    Assert(written.AsSpan(written.Length - (original.Length - 33)).SequenceEqual(original.AsSpan(33)), "the picture data changed");
+    Assert(!PngMetadata.Write(path, metadata), "a second write must not stack up");
+    Assert(File.ReadAllBytes(path).SequenceEqual(written), "a refused write changed the file");
+    return Task.CompletedTask;
+});
+
+await Check("screenshot details: another app's details are kept, and bad files are left alone", () =>
+{
+    var dir = Fresh("png-refuse");
+    var metadata = new PhotoMetadata("HapsHub", "usr_me", "Me", "wrld_1", "W", "", Array.Empty<PhotoPerson>());
+    var vrcxJson = "{\"application\":\"VRCX\",\"author\":{\"id\":\"usr_x\",\"displayName\":\"X\"},\"world\":{\"name\":\"Old\",\"id\":\"wrld_old\",\"instanceId\":\"wrld_old:1\"},\"players\":[{\"id\":\"usr_p\",\"displayName\":\"P\"}]}";
+    var vrcx = Path.Combine(dir, "vrcx.png");
+    File.WriteAllBytes(vrcx, TinyPng(("iTXt", TextEntry("Description", vrcxJson))));
+    var before = File.ReadAllBytes(vrcx);
+    Assert(!PngMetadata.Write(vrcx, metadata) && File.ReadAllBytes(vrcx).SequenceEqual(before), "another app's details were replaced");
+    var read = PngMetadata.Read(vrcx)!;
+    Assert(read.Application == "VRCX" && read.WorldId == "wrld_old" && read.Players.Single().Id == "usr_p", "VRCX's details weren't read");
+
+    var notPng = Path.Combine(dir, "not.png");
+    File.WriteAllBytes(notPng, new byte[] { 1, 2, 3, 4 });
+    Assert(!PngMetadata.Write(notPng, metadata) && PngMetadata.Read(notPng) == null, "not a PNG");
+    var cut = Path.Combine(dir, "cut.png");
+    File.WriteAllBytes(cut, TinyPng().Take(40).ToArray());
+    Assert(!PngMetadata.Write(cut, metadata), "a cut-off file must be left alone");
+    Assert(File.ReadAllBytes(cut).Length == 40, "a cut-off file was changed");
+    Assert(PngMetadata.Read(cut) == null, "a cut-off file has no details");
+
+    var noTrust = Path.Combine(dir, "lying.png");
+    var lying = TinyPng();
+    lying[33] = 0x7F; // The next chunk now claims to be enormous.
+    File.WriteAllBytes(noTrust, lying);
+    Assert(PngMetadata.Read(noTrust) == null, "a false length must not be followed");
+    return Task.CompletedTask;
+});
+
+await Check("screenshot details: reads VRChat's own details, and old text and compressed entries", () =>
+{
+    var dir = Fresh("png-xmp");
+    var xmp = "<x:xmpmeta><rdf:Description><xmp:Author>Me &amp; Co</xmp:Author><vrc:WorldID>wrld_v</vrc:WorldID><vrc:WorldDisplayName>Vee</vrc:WorldDisplayName><vrc:AuthorID>usr_v</vrc:AuthorID></rdf:Description></x:xmpmeta>";
+    var path = Path.Combine(dir, "vrchat.png");
+    File.WriteAllBytes(path, TinyPng(("iTXt", TextEntry("XML:com.adobe.xmp", xmp))));
+    var read = PngMetadata.Read(path)!;
+    Assert(read.Application == "VRChat" && read.WorldId == "wrld_v" && read.WorldName == "Vee" && read.AuthorId == "usr_v" && read.AuthorName == "Me & Co", "XMP is wrong");
+    Assert(PngMetadata.Write(path, new PhotoMetadata("HapsHub", "usr_me", "Me", "wrld_h", "H", "", Array.Empty<PhotoPerson>())), "VRChat's details shouldn't block ours");
+    Assert(PngMetadata.Read(path)!.WorldId == "wrld_h", "ours should read first");
+    Assert(PngMetadata.ReadTexts(path).ContainsKey("XML:com.adobe.xmp"), "VRChat's details must stay");
+
+    var old = Path.Combine(dir, "old.png");
+    File.WriteAllBytes(old, TinyPng(("tEXt", System.Text.Encoding.Latin1.GetBytes("Title\0Hello"))));
+    Assert(PngMetadata.ReadTexts(old)["Title"] == "Hello" && PngMetadata.Read(old) == null, "plain text entries");
+
+    using var packed = new MemoryStream();
+    using (var zlib = new System.IO.Compression.ZLibStream(packed, System.IO.Compression.CompressionLevel.Optimal, true))
+        zlib.Write(System.Text.Encoding.UTF8.GetBytes("{\"world\":{\"id\":\"wrld_z\"}}"));
+    var compressed = System.Text.Encoding.Latin1.GetBytes("Description").Concat(new byte[] { 0, 1, 0, 0, 0 }).Concat(packed.ToArray()).ToArray();
+    var zip = Path.Combine(dir, "zip.png");
+    File.WriteAllBytes(zip, TinyPng(("iTXt", compressed)));
+    Assert(PngMetadata.Read(zip)!.WorldId == "wrld_z", "compressed entry");
+    return Task.CompletedTask;
+});
+
+await Check("crash rejoin: only a crash from a real instance reopens VRChat", () =>
+{
+    const string place = "wrld_abc:123~region(eu)";
+    var now = new DateTime(2026, 11, 9, 12, 0, 0, DateTimeKind.Utc);
+    var longAgo = now.AddHours(-1);
+    CrashRejoinDecision Run(bool enabled = true, bool normal = false, string? location = place, DateTime? last = null, bool vr = false, bool steamVr = false) =>
+        CrashRejoinModule.Decide(enabled, normal, location, last ?? longAgo, now, vr, steamVr);
+
+    Assert(Run() == CrashRejoinDecision.Rejoin, "desktop crash");
+    Assert(Run(vr: true, steamVr: true) == CrashRejoinDecision.Rejoin, "VR crash with SteamVR still open");
+    Assert(Run(enabled: false) == CrashRejoinDecision.Off, "off must do nothing");
+    Assert(Run(normal: true) == CrashRejoinDecision.QuitNormally, "a normal quit");
+    Assert(Run(vr: true, steamVr: false) == CrashRejoinDecision.SteamVrClosedToo, "SteamVR closed too");
+    Assert(Run(last: now.AddSeconds(-119)) == CrashRejoinDecision.TooSoon, "a crash loop");
+    Assert(Run(last: now.AddSeconds(-121)) == CrashRejoinDecision.Rejoin, "after the guard");
+    foreach (var bad in new[] { null, "", "offline", "private", "traveling", "wrld_noinstance", "local:abc" })
+        Assert(Run(location: bad) == CrashRejoinDecision.NotInAnInstance, $"not an instance: {bad}");
+    return Task.CompletedTask;
+});
+
+await Check("crash rejoin: recognises the log's normal exit lines, old and new", () =>
+{
+    Assert(CrashRejoinModule.IsNormalQuitLine("2022.06.12 01:51:46 Log        -  VRCApplication: OnApplicationQuit at 1603.499"), "old line");
+    Assert(CrashRejoinModule.IsNormalQuitLine("2024.10.23 21:18:34 Log        -  VRCApplication: HandleApplicationQuit at 936.5161"), "new line");
+    Assert(!CrashRejoinModule.IsNormalQuitLine("2024.10.23 21:18:34 Log        -  [Behaviour] Joining wrld_abc"), "other line");
+    return Task.CompletedTask;
+});
+
+await Check("crash rejoin: it is off until you turn it on, and a loop is held back", async () =>
+{
+    var module = new CrashRejoinModule();
+    var registry = new ModuleRegistry(OpenDb(Fresh("crash-rejoin")));
+    registry.Register(module);
+    await registry.StartAllAsync();
+    Assert(!module.Enabled, "must default to off");
+    Assert(module.DecideNow(false, "wrld_a:1", false, false) == CrashRejoinDecision.Off, "off");
+    registry.SetSetting(CrashRejoinModule.ModuleId, "rejoin", "true");
+    Assert(module.Enabled, "the toggle didn't reach the module");
+    Assert(module.DecideNow(false, "wrld_a:1", false, false) == CrashRejoinDecision.Rejoin, "first crash");
+    Assert(module.DecideNow(false, "wrld_a:1", false, false) == CrashRejoinDecision.TooSoon, "second crash straight after");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
 async Task<(HubHistoryModule Module, ModuleRegistry Registry)> StartHistory(HubDatabase db)
 {
     var module = new HubHistoryModule();
