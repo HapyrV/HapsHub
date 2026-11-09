@@ -357,6 +357,48 @@ try {
     text = await rowsText();
     check('a purchase draws with its price and state', text.includes('A thing') && text.includes('1,200 V') && text.includes('Not active'), text);
 
+    // --- Group tools: signed out, so nothing here can reach VRChat ---
+    const banBoxText = () => main.eval(`document.getElementById('gdBanImport')?.innerText || ''`);
+    await main.eval(`(() => {
+        window._gbiTestPrevious = window._currentGroupDetail;
+        window._currentGroupDetail = { id: 'grp_test' };
+        const box = document.createElement('div');
+        box.innerHTML = _buildBanImport() + '<div id="gdBannedList"></div>';
+        box.id = 'gbiTestHost';
+        document.body.appendChild(box);
+    })()`);
+    check('the ban import starts closed', (await banBoxText()).toLowerCase().includes('import bans'), await banBoxText());
+    await main.eval(`gbiOpen(); _gbi.text = 'x,usr_11111111-1111-1111-1111-111111111111,usr_11111111-1111-1111-1111-111111111111 usr_22222222-2222-2222-2222-222222222222'; gbiCheck()`);
+    await waitFor('the ban preview', async () => (await main.eval(`document.querySelectorAll('.gbi-person').length`)) === 2, 15000);
+    check('the ban preview lists each person once', (await banBoxText()).includes('usr_22222222-2222-2222-2222-222222222222'), await banBoxText());
+    await main.eval(`gbiConfirm()`);
+    check('banning asks for confirmation first', await main.eval(`_gbi.stage === 'preview' && !!document.getElementById('vrcnConfirmDeleteModalOk')`));
+    await main.eval(`document.getElementById('vrcnConfirmDeleteModalOk').click()`);
+    await waitFor('the signed-out run to stop', () => main.eval(`_gbi.stage === 'done' && _gbi.result?.stopped === 'signed_out'`), 10000);
+    check('a run when signed out stops without banning anyone', await main.eval(`_gbi.result.done === 0 && _gbi.result.notTried === 2`));
+    await main.eval(`sendToCS({ action: 'hubGroupBanRun', groupId: 'grp_test' }); gbiClose()`);
+    await main.eval(`_gbi = { groupId: 'grp_test', stage: 'preview', text: '', preview: { people: [{ id: 'usr_a', name: '<b>Odd</b>' }], alreadyBanned: 2, skippedSelf: true, overLimit: 0 }, progress: null, result: null }; _gbiRender()`);
+    text = await banBoxText();
+    check('a name in the ban preview draws safely, and what was left out is named', text.includes('<b>Odd</b>') && text.includes('2 already banned'), text);
+    await main.eval(`openBlockedGroups()`);
+    await waitFor('the signed-out blocked list', async () => (await main.eval(`document.getElementById('blockedGroupsList')?.innerText || ''`)).includes('could not be loaded'));
+    check('blocked groups explains itself when signed out', true);
+    await main.eval(`onHubBlockedGroups({ ok: true, groups: [{ id: 'grp_a', name: '<i>A group</i>', shortCode: 'AB', discriminator: '1234', memberCount: 3, iconUrl: '' }] })`);
+    text = await main.eval(`document.getElementById('blockedGroupsList').innerText`);
+    check('a blocked group draws safely with its code', text.includes('<i>A group</i>') && text.includes('AB.1234') && text.includes('Unblock'), text);
+    await main.eval(`onHubBlockedGroups({ ok: true, groups: [] })`);
+    check('an empty blocked list says so', (await main.eval(`document.getElementById('blockedGroupsList').innerText`)).includes('not blocked'));
+    const wideGroupIcons = JSON.parse(await main.eval(`(() => {
+        const probe = document.createElement('div');
+        probe.innerHTML = ['block', 'gavel', 'upload', 'refresh', 'arrow_back', 'search', 'close'].map(name => '<span class="msi" style="font-size:16px;">' + name + '</span>').join('');
+        document.body.appendChild(probe);
+        const wide = [...probe.children].filter(icon => icon.getBoundingClientRect().width > 24).map(icon => icon.textContent);
+        probe.remove();
+        return JSON.stringify(wide);
+    })()`));
+    check('every group tool icon exists in the icon font', wideGroupIcons.length === 0, wideGroupIcons.join(', '));
+    await main.eval(`document.getElementById('blockedGroupsModal')?.remove(); document.getElementById('gbiTestHost')?.remove(); window._currentGroupDetail = window._gbiTestPrevious; gbiClose()`);
+
     // --- Settings: letter spacing reaches the page and survives being redrawn ---
     await main.eval(`sendToCS({ action: 'hubSetSetting', module: 'hub.ui', key: 'letter_spacing', value: '1.5' })`);
     await waitFor('letter spacing to apply', () => main.eval(`document.body.style.letterSpacing === '1.5px'`));

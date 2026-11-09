@@ -379,15 +379,27 @@ public class GroupsAPI(VRChatApiService ctx)
 
     public async Task<JArray> GetGroupBansAsync(string groupId)
     {
-        if (!ctx.IsLoggedIn) return new JArray();
+        var all = new JArray();
+        if (!ctx.IsLoggedIn) return all;
         try
         {
-            var resp = await ctx._http.GetAsync($"{VRChatApiService.BASE}/groups/{groupId}/bans");
-            if (resp.IsSuccessStatusCode) return JArray.Parse(await resp.Content.ReadAsStringAsync());
-            ctx.Log($"GetGroupBans({groupId}): {(int)resp.StatusCode}");
+            // The list is paged, and a ban import needs all of it to skip people already banned.
+            const int pageSize = 100;
+            for (var offset = 0; offset < 10000; offset += pageSize)
+            {
+                var resp = await ctx._http.GetAsync($"{VRChatApiService.BASE}/groups/{groupId}/bans?n={pageSize}&offset={offset}");
+                if (!resp.IsSuccessStatusCode)
+                {
+                    ctx.Log($"GetGroupBans({groupId}): {(int)resp.StatusCode}");
+                    break;
+                }
+                var page = JArray.Parse(await resp.Content.ReadAsStringAsync());
+                foreach (var ban in page) all.Add(ban);
+                if (page.Count < pageSize) break;
+            }
         }
         catch (Exception ex) { ctx.Log($"GetGroupBans exception: {ex.Message}"); }
-        return new JArray();
+        return all;
     }
 
     public async Task<bool> UnbanGroupMemberAsync(string groupId, string userId)

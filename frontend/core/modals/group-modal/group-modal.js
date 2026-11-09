@@ -83,6 +83,11 @@ function _gdMoreDropdown(g, gidJs) {
     if ((g.roles || []).length) {
         items.push({ icon: 'shield', label: t('groups.roles.show', 'Show Roles'), onclick: `openGroupRolesModal('${gidJs}')` });
     }
+    if (!g.isJoined && _groupBlockStatus(g) === 'userblocked') {
+        items.push({ icon: 'block', label: t('hub.groups.unblock', 'Unblock'), onclick: `sendToCS({action:'hubUnblockGroup',groupId:'${gidJs}'})` });
+    } else if (!g.isJoined) {
+        items.push({ icon: 'block', label: t('hub.groups.block', 'Block group'), onclick: `confirmBlockGroup('${gidJs}','${jsq(g.name || '')}')` });
+    }
     return items.length ? { label: t('common.more', 'More'), dropdown: items } : null;
 }
 
@@ -1885,7 +1890,7 @@ function onGroupRoleResult(payload) {
    ============================================================ */
 
 function _buildBannedTab() {
-    return `<div id="gdBannedList">${renderGroupEmptyMessage('common.loading', 'Loading...')}</div>`;
+    return `${_buildBanImport()}<div id="gdBannedList">${renderGroupEmptyMessage('common.loading', 'Loading...')}</div>`;
 }
 
 // Audit Logs (group-audit-view)

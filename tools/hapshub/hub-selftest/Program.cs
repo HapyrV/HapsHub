@@ -1118,6 +1118,87 @@ await Check("history: the first sighting of a friend isn't a change, later ones 
     await registry.StopAllAsync(TimeSpan.FromSeconds(5));
 });
 
+const string BanA = "usr_11111111-1111-1111-1111-111111111111";
+const string BanB = "usr_22222222-2222-2222-2222-222222222222";
+const string BanC = "usr_33333333-3333-3333-3333-333333333333";
+
+await Check("group bans: finds each ID once in any text, ignoring everything else", () =>
+{
+    var ids = GroupBanImport.Parse($"name,id\nOne,{BanA}\n{BanB.ToUpperInvariant()}; again {BanA}\nusr_short not-an-id");
+    Assert(ids.SequenceEqual(new[] { BanA, BanB }), $"got {string.Join(",", ids)}");
+    Assert(GroupBanImport.Parse(null).Count == 0 && GroupBanImport.Parse("nothing here").Count == 0, "found IDs in empty text");
+    return Task.CompletedTask;
+});
+
+await Check("group bans: the plan leaves out you and people already banned, and caps a run", () =>
+{
+    var plan = GroupBanImport.Plan(new[] { BanA, BanB, BanC }, new[] { BanB.ToUpperInvariant() }, BanC);
+    Assert(plan.ToBan.SequenceEqual(new[] { BanA }), "the plan kept the wrong people");
+    Assert(plan.AlreadyBanned == 1 && plan.SkippedSelf && plan.OverLimit == 0, "the plan counted wrongly");
+    var many = Enumerable.Range(0, GroupBanImport.MaxPerRun + 7).Select(i => $"usr_{i}").ToList();
+    var capped = GroupBanImport.Plan(many, Array.Empty<string>(), null);
+    Assert(capped.ToBan.Count == GroupBanImport.MaxPerRun && capped.OverLimit == 7, "the run wasn't capped");
+    return Task.CompletedTask;
+});
+
+await Check("group bans: a run does each person once and reports progress", async () =>
+{
+    var called = new List<string>();
+    var seen = new List<(int, int)>();
+    var result = await GroupBanImport.RunAsync(new[] { BanA, BanB, BanC },
+        (id, _) => { called.Add(id); return Task.FromResult(id == BanB ? BanOutcome.Failed : BanOutcome.Done); },
+        TimeSpan.Zero, (done, total) => seen.Add((done, total)));
+    Assert(called.SequenceEqual(new[] { BanA, BanB, BanC }), "people were skipped or repeated");
+    Assert(result.Done.SequenceEqual(new[] { BanA, BanC }) && result.Failed.SequenceEqual(new[] { BanB }), "results are wrong");
+    Assert(result.NotTried == 0 && result.StoppedBecause == "", "a finished run reported a stop");
+    Assert(seen.Count == 3 && seen[^1] == (3, 3), "progress is wrong");
+});
+
+await Check("group bans: being rate limited stops the run at once and doesn't count that person", async () =>
+{
+    var calls = 0;
+    var result = await GroupBanImport.RunAsync(new[] { BanA, BanB, BanC },
+        (_, _) => Task.FromResult(++calls == 2 ? BanOutcome.RateLimited : BanOutcome.Done), TimeSpan.Zero);
+    Assert(calls == 2, $"it carried on after the limit, {calls} calls");
+    Assert(result.StoppedBecause == GroupBanImport.StoppedRateLimited, "the reason is wrong");
+    Assert(result.Done.Count == 1 && result.Failed.Count == 0 && result.NotTried == 2, "the counts are wrong");
+});
+
+await Check("group bans: repeated failures stop the run, one failure doesn't", async () =>
+{
+    var ids = Enumerable.Range(0, 10).Select(i => $"usr_{i}").ToList();
+    var calls = 0;
+    var result = await GroupBanImport.RunAsync(ids, (_, _) => { calls++; return Task.FromResult(BanOutcome.Failed); }, TimeSpan.Zero);
+    Assert(calls == GroupBanImport.MaxFailuresInARow, $"{calls} calls before stopping");
+    Assert(result.StoppedBecause == GroupBanImport.StoppedFailures && result.NotTried == 7, "the stop is wrong");
+});
+
+await Check("group bans: a network error counts as one failure and keeps who was already done", async () =>
+{
+    var calls = 0;
+    var result = await GroupBanImport.RunAsync(new[] { BanA, BanB, BanC }, (_, _) =>
+    {
+        if (++calls == 2) throw new HttpRequestException("connection dropped");
+        return Task.FromResult(BanOutcome.Done);
+    }, TimeSpan.Zero);
+    Assert(result.Done.SequenceEqual(new[] { BanA, BanC }) && result.Failed.SequenceEqual(new[] { BanB }), "the record is wrong");
+    Assert(result.NotTried == 0 && result.StoppedBecause == "", "one error stopped the run");
+    var timedOut = await GroupBanImport.RunAsync(new[] { BanA },
+        (_, _) => throw new TaskCanceledException("timeout"), TimeSpan.Zero);
+    Assert(timedOut.Failed.Count == 1 && timedOut.StoppedBecause == "", "a timeout was taken for the user stopping it");
+});
+
+await Check("group bans: stopping during the pause leaves the rest untouched", async () =>
+{
+    using var cancel = new CancellationTokenSource();
+    var calls = 0;
+    var result = await GroupBanImport.RunAsync(new[] { BanA, BanB, BanC },
+        (_, _) => { calls++; cancel.Cancel(); return Task.FromResult(BanOutcome.Done); },
+        TimeSpan.FromSeconds(30), null, cancel.Token);
+    Assert(calls == 1 && result.StoppedBecause == GroupBanImport.StoppedCancelled, "it didn't stop");
+    Assert(result.Done.Count == 1 && result.NotTried == 2, "the counts are wrong");
+});
+
 await Check("history: a friend first seen without a name or trust doesn't stop the rest of the list", async () =>
 {
     var (module, registry) = await NewHistory("history-no-tags");

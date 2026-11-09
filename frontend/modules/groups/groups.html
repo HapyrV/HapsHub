@@ -7,6 +7,7 @@
                         <button class="vrcn-button sub-tab-btn" id="groupFilterSearch" onclick="setGroupFilter('search')"><span class="msi" style="font-size:16px;">search</span> <span data-i18n="common.search">Search</span></button>
                     </div>
                     <div style="display:flex;gap:6px;align-items:center;margin-left:auto;flex-shrink:0;">
+                        <button id="groupBlockedBtn" class="vrcn-button" onclick="openBlockedGroups()" title="Blocked groups" data-i18n-title="hub.groups.blocked"><span class="msi" style="font-size:16px;">block</span></button>
                         <button id="groupEditModeBtn" class="vrcn-button" onclick="toggleGroupEditMode()" title="Edit groups" data-i18n-title="groups.edit.button"><span class="msi" style="font-size:16px;">edit</span> <span data-i18n="groups.edit.button">Edit</span></button>
                         <button id="groupsRefreshBtn" class="vrcn-button" onclick="refreshGroups()" title="Refresh my groups" data-i18n-title="groups.mine.refresh_title"><span class="msi" style="font-size:16px;">refresh</span></button>
                         <button class="vrcn-button sub-tab-btn active" id="groupGridLarge" onclick="setGridSize('groups','default');setGroupsViewMode('grid')" title="Large grid"><span class="msi" style="font-size:16px;">grid_on</span></button>
