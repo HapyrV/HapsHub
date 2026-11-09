@@ -4253,5 +4253,9 @@
   "hub.ovras.saved": "Gespeichert. OVR Advanced Settings verwendet das beim nächsten Start.",
   "nav.spacecal": "Space Calibrator",
   "nav.vrct": "VRCT",
-  "nav.ovrtoolkit": "OVR Toolkit"
+  "nav.ovrtoolkit": "OVR Toolkit",
+  "hub.set.hub.app-embeds.on_exit": "Wenn HapsHub schließt, werden Apps in seinen Seiten",
+  "hub.set.hub.app-embeds.on_exit.minimize": "minimiert",
+  "hub.set.hub.app-embeds.on_exit.close": "ebenfalls geschlossen",
+  "hub.set.hub.app-embeds.on_exit.leave": "offen gelassen"
 }

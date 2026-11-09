@@ -281,9 +281,13 @@ try {
     archive.close();
     const timeline = new DatabaseSync(join(dir, 'VRCNData.db'));
     const addVisit = timeline.prepare(`INSERT INTO events (id, type, timestamp, world_id, world_name, location, left_at) VALUES (?, 'instance_join', ?, ?, ?, ?, ?)`);
-    addVisit.run('visit1', at(1), 'wrld_a', 'First World', 'wrld_a:1', at(3));
-    addVisit.run('visit2', at(3), 'wrld_b', 'Second World', 'wrld_b:2', at(4));
-    addVisit.run('visit3', at(5), 'wrld_a', 'First World', 'wrld_a:3', null);
+    // Before six in the morning these visits would lie ahead of the clock, and a visit that hasn't started isn't drawn.
+    // Then they go two days back, and the chart is turned to that day further down.
+    const earlyHours = new Date().getHours() < 6;
+    const visitAt = hours => at(hours - (earlyHours ? 48 : 0));
+    addVisit.run('visit1', visitAt(1), 'wrld_a', 'First World', 'wrld_a:1', visitAt(3));
+    addVisit.run('visit2', visitAt(3), 'wrld_b', 'Second World', 'wrld_b:2', visitAt(4));
+    addVisit.run('visit3', visitAt(5), 'wrld_a', 'First World', 'wrld_a:3', null);
     addVisit.run('other_day', at(-20), 'wrld_c', 'Yesterday World', 'wrld_c:1', at(-19));
     timeline.prepare(`INSERT INTO event_players (event_id, user_id, display_name) VALUES ('visit1', 'usr_p', 'P')`).run();
     timeline.close();
@@ -391,6 +395,7 @@ try {
     await main.eval(`document.getElementById('hhistSearch').value = 'bee'; hhistSearchChanged();`);
 
     await main.eval(`hhistShow('instances')`);
+    if (earlyHours) await main.eval(`hhistDayStep(-1); hhistDayStep(-1);`);
     await waitFor('instance chart', () => main.eval(`document.querySelectorAll('.hhist-lane').length > 0`));
     const chart = JSON.parse(await main.eval(`JSON.stringify([...document.querySelectorAll('.hhist-lane')].map(lane => ({
         name: lane.querySelector('.hhist-lane-name').textContent,
@@ -401,11 +406,11 @@ try {
     check('a visit is placed at the right time of day', firstBar && Math.abs(firstBar.left - 100 / 24) < 0.2 && Math.abs(firstBar.width - 200 / 24) < 0.2, JSON.stringify(firstBar));
     check('a visit with no end is marked', chart[0]?.bars[1]?.open === true, JSON.stringify(chart[0]));
     check('a visit shows how many people were seen', firstBar?.title.includes('1 people'), firstBar?.title);
-    await main.eval(`hhistDayStep(-1)`);
+    await main.eval(earlyHours ? `hhistDayStep(1)` : `hhistDayStep(-1)`);
     await waitFor('previous day', async () => (await main.eval(`document.getElementById('hhistBody').innerText`)).includes('Yesterday World'), 6000)
         .catch(async error => { throw new Error(`${error.message}; day ${await main.eval(`document.getElementById('hhistDay').value`)}; body: ${await main.eval(`document.getElementById('hhistBody').innerText`)}`); });
     check('the chart moves between days', true);
-    await main.eval(`hhistDayStep(1)`);
+    await main.eval(earlyHours ? `hhistDayStep(-1)` : `hhistDayStep(1)`);
 
     await main.eval(`hhistShow('purchases')`);
     await waitFor('signed-out purchases message', async () => (await rowsText()).includes('Sign in'));

@@ -20,6 +20,7 @@ public sealed class AppEmbedHost : IDisposable
 {
     private static readonly TimeSpan StartLimit = TimeSpan.FromSeconds(45);
     private static readonly TimeSpan HungLimit = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan NudgeAfter = TimeSpan.FromSeconds(8);
     private const int TickMs = 100;
 
     private sealed class Slot(EmbedApp app)
@@ -45,6 +46,8 @@ public sealed class AppEmbedHost : IDisposable
         public bool Testing;
         /// <summary>A copy that was already running was started without HapsHub's drawing fix.</summary>
         public bool StartedHere;
+        /// <summary>When a running copy with no window gets started again, which makes it show its window. Null once done.</summary>
+        public DateTime? NudgeAt;
     }
 
     private readonly BlockingCollection<Action> _work = new();
@@ -82,24 +85,31 @@ public sealed class AppEmbedHost : IDisposable
         // Reuses a running copy, and only starts one when there is none. Eagle keeps a single copy anyway.
         var running = Process.GetProcessesByName(app.ProcessName).Select(p => { using (p) return p.Id; }).ToList();
         slot.StartedHere = running.Count == 0 || running.Any(_launched.Contains);
-        if (running.Count == 0)
-        {
-            try
-            {
-                var start = new ProcessStartInfo(exe) { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(exe) ?? "" };
-                if (app.Chromium == EmbedApp.WebView2) start.Environment["WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS"] = EmbedWindows.ChromiumArguments;
-                else if (app.Chromium == EmbedApp.Electron) start.Arguments = EmbedWindows.ChromiumArguments;
-                using var started = Process.Start(start);
-                if (started != null) _launched.Add(started.Id);
-            }
-            catch (Exception ex) when (ex is Win32Exception or InvalidOperationException or FileNotFoundException)
-            {
-                Fail(slot, $"{app.Name} wouldn't start: {ex.Message}");
-                return;
-            }
-        }
+        // A copy that sits in the tray may have no window at all. These apps keep to one copy and show their
+        // window when started again, so that's tried once if no window turns up.
+        slot.NudgeAt = running.Count > 0 && app.Chromium != EmbedApp.NoChromium ? DateTime.UtcNow + NudgeAfter : null;
+        if (running.Count == 0 && !Launch(slot)) return;
         Notify(slot);
     });
+
+    private bool Launch(Slot slot)
+    {
+        var app = slot.App;
+        try
+        {
+            var start = new ProcessStartInfo(slot.Exe) { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(slot.Exe) ?? "" };
+            if (app.Chromium == EmbedApp.WebView2) start.Environment["WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS"] = EmbedWindows.ChromiumArguments;
+            else if (app.Chromium == EmbedApp.Electron) start.Arguments = EmbedWindows.ChromiumArguments;
+            using var started = Process.Start(start);
+            if (started != null) _launched.Add(started.Id);
+            return true;
+        }
+        catch (Exception ex) when (ex is Win32Exception or InvalidOperationException or FileNotFoundException)
+        {
+            Fail(slot, $"{app.Name} wouldn't start: {ex.Message}");
+            return false;
+        }
+    }
 
     public void SetPane(EmbedApp app, EmbedRect? pane, bool visible) => Post(() =>
     {
@@ -214,6 +224,39 @@ public sealed class AppEmbedHost : IDisposable
         }
     }
 
+    /// <summary>True while any app's window is held. Read from other threads, so it may be a moment old.</summary>
+    public bool HoldsAny => _slots.Values.Any(slot => slot.Attached);
+
+    /// <summary>
+    /// For when HapsHub closes: hands every held window back and then minimizes it, closes it or leaves it open.
+    /// Waits for the worker for at most the limit, so a stuck app can't keep HapsHub from closing.
+    /// </summary>
+    public void ParkAll(string exitAction, TimeSpan limit)
+    {
+        var done = new ManualResetEventSlim();
+        Post(() =>
+        {
+            foreach (var slot in _slots.Values)
+            {
+                try
+                {
+                    var window = slot.Window;
+                    if (!slot.Attached) continue;
+                    var show = exitAction == AppEmbedsModule.ExitLeave ? (int?)null
+                        : exitAction == AppEmbedsModule.ExitClose ? SW_HIDE : SW_SHOWMINNOACTIVE;
+                    Detach(slot, show);
+                    // The same as pressing its close button: an app that lives in the tray goes there instead of ending.
+                    if (exitAction == AppEmbedsModule.ExitClose && IsWindow(window)) PostMessage(window, WM_CLOSE, 0, 0);
+                    slot.State = "idle";
+                    slot.Message = "";
+                }
+                catch (Exception ex) when (ex is Win32Exception or InvalidOperationException) { CrashHandler.WriteEntry("hubEmbedPark", ex); }
+            }
+            done.Set();
+        });
+        done.Wait(limit);
+    }
+
     /// <summary>Hands every window back now. Safe from any thread, because a parent's end would take its children along.</summary>
     public void ReleaseAll()
     {
@@ -292,7 +335,16 @@ public sealed class AppEmbedHost : IDisposable
         var pids = Process.GetProcessesByName(slot.App.ProcessName).Select(p => { using (p) return p.Id; }).ToHashSet();
         if (pids.Count == 0) return;
         var found = EmbedWindows.Pick(CandidatesOf(pids));
-        if (found == null) return;
+        if (found == null)
+        {
+            if (slot.NudgeAt is { } nudge && DateTime.UtcNow > nudge)
+            {
+                slot.NudgeAt = null;
+                Launch(slot);
+            }
+            return;
+        }
+        slot.NudgeAt = null;
 
         GetWindowThreadProcessId(found.Handle, out var pid);
         if (IsElevated((int)pid) && !IsElevated(Environment.ProcessId))
@@ -476,7 +528,8 @@ public sealed class AppEmbedHost : IDisposable
         return new EmbedRect(rect.Left - origin.X, rect.Top - origin.Y, rect.Right - rect.Left, rect.Bottom - rect.Top);
     }
 
-    private void Detach(Slot slot)
+    /// <param name="show">How the window is left: null puts it back the way it was found.</param>
+    private void Detach(Slot slot, int? show = null)
     {
         if (!slot.Attached) return;
         slot.Attached = false;
@@ -485,13 +538,16 @@ public sealed class AppEmbedHost : IDisposable
         slot.AppliedRegion = "";
         if (!IsWindow(window)) return;
 
+        // Put away rather than handed back: hidden before anything else, so it never flashes at its old place on the way.
+        var putAway = show != null && !IsHungAppWindow(window);
+        if (putAway && IsWindowVisible(window)) ShowWindow(window, SW_HIDE);
         SetWindowRgn(window, 0, false);
         if (slot.Mode == AppEmbedsModule.ModeChild) SetParent(window, 0);
-        SetWindowLongPtr(window, GWL_STYLE, slot.SavedStyle);
+        SetWindowLongPtr(window, GWL_STYLE, putAway ? slot.SavedStyle & ~(nint)WS_VISIBLE : slot.SavedStyle);
         SetWindowLongPtr(window, GWL_EXSTYLE, slot.SavedExStyle);
         var placement = slot.SavedPlacement;
         // Never activates, and a maximized window comes back at its normal size rather than taking focus.
-        placement.showCmd = !slot.SavedVisible ? SW_HIDE : placement.showCmd == SW_SHOWMINIMIZED ? SW_SHOWMINNOACTIVE : SW_SHOWNOACTIVATE;
+        placement.showCmd = show ?? (!slot.SavedVisible ? SW_HIDE : placement.showCmd == SW_SHOWMINIMIZED ? SW_SHOWMINNOACTIVE : SW_SHOWNOACTIVATE);
         SetWindowPlacement(window, ref placement);
         SetWindowPos(window, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
     }
@@ -586,6 +642,8 @@ public sealed class AppEmbedHost : IDisposable
 
     private const int GWL_STYLE = -16, GWL_EXSTYLE = -20, GW_OWNER = 4, GW_HWNDPREV = 3, GA_ROOT = 2;
     private const int SW_HIDE = 0, SW_SHOWMINIMIZED = 2, SW_SHOWNOACTIVATE = 4, SW_SHOWMINNOACTIVE = 7;
+    private const uint WM_CLOSE = 0x0010;
+    private const long WS_VISIBLE = 0x10000000;
     private const long WS_CHILD = 0x40000000, WS_POPUP = 0x80000000, WS_CAPTION = 0x00C00000, WS_THICKFRAME = 0x00040000,
         WS_MINIMIZEBOX = 0x00020000, WS_MAXIMIZEBOX = 0x00010000, WS_SYSMENU = 0x00080000, WS_EX_TOOLWINDOW = 0x00000080, WS_EX_TOPMOST = 0x00000008,
         WS_EX_DLGMODALFRAME = 0x00000001, WS_EX_WINDOWEDGE = 0x00000100, WS_EX_CLIENTEDGE = 0x00000200, WS_EX_STATICEDGE = 0x00020000;
@@ -623,6 +681,7 @@ public sealed class AppEmbedHost : IDisposable
     [DllImport("user32.dll")] private static extern bool SetWindowPlacement(nint window, ref WINDOWPLACEMENT placement);
     [DllImport("user32.dll")] private static extern bool ShowWindow(nint window, int command);
     [DllImport("user32.dll")] private static extern bool ShowWindowAsync(nint window, int command);
+    [DllImport("user32.dll", EntryPoint = "PostMessageW")] private static extern bool PostMessage(nint window, uint message, nint wParam, nint lParam);
     [DllImport("user32.dll")] private static extern bool IsWindow(nint window);
     [DllImport("user32.dll")] private static extern bool IsWindowVisible(nint window);
     [DllImport("user32.dll")] private static extern bool IsIconic(nint window);

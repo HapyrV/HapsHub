@@ -68,6 +68,12 @@ public sealed class AppEmbedsModule : IHubModule
     public const string ModeChild = "child";
     public const string ModeTracked = "tracked";
 
+    /// <summary>What happens to the apps HapsHub is holding when HapsHub closes.</summary>
+    public const string ExitKey = "on_exit";
+    public const string ExitMinimize = "minimize";
+    public const string ExitClose = "close";
+    public const string ExitLeave = "leave";
+
     public static readonly EmbedApp Oyasumi = new("oyasumi", "OyasumiVR", "OyasumiVR", null, "OyasumiVR", EmbedApp.WebView2);
     public static readonly EmbedApp Eagle = new("eagle", "Eagle", "Eagle", @"%ProgramFiles%\Eagle\Eagle.exe", null, EmbedApp.Electron);
     public static readonly EmbedApp SpaceCalibrator = new("spacecal", "Space Calibrator", "OpenVR-SpaceCalibrator",
@@ -88,6 +94,15 @@ public sealed class AppEmbedsModule : IHubModule
         .Concat(Apps.Select(app => new HubSettingDefinition(app.ModeKey, $"{app.Name} placement", HubSettingKind.Hidden, ModeChild)))
         .Concat(Apps.Select(app => new HubSettingDefinition(app.ResultKey, $"{app.Name} test result", HubSettingKind.Hidden, "")))
         .Concat(Apps.Select(app => new HubSettingDefinition(app.AutoKey, $"Open {app.Name} with its page", HubSettingKind.Hidden, "")))
+        .Prepend(new HubSettingDefinition(ExitKey, "When HapsHub closes, apps open in its pages", HubSettingKind.Choice, ExitMinimize)
+        {
+            Options = new[]
+            {
+                new HubSettingOption(ExitMinimize, "Minimize"),
+                new HubSettingOption(ExitClose, "Close too"),
+                new HubSettingOption(ExitLeave, "Stay open"),
+            },
+        })
         .ToArray();
 
     public Task StartAsync(HubModuleContext context, CancellationToken cancellationToken)
@@ -109,6 +124,13 @@ public sealed class AppEmbedsModule : IHubModule
     public string Mode(EmbedApp app) => Setting(app.ModeKey) == ModeTracked ? ModeTracked : ModeChild;
 
     public bool OpensWithPage(EmbedApp app) => Setting(app.AutoKey) == "1";
+
+    public string ExitAction => Setting(ExitKey) switch
+    {
+        ExitClose => ExitClose,
+        ExitLeave => ExitLeave,
+        _ => ExitMinimize,
+    };
 
     public static EmbedApp? App(string? id) => Apps.FirstOrDefault(a => a.Id == id);
 

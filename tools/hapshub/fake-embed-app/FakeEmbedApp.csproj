@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- A stand-in for OVR Toolkit, so the embed pages can be tested without the real apps or SteamVR.
+       It's named like the real one because HapsHub finds an app's window by its process name. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>OVR Toolkit</AssemblyName>
+    <RootNamespace>FakeEmbedApp</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>

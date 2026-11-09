@@ -2,10 +2,16 @@ namespace HapsHub.Core;
 
 public enum HubModuleStatus { Registered, Disabled, Starting, Running, Degraded, Failed, Stopped }
 
-public enum HubSettingKind { Toggle, Text, Number, Hidden }
+public enum HubSettingKind { Toggle, Text, Number, Hidden, Choice }
 
 /// <summary>A setting owned by a module. Settings only exist through a module, so no toggle is left without a feature.</summary>
-public sealed record HubSettingDefinition(string Key, string Label, HubSettingKind Kind, string DefaultValue);
+public sealed record HubSettingDefinition(string Key, string Label, HubSettingKind Kind, string DefaultValue)
+{
+    /// <summary>What a Choice can be set to: the stored value and the text shown for it.</summary>
+    public IReadOnlyList<HubSettingOption> Options { get; init; } = Array.Empty<HubSettingOption>();
+}
+
+public sealed record HubSettingOption(string Value, string Label);
 
 public sealed record HubSettingInfo(HubSettingDefinition Definition, string Value);
 

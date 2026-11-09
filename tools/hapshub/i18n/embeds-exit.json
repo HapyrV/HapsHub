@@ -1,0 +1,25 @@
+{
+  "hub.set.hub.app-embeds.on_exit": {
+    "en": "When HapsHub closes, apps open in its pages",
+    "de": "Wenn HapsHub schließt, werden Apps in seinen Seiten",
+    "es": "Al cerrar HapsHub, las apps abiertas en sus páginas",
+    "fr": "À la fermeture de HapsHub, les applis ouvertes dans ses pages",
+    "ja": "HapsHub を閉じたとき、ページ内で開いているアプリ",
+    "ko": "HapsHub를 닫을 때 페이지 안에 열린 앱",
+    "ru": "При закрытии HapsHub приложения на его страницах",
+    "zh-CN": "关闭 HapsHub 时，页面中打开的应用",
+    "zh-TW": "關閉 HapsHub 時，頁面中開啟的應用程式"
+  },
+  "hub.set.hub.app-embeds.on_exit.minimize": {
+    "en": "Minimize", "de": "minimiert", "es": "se minimizan", "fr": "sont réduites", "ja": "最小化する",
+    "ko": "최소화", "ru": "сворачиваются", "zh-CN": "最小化", "zh-TW": "最小化"
+  },
+  "hub.set.hub.app-embeds.on_exit.close": {
+    "en": "Close too", "de": "ebenfalls geschlossen", "es": "se cierran también", "fr": "se ferment aussi", "ja": "一緒に閉じる",
+    "ko": "함께 닫기", "ru": "тоже закрываются", "zh-CN": "一起关闭", "zh-TW": "一起關閉"
+  },
+  "hub.set.hub.app-embeds.on_exit.leave": {
+    "en": "Stay open", "de": "offen gelassen", "es": "siguen abiertas", "fr": "restent ouvertes", "ja": "開いたままにする",
+    "ko": "열어 둠", "ru": "остаются открытыми", "zh-CN": "保持打开", "zh-TW": "保持開啟"
+  }
+}

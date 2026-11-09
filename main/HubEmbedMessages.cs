@@ -23,8 +23,38 @@ public partial class AppShell
                 Changed = (app, _) => SendEmbedState(app),
             };
             AppDomain.CurrentDomain.UnhandledException += (_, _) => _embeds?.ReleaseAll();
+            WindowController.OnBeforeClose = HoldCloseForEmbeds;
+            WindowController.OnBeforeExit = () =>
+            {
+                if (Interlocked.Exchange(ref _embedsParked, 1) == 0)
+                    _embeds?.ParkAll(HubModules.AppEmbeds.ExitAction, TimeSpan.FromSeconds(3));
+            };
             return _embeds;
         }
+    }
+
+    private int _embedsParked;
+
+    /// <summary>
+    /// Runs when the window is about to close. Apps held in it are minimized, closed or left open first, as chosen
+    /// in Settings; the close is held meanwhile and done again once they're out, or after three seconds whatever happens.
+    /// </summary>
+    private bool HoldCloseForEmbeds()
+    {
+        AppEmbedHost? embeds;
+        lock (_embedsLock) embeds = _embeds;
+        if (embeds == null || !embeds.HoldsAny) return false;
+        if (Interlocked.Exchange(ref _embedsParked, 1) == 1) return false;
+        var exitAction = HubModules.AppEmbeds.ExitAction;
+        _ = Task.Run(() =>
+        {
+            try { embeds.ParkAll(exitAction, TimeSpan.FromSeconds(3)); }
+            catch (Exception ex) { CrashHandler.WriteEntry("hubEmbedPark", ex); }
+            WindowController.AllowNextClose();
+            try { _window.Close(); }
+            catch (Exception ex) { CrashHandler.WriteEntry("hubEmbedParkClose", ex); }
+        });
+        return true;
     }
 
     private bool HandleEmbedMessage(string action, JObject msg)

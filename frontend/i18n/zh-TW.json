@@ -4253,5 +4253,9 @@
   "hub.ovras.saved": "已儲存。OVR Advanced Settings 下次啟動時生效。",
   "nav.spacecal": "Space Calibrator",
   "nav.vrct": "VRCT",
-  "nav.ovrtoolkit": "OVR Toolkit"
+  "nav.ovrtoolkit": "OVR Toolkit",
+  "hub.set.hub.app-embeds.on_exit": "關閉 HapsHub 時，頁面中開啟的應用程式",
+  "hub.set.hub.app-embeds.on_exit.minimize": "最小化",
+  "hub.set.hub.app-embeds.on_exit.close": "一起關閉",
+  "hub.set.hub.app-embeds.on_exit.leave": "保持開啟"
 }

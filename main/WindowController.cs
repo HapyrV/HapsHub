@@ -48,7 +48,17 @@ public class WindowController
     private static volatile bool _forceClose;
 
     public static void AllowNextClose() => _forceClose = true;
+
+    /// <summary>
+    /// Asked when the window is about to close for real. True holds the close: whoever answered closes the window
+    /// again once it's ready. Windows of other apps held inside this one would be destroyed along with it otherwise.
+    /// </summary>
+    internal static volatile Func<bool>? OnBeforeClose;
+
+    /// <summary>For the few places that end the process without waiting for the window to close.</summary>
+    internal static volatile Action? OnBeforeExit;
 #else
+    internal static volatile Action? OnBeforeExit;
     public static void AllowNextClose() { }
 #endif
 #if WINDOWS
@@ -109,6 +119,8 @@ public class WindowController
                 OnMinimized?.Invoke();
                 return 0;
             }
+            try { if (OnBeforeClose?.Invoke() == true) return 0; }
+            catch (Exception ex) { VRCNext.Services.CrashHandler.WriteEntry("OnBeforeClose", ex); }
             // Window will actually close — capture geometry now while the HWND is still valid.
             // _window.Width/Height/Left/Top return 0 after WaitForClose() because the native window is gone.
             var wp = new WINDOWPLACEMENT { length = Marshal.SizeOf<WINDOWPLACEMENT>() };

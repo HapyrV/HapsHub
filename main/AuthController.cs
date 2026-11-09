@@ -1880,6 +1880,7 @@ public class AuthController
         }
         catch { }
 
+        try { WindowController.OnBeforeExit?.Invoke(); } catch { }
         try { _core.Window?.Close(); } catch { }
         Environment.Exit(0);
         return SwitchOutcome.Success; // unreachable

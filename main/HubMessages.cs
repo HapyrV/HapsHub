@@ -146,6 +146,7 @@ public partial class AppShell
                     label = s.Definition.Label,
                     kind = s.Definition.Kind.ToString(),
                     value = s.Value,
+                    options = s.Definition.Options.Select(o => new { value = o.Value, label = o.Label }),
                 }),
             }),
         });

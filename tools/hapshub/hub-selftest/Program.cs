@@ -1176,6 +1176,23 @@ await Check("embeds: finds the app where it's installed, and a set path wins", (
     return Task.CompletedTask;
 });
 
+await Check("embeds: apps are minimized when HapsHub closes unless another choice is saved", async () =>
+{
+    var registry = new ModuleRegistry(OpenDb(Fresh("embed-exit")));
+    var module = new AppEmbedsModule();
+    Assert(module.ExitAction == AppEmbedsModule.ExitMinimize, "a module that isn't running didn't fall back to minimize");
+    registry.Register(module);
+    await registry.StartAllAsync();
+    Assert(module.ExitAction == AppEmbedsModule.ExitMinimize, "the default isn't minimize");
+    var setting = Info(registry, AppEmbedsModule.ModuleId).Settings.Single(s => s.Definition.Key == AppEmbedsModule.ExitKey);
+    Assert(setting.Definition.Kind == HubSettingKind.Choice && setting.Definition.Options.Count == 3, "the choice lost its options");
+    registry.SetSetting(AppEmbedsModule.ModuleId, AppEmbedsModule.ExitKey, AppEmbedsModule.ExitClose);
+    Assert(module.ExitAction == AppEmbedsModule.ExitClose, "a saved choice wasn't used");
+    registry.SetSetting(AppEmbedsModule.ModuleId, AppEmbedsModule.ExitKey, "nonsense");
+    Assert(module.ExitAction == AppEmbedsModule.ExitMinimize, "an unknown value wasn't treated as minimize");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
 await Check("tunnel: only YouTube links get through", () =>
 {
     Assert(TunnelLink.Clean(" https://youtu.be/abc ") == "https://youtu.be/abc", "a short link was refused");
