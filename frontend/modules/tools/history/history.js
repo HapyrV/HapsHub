@@ -10,7 +10,7 @@ const HHIST_VIEWS = [
     { id: 'portals',       icon: 'blur_circular',   key: 'hub.history.view_portals',       label: 'Portals' },
     { id: 'gamelog',       icon: 'article',         key: 'hub.history.view_gamelog',       label: 'Game events' },
     { id: 'instances',     icon: 'bar_chart',       key: 'hub.history.view_instances',     label: 'Instance chart', mode: 'chart' },
-    { id: 'purchases',     icon: 'shopping_bag',    key: 'hub.history.view_purchases',     label: 'Purchases', mode: 'account' },
+    { id: 'purchases',     icon: 'diamond',         key: 'hub.history.view_purchases',     label: 'Purchases', mode: 'account' },
     { id: 'moderation',    icon: 'shield',          key: 'hub.history.view_moderation',    label: 'Moderation reports', mode: 'account' },
 ];
 
@@ -26,7 +26,7 @@ function _hhistWhen(value) {
 function _hhistRenderViews() {
     const box = _hhistEl('hhistViews');
     if (!box) return;
-    box.innerHTML = HHIST_VIEWS.map(view => `<button class="vrcn-button${view.id === _hhist.view ? ' active' : ''}" onclick="hhistShow('${view.id}')"><span class="msi" style="font-size:15px;">${view.icon}</span> ${esc(t(view.key, view.label))}</button>`).join('');
+    box.innerHTML = HHIST_VIEWS.map(view => `<button class="vrcn-button sub-tab-btn${view.id === _hhist.view ? ' active' : ''}" onclick="hhistShow('${view.id}')"><span class="msi" style="font-size:15px;">${view.icon}</span> ${esc(t(view.key, view.label))}</button>`).join('');
 }
 
 function hhistShow(view) {
@@ -46,6 +46,7 @@ function hhistShow(view) {
     if (def.mode === 'chart') {
         const input = _hhistEl('hhistDay');
         if (!input.value) input.value = _hhistDayString(new Date());
+        _hhistFitDatePicker();
         hhistLoadDay();
     } else if (def.mode === 'account') {
         sendToCS({ action: 'hubHistoryAccount', view, offset: 0 });
@@ -174,6 +175,14 @@ function _hhistDayBounds(day) {
     return { start: new Date(year, month - 1, date), end: new Date(year, month - 1, date + 1) };
 }
 
+// The browser draws the date picker's icon itself, so it has to be told whether the theme is light.
+function _hhistFitDatePicker() {
+    const input = _hhistEl('hhistDay');
+    if (!input) return;
+    const [r, g, b] = (getComputedStyle(input).backgroundColor.match(/[\d.]+/g) || [0, 0, 0]).map(Number);
+    input.style.colorScheme = (r * 299 + g * 587 + b * 114) / 1000 > 140 ? 'light' : 'dark';
+}
+
 function hhistDayStep(direction) {
     const input = _hhistEl('hhistDay');
     const { start } = _hhistDayBounds(input.value);
@@ -297,3 +306,4 @@ function onHubHistoryAccount(payload) {
 document.documentElement.addEventListener('languagechange', () => {
     if (_hhistEl('hhistViews')) _hhistRenderViews();
 });
+document.documentElement.addEventListener('themechange', _hhistFitDatePicker);

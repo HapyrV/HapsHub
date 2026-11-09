@@ -357,6 +357,74 @@ try {
     text = await rowsText();
     check('a purchase draws with its price and state', text.includes('A thing') && text.includes('1,200 V') && text.includes('Not active'), text);
 
+    // --- Every theme: the new pages must stay readable, light themes included ---
+    await main.eval(`hhistShow('names')`);
+    await waitFor('rows for the theme check', () => main.eval(`document.querySelectorAll('.hhist-row').length > 0`));
+    const unreadable = JSON.parse(await main.eval(`(async () => {
+        const parse = color => (color.match(/[\\d.]+/g) || []).map(Number);
+        const shine = ([r, g, b]) => [r, g, b].map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0);
+        const contrast = (a, b) => { const [x, y] = [shine(parse(a)), shine(parse(b))].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+        const bad = [];
+        const keep = currentTheme;
+        const checks = [['.hhist-row', '.hhist-main', 4], ['.hhist-row', '.hhist-at', 2], ['.hhist-row', '.hhist-link', 2.5]];
+        for (const name of Object.keys(THEMES)) {
+            selectTheme(name);
+            await new Promise(done => setTimeout(done, 30));
+            for (const [back, text, need] of checks) {
+                const under = document.querySelector(back), over = document.querySelector(text);
+                if (!under || !over) { bad.push(name + ': missing ' + text); continue; }
+                const ratio = contrast(getComputedStyle(under).backgroundColor, getComputedStyle(over).color);
+                if (ratio < need) bad.push(name + ' ' + text + ' ' + ratio.toFixed(2));
+            }
+        }
+        selectTheme(keep);
+        return JSON.stringify(bad);
+    })()`));
+    check('the History page is readable in every built-in theme', unreadable.length === 0, unreadable.join('; '));
+    // The icon font is a subset: a missing icon shows its name as wide text instead.
+    const wideIcons = JSON.parse(await main.eval(`JSON.stringify([...document.querySelectorAll('#hhistViews .msi'), ...document.querySelectorAll('.nav-btn[data-nav-key="history"] .msi')]
+        .filter(icon => icon.getBoundingClientRect().width > parseFloat(getComputedStyle(icon).fontSize) * 1.5).map(icon => icon.textContent))`));
+    check('every History icon exists in the icon font', wideIcons.length === 0, wideIcons.join(', '));
+    if (process.env.HAPSHUB_SHOTS) {
+        const shot = async (name, setup) => {
+            await main.eval(setup);
+            await sleep(700);
+            await main.screenshot(join(process.env.HAPSHUB_SHOTS, `${name}.png`));
+        };
+        await shot('history-dark', `selectTheme('vrcn'); hhistShow('names')`);
+        await shot('chart-dark', `hhistShow('instances')`);
+        await shot('history-light', `selectTheme('fluffy'); hhistShow('notifications')`);
+        await shot('chart-light', `hhistShow('instances')`);
+        await main.eval(`selectTheme('vrcn'); hhistShow('names')`);
+    }
+
+    // --- A picture HapsHub didn't see being taken: its file fills in the library ---
+    const crc = data => { let c = -1; for (const byte of data) { c ^= byte; for (let k = 0; k < 8; k++) c = c & 1 ? (c >>> 1) ^ 0xEDB88320 : c >>> 1; } return (c ^ -1) >>> 0; };
+    const pngChunk = (type, data) => {
+        const body = Buffer.concat([Buffer.from(type, 'ascii'), data]);
+        const size = Buffer.alloc(4); size.writeUInt32BE(data.length);
+        const tail = Buffer.alloc(4); tail.writeUInt32BE(crc(body));
+        return Buffer.concat([size, body, tail]);
+    };
+    const details = JSON.stringify({ application: 'VRCX', author: { id: 'usr_me', displayName: 'Me' }, world: { name: 'File World', id: 'wrld_file', instanceId: 'wrld_file:1' }, players: [{ id: 'usr_p', displayName: 'Pat' }] });
+    const photo = join(dir, 'VRChat_from_the_file.png');
+    writeFileSync(photo, Buffer.concat([
+        Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+        pngChunk('IHDR', Buffer.from([0, 0, 0, 1, 0, 0, 0, 1, 8, 2, 0, 0, 0])),
+        pngChunk('iTXt', Buffer.concat([Buffer.from('Description'), Buffer.from([0, 0, 0, 0, 0]), Buffer.from(details)])),
+        pngChunk('IDAT', Buffer.from([120, 156, 99, 248, 207, 192, 0, 0, 3, 1, 1, 0])),
+        pngChunk('IEND', Buffer.alloc(0)),
+    ]));
+    await main.eval(`sendToCS({ action: 'hubPhotoMetadata', path: ${JSON.stringify(photo)} })`);
+    const fromFile = await waitSeen(main, 'hubPhotoMetadata');
+    check('a screenshot\'s own details are read', fromFile.found === true && fromFile.worldId === 'wrld_file' && fromFile.players[0]?.userId === 'usr_p', JSON.stringify(fromFile));
+    await main.eval(`window.__seen['hubPhotoMetadata'] = null; sendToCS({ action: 'hubPhotoMetadata', path: ${JSON.stringify(photo)} })`);
+    const second = await waitSeen(main, 'hubPhotoMetadata');
+    check('once read, the library has them', second.found === false, JSON.stringify(second));
+
+    // --- The logo: the new one is in place, and the page tints it ---
+    check('the sidebar logo draws', await main.eval(`!!document.querySelector('#logoIcon canvas') && document.getElementById('logoIcon').textContent === ''`));
+
     await main.eval(`showTab(0); onHubHistoryAccount({ view: 'names' });`);
     check('History page has no page errors', main.errors.length === 0, main.errors.join(' | '));
     check('app exits cleanly after History', await closeMain(main, dir));
