@@ -4226,5 +4226,8 @@
   "hub.modules.info.hub.steam-branch": "Shows which Steam branch of Space Calibrator is installed and lets you switch between them.",
   "hub.modules.info.hub.upstream-watch": "Checks VRCNext and VRCX for new changes since the last ones reviewed, so HapsHub can stay up to date with them.",
   "hub.modules.info.hub.vrcx-history": "Keeps a full copy of your VRCX history that the main import doesn't use, so nothing is lost when VRCX is retired. Reads a copy; never touches VRCX's own files.",
-  "hub.modules.info.hub.youtube-tunnel": "Plays a YouTube song into your VRChat microphone through a virtual cable."
+  "hub.modules.info.hub.youtube-tunnel": "Plays a YouTube song into your VRChat microphone through a virtual cable.",
+  "settings.launch.start_app_with_vr": "Запускать {name} с VR",
+  "settings.launch.not_installed": "Не установлено",
+  "settings.launch.find_app": "Указать файл"
 }

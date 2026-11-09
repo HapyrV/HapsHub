@@ -1348,6 +1348,9 @@ case 'vrcNews':
             case 'meetNetworkData':
                 if (typeof meetNetworkDataLoaded === 'function') meetNetworkDataLoaded(payload);
                 break;
+            case 'knownVrApps':
+                if (typeof renderKnownVrApps === 'function') renderKnownVrApps(payload.apps || []);
+                break;
             case 'meetNetworkImage':
                 if (typeof _mnetGraph !== 'undefined' && _mnetGraph) _mnetGraph.setImage(payload.userId, payload.image);
                 break;

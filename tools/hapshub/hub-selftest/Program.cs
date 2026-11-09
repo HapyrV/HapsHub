@@ -1695,6 +1695,9 @@ await Check("image shape: headers give width and height for each format", () =>
 await Check("launch addons: unknown kinds find nothing; running programs are skipped", () =>
 {
     Assert(LaunchAddons.Detect("nope").Count == 0, "unknown kind");
+    var known = LaunchAddons.KnownVrApps();
+    Assert(string.Join(",", known.Select(a => a.Id)) == "oyasumi,standable,vrct", "known VR apps keep their order");
+    Assert(known.All(a => a.Path == null || File.Exists(a.Path)), "a known app's path is a real file or null");
     var self = Environment.ProcessPath!;
     Assert(LaunchAddons.NotRunning(new[] { self }).Count == 0, "this test's own exe counts as running");
     Assert(LaunchAddons.NotRunning(new[] { @"C:\nowhere\hub-never-runs-1234.exe" }).Count == 1, "a program that isn't running stays");

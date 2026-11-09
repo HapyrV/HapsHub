@@ -3455,6 +3455,7 @@ public partial class AppShell
 
                 case "vrcLaunchAndJoin":
                 case "setLaunchAddon":
+                case "getKnownVrApps":
                     _relayCtrl.HandleMessage(action, msg);
                     break;
 

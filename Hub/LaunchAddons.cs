@@ -46,6 +46,39 @@ public static class LaunchAddons
         return found;
     }
 
+    /// <summary>A VR app Settings offers as its own "Start with VR" switch. Path is null when it isn't installed.</summary>
+    public sealed record KnownApp(string Id, string Name, string? Path);
+
+    /// <summary>VR apps that aren't behind a Launch window switch and that SteamVR doesn't start by itself.</summary>
+    public static List<KnownApp> KnownVrApps()
+    {
+        var steam = SteamHost.SteamLibraries().Select(l => Path.Combine(l, "steamapps", "common")).ToList();
+        var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        string? First(IEnumerable<string> paths) => paths.FirstOrDefault(File.Exists);
+        string? StandableExe()
+        {
+            foreach (var common in steam)
+            {
+                var dir = Path.Combine(common, "Standable Full Body Estimation");
+                if (!Directory.Exists(dir)) continue;
+                try
+                {
+                    var exe = Directory.EnumerateFiles(dir, "*.exe", SearchOption.AllDirectories)
+                        .FirstOrDefault(f => Path.GetFileName(f).Contains("Standable", StringComparison.OrdinalIgnoreCase));
+                    if (exe != null) return exe;
+                }
+                catch { }
+            }
+            return null;
+        }
+        return new List<KnownApp>
+        {
+            new("oyasumi", "OyasumiVR", First(steam.Select(c => Path.Combine(c, "OyasumiVR", "OyasumiVR.exe")))),
+            new("standable", "Standable", StandableExe()),
+            new("vrct", "VRCT", First(new[] { Path.Combine(local, "VRCT", "VRCT.exe") })),
+        };
+    }
+
     /// <summary>Paths in <paramref name="apps"/> whose program isn't running yet, so nothing starts twice.</summary>
     public static List<string> NotRunning(IEnumerable<string> apps)
     {

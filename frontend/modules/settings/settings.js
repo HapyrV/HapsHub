@@ -48,7 +48,7 @@ function _renderExeList(listId, list, removeFn) {
 }
 
 function renderExtraExeDesktop(l) { _renderExeList('extraExeDesktopList', l, 'removeExtraExeDesktop'); }
-function renderExtraExeVR(l)      { _renderExeList('extraExeVRList',      l, 'removeExtraExeVR');      }
+function renderExtraExeVR(l)      { _renderExeList('extraExeVRList',      l, 'removeExtraExeVR'); if (typeof renderKnownVrApps === 'function') renderKnownVrApps(); }
 
 // legacy — kept so i18n.js re-render calls don't break on old references
 
@@ -680,6 +680,7 @@ function loadSettingsToUI(s) {
     renderExtraExeDesktop(settings.extraExeDesktop);
     renderExtraExeVR(settings.extraExeVR);
     renderLaunchAddonLists();
+    sendToCS({ action: 'getKnownVrApps' });
     updateFolderFilterOptions(settings.folders);
     currentTheme = s.Theme || s.theme || 'vrcn';
     currentSpecialTheme = s.SpecialTheme || s.specialTheme || '';
@@ -2400,5 +2401,34 @@ function addDashBgFolder(path) {
     settings.dashBgFolders = settings.dashBgFolders || [];
     if (!settings.dashBgFolders.some(p => p.toLowerCase() === path.toLowerCase())) settings.dashBgFolders.push(path);
     renderDashBgFolders();
+    autoSave();
+}
+
+// ---- Start with VR: one switch per known app (the Launch window keeps haptics, face tracking and FBT) ----
+
+let _knownVrApps = [];
+
+function renderKnownVrApps(apps) {
+    if (Array.isArray(apps)) _knownVrApps = apps;
+    const box = document.getElementById('knownVrAppToggles');
+    if (!box) return;
+    const list = (settings.extraExeVR || []).map(p => p.toLowerCase());
+    box.innerHTML = _knownVrApps.map(a => {
+        const label = tf('settings.launch.start_app_with_vr', { name: a.name }, 'Start {name} with VR');
+        if (!a.path) {
+            return `<div class="sf-toggle-row disabled"><span>${esc(label)} <span class="set-desc" style="display:inline;">${esc(t('settings.launch.not_installed', 'Not installed'))}</span></span>
+                <button class="vrcn-button" onclick="browseExe('extra-vr')" title="${esc(t('settings.launch.find_app', 'Point to it'))}"><span class="msi" style="font-size:16px;">folder_open</span></button></div>`;
+        }
+        const on = list.includes(a.path.toLowerCase());
+        return `<div class="sf-toggle-row" title="${esc(a.path)}"><span>${esc(label)}</span><label class="toggle"><input type="checkbox" ${on ? 'checked' : ''} onchange="setKnownVrApp('${jsq(a.id)}', this.checked)"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>`;
+    }).join('');
+}
+
+function setKnownVrApp(id, on) {
+    const app = _knownVrApps.find(a => a.id === id);
+    if (!app || !app.path) return;
+    settings.extraExeVR = (settings.extraExeVR || []).filter(p => p.toLowerCase() !== app.path.toLowerCase());
+    if (on) settings.extraExeVR.push(app.path);
+    renderExtraExeVR(settings.extraExeVR);
     autoSave();
 }

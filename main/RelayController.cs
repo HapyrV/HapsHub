@@ -165,6 +165,13 @@ public class RelayController : IDisposable
             case "vcStop":
                 StopVcProcess();
                 break;
+            case "getKnownVrApps":
+                _ = Task.Run(() =>
+                {
+                    var apps = HapsHub.Core.LaunchAddons.KnownVrApps().Select(a => new { id = a.Id, name = a.Name, path = a.Path });
+                    _core.SendToJS("knownVrApps", new { apps });
+                });
+                break;
             case "setLaunchAddon":
             {
                 var on = msg["on"]?.Value<bool>() ?? false;
