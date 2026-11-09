@@ -1156,6 +1156,7 @@ function applyDashLayout() {
         const bar = document.createElement('div');
         bar.className = 'dash-edit-bar';
         bar.innerHTML = `<span class="dash-edit-bar-title"><span class="msi">dashboard_customize</span>${esc(t('dashboard.edit.title', 'Dashboard Layout'))}</span>
+            ${_dashHeaderToggles()}
             <button class="vrcn-button" onclick="dashEditReset()"><span class="msi" style="font-size:16px;">restart_alt</span>${esc(t('dashboard.edit.reset', 'Reset'))}</button>
             <button class="vrcn-button active" onclick="dashEditDone()"><span class="msi" style="font-size:16px;">check</span>${esc(t('dashboard.edit.done', 'Done'))}</button>`;
         container.appendChild(bar);
@@ -2160,3 +2161,28 @@ function renderDashUpcomingEvents() {
     grid.innerHTML = `<div class="dash-evt-layout${minis ? '' : ' no-list'}">${featureHtml}${minis ? `<div class="dash-evt-list">${minis}</div>` : ''}</div>`;
 }
 
+// ---- Edit Dashboard: what the header shows (moved here from General > Hub modules) ----
+
+const DASH_HEADER_TOGGLES = [
+    ['dash_welcome', 'hub.dash.toggle.welcome', 'Welcome message'],
+    ['dash_online', 'hub.dash.toggle.online', 'Players online'],
+    ['dash_status', 'hub.dash.toggle.status', 'VRChat status'],
+    ['dash_friends', 'hub.dash.toggle.friends', 'Friends in game'],
+    ['dash_web', 'hub.dash.toggle.web', 'Friends on web'],
+];
+
+function _dashHeaderToggles() {
+    const mods = (typeof _hubUiSettings !== 'undefined' && _hubUiSettings) || [];
+    const chips = DASH_HEADER_TOGGLES.map(([key, i18n, label]) => {
+        const on = (typeof _hubSetting === 'function' ? _hubSetting(mods, 'hub.ui', key) : 'true') !== 'false';
+        return `<button class="launch-addon${on ? ' on' : ''}" onclick="dashHeaderToggle('${key}', this)" aria-pressed="${on}">${esc(t(i18n, label))}</button>`;
+    }).join('');
+    return `<span class="dash-edit-header-toggles" style="display:inline-flex;flex-wrap:wrap;gap:6px;margin:0 auto 0 12px;">${chips}</span>`;
+}
+
+function dashHeaderToggle(key, btn) {
+    const now = !btn.classList.contains('on');
+    btn.classList.toggle('on', now);
+    btn.setAttribute('aria-pressed', String(now));
+    sendToCS({ action: 'hubSetSetting', module: 'hub.ui', key, value: now ? 'true' : 'false' });
+}

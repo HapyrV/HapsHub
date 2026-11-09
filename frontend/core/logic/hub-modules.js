@@ -27,7 +27,10 @@ function hubSettingChanged(input) {
 // A slot id that doesn't exist hides the setting; its own page edits it.
 const _HUB_MOVED_SETTINGS = {
     'hub.forwarding': { forward_avatar_data: 'hubForwardingSlot' },
-    'hub.ui': { welcome_off: 'hubOwnPage', welcome_custom: 'hubOwnPage' },
+    'hub.ui': {
+        welcome_off: 'hubOwnPage', welcome_custom: 'hubOwnPage', letter_spacing: 'hubOwnPage',
+        dash_welcome: 'hubOwnPage', dash_online: 'hubOwnPage', dash_status: 'hubOwnPage', dash_friends: 'hubOwnPage', dash_web: 'hubOwnPage',
+    },
 };
 
 function _hubModuleRow(module, onlyKey) {
@@ -50,8 +53,10 @@ function _hubModuleRow(module, onlyKey) {
             <input type="text" class="hub-setting-text" style="width:100%;box-sizing:border-box;margin-top:4px;padding:6px 10px;border-radius:8px;border:1px solid transparent;background:var(--bg-input);color:var(--tx0);"
                 data-module="${esc(module.id)}" data-key="${esc(s.key)}" value="${esc(s.value || '')}" spellcheck="false" onchange="hubSettingChanged(this)">
         </div>`).join('');
+    const info = t('hub.modules.info.' + module.id, '');
+    const infoHtml = info ? `<span class="hub-info" tabindex="0"><span class="msi">info</span><span class="hub-info-pop">${esc(info)}</span></span>` : '';
     return `<div class="hub-module-row" data-module="${esc(module.id)}" style="margin-top:12px;">
-        <div><strong>${esc(module.name)}</strong> <span class="sf-desc"${problem ? ' style="color:var(--err);"' : ''}>${esc(status)}</span></div>
+        <div><strong>${esc(module.name)}</strong>${infoHtml} <span class="sf-desc"${problem ? ' style="color:var(--err);"' : ''}>${esc(status)}</span></div>
         ${settings}
     </div>`;
 }
@@ -59,7 +64,12 @@ function _hubModuleRow(module, onlyKey) {
 function onHubModules(payload) {
     const list = document.getElementById('hubModulesList');
     // Empty only in the moment before the hub has started. Keep the button so it can be retried.
-    if (list && payload.modules?.length) list.innerHTML = payload.modules.map(m => _hubModuleRow(m)).join('');
+    // A module whose every setting lives on another page isn't listed here.
+    const listed = (payload.modules || []).filter(m => {
+        const moved = _HUB_MOVED_SETTINGS[m.id];
+        return !moved || !(m.settings || []).length || (m.settings || []).some(s => !moved[s.key]);
+    });
+    if (list && payload.modules?.length) list.innerHTML = listed.map(m => _hubModuleRow(m)).join('');
     for (const module of payload.modules || []) {
         for (const [key, slotId] of Object.entries(_HUB_MOVED_SETTINGS[module.id] || {})) {
             const slot = document.getElementById(slotId);

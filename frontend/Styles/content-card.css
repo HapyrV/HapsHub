@@ -363,3 +363,27 @@
 .fav-group-header.is-folded::before { transform: rotate(-90deg); }
 .fav-group-header:hover::before { color: var(--tx0); }
 .hub-folded-hide { display: none !important; }
+
+/* Hover info next to a setting's title (HapsHub) */
+.hub-info { position: relative; display: inline-flex; vertical-align: middle; margin: 0 6px; cursor: help; color: var(--tx3); }
+.hub-info .msi { font-size: 16px; }
+.hub-info:hover, .hub-info:focus { color: var(--accent-lt); outline: none; }
+.hub-info-pop {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: -8px;
+    z-index: 50;
+    width: 300px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--brd);
+    background: var(--bg-side, var(--bg-base));
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    color: var(--tx1, var(--tx0));
+    font-size: calc(12px + var(--fs-off, 0px));
+    font-weight: 400;
+    line-height: 1.5;
+    white-space: normal;
+}
+.hub-info:hover .hub-info-pop, .hub-info:focus .hub-info-pop { display: block; }
