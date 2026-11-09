@@ -546,6 +546,8 @@ public partial class AppShell
             .SetAutoSuspendOnMinimize(_settings.ReducedBackgroundUsage
                 ? Photino.NET.PhotinoSuspendableResources.Rendering | Photino.NET.PhotinoSuspendableResources.Gpu
                 : Photino.NET.PhotinoSuspendableResources.None)
+            .RegisterFocusInHandler((_, _) => EfficiencyModeService.SetFocused(true))
+            .RegisterFocusOutHandler((_, _) => EfficiencyModeService.SetFocused(false))
 #endif
             .RegisterWindowCreatedHandler((_, _) => _windowReady.TrySetResult())
             .RegisterWebMessageReceivedHandler((_, message) => { _ = OnWebMessage(message); });

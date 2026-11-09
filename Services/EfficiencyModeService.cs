@@ -56,6 +56,19 @@ public static class EfficiencyModeService
 
     private static System.Timers.Timer? _timer;
     private static bool _enabled;
+    // HapsHub: the window has focus, so the user is looking at it. Throttling then makes scrolling stutter,
+    // so it runs at full speed until focus leaves, and saves power again after that.
+    private static volatile bool _focused;
+
+    /// <summary>Call when the main window gains or loses focus.</summary>
+    public static void SetFocused(bool focused)
+    {
+        if (!OperatingSystem.IsWindows() || _focused == focused) return;
+        _focused = focused;
+        if (_enabled) System.Threading.Tasks.Task.Run(ApplyNow);
+    }
+
+    private static bool Throttle => _enabled && !_focused;
 
     public static void Apply(bool enabled)
     {
@@ -82,8 +95,8 @@ public static class EfficiencyModeService
         try
         {
             var self = Process.GetCurrentProcess();
-            SetThrottle(self.Handle, _enabled);
-            TrySetPriority(self, _enabled);
+            SetThrottle(self.Handle, Throttle);
+            TrySetPriority(self, Throttle);
             foreach (var (pid, isWebView) in GetDescendants(Environment.ProcessId))
             {
                 if (isWebView)
@@ -91,10 +104,10 @@ public static class EfficiencyModeService
                     IntPtr h = OpenProcess(PROCESS_SET_INFORMATION, false, pid);
                     if (h != IntPtr.Zero)
                     {
-                        try { SetThrottle(h, _enabled); }
+                        try { SetThrottle(h, Throttle); }
                         finally { CloseHandle(h); }
                     }
-                    try { TrySetPriority(Process.GetProcessById(pid), _enabled); } catch { }
+                    try { TrySetPriority(Process.GetProcessById(pid), Throttle); } catch { }
                 }
                 else if (_enabled)
                 {
