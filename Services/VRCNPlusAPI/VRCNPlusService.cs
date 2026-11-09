@@ -38,6 +38,7 @@ public class VRCNPlusService : IDisposable
 
     public async Task<bool> CheckEntitlementAsync(string userId, bool forceRefresh = false)
     {
+        if (!ForwardingBlock.Allows(ForwardingKind.EntitlementLookup)) return false;
         if (!forceRefresh)
         {
             using var rd = _db.CreateCommand();

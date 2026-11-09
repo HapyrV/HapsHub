@@ -518,6 +518,67 @@ await Check("modules: a real crash during start skips the module on the third la
     Assert(Info(registry, "crasher").Status == HubModuleStatus.Running, "not running after retry");
 });
 
+// ---- Forwarding block ----
+
+static void AssertBlock(bool forwarding, bool lookups)
+{
+    var kinds = new[] { ForwardingKind.AvatarSubmit, ForwardingKind.DeletionReport, ForwardingKind.PopularityHit, ForwardingKind.PopularityLike };
+    Assert(kinds.All(k => ForwardingBlock.Allows(k) == forwarding), $"forwarding should be {forwarding}");
+    Assert(ForwardingBlock.Allows(ForwardingKind.EntitlementLookup) == lookups, $"lookups should be {lookups}");
+}
+
+await Check("forwarding: closed before any module has started", () =>
+{
+    AssertBlock(false, false);
+    Assert(ForwardingBlock.BlockedCount(ForwardingKind.AvatarSubmit) > 0, "block was not counted");
+    return Task.CompletedTask;
+});
+
+await Check("forwarding: stays closed by default, opens per setting, closes when stopped", async () =>
+{
+    var dir = Fresh("forward-settings");
+    var registry = new ModuleRegistry(OpenDb(dir));
+    registry.Register(new ForwardingModule());
+    await registry.StartAllAsync();
+    AssertBlock(false, false);
+
+    Assert(registry.SetSetting(ForwardingModule.ModuleId, ForwardingModule.ForwardKey, "true"), "save failed");
+    AssertBlock(true, false);
+    Assert(registry.SetSetting(ForwardingModule.ModuleId, ForwardingModule.LookupKey, "true"), "save failed");
+    AssertBlock(true, true);
+    Assert(registry.SetSetting(ForwardingModule.ModuleId, ForwardingModule.ForwardKey, "false"), "save failed");
+    AssertBlock(false, true);
+
+    await registry.SetEnabledAsync(ForwardingModule.ModuleId, false);
+    AssertBlock(false, false);
+});
+
+await Check("forwarding: a saved choice is restored at the next start", async () =>
+{
+    var dir = Fresh("forward-restore");
+    var first = new ModuleRegistry(OpenDb(dir));
+    first.Register(new ForwardingModule());
+    await first.StartAllAsync();
+    first.SetSetting(ForwardingModule.ModuleId, ForwardingModule.ForwardKey, "true");
+    await first.StopAllAsync(TimeSpan.FromSeconds(2));
+    AssertBlock(false, false);
+
+    var second = new ModuleRegistry(OpenDb(dir));
+    second.Register(new ForwardingModule());
+    await second.StartAllAsync();
+    AssertBlock(true, false);
+    await second.StopAllAsync(TimeSpan.FromSeconds(2));
+});
+
+await Check("forwarding: without a database everything stays closed", async () =>
+{
+    var registry = new ModuleRegistry(null);
+    registry.Register(new ForwardingModule());
+    await registry.StartAllAsync();
+    AssertBlock(false, false);
+    await registry.StopAllAsync(TimeSpan.FromSeconds(2));
+});
+
 // ---- Host ----
 
 await Check("host: the db opens in the background and Stop is bounded", async () =>

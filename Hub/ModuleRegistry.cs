@@ -149,7 +149,7 @@ public sealed class ModuleRegistry
     public bool SetSetting(string moduleId, string key, string value)
     {
         FindSetting(moduleId, key);
-        return WriteDb(connection =>
+        var saved = WriteDb(connection =>
         {
             using var command = connection.CreateCommand();
             command.CommandText = """
@@ -162,6 +162,24 @@ public sealed class ModuleRegistry
             command.Parameters.AddWithValue("$t", DateTime.UtcNow.ToString("O"));
             command.ExecuteNonQuery();
         });
+        if (saved) NotifySettingChanged(Find(moduleId), key, value);
+        return saved;
+    }
+
+    private void NotifySettingChanged(Entry entry, string key, string value)
+    {
+        lock (_lock)
+        {
+            if (entry.Context == null) return;
+        }
+        try
+        {
+            entry.Module.OnSettingChanged(key, value);
+        }
+        catch (Exception ex)
+        {
+            SetStatus(entry, HubModuleStatus.Failed, $"Could not apply setting {key}: {ex.Message}");
+        }
     }
 
     internal void Log(string message) => _log(message);

@@ -34,6 +34,9 @@ public interface IHubModule
     Task StartAsync(HubModuleContext context, CancellationToken cancellationToken);
 
     Task StopAsync(CancellationToken cancellationToken);
+
+    /// <summary>Runs after a setting of this module is saved, while the module is running.</summary>
+    void OnSettingChanged(string key, string value) { }
 }
 
 /// <summary>What a running module may use. Handed to it at start.</summary>

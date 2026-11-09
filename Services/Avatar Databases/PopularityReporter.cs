@@ -15,6 +15,7 @@ public static class PopularityReporter
 
     public static void Report(string avatarId, string source = "client", string? kind = null)
     {
+        if (!ForwardingBlock.Allows(ForwardingKind.PopularityHit)) return;
         if (string.IsNullOrWhiteSpace(avatarId) || !avatarId.StartsWith("avtr_")) return;
         _ = Task.Run(async () =>
         {
@@ -59,6 +60,8 @@ public static class PopularityReporter
     // submitted server-side automatically.
     public static void SyncFavoriteLikes(IEnumerable<string> favoriteIds)
     {
+        // Before the dedupe list, so likes held back here still go out if forwarding is turned on.
+        if (!ForwardingBlock.Allows(ForwardingKind.PopularityLike)) return;
         var toSend = new List<string>();
         lock (_syncLock)
         {

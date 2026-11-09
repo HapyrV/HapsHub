@@ -142,6 +142,7 @@ public partial class AppShell
 
     private void QueueAvtrdbReport(List<string> ids)
     {
+        if (!ForwardingBlock.Allows(ForwardingKind.DeletionReport)) return;
         int added = 0;
         lock (_avtrdbReportQueue)
         {
@@ -169,6 +170,7 @@ public partial class AppShell
 
     private void QueueAvtrdbSubmit(string avatarId)
     {
+        if (!ForwardingBlock.Allows(ForwardingKind.AvatarSubmit)) return;
         if (!_settings.AvtrdbSubmitAvatars) return;
         lock (_avtrdbSubmitQueue)
         {
@@ -224,6 +226,7 @@ public partial class AppShell
 
     private async Task SendToAvtrdb(List<string> avatarIds, string reportType = "deletion")
     {
+        if (!ForwardingBlock.Allows(reportType == "submit" ? ForwardingKind.AvatarSubmit : ForwardingKind.DeletionReport)) return;
         try
         {
             using var client = new HttpClient();
@@ -263,6 +266,7 @@ public partial class AppShell
 
     private void QueueAvtrIcuReport(List<string> ids)
     {
+        if (!ForwardingBlock.Allows(ForwardingKind.DeletionReport)) return;
         if (!_settings.AvtrIcuReportDeleted) return;
         int added = 0;
         lock (_avtrIcuReportQueue)
@@ -291,6 +295,7 @@ public partial class AppShell
 
     private void QueueAvtrIcuSubmit(string avatarId)
     {
+        if (!ForwardingBlock.Allows(ForwardingKind.AvatarSubmit)) return;
         if (!_settings.AvtrIcuSubmitAvatars) return;
         lock (_avtrIcuSubmitQueue)
         {
@@ -315,6 +320,7 @@ public partial class AppShell
 
     private async Task SendToAvtrIcu(List<string> avatarIds, string reportType = "deletion")
     {
+        if (!ForwardingBlock.Allows(reportType == "submit" ? ForwardingKind.AvatarSubmit : ForwardingKind.DeletionReport)) return;
         try
         {
             using var client = new HttpClient();
@@ -357,6 +363,7 @@ public partial class AppShell
 
     private void QueueVrcndbSubmit(string avatarId)
     {
+        if (!ForwardingBlock.Allows(ForwardingKind.AvatarSubmit)) return;
         if (!_settings.VrcndbSubmitAvatars) return;
         bool flushNow;
         lock (_vrcndbSubmitQueue)
@@ -397,6 +404,7 @@ public partial class AppShell
 
     private void QueueVrcndbRecheck(IEnumerable<string> ids)
     {
+        if (!ForwardingBlock.Allows(ForwardingKind.DeletionReport)) return;
         if (!_settings.VrcndbReportDeleted) return;
         lock (_vrcndbRecheckQueue)
         {
@@ -422,6 +430,7 @@ public partial class AppShell
 
     private async Task PostToVrcndb(string endpoint, List<string> avatarIds, string reportType)
     {
+        if (!ForwardingBlock.Allows(reportType == "submit" ? ForwardingKind.AvatarSubmit : ForwardingKind.DeletionReport)) return;
         try
         {
             using var client = new HttpClient(new VrcndbSigningHandler());
