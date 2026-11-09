@@ -43,8 +43,7 @@ public class FriendsController
     private const int PushMaxDelayMs = 1500;
 
     // Chat Storage
-    private static readonly string _chatDir = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppInfo.AppName, "chat");
+    private static readonly string _chatDir = HubPaths.Data("chat");
     public record ChatEntry(string id, string from, string text, string time, string? type = null, string? emoji = null);
 
     // Public Accessors (for other domains)
@@ -3410,7 +3409,7 @@ public class FriendsController
             var history = GetChatHistory(userId);
             history.Add(entry);
             if (history.Count > 500) history = history[^500..];
-            File.WriteAllText(ChatFile(userId), JsonConvert.SerializeObject(history));
+            AtomicFile.WriteAllText(ChatFile(userId), JsonConvert.SerializeObject(history));
         }
         catch (Exception ex) { CrashHandler.WriteEntry("StoreChatMessage", ex); }
         return entry;

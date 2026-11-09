@@ -64,6 +64,10 @@
     <Content Remove="translations\**" />
     <EmbeddedResource Remove="translations\**" />
     <None Remove="translations\**" />
+    <Compile Remove="tools\**" />
+    <Content Remove="tools\**" />
+    <EmbeddedResource Remove="tools\**" />
+    <None Remove="tools\**" />
     <Compile Remove="kikitan-translator\**" />
     <Content Remove="kikitan-translator\**" />
     <EmbeddedResource Remove="kikitan-translator\**" />

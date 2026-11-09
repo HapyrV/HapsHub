@@ -9,9 +9,7 @@ public static class PopularityReporter
     private const string LikeEndpoint = "https://db.vrcnext.com/api/like.php";
     private static readonly HttpClient _client = new(new VrcndbSigningHandler()) { Timeout = TimeSpan.FromSeconds(15) };
 
-    private static readonly string _syncFile = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        AppInfo.AppName, "vrcndb_synced_likes.txt");
+    private static readonly string _syncFile = HubPaths.Data("vrcndb_synced_likes.txt");
     private static readonly object _syncLock = new();
     private static HashSet<string>? _synced;
 

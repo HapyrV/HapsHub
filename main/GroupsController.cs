@@ -29,7 +29,7 @@ public class GroupsController
     private static string? NetworkCacheFile(string name)
     {
         if (string.IsNullOrEmpty(name) || name.Any(c => !char.IsLetterOrDigit(c) && c != '_' && c != '-')) return null;
-        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppInfo.AppName, "Caches");
+        var dir = HubPaths.Data("Caches");
         return Path.Combine(dir, $"network_{name}.json");
     }
 
@@ -1139,7 +1139,7 @@ public class GroupsController
                         try
                         {
                             Directory.CreateDirectory(Path.GetDirectoryName(ncPath)!);
-                            File.WriteAllText(ncPath, ncJson, System.Text.Encoding.UTF8);
+                            AtomicFile.WriteAllText(ncPath, ncJson, System.Text.Encoding.UTF8);
                         }
                         catch { }
                     });
@@ -1181,9 +1181,9 @@ public class GroupsController
                 {
                     try
                     {
-                        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppInfo.AppName, "Caches");
+                        var dir = HubPaths.Data("Caches");
                         Directory.CreateDirectory(dir);
-                        File.WriteAllText(Path.Combine(dir, "mutual_cache.json"), mcJson, System.Text.Encoding.UTF8);
+                        AtomicFile.WriteAllText(Path.Combine(dir, "mutual_cache.json"), mcJson, System.Text.Encoding.UTF8);
                     }
                     catch { /* non-critical */ }
                 });
@@ -1196,7 +1196,7 @@ public class GroupsController
                 {
                     try
                     {
-                        var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppInfo.AppName, "Caches", "mutual_cache.json");
+                        var path = HubPaths.Data("Caches", "mutual_cache.json");
                         var json = File.Exists(path) ? File.ReadAllText(path, System.Text.Encoding.UTF8) : "{}";
                         _core.SendToJS("vrcMutualCacheLoaded", new { json });
                     }
@@ -1214,7 +1214,7 @@ public class GroupsController
                 {
                     try
                     {
-                        var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppInfo.AppName, "Caches", "mutual_cache.json");
+                        var path = HubPaths.Data("Caches", "mutual_cache.json");
                         if (File.Exists(path)) File.Delete(path);
                     }
                     catch { /* non-critical */ }

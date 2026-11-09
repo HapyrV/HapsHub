@@ -460,6 +460,7 @@ public partial class AppShell
     // JS to C# message handler
     private async Task OnWebMessage(string rawMessage)
     {
+        _webViewReady.TrySetResult();
         try
         {
             JObject msg;
@@ -2508,9 +2509,7 @@ public partial class AppShell
                     {
                         try
                         {
-                            var vrcnLogs = Path.Combine(
-                                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                                AppInfo.AppName, "Logs");
+                            var vrcnLogs = HubPaths.Data("Logs");
                             var crashDir = Path.Combine(vrcnLogs, "Crashes");
                             var vrcDir   = VRCNext.Services.Helpers.VrcPathsHelper.AppDataDir();
 
@@ -3940,9 +3939,7 @@ public partial class AppShell
                     {
                         "vrchat_data"  => VrcPathsHelper.AppDataDir(),
                         "vrchat_crash" => VrcPathsHelper.CrashDumpDir(),
-                        "vrcn_data"    => Path.Combine(
-                                              Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                                              AppInfo.AppName),
+                        "vrcn_data"    => HubPaths.DataRoot,
                         _ => null
                     };
                     if (!string.IsNullOrEmpty(dir))

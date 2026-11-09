@@ -5,9 +5,7 @@ namespace VRCNext.Services.Helpers;
 
 public static class AutoStartShortcutHelper
 {
-    private static readonly string Root = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        AppInfo.AppName, "AutoStart");
+    private static readonly string Root = HubPaths.Data("AutoStart");
 
     public static string CategoryDir(bool vr) => Path.Combine(Root, vr ? "VR" : "Desktop");
 

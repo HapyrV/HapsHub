@@ -39,6 +39,7 @@ public partial class AppShell
     private bool _deepLinkReady;
     private readonly CancellationTokenSource _deepLinkCts = new();
     private StreamWriter? _activityLogWriter;
+    private HubHost? _hub;
     private string _activityLogPath = "";
     private string _activityLogDir  = "";
 
@@ -365,19 +366,14 @@ public partial class AppShell
         VRCNext.Services.Helpers.ImageCacheHelper.OptimizeEnabled = _settings.ImgCacheOptimizeEnabled;
         VRCNext.Services.Helpers.ImageCacheHelper.Log             = (msg, color) => _core.SendToJS("log", new { msg, color });
 
-        _thumbCacheDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            AppInfo.AppName, "ThumbCache");
+        _thumbCacheDir = HubPaths.Data("ThumbCache");
         Directory.CreateDirectory(_thumbCacheDir);
-        _activityLogDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            AppInfo.AppName, "Logs");
+        _activityLogDir = HubPaths.Data("Logs");
         Directory.CreateDirectory(_activityLogDir);
-        _customThemesDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            AppInfo.AppName, "custom-themes");
+        _customThemesDir = HubPaths.Data("custom-themes");
         Directory.CreateDirectory(_customThemesDir);
         _core.CustomThemesDir = _customThemesDir;
+        _hub = HubHost.Start(HubModules.All(), message => CrashHandler.AddBreadcrumb($"hub: {message}"));
         SeedBuiltInThemes();
         var logFileName = $"vrcn-log-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.txt";
         _activityLogPath = Path.Combine(_activityLogDir, logFileName);
@@ -522,9 +518,7 @@ public partial class AppShell
 #endif
 
         var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "frontend", "logo.png");
-        var webView2DataDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            AppInfo.AppName, "WebView2");
+        var webView2DataDir = HubPaths.Data("WebView2");
         Directory.CreateDirectory(webView2DataDir);
 
         var windowBuilder = new PhotinoWindow()
@@ -900,6 +894,7 @@ public partial class AppShell
 
         // Add watch dog at first Mark: Watchdog test
         CrashHandler.OnCleanShutdown();
+        _hub?.Stop(TimeSpan.FromSeconds(5));
         _relayCtrl?.Dispose();
         _fileWatcher.Dispose();
         _uptimeTimer2?.Dispose();
@@ -1036,10 +1031,14 @@ public partial class AppShell
     private int _friendsMarkerQueued;
     private long _lastFriendsPayloadBytes;
     private readonly TaskCompletionSource _windowReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly TaskCompletionSource _webViewReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private async Task RunJsDispatcherAsync()
     {
         await _windowReady.Task;
+        // Photino's SendWebMessage crashes natively until the WebView is attached, which happens
+        // well after the window exists on a new profile. A message from the page proves it is attached.
+        await _webViewReady.Task;
         await foreach (var msg in _jsQueue.Reader.ReadAllAsync())
         {
             var toSend = msg;
@@ -1331,9 +1330,7 @@ public partial class AppShell
             else if (path.StartsWith("/imgcache/"))
             {
                 var rel  = Uri.UnescapeDataString(path["/imgcache/".Length..]).Replace('/', Path.DirectorySeparatorChar);
-                var imgBase = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    AppInfo.AppName, "Caches", "ImageCache");
+                var imgBase = HubPaths.Data("Caches", "ImageCache");
                 var file = Path.GetFullPath(Path.Combine(imgBase, rel));
                 if (!file.StartsWith(imgBase + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
                 {

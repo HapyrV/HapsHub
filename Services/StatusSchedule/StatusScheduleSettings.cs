@@ -31,9 +31,7 @@ public class StatusScheduleSettings
         public string StatusMessage     { get; set; } = "";
     }
 
-    private static string SavePath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        AppInfo.AppName, "statusschedule_settings.json");
+    private static string SavePath => HubPaths.Data("statusschedule_settings.json");
 
     [JsonIgnore] public string? LastSaveError { get; set; }
 
@@ -57,7 +55,7 @@ public class StatusScheduleSettings
         {
             var dir = Path.GetDirectoryName(SavePath)!;
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            File.WriteAllText(SavePath, JsonConvert.SerializeObject(this, Formatting.Indented));
+            AtomicFile.WriteAllText(SavePath, JsonConvert.SerializeObject(this, Formatting.Indented));
             LastSaveError = null;
         }
         catch (Exception ex) { LastSaveError = ex.Message; }

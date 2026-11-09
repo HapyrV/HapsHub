@@ -26,9 +26,7 @@ public class ActionFlowSettings
         public long   UpdatedAt   { get; set; }
     }
 
-    private static string SavePath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        AppInfo.AppName, "actionflow_settings.json");
+    private static string SavePath => HubPaths.Data("actionflow_settings.json");
 
     [Newtonsoft.Json.JsonIgnore] public string? LastSaveError { get; set; }
 
@@ -52,7 +50,7 @@ public class ActionFlowSettings
         {
             var dir = Path.GetDirectoryName(SavePath)!;
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            File.WriteAllText(SavePath, JsonConvert.SerializeObject(this, Formatting.Indented));
+            AtomicFile.WriteAllText(SavePath, JsonConvert.SerializeObject(this, Formatting.Indented));
             LastSaveError = null;
         }
         catch (Exception ex) { LastSaveError = ex.Message; }

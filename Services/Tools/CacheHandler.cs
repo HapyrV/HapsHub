@@ -6,8 +6,7 @@ namespace VRCNext.Services;
 
 public class CacheHandler
 {
-    private static readonly string _dir = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppInfo.AppName);
+    private static readonly string _dir = HubPaths.DataRoot;
 
     // Per-account subdirectory inserted into cache paths for secondary accounts.
     // Primary uses the default layout under "Caches/..." so existing files keep working.

@@ -33,9 +33,7 @@ internal static class CrashHandler
 
     public static void Register()
     {
-        var logsDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            AppInfo.AppName, "Logs");
+        var logsDir = HubPaths.Data("Logs");
         _crashDir         = Path.Combine(logsDir, "Crashes");
         _sentinelPath     = Path.Combine(logsDir, "session.sentinel");
         _pendingCrashPath = Path.Combine(logsDir, "pending_crash.txt");
@@ -258,7 +256,7 @@ internal static class CrashHandler
             sb.AppendLine($"  Working Set at crash: {FormatBytes(proc.WorkingSet64)}");
             try
             {
-                var drive = new System.IO.DriveInfo(Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData))!);
+                var drive = new System.IO.DriveInfo(Path.GetPathRoot(HubPaths.DataRoot)!);
                 sb.AppendLine($"  AppData drive free:  {FormatBytes(drive.AvailableFreeSpace)} of {FormatBytes(drive.TotalSize)}");
             }
             catch { }

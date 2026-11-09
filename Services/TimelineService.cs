@@ -146,12 +146,8 @@ public class TimelineService : IDisposable
 
     private readonly SqliteConnection _db;
 
-    private static readonly string LegacyEventsJson = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        AppInfo.AppName, "timeline_events.json");
-    private static readonly string LegacyKnownUsersJson = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        AppInfo.AppName, "timeline_known_users.json");
+    private static readonly string LegacyEventsJson = HubPaths.Data("timeline_events.json");
+    private static readonly string LegacyKnownUsersJson = HubPaths.Data("timeline_known_users.json");
 
     public bool KnownUsersSeeded => _knownUsersSeeded;
 

@@ -1005,7 +1005,7 @@ namespace VRCNext.Services
         private async Task EnsureMaterialSymbolsAsync()
         {
             if (_matSymFamily != null) return;
-            string cacheDir  = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), AppInfo.AppName);
+            string cacheDir  = HubPaths.LocalRoot;
             string fontPath  = Path.Combine(cacheDir, "MaterialSymbolsRounded.ttf");
             if (!File.Exists(fontPath))
             {

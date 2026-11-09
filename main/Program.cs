@@ -131,9 +131,7 @@ static class Program
     {
         try
         {
-            var path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                AppInfo.AppName, "settings.json");
+            var path = HubPaths.Data("settings.json");
             var json = File.ReadAllText(path);
             var match = System.Text.RegularExpressions.Regex.Match(json, "\"[Ll]anguage\"\\s*:\\s*\"([^\"]+)\"");
             var lang = match.Success ? match.Groups[1].Value : "en";

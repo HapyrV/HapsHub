@@ -318,9 +318,7 @@ public class RelayController : IDisposable
 
     // VRCVideoCacher
 
-    public static readonly string VcExePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        AppInfo.AppName, "Tools", "VRCVideoCacher", "VRCVideoCacher.exe");
+    public static readonly string VcExePath = HubPaths.Data("Tools", "VRCVideoCacher", "VRCVideoCacher.exe");
 
     private object GetVcState()
     {

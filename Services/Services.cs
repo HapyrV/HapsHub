@@ -812,9 +812,7 @@ public class AppSettings
         public bool Enabled { get; set; }
     }
 
-    private static readonly string FilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        AppInfo.AppName, "settings.json");
+    private static readonly string FilePath = HubPaths.Data("settings.json");
     private static readonly string BackupPath = FilePath + ".bak";
     private static readonly object _saveLock = new();
 
@@ -927,11 +925,8 @@ public class AppSettings
             var json = JsonConvert.SerializeObject(this, Formatting.Indented);
             lock (_saveLock)
             {
-                var tmp = FilePath + ".tmp";
-                File.WriteAllText(tmp, json);
-                VRCNext.Services.Helpers.SecretProtector.RestrictToOwner(tmp);
-                if (File.Exists(FilePath)) File.Replace(tmp, FilePath, BackupPath);
-                else File.Move(tmp, FilePath);
+                AtomicFile.WriteAllText(FilePath, json, backupPath: BackupPath,
+                    prepareTemp: VRCNext.Services.Helpers.SecretProtector.RestrictToOwner);
             }
             LastSaveError = null;
         }
@@ -969,9 +964,7 @@ public class VoiceFightSettings
         }
     }
 
-    private static string SavePath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        AppInfo.AppName, "voicefight_settings.json");
+    private static string SavePath => HubPaths.Data("voicefight_settings.json");
 
     public static VoiceFightSettings Load()
     {
@@ -1012,7 +1005,7 @@ public class VoiceFightSettings
         {
             var dir = Path.GetDirectoryName(SavePath)!;
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            File.WriteAllText(SavePath, JsonConvert.SerializeObject(this, Formatting.Indented));
+            AtomicFile.WriteAllText(SavePath, JsonConvert.SerializeObject(this, Formatting.Indented));
         }
         catch { }
     }
@@ -1041,9 +1034,7 @@ public class PhotoPlayersStore : IDisposable
     private readonly SqliteConnection _db;
     private bool _disposed;
 
-    private static readonly string LegacyFilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        AppInfo.AppName, "photo_players.json");
+    private static readonly string LegacyFilePath = HubPaths.Data("photo_players.json");
 
     private PhotoPlayersStore(SqliteConnection db) { _db = db; }
 

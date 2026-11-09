@@ -13,8 +13,7 @@ public static class SecretProtector
     private static readonly object _keyLock = new();
     private static byte[]? _key;
 
-    private static string BaseDir => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppInfo.AppName);
+    private static string BaseDir => HubPaths.DataRoot;
 
     private static string KeyPath => Path.Combine(BaseDir, ".secret.key");
 
@@ -63,8 +62,7 @@ public static class SecretProtector
     private static byte[] CreateKeyFile()
     {
         var secret = RandomNumberGenerator.GetBytes(KeyBytes);
-        File.WriteAllBytes(KeyPath, secret);
-        RestrictToOwner(KeyPath);
+        AtomicFile.WriteAllBytes(KeyPath, secret, prepareTemp: RestrictToOwner);
         return secret;
     }
 

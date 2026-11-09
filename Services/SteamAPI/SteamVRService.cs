@@ -237,7 +237,7 @@ namespace VRCNext.Services
                         }
                     }
                 }, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(path, json);
+                AtomicFile.WriteAllText(path, json);
                 if (OpenVR.Applications != null)
                     _log($"[SteamVR] Manifest: {OpenVR.Applications.AddApplicationManifest(path, true)}");
             }

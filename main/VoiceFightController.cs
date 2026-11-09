@@ -260,11 +260,11 @@ public class VoiceFightController : IDisposable
 
             case "vfGetBlockList":
                 {
-                    var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppInfo.AppName, "block.txt");
+                    var path = HubPaths.Data("block.txt");
                     if (!System.IO.File.Exists(path))
                     {
                         System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);
-                        System.IO.File.WriteAllLines(path, new[]
+                        AtomicFile.WriteAllLines(path, new[]
                         {
                             "# Words listed here are stripped from VOSK recognition results before keyword matching.",
                             "# One word or phrase per line. Lines starting with # are comments.",
@@ -284,7 +284,7 @@ public class VoiceFightController : IDisposable
 
             case "vfSetBlockList":
                 {
-                    var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppInfo.AppName, "block.txt");
+                    var path = HubPaths.Data("block.txt");
                     var words = msg["words"]?.ToObject<List<string>>() ?? new List<string>();
                     var lines = new List<string>
                     {
@@ -292,7 +292,7 @@ public class VoiceFightController : IDisposable
                         "# One word or phrase per line. Lines starting with # are comments."
                     };
                     lines.AddRange(words.Select(w => w.Trim().ToLowerInvariant()).Where(w => w.Length > 0).Distinct());
-                    System.IO.File.WriteAllLines(path, lines);
+                    AtomicFile.WriteAllLines(path, lines);
                     _voiceFight?.ReloadBlockList();
                 }
                 break;

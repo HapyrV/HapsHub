@@ -13,9 +13,7 @@ namespace VRCNext.Services.KikitanXD;
 
 public sealed class LocalAiManager
 {
-    public static readonly string Root = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        AppInfo.AppName, "LocalLLM");
+    public static readonly string Root = HubPaths.Data("LocalLLM");
 
     public event Action<string, int, long, long>? OnProgress;
     public event Action<string, bool, string?>? OnFinished;

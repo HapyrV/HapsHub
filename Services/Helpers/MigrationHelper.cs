@@ -5,9 +5,7 @@ namespace VRCNext.Services.Helpers;
 
 public static class FavoritedImagesStore
 {
-    private static readonly string FilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        AppInfo.AppName, "favorited_images.json");
+    private static readonly string FilePath = HubPaths.Data("favorited_images.json");
 
     public static List<string> Load()
     {
@@ -29,7 +27,7 @@ public static class FavoritedImagesStore
         {
             var dir = Path.GetDirectoryName(FilePath)!;
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            File.WriteAllText(FilePath, JsonConvert.SerializeObject(items, Formatting.Indented));
+            AtomicFile.WriteAllText(FilePath, JsonConvert.SerializeObject(items, Formatting.Indented));
         }
         catch { }
     }
@@ -54,9 +52,7 @@ public static class MigrationHelper
 
     public static void MigrateBuiltInDashboardTheme(AppSettings settings)
     {
-        var dir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            AppInfo.AppName, "custom-themes", "Dashboard Theme");
+        var dir = HubPaths.Data("custom-themes", "Dashboard Theme");
         try { if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true); } catch { }
 
         bool changed = settings.ActiveCustomThemes.Remove("Dashboard Theme");
@@ -310,7 +306,7 @@ public static class MigrationHelper
 
     public static void MigrateCachesToSubdir()
     {
-        var root  = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppInfo.AppName);
+        var root  = HubPaths.DataRoot;
         var subdir = Path.Combine(root, "Caches");
 
         string[] files =

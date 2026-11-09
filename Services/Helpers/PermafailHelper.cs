@@ -28,9 +28,7 @@ public static class PermafailHelper
 
     public static void Initialize()
     {
-        _dbPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            AppInfo.AppName, "Caches", "Permafail", "Permafail.db");
+        _dbPath = HubPaths.Data("Caches", "Permafail", "Permafail.db");
 
         Directory.CreateDirectory(Path.GetDirectoryName(_dbPath)!);
 

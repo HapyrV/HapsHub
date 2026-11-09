@@ -5,9 +5,7 @@ namespace VRCNext.Services.KikitanXD;
 
 public class KikitanXDSettings
 {
-    private static readonly string FilePath = System.IO.Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        AppInfo.AppName, "kikitan_xd.json");
+    private static readonly string FilePath = HubPaths.Data("kikitan_xd.json");
     public string ApiKey { get; set; } = "";
     public string GoogleApiKey { get; set; } = "";
     public string Model { get; set; } = "groq";
@@ -56,7 +54,7 @@ public class KikitanXDSettings
         try
         {
             System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(FilePath)!);
-            System.IO.File.WriteAllText(FilePath, JsonConvert.SerializeObject(this, Formatting.Indented));
+            AtomicFile.WriteAllText(FilePath, JsonConvert.SerializeObject(this, Formatting.Indented));
         }
         catch { }
     }

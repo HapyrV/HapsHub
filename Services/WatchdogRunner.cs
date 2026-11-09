@@ -108,9 +108,7 @@ internal static class WatchdogRunner
     {
         try
         {
-            var settingsPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                AppInfo.AppName, "settings.json");
+            var settingsPath = HubPaths.Data("settings.json");
             if (!File.Exists(settingsPath)) return true; // default on
 
             var json = File.ReadAllText(settingsPath, Encoding.UTF8);

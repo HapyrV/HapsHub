@@ -8,9 +8,7 @@ public static class AvtrdbCacheHelper
     private const long TTLSeconds = 30 * 86400L; 
     private const long UnresolvedRetrySeconds = 3600L;
 
-    private static readonly string _dbPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        AppInfo.AppName, "AvatarDB", "Avatars.db");
+    private static readonly string _dbPath = HubPaths.Data("AvatarDB", "Avatars.db");
 
     private static readonly object _lock = new();
     private static SqliteConnection? _conn;

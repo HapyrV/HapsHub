@@ -36,9 +36,7 @@ public static class ImageCacheHelper
 
     public static void Initialize(HttpClient http)
     {
-        _baseDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            AppInfo.AppName, "Caches", "ImageCache");
+        _baseDir = HubPaths.Data("Caches", "ImageCache");
         _http = http;
 
         Directory.CreateDirectory(Path.Combine(_baseDir, "Worlds"));

@@ -46,12 +46,8 @@ public class UnifiedTimeEngine : IDisposable
     private DateTime _lastFlushUtc = DateTime.MinValue; 
     private Action<string>? _logger; 
 
-    private static readonly string UserLegacyPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        AppInfo.AppName, "user_tracking.json");
-    private static readonly string WorldLegacyPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        AppInfo.AppName, "world_tracking.json");
+    private static readonly string UserLegacyPath = HubPaths.Data("user_tracking.json");
+    private static readonly string WorldLegacyPath = HubPaths.Data("world_tracking.json");
 
     private UnifiedTimeEngine(SqliteConnection db) { _db = db; }
 

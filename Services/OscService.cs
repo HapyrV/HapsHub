@@ -432,7 +432,7 @@ namespace VRCNext
             if (changed)
             {
                 var opts = new JsonSerializerOptions { WriteIndented = true };
-                File.WriteAllText(path, root.ToJsonString(opts));
+                AtomicFile.WriteAllText(path, root.ToJsonString(opts));
             }
             return changed;
         }

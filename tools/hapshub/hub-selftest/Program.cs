@@ -1,0 +1,697 @@
+// Self-test for the Hub folder. Everything runs in a temp folder and touches no real data.
+//   dotnet run --project tools/hapshub/hub-selftest
+// Exit code 0 means every check passed.
+
+using System.Diagnostics;
+using System.Text;
+using HapsHub.Core;
+using Microsoft.Data.Sqlite;
+
+if (args.Length >= 1 && args[0] == "--print-path")
+{
+    Console.WriteLine(HubPaths.Data(args[1..]));
+    return 0;
+}
+if (args.Length >= 2 && args[0] == "--writer")
+    return RunWriter(bytes => AtomicFile.Commit(args[1], fs => WriteInChunks(fs, bytes), null, null));
+if (args.Length >= 2 && args[0] == "--writer-plain")
+    return RunWriter(bytes =>
+    {
+        using var fs = new FileStream(args[1], FileMode.Create, FileAccess.Write, FileShare.Read);
+        WriteInChunks(fs, bytes);
+    });
+if (args.Length >= 2 && args[0] == "--crash-module") return await RunCrashChild(args[1]);
+
+var root = Path.Combine(Path.GetTempPath(), "hub-selftest-" + Guid.NewGuid().ToString("N"));
+Directory.CreateDirectory(root);
+// Set before anything reads HubPaths, so this run can't reach the real data folder.
+Environment.SetEnvironmentVariable(HubPaths.DataDirVariable, Path.Combine(root, "data"));
+var failures = 0;
+
+async Task Check(string name, Func<Task> test)
+{
+    try
+    {
+        await test();
+        Console.WriteLine($"ok    {name}");
+    }
+    catch (Exception ex)
+    {
+        failures++;
+        Console.WriteLine($"FAIL  {name}: {ex.Message}");
+    }
+}
+
+static void Assert(bool condition, string message)
+{
+    if (!condition) throw new Exception(message);
+}
+
+string Fresh(string name)
+{
+    var dir = Path.Combine(root, name);
+    Directory.CreateDirectory(dir);
+    return dir;
+}
+
+HubDatabase OpenDb(string dir)
+{
+    var db = new HubDatabase(Path.Combine(dir, "hub.db"));
+    Assert(db.Open(), "database did not open: " + db.LastError);
+    return db;
+}
+
+static HubModuleInfo Info(ModuleRegistry registry, string id) => registry.GetModules().Single(m => m.Id == id);
+
+// ---- Paths ----
+
+await Check("paths: default root matches the folder the app has always used", () =>
+{
+    var expected = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "HapsHub", "Caches", "x.json");
+    var actual = ResolvePath(null, "Caches", "x.json");
+    Assert(actual == expected, $"{actual} != {expected}");
+    return Task.CompletedTask;
+});
+
+await Check("paths: the override moves the data root", () =>
+{
+    var dir = Fresh("paths");
+    var data = ResolvePath(dir, "settings.json");
+    Assert(data == Path.Combine(dir, "settings.json"), data);
+    return Task.CompletedTask;
+});
+
+// ---- Atomic writes ----
+
+await Check("atomic: output bytes match File.WriteAll*", () =>
+{
+    var dir = Fresh("atomic-bytes");
+    var a = Path.Combine(dir, "a");
+    var b = Path.Combine(dir, "b");
+
+    File.WriteAllText(a, "héllo");
+    AtomicFile.WriteAllText(b, "héllo");
+    Assert(File.ReadAllBytes(a).SequenceEqual(File.ReadAllBytes(b)), "default encoding differs");
+
+    File.WriteAllText(a, "héllo", Encoding.UTF8);
+    AtomicFile.WriteAllText(b, "héllo", Encoding.UTF8);
+    Assert(File.ReadAllBytes(a).SequenceEqual(File.ReadAllBytes(b)), "UTF8 with BOM differs");
+
+    File.WriteAllLines(a, new[] { "one", "two" });
+    AtomicFile.WriteAllLines(b, new[] { "one", "two" });
+    Assert(File.ReadAllBytes(a).SequenceEqual(File.ReadAllBytes(b)), "lines differ");
+    return Task.CompletedTask;
+});
+
+await Check("atomic: a write that fails part-way leaves the old file and no temp", () =>
+{
+    var dir = Fresh("atomic-fail");
+    var path = Path.Combine(dir, "state.json");
+    File.WriteAllText(path, "old");
+    var threw = false;
+    try
+    {
+        AtomicFile.Commit(path, fs =>
+        {
+            fs.WriteByte(1);
+            throw new IOException("disk full");
+        }, null, null);
+    }
+    catch (IOException) { threw = true; }
+    Assert(threw, "the failure was swallowed");
+    Assert(File.ReadAllText(path) == "old", "old contents were lost");
+    Assert(Directory.GetFiles(dir).Length == 1, "temp file left behind");
+    return Task.CompletedTask;
+});
+
+await Check("atomic: backup receives the previous version, first write needs none", () =>
+{
+    var dir = Fresh("atomic-backup");
+    var path = Path.Combine(dir, "settings.json");
+    var backup = path + ".bak";
+    AtomicFile.WriteAllText(path, "v1", backupPath: backup);
+    Assert(!File.Exists(backup), "backup made on first write");
+    AtomicFile.WriteAllText(path, "v2", backupPath: backup);
+    Assert(File.ReadAllText(path) == "v2" && File.ReadAllText(backup) == "v1", "wrong contents");
+    return Task.CompletedTask;
+});
+
+await Check("atomic: a locked target throws after retrying and keeps old contents", () =>
+{
+    var dir = Fresh("atomic-locked");
+    var path = Path.Combine(dir, "state.json");
+    File.WriteAllText(path, "old");
+    using (new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None))
+    {
+        var threw = false;
+        try { AtomicFile.WriteAllText(path, "new"); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { threw = true; }
+        Assert(threw, "expected a failure while locked");
+    }
+    Assert(File.ReadAllText(path) == "old", "old contents were lost");
+    Assert(Directory.GetFiles(dir).Length == 1, "temp file left behind");
+    return Task.CompletedTask;
+});
+
+await Check("atomic: orphan cleanup removes only old temp files", () =>
+{
+    var dir = Fresh("atomic-orphans");
+    var old = Path.Combine(dir, "a.json.abc.atomic-tmp");
+    var young = Path.Combine(dir, "b.json.def.atomic-tmp");
+    var keep = Path.Combine(dir, "c.json");
+    foreach (var f in new[] { old, young, keep }) File.WriteAllText(f, "x");
+    File.SetLastWriteTimeUtc(old, DateTime.UtcNow.AddDays(-2));
+    File.SetLastWriteTimeUtc(keep, DateTime.UtcNow.AddDays(-2));
+    Assert(AtomicFile.CleanOrphans(dir, TimeSpan.FromDays(1)) == 1, "wrong count");
+    Assert(!File.Exists(old) && File.Exists(young) && File.Exists(keep), "wrong files removed");
+    return Task.CompletedTask;
+});
+
+await Check("atomic: killing the writer 25 times never leaves a partial file", async () =>
+{
+    var dir = Fresh("atomic-kill");
+    var path = Path.Combine(dir, "state.bin");
+    var random = new Random(42);
+    for (var i = 0; i < 25; i++)
+    {
+        await Retry(() => AtomicFile.WriteAllBytes(path, Payload(1)));
+        await KillMidWrite("--writer", path, random);
+        Assert(IsWholePayload(await ReadSettled(path)), $"partial file after kill {i + 1}");
+    }
+
+    // Control: the same test with plain writes has to catch partial files, or it proves nothing.
+    var controlPath = Path.Combine(dir, "control.bin");
+    var caught = 0;
+    for (var i = 0; i < 25; i++)
+    {
+        await Retry(() => File.WriteAllBytes(controlPath, Payload(1)));
+        await KillMidWrite("--writer-plain", controlPath, random);
+        if (!IsWholePayload(await ReadSettled(controlPath))) caught++;
+    }
+    Console.WriteLine($"      control: plain writes left a partial file in {caught} of 25 kills");
+    Assert(caught > 0, "the control never caught a partial write, so this test has no power");
+});
+
+// ---- Database ----
+
+await Check("db: creates core tables, reopens without reapplying", () =>
+{
+    var dir = Fresh("db-open");
+    var db = OpenDb(dir);
+    using (var c = db.OpenConnection())
+    {
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE name IN ('module_state','module_settings','schema_versions');";
+        Assert((long)cmd.ExecuteScalar()! == 3, "core tables missing");
+    }
+    SqliteConnection.ClearAllPools();
+    OpenDb(dir);
+    return Task.CompletedTask;
+});
+
+await Check("db: uses WAL", () =>
+{
+    var db = OpenDb(Fresh("db-wal"));
+    using var c = db.OpenConnection();
+    using var cmd = c.CreateCommand();
+    cmd.CommandText = "PRAGMA journal_mode;";
+    Assert((string)cmd.ExecuteScalar()! == "wal", "not WAL");
+    return Task.CompletedTask;
+});
+
+await Check("db: a failed migration rolls back only its own step", () =>
+{
+    var db = OpenDb(Fresh("db-migrate"));
+    var steps = new[]
+    {
+        new HubMigration(1, "CREATE TABLE t1 (a);"),
+        new HubMigration(2, "CREATE TABLE t2 (a); THIS IS NOT SQL;"),
+    };
+    Assert(db.ApplyMigrations("m", steps, out var error) == MigrationOutcome.Failed, "should have failed");
+    Assert(error != null, "no error text");
+    using var c = db.OpenConnection();
+    using var cmd = c.CreateCommand();
+    cmd.CommandText = "SELECT group_concat(name) FROM sqlite_master WHERE name IN ('t1','t2');";
+    Assert((string)cmd.ExecuteScalar()! == "t1", "step 2 was not rolled back");
+    return Task.CompletedTask;
+});
+
+await Check("db: data newer than this build is refused and left alone", () =>
+{
+    var db = OpenDb(Fresh("db-newer"));
+    var newer = new[] { new HubMigration(1, "CREATE TABLE t (a);"), new HubMigration(2, "ALTER TABLE t ADD b;") };
+    Assert(db.ApplyMigrations("m", newer, out _) == MigrationOutcome.Applied, "setup failed");
+    var older = new[] { new HubMigration(1, "CREATE TABLE t (a);") };
+    Assert(db.ApplyMigrations("m", older, out _) == MigrationOutcome.DatabaseIsNewer, "should refuse");
+    return Task.CompletedTask;
+});
+
+await Check("db: a garbage file is moved aside, kept, and replaced", () =>
+{
+    var dir = Fresh("db-garbage");
+    var path = Path.Combine(dir, "hub.db");
+    var garbage = Enumerable.Repeat((byte)0x5A, 8192).ToArray();
+    File.WriteAllBytes(path, garbage);
+    var db = new HubDatabase(path);
+    Assert(db.Open(), "did not recover: " + db.LastError);
+    Assert(db.QuarantinedTo != null && File.ReadAllBytes(db.QuarantinedTo).SequenceEqual(garbage), "old file not kept");
+    return Task.CompletedTask;
+});
+
+await Check("db: a damaged page in a real database is caught and kept", () =>
+{
+    var dir = Fresh("db-damaged");
+    var path = Path.Combine(dir, "hub.db");
+    var db = OpenDb(dir);
+    using (var c = db.OpenConnection())
+    {
+        using var cmd = c.CreateCommand();
+        cmd.CommandText = "CREATE TABLE big (v TEXT); WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM n WHERE i<3000) INSERT INTO big SELECT hex(randomblob(50)) FROM n; PRAGMA wal_checkpoint(TRUNCATE);";
+        cmd.ExecuteNonQuery();
+    }
+    SqliteConnection.ClearAllPools();
+    var bytes = File.ReadAllBytes(path);
+    Array.Fill(bytes, (byte)0xFF, 4096, Math.Min(bytes.Length - 4096, 40960));
+    File.WriteAllBytes(path, bytes);
+    var reopened = new HubDatabase(path);
+    Assert(reopened.Open(), "did not recover: " + reopened.LastError);
+    Assert(reopened.QuarantinedTo != null && File.Exists(reopened.QuarantinedTo), "damage not caught");
+    return Task.CompletedTask;
+});
+
+await Check("db: a locked file is reported, not treated as damage", () =>
+{
+    var dir = Fresh("db-locked");
+    var path = Path.Combine(dir, "hub.db");
+    OpenDb(dir);
+    SqliteConnection.ClearAllPools();
+    using (new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+    {
+        var db = new HubDatabase(path);
+        Assert(!db.Open(), "open should fail while locked");
+        Assert(db.QuarantinedTo == null, "healthy file was quarantined");
+    }
+    Assert(File.Exists(path), "file was moved");
+    return Task.CompletedTask;
+});
+
+// ---- Modules ----
+
+await Check("modules: throwing and hanging modules fail alone", async () =>
+{
+    var registry = new ModuleRegistry(OpenDb(Fresh("mod-isolation"))) { StartTimeout = TimeSpan.FromMilliseconds(300) };
+    var healthy = new FakeModule("healthy");
+    registry.Register(new FakeModule("thrower") { OnStart = (_, _) => throw new InvalidOperationException("boom") });
+    registry.Register(new FakeModule("blocker") { OnStart = (_, _) => { Thread.Sleep(1500); return Task.CompletedTask; } });
+    registry.Register(new FakeModule("hanger") { OnStart = (_, _) => new TaskCompletionSource().Task });
+    registry.Register(healthy);
+
+    var watch = Stopwatch.StartNew();
+    await registry.StartAllAsync();
+    Assert(watch.Elapsed < TimeSpan.FromSeconds(1.2), $"hung modules held up startup: {watch.Elapsed}");
+
+    Assert(Info(registry, "thrower").Status == HubModuleStatus.Failed, "thrower");
+    Assert(Info(registry, "thrower").Detail == "boom", "thrower detail");
+    Assert(Info(registry, "blocker").Status == HubModuleStatus.Failed, "blocker");
+    Assert(Info(registry, "hanger").Status == HubModuleStatus.Failed, "hanger");
+    Assert(Info(registry, "healthy").Status == HubModuleStatus.Running, "healthy did not start");
+    Assert(healthy.Started == 1, "healthy start count");
+});
+
+await Check("modules: a failed migration fails only that module", async () =>
+{
+    var registry = new ModuleRegistry(OpenDb(Fresh("mod-migrate")));
+    var bad = new FakeModule("bad") { MigrationList = new[] { new HubMigration(1, "NOT SQL") } };
+    var good = new FakeModule("good") { MigrationList = new[] { new HubMigration(1, "CREATE TABLE good_t (a);") } };
+    registry.Register(bad);
+    registry.Register(good);
+    await registry.StartAllAsync();
+    Assert(Info(registry, "bad").Status == HubModuleStatus.Failed && bad.Started == 0, "bad module ran");
+    Assert(Info(registry, "good").Status == HubModuleStatus.Running, "good module blocked");
+});
+
+await Check("modules: no database stops only the modules that need one", async () =>
+{
+    var registry = new ModuleRegistry(null);
+    registry.Register(new FakeModule("needs") { MigrationList = new[] { new HubMigration(1, "CREATE TABLE t (a);") } });
+    registry.Register(new FakeModule("plain"));
+    await registry.StartAllAsync();
+    Assert(Info(registry, "needs").Status == HubModuleStatus.Failed, "needs");
+    Assert(Info(registry, "plain").Status == HubModuleStatus.Running, "plain");
+});
+
+await Check("modules: disabled stays off across restarts, enabling starts it", async () =>
+{
+    var dir = Fresh("mod-enable");
+    var first = new ModuleRegistry(OpenDb(dir));
+    var module = new FakeModule("m");
+    first.Register(module);
+    await first.StartAllAsync();
+    await first.SetEnabledAsync("m", false);
+    Assert(module.Stopped == 1 && Info(first, "m").Status == HubModuleStatus.Disabled, "did not stop");
+
+    var again = new FakeModule("m");
+    var second = new ModuleRegistry(OpenDb(dir));
+    second.Register(again);
+    await second.StartAllAsync();
+    Assert(again.Started == 0 && !Info(second, "m").Enabled, "started while disabled");
+
+    await second.SetEnabledAsync("m", true);
+    Assert(again.Started == 1 && Info(second, "m").Status == HubModuleStatus.Running, "did not start");
+});
+
+await Check("modules: off-by-default stays off until enabled", async () =>
+{
+    var registry = new ModuleRegistry(OpenDb(Fresh("mod-default")));
+    var module = new FakeModule("m") { DefaultOn = false };
+    registry.Register(module);
+    await registry.StartAllAsync();
+    Assert(module.Started == 0 && Info(registry, "m").Status == HubModuleStatus.Disabled, "started");
+});
+
+await Check("modules: a background failure marks the module, not the process", async () =>
+{
+    var registry = new ModuleRegistry(OpenDb(Fresh("mod-background")));
+    registry.Register(new FakeModule("m")
+    {
+        OnStart = (context, _) =>
+        {
+            context.RunBackground("poller", _ => throw new InvalidOperationException("lost it"));
+            return Task.CompletedTask;
+        },
+    });
+    await registry.StartAllAsync();
+    for (var i = 0; i < 50 && Info(registry, "m").Status != HubModuleStatus.Failed; i++) await Task.Delay(10);
+    Assert(Info(registry, "m").Detail.Contains("lost it"), "failure not recorded: " + Info(registry, "m").Detail);
+});
+
+await Check("modules: degraded and recovered are reported", async () =>
+{
+    HubModuleContext? captured = null;
+    var registry = new ModuleRegistry(OpenDb(Fresh("mod-degraded")));
+    registry.Register(new FakeModule("m") { OnStart = (context, _) => { captured = context; return Task.CompletedTask; } });
+    await registry.StartAllAsync();
+    captured!.ReportDegraded("helper missing");
+    Assert(Info(registry, "m").Status == HubModuleStatus.Degraded, "not degraded");
+    captured.ReportHealthy();
+    Assert(Info(registry, "m").Status == HubModuleStatus.Running, "did not recover");
+});
+
+await Check("modules: a late report from an abandoned module is ignored", async () =>
+{
+    HubModuleContext? captured = null;
+    var registry = new ModuleRegistry(OpenDb(Fresh("mod-late"))) { StartTimeout = TimeSpan.FromMilliseconds(100) };
+    registry.Register(new FakeModule("m")
+    {
+        OnStart = (context, _) => { captured = context; return new TaskCompletionSource().Task; },
+    });
+    await registry.StartAllAsync();
+    captured!.ReportHealthy();
+    Assert(Info(registry, "m").Status == HubModuleStatus.Failed, "abandoned module changed its status");
+});
+
+await Check("modules: stop runs in reverse order; a hanging stop can't exceed the budget", async () =>
+{
+    var order = new List<string>();
+    var registry = new ModuleRegistry(OpenDb(Fresh("mod-stop"))) { StopTimeout = TimeSpan.FromMilliseconds(200) };
+    registry.Register(new FakeModule("a") { OnStop = () => { lock (order) order.Add("a"); return Task.CompletedTask; } });
+    registry.Register(new FakeModule("hang") { OnStop = () => new TaskCompletionSource().Task });
+    registry.Register(new FakeModule("c") { OnStop = () => { lock (order) order.Add("c"); return Task.CompletedTask; } });
+    await registry.StartAllAsync();
+    var watch = Stopwatch.StartNew();
+    await registry.StopAllAsync(TimeSpan.FromSeconds(2));
+    Assert(watch.Elapsed < TimeSpan.FromSeconds(1), $"stop took {watch.Elapsed}");
+    Assert(string.Join("", order) == "ca", "wrong order: " + string.Join("", order));
+});
+
+await Check("modules: closing during a hung start doesn't wait out the start timeout", async () =>
+{
+    var registry = new ModuleRegistry(OpenDb(Fresh("mod-close-hung"))) { StartTimeout = TimeSpan.FromSeconds(30) };
+    var later = new FakeModule("later");
+    registry.Register(new FakeModule("hanger") { OnStart = (_, _) => new TaskCompletionSource().Task });
+    registry.Register(later);
+    var starting = registry.StartAllAsync();
+    await Task.Delay(200);
+    var watch = Stopwatch.StartNew();
+    await registry.StopAllAsync(TimeSpan.FromSeconds(2));
+    await starting;
+    Assert(watch.Elapsed < TimeSpan.FromSeconds(1), $"close took {watch.Elapsed}");
+    Assert(later.Started == 0, "a module was started during shutdown");
+});
+
+await Check("modules: re-enabling a failed module stops its old instance first", async () =>
+{
+    var registry = new ModuleRegistry(OpenDb(Fresh("mod-restart")));
+    var module = new FakeModule("m")
+    {
+        OnStart = (context, _) =>
+        {
+            context.RunBackground("poller", _ => throw new InvalidOperationException("lost it"));
+            return Task.CompletedTask;
+        },
+    };
+    registry.Register(module);
+    await registry.StartAllAsync();
+    for (var i = 0; i < 50 && Info(registry, "m").Status != HubModuleStatus.Failed; i++) await Task.Delay(10);
+    await registry.SetEnabledAsync("m", true);
+    Assert(module.Stopped == 1 && module.Started == 2, $"stopped {module.Stopped}, started {module.Started}");
+});
+
+await Check("modules: settings persist, default applies, unknown key is refused", async () =>
+{
+    var dir = Fresh("mod-settings");
+    var definitions = new[] { new HubSettingDefinition("on", "On", HubSettingKind.Toggle, "false") };
+    var registry = new ModuleRegistry(OpenDb(dir));
+    registry.Register(new FakeModule("m") { SettingList = definitions });
+    Assert(registry.GetSetting("m", "on") == "false", "default");
+    Assert(registry.SetSetting("m", "on", "true"), "save");
+
+    var reopened = new ModuleRegistry(OpenDb(dir));
+    reopened.Register(new FakeModule("m") { SettingList = definitions });
+    Assert(reopened.GetSetting("m", "on") == "true", "not persisted");
+
+    var refused = false;
+    try { reopened.SetSetting("m", "ghost", "x"); }
+    catch (ArgumentException) { refused = true; }
+    Assert(refused, "dead setting accepted");
+    await Task.CompletedTask;
+});
+
+await Check("modules: duplicate id and duplicate setting key are refused", () =>
+{
+    var registry = new ModuleRegistry(null);
+    registry.Register(new FakeModule("m"));
+    var duplicateId = false;
+    try { registry.Register(new FakeModule("m")); }
+    catch (ArgumentException) { duplicateId = true; }
+
+    var duplicateKey = false;
+    var setting = new HubSettingDefinition("k", "K", HubSettingKind.Text, "");
+    try { registry.Register(new FakeModule("n") { SettingList = new[] { setting, setting } }); }
+    catch (ArgumentException) { duplicateKey = true; }
+    Assert(duplicateId && duplicateKey, "duplicates accepted");
+    return Task.CompletedTask;
+});
+
+await Check("modules: a real crash during start skips the module on the third launch, enabling retries", async () =>
+{
+    var dir = Fresh("mod-crash");
+    for (var run = 1; run <= 2; run++)
+    {
+        using var child = StartSelf("--crash-module", dir);
+        await child.WaitForExitAsync();
+        Assert(child.ExitCode != 0, $"run {run} should have crashed");
+    }
+
+    var survivor = new FakeModule("survivor");
+    var crasher = new FakeModule("crasher");
+    var registry = new ModuleRegistry(OpenDb(dir));
+    registry.Register(crasher);
+    registry.Register(survivor);
+    await registry.StartAllAsync();
+    Assert(crasher.Started == 0, "crasher was started a third time");
+    Assert(Info(registry, "crasher").Status == HubModuleStatus.Failed, "not marked failed");
+    Assert(Info(registry, "survivor").Status == HubModuleStatus.Running, "survivor blocked");
+
+    await registry.SetEnabledAsync("crasher", true);
+    Assert(crasher.Started == 1, "enabling did not retry");
+    Assert(Info(registry, "crasher").Status == HubModuleStatus.Running, "not running after retry");
+});
+
+// ---- Host ----
+
+await Check("host: the db opens in the background and Stop is bounded", async () =>
+{
+    var module = new FakeModule("m");
+    var host = HubHost.Start(new IHubModule[] { module });
+    for (var i = 0; i < 300 && module.Started == 0; i++) await Task.Delay(10);
+    Assert(module.Started == 1, "module never started");
+    Assert(host.Database.IsAvailable, "database unavailable: " + host.Database.LastError);
+    var watch = Stopwatch.StartNew();
+    host.Stop(TimeSpan.FromSeconds(2));
+    Assert(watch.Elapsed < TimeSpan.FromSeconds(2.5), $"stop took {watch.Elapsed}");
+    Assert(module.Stopped == 1, "module not stopped");
+    Assert(File.Exists(Path.Combine(HubPaths.HubRoot, "hub.log")), "no log written");
+});
+
+SqliteConnection.ClearAllPools();
+try { Directory.Delete(root, recursive: true); }
+catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+
+Console.WriteLine(failures == 0 ? "All checks passed." : $"{failures} check(s) failed.");
+return failures == 0 ? 0 : 1;
+
+// HubPaths caches its root for the process, so each root rule is checked in a new child process.
+static string ResolvePath(string? overrideDir, params string[] parts)
+{
+    var info = new ProcessStartInfo(Environment.ProcessPath!)
+    {
+        RedirectStandardOutput = true,
+        UseShellExecute = false,
+    };
+    info.ArgumentList.Add("--print-path");
+    foreach (var part in parts) info.ArgumentList.Add(part);
+    info.Environment[HubPaths.DataDirVariable] = overrideDir ?? "";
+    using var child = Process.Start(info)!;
+    var output = child.StandardOutput.ReadToEnd().Trim();
+    child.WaitForExit();
+    return output;
+}
+
+static Process StartSelf(params string[] arguments)
+{
+    var info = new ProcessStartInfo(Environment.ProcessPath!)
+    {
+        UseShellExecute = false,
+        RedirectStandardError = true,
+    };
+    foreach (var argument in arguments) info.ArgumentList.Add(argument);
+    return Process.Start(info)!;
+}
+
+// A payload is one repeated byte, large enough that a non-atomic write would often be caught part-way.
+static byte[] Payload(byte value)
+{
+    var bytes = new byte[PayloadSize];
+    Array.Fill(bytes, value);
+    return bytes;
+}
+
+static bool IsWholePayload(byte[] bytes) =>
+    bytes.Length == PayloadSize && bytes.All(b => b == bytes[0]);
+
+static int RunWriter(Action<byte[]> write)
+{
+    var first = Payload(2);
+    var second = Payload(3);
+    while (true)
+    {
+        write(first);
+        write(second);
+    }
+}
+
+// Small chunks with flushes, as serializers and stream writers produce, so a kill can land mid-file.
+static void WriteInChunks(FileStream stream, byte[] bytes)
+{
+    const int ChunkSize = 16 * 1024;
+    for (var offset = 0; offset < bytes.Length; offset += ChunkSize)
+    {
+        stream.Write(bytes, offset, Math.Min(ChunkSize, bytes.Length - offset));
+        stream.Flush();
+    }
+}
+
+// Antivirus scanners hold large new files open for a while. That is not what these tests are about.
+static async Task Retry(Action action)
+{
+    for (var attempt = 0; ; attempt++)
+    {
+        try
+        {
+            action();
+            return;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException && attempt < 100)
+        {
+            await Task.Delay(100);
+        }
+    }
+}
+
+static async Task<byte[]> ReadSettled(string path)
+{
+    byte[] bytes = Array.Empty<byte>();
+    await Retry(() => bytes = File.ReadAllBytes(path));
+    return bytes;
+}
+
+// Waits for proof that the child has written, then kills it at a random moment.
+static async Task KillMidWrite(string mode, string path, Random random)
+{
+    using var child = StartSelf(mode, path);
+    var started = Stopwatch.StartNew();
+    while (started.Elapsed < TimeSpan.FromSeconds(10))
+    {
+        try
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            if (stream.ReadByte() is not (1 or -1)) break;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+        await Task.Delay(2);
+    }
+    if (started.Elapsed >= TimeSpan.FromSeconds(10)) throw new Exception("the writer never wrote");
+    await Task.Delay(random.Next(0, 15));
+    child.Kill(entireProcessTree: true);
+    await child.WaitForExitAsync();
+}
+
+static async Task<int> RunCrashChild(string dir)
+{
+    var db = new HubDatabase(Path.Combine(dir, "hub.db"));
+    db.Open();
+    var registry = new ModuleRegistry(db);
+    registry.Register(new FakeModule("crasher")
+    {
+        // A native crash that no catch block can stop.
+        OnStart = (_, _) => { Environment.FailFast("selftest crash"); return Task.CompletedTask; },
+    });
+    await registry.StartAllAsync();
+    return 0;
+}
+
+internal sealed partial class Program
+{
+    private const int PayloadSize = 4 * 1024 * 1024;
+}
+
+internal sealed class FakeModule : IHubModule
+{
+    public FakeModule(string id) => Id = id;
+
+    public string Id { get; }
+    public string DisplayName => Id;
+    public bool DefaultOn { get; init; } = true;
+    public bool EnabledByDefault => DefaultOn;
+    public IReadOnlyList<HubMigration> MigrationList { get; init; } = Array.Empty<HubMigration>();
+    public IReadOnlyList<HubMigration> Migrations => MigrationList;
+    public IReadOnlyList<HubSettingDefinition> SettingList { get; init; } = Array.Empty<HubSettingDefinition>();
+    public IReadOnlyList<HubSettingDefinition> Settings => SettingList;
+    public Func<HubModuleContext, CancellationToken, Task>? OnStart { get; init; }
+    public Func<Task>? OnStop { get; init; }
+    public int Started { get; private set; }
+    public int Stopped { get; private set; }
+
+    public Task StartAsync(HubModuleContext context, CancellationToken cancellationToken)
+    {
+        Started++;
+        return OnStart?.Invoke(context, cancellationToken) ?? Task.CompletedTask;
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        Stopped++;
+        return OnStop?.Invoke() ?? Task.CompletedTask;
+    }
+}

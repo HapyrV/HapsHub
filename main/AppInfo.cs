@@ -2,7 +2,7 @@
 
 public static class AppInfo
 {
-    public const string AppName = "HapsHub";
+    public const string AppName = HubPaths.AppName;
     public const string Version = "2026.62.3";
     public const string ContactEmail = "hapyr.businesss@gmail.com";
     public const string Website = "vrcn.shinyflvres.com";

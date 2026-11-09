@@ -58,8 +58,7 @@ public sealed class VoiceFightService : IDisposable
     private static readonly string StopSoundPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory, "voice", "sounds", "stop.wav");
 
-    private static readonly string BlockListPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppInfo.AppName, "block.txt");
+    private static readonly string BlockListPath = HubPaths.Data("block.txt");
     private static readonly string[] BlockListDefaults = ["huh", "heh", "hah"];
     private HashSet<string> _blockList = new(StringComparer.OrdinalIgnoreCase);
 
@@ -194,7 +193,7 @@ public sealed class VoiceFightService : IDisposable
         if (!File.Exists(BlockListPath))
         {
             Directory.CreateDirectory(Path.GetDirectoryName(BlockListPath)!);
-            File.WriteAllLines(BlockListPath, new[]
+            AtomicFile.WriteAllLines(BlockListPath, new[]
             {
                 "# Words listed here are stripped from VOSK recognition results before keyword matching.",
                 "# One word or phrase per line. Lines starting with # are comments."

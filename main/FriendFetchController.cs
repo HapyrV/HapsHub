@@ -26,9 +26,7 @@ public class FriendFetchController
         _friends = friends;
     }
 
-    private static string StatePath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        AppInfo.AppName, "Caches", "friend_fetch.json");
+    private static string StatePath => HubPaths.Data("Caches", "friend_fetch.json");
 
     private static DateTime? ReadLastRun()
     {
@@ -60,7 +58,7 @@ public class FriendFetchController
             var dir = Path.GetDirectoryName(StatePath)!;
             Directory.CreateDirectory(dir);
             var o = new JObject { ["lastRun"] = utc?.ToString("o") ?? "" };
-            File.WriteAllText(StatePath, o.ToString(Formatting.None), System.Text.Encoding.UTF8);
+            AtomicFile.WriteAllText(StatePath, o.ToString(Formatting.None), System.Text.Encoding.UTF8);
         }
         catch { }
     }
