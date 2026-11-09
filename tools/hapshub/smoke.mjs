@@ -265,6 +265,26 @@ try {
         check('VRCX database is untouched', after.mtimeMs === before.mtimeMs && after.size === before.size);
     }
 
+    // Status presets: saved, applied into the status form, and removed.
+    const presets = JSON.parse(await main.eval(`JSON.stringify((() => {
+        localStorage.removeItem('hubStatusPresets');
+        hubStatusPresetAdd('busy', 'Working on it');
+        hubStatusPresetAdd('busy', 'Working on it');
+        hubStatusPresetAdd('active', 'x'.repeat(50));
+        const saved = hubStatusPresets();
+        selectedStatus = 'active';
+        document.getElementById('statusDescInput').value = '';
+        hubStatusPresetApply(0);
+        const applied = [selectedStatus, document.getElementById('statusDescInput').value];
+        hubStatusPresetRemove(0);
+        const left = hubStatusPresets().length;
+        localStorage.removeItem('hubStatusPresets');
+        return { saved: saved.length, longest: Math.max(...saved.map(p => p.text.length)), applied, left };
+    })())`));
+    check('status presets: saved once each, and capped at VRChat\'s length', presets.saved === 2 && presets.longest === 32, JSON.stringify(presets));
+    check('status presets: applying one fills the form', presets.applied[0] === 'busy' && presets.applied[1] === 'Working on it', JSON.stringify(presets));
+    check('status presets: one can be removed', presets.left === 1, JSON.stringify(presets));
+
     // Your own calendar events: repeats, then saving and deleting through the real backend.
     const repeats = JSON.parse(await main.eval(`JSON.stringify((() => {
         const make = (startsAt, repeat, repeatUntil = '') => ({ startsAt, endsAt: new Date(new Date(startsAt).getTime() + 3600000).toISOString(), repeat, repeatUntil });

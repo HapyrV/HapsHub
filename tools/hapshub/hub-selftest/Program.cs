@@ -964,6 +964,53 @@ await Check("vrcx: refuses while VRCX runs or the file is missing, and a bad fil
     await Task.CompletedTask;
 });
 
+await Check("notes: the export quotes properly and can't smuggle in a formula", () =>
+{
+    var csv = NotesExport.BuildCsv(new[]
+    {
+        new ExportedNote("user", "usr_1", "Name, with comma", "said \"hi\"\nline two", "2026", "VRCX"),
+        new ExportedNote("user", "usr_2", "=Sneaky", "=SUM(A1)", "", "HapsHub"),
+    });
+    var lines = csv.Split("\r\n");
+    Assert(lines[0] == "kind,id,name,note,edited,source", "header");
+    Assert(lines[1] == "user,usr_1,\"Name, with comma\",\"said \"\"hi\"\"\nline two\",2026,VRCX", "quoting: " + lines[1]);
+    Assert(lines[2] == "user,usr_2,'=Sneaky,'=SUM(A1),,HapsHub", "formula guard: " + lines[2]);
+    return Task.CompletedTask;
+});
+
+await Check("vrcx: the archive pages newest first, searches literally and reads VRCX's notes", async () =>
+{
+    var dir = Fresh("vrcx-browse");
+    var path = Path.Combine(dir, "archive.db");
+    using (var db = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={path}"))
+    {
+        db.Open();
+        using var command = db.CreateCommand();
+        command.CommandText = """
+            CREATE TABLE vrcx_rows (source_table TEXT NOT NULL, row_hash BLOB NOT NULL, row_json TEXT NOT NULL, PRIMARY KEY (source_table, row_hash)) WITHOUT ROWID;
+            INSERT INTO vrcx_rows VALUES ('feed', x'01', '{"created_at":"2024","name":"old 100%"}');
+            INSERT INTO vrcx_rows VALUES ('feed', x'02', '{"created_at":"2026","name":"new"}');
+            INSERT INTO vrcx_rows VALUES ('feed', x'03', '{"created_at":"2025","name":"middle"}');
+            INSERT INTO vrcx_rows VALUES ('memos', x'04', '{"user_id":"usr_1","memo":"nice","edited_at":"2025"}');
+            INSERT INTO vrcx_rows VALUES ('memos', x'05', '{"user_id":"usr_2","memo":"","edited_at":"2025"}');
+            INSERT INTO vrcx_rows VALUES ('world_memos', x'06', '{"world_id":"wrld_1","memo":"fun","edited_at":"2024"}');
+            """;
+        command.ExecuteNonQuery();
+    }
+    Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+    var module = new VrcxHistoryModule(() => false, path);
+    var page = module.ReadRows("feed", "", 0, 2);
+    Assert(page.Rows.Count == 2 && page.More && page.Rows[0].Contains("new") && page.Rows[1].Contains("middle"), "first page");
+    var last = module.ReadRows("feed", "", 2, 2);
+    Assert(last.Rows.Count == 1 && !last.More && last.Rows[0].Contains("old"), "last page");
+    Assert(module.ReadRows("feed", "100%", 0, 10).Rows.Count == 1, "a percent sign is literal");
+    Assert(module.ReadRows("feed", "%", 0, 10).Rows.Count == 1, "a lone percent matches only itself");
+    var notes = module.ReadNotes();
+    Assert(notes.Count == 2 && notes.Any(n => n.Kind == "user" && n.Id == "usr_1" && n.Note == "nice") && notes.Any(n => n.Kind == "world" && n.Id == "wrld_1"), "notes: " + notes.Count);
+    Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+    await Task.CompletedTask;
+});
+
 await Check("vrcx: the import ledger stops a repeat doubling times, and survives restart", async () =>
 {
     var dir = Fresh("vrcx-ledger");

@@ -158,6 +158,58 @@ public sealed class VrcxHistoryModule : IHubModule
         Math.Max(0, total - (ledger.TryGetValue(id, out var done) ? done : 0));
 
     /// <summary>What's in the archive now, per source table. Empty if nothing has been archived.</summary>
+    /// <summary>One page of an archived table, newest first where the rows have a date. Each row is its JSON.</summary>
+    public (IReadOnlyList<string> Rows, bool More) ReadRows(string table, string search, int offset, int limit)
+    {
+        if (!File.Exists(ArchivePath)) return (Array.Empty<string>(), false);
+        var rows = new List<string>();
+        using var archive = Open(ArchivePath, SqliteOpenMode.ReadOnly);
+        using var command = archive.CreateCommand();
+        var filter = string.IsNullOrWhiteSpace(search) ? "" : @" AND row_json LIKE $search ESCAPE '\'";
+        command.CommandText = $"""
+            SELECT row_json FROM vrcx_rows WHERE source_table = $table{filter}
+            ORDER BY COALESCE(json_extract(row_json, '$.created_at'), json_extract(row_json, '$.edited_at'), '') DESC
+            LIMIT $limit OFFSET $offset;
+            """;
+        command.Parameters.AddWithValue("$table", table);
+        if (filter.Length > 0)
+            command.Parameters.AddWithValue("$search", "%" + search.Replace(@"\", @"\\").Replace("%", @"\%").Replace("_", @"\_") + "%");
+        command.Parameters.AddWithValue("$limit", limit + 1);
+        command.Parameters.AddWithValue("$offset", offset);
+        using var reader = command.ExecuteReader();
+        while (reader.Read()) rows.Add(reader.GetString(0));
+        var more = rows.Count > limit;
+        if (more) rows.RemoveAt(limit);
+        return (rows, more);
+    }
+
+    /// <summary>The notes VRCX kept on people, worlds and avatars, from the archive.</summary>
+    public IReadOnlyList<ExportedNote> ReadNotes()
+    {
+        var notes = new List<ExportedNote>();
+        if (!File.Exists(ArchivePath)) return notes;
+        using var archive = Open(ArchivePath, SqliteOpenMode.ReadOnly);
+        foreach (var (table, kind, column) in new[] { ("memos", "user", "user_id"), ("world_memos", "world", "world_id"), ("avatar_memos", "avatar", "avatar_id") })
+        {
+            using var command = archive.CreateCommand();
+            command.CommandText = """
+                SELECT json_extract(row_json, '$.' || $column), json_extract(row_json, '$.memo'), json_extract(row_json, '$.edited_at')
+                FROM vrcx_rows WHERE source_table = $table;
+                """;
+            command.Parameters.AddWithValue("$column", column);
+            command.Parameters.AddWithValue("$table", table);
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var memo = reader.IsDBNull(1) ? "" : reader.GetValue(1).ToString() ?? "";
+                if (memo.Length == 0) continue;
+                notes.Add(new ExportedNote(kind, reader.IsDBNull(0) ? "" : reader.GetValue(0).ToString() ?? "", "", memo,
+                    reader.IsDBNull(2) ? "" : reader.GetValue(2).ToString() ?? "", "VRCX"));
+            }
+        }
+        return notes;
+    }
+
     public IReadOnlyList<VrcxTableResult> ReadSummary()
     {
         if (!File.Exists(ArchivePath)) return Array.Empty<VrcxTableResult>();

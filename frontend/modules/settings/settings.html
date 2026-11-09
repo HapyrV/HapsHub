@@ -859,9 +859,25 @@
                         <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
                             <button class="vrcn-button-round vrcn-btn-join" id="hubVrcxArchiveBtn" onclick="hubVrcxArchive(false)"><span data-i18n="hub.vrcx.start">Archive from VRCX</span></button>
                             <button class="vrcn-button-round" onclick="hubVrcxArchive(true)"><span data-i18n="hub.vrcx.choose">Choose another file</span></button>
+                            <button class="vrcn-button-round" onclick="sendToCS({ action: 'hubExportNotes' })"><span data-i18n="hub.notes.export">Export notes</span></button>
                         </div>
                         <div id="hubVrcxArchiveStatus" class="set-desc" style="margin-top:10px;"></div>
                         <div id="hubVrcxArchiveTables" style="margin-top:6px;"></div>
+                        <div id="hubNotesStatus" class="set-desc" style="margin-top:6px;"></div>
+                        <div id="hubVrcxBrowser" style="display:none;margin-top:12px;">
+                            <div class="vrcn-panel-card-header" style="margin-bottom:8px;"><span class="msi">search</span> <span data-i18n="hub.vrcx.browse">Read the archive</span></div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <select id="hubVrcxBrowseTable" class="vrcn-input" style="min-width:220px;" onchange="hubVrcxBrowse(0)"></select>
+                                <input id="hubVrcxBrowseSearch" class="vrcn-input" style="flex:1;min-width:160px;" data-i18n-placeholder="hub.vrcx.browse_search" placeholder="Search this table" onkeydown="if(event.key==='Enter')hubVrcxBrowse(0)">
+                                <button class="vrcn-button-round" onclick="hubVrcxBrowse(0)"><span data-i18n="hub.vrcx.browse_go">Search</span></button>
+                            </div>
+                            <div id="hubVrcxBrowseRows" style="margin-top:10px;max-height:420px;overflow:auto;"></div>
+                            <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
+                                <button class="vrcn-button-round" id="hubVrcxBrowsePrev" onclick="hubVrcxBrowsePage(-1)"><span data-i18n="hub.vrcx.browse_prev">Newer</span></button>
+                                <button class="vrcn-button-round" id="hubVrcxBrowseNext" onclick="hubVrcxBrowsePage(1)"><span data-i18n="hub.vrcx.browse_next">Older</span></button>
+                                <span id="hubVrcxBrowseInfo" class="set-desc"></span>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="vrcn-panel-card" id="vrcxImportCard" data-section="vrcx" style="display:none;">

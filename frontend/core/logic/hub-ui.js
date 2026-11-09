@@ -176,6 +176,7 @@ function onHubVrcxArchive(payload) {
     if (!status || !tables) return;
     if (payload.stage === 'progress') { status.textContent = payload.text; return; }
     if (payload.stage === 'summary') {
+        if (typeof hubVrcxBrowserTables === 'function') hubVrcxBrowserTables(payload.tables || []);
         if (payload.rows > 0 && !status.textContent)
             status.textContent = t('hub.vrcx.summary', '{rows} rows archived so far.').replace('{rows}', payload.rows.toLocaleString());
         return;

@@ -5,6 +5,29 @@ namespace VRCNext.Services;
 // HapsHub's own reads of the timeline, kept apart from upstream's file.
 public partial class TimelineService
 {
+    /// <summary>Your HapsHub notes, and everyone's known name so VRCX's notes can show one too.</summary>
+    public (List<(string Id, string Memo, string Edited)> Memos, Dictionary<string, string> Names) ReadNotesForExport()
+    {
+        var memos = new List<(string, string, string)>();
+        var names = new Dictionary<string, string>();
+        lock (_lock)
+        {
+            using (var command = _db.CreateCommand())
+            {
+                command.CommandText = "SELECT user_id, memo, updated_at FROM user_memos WHERE memo <> ''";
+                using var reader = command.ExecuteReader();
+                while (reader.Read()) memos.Add((reader.GetString(0), reader.GetString(1), reader.GetString(2)));
+            }
+            using (var command = _db.CreateCommand())
+            {
+                command.CommandText = "SELECT user_id, display_name FROM user_tracking WHERE display_name <> ''";
+                using var reader = command.ExecuteReader();
+                while (reader.Read()) names[reader.GetString(0)] = reader.GetString(1);
+            }
+        }
+        return (memos, names);
+    }
+
     /// <summary>What HapsHub recorded itself, so an import can tell which sessions it already has.</summary>
     public sealed class LiveEvents
     {

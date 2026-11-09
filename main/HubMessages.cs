@@ -68,6 +68,20 @@ public partial class AppShell
                 _ = Task.Run(() => RunVrcxArchive(vrcxSource));
                 return true;
 
+            case "hubExportNotes":
+                var savedTo = NativeFileDialogSharp.Dialog.FileSave("csv");
+                if (!savedTo.IsOk) return true;
+                var notesPath = savedTo.Path.EndsWith(".csv", StringComparison.OrdinalIgnoreCase) ? savedTo.Path : savedTo.Path + ".csv";
+                _ = Task.Run(() => RunNotesExport(notesPath));
+                return true;
+
+            case "hubVrcxBrowse":
+                var browseTable = msg["table"]?.ToString() ?? "";
+                var browseSearch = msg["search"]?.ToString() ?? "";
+                var browseOffset = msg["offset"]?.Value<int>() ?? 0;
+                _ = Task.Run(() => SendVrcxRows(browseTable, browseSearch, browseOffset));
+                return true;
+
             case "hubVrcxSummary":
                 _ = Task.Run(SendVrcxSummary);
                 return true;
@@ -182,12 +196,44 @@ public partial class AppShell
         }
     }
 
+    private void SendVrcxRows(string table, string search, int offset)
+    {
+        const int pageSize = 50;
+        try
+        {
+            var (rows, more) = HubModules.VrcxHistory.ReadRows(table, search, Math.Max(0, offset), pageSize);
+            Invoke(() => SendToJS("hubVrcxRows", new { table, search, offset, rows, more }));
+        }
+        catch (Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or IOException)
+        {
+            CrashHandler.WriteEntry("SendVrcxRows", ex);
+            Invoke(() => SendToJS("hubVrcxRows", new { table, search, offset, error = "The archive couldn't be read." }));
+        }
+    }
+
+    private void RunNotesExport(string path)
+    {
+        try
+        {
+            var (memos, names) = _core.Timeline.ReadNotesForExport();
+            var notes = memos.Select(m => new ExportedNote("user", m.Id, names.GetValueOrDefault(m.Id, ""), m.Memo, m.Edited, "HapsHub")).ToList();
+            notes.AddRange(HubModules.VrcxHistory.ReadNotes().Select(n => n with { Name = names.GetValueOrDefault(n.Id, "") }));
+            AtomicFile.WriteAllText(path, NotesExport.BuildCsv(notes));
+            Invoke(() => SendToJS("hubNotesExported", new { count = notes.Count, path }));
+        }
+        catch (Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or IOException or UnauthorizedAccessException)
+        {
+            CrashHandler.WriteEntry("RunNotesExport", ex);
+            Invoke(() => SendToJS("hubNotesExported", new { error = "Your notes couldn't be exported." }));
+        }
+    }
+
     private void SendVrcxSummary()
     {
         try
         {
             var tables = HubModules.VrcxHistory.ReadSummary();
-            Invoke(() => SendToJS("hubVrcxArchive", new { stage = "summary", tableCount = tables.Count, rows = tables.Sum(t => t.ArchivedTotal) }));
+            Invoke(() => SendToJS("hubVrcxArchive", new { stage = "summary", tableCount = tables.Count, tables = tables.Select(t => new { name = t.Table, rows = t.ArchivedTotal }), rows = tables.Sum(t => t.ArchivedTotal) }));
         }
         catch (Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or IOException)
         {

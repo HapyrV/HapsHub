@@ -1133,6 +1133,8 @@ case 'vrcNews':
             case 'hubVrcxArchive':       onHubVrcxArchive(payload); break;
             case 'hubSchedule':          onHubSchedule(payload); break;
             case 'hubCalendarEvents':    onHubCalendarEvents(payload); break;
+            case 'hubVrcxRows':          onHubVrcxRows(payload); break;
+            case 'hubNotesExported':     onHubNotesExported(payload); break;
             case 'hubSteamSwitched':     onHubSteamSwitched(payload); break;
             case 'showChangelog':        onShowChangelog(payload); break;
             case 'dbMigrationProgress':  onDbMigrationProgress(payload); break;
