@@ -35,6 +35,24 @@ public partial class AppShell
                 _ = Task.Run(() => SendSteamBranch(online: true));
                 return true;
 
+            case "hubCalendarList":
+                SendCalendarEvents();
+                return true;
+
+            case "hubCalendarSave":
+                var calendarProblem = HubModules.Calendar.Save(new HubCalendarEvent(
+                    msg["id"]?.ToString() ?? "", msg["title"]?.ToString() ?? "", msg["description"]?.ToString() ?? "",
+                    msg["startsAt"]?.ToString() ?? "", msg["endsAt"]?.ToString() ?? "",
+                    msg["repeat"]?.ToString() ?? "none", msg["repeatUntil"]?.ToString() ?? ""));
+                if (calendarProblem != null) SendToJS("hubCalendarEvents", new { error = calendarProblem });
+                else SendCalendarEvents();
+                return true;
+
+            case "hubCalendarDelete":
+                HubModules.Calendar.Delete(msg["id"]?.ToString() ?? "");
+                SendCalendarEvents();
+                return true;
+
             case "hubScheduleData":
                 _ = Task.Run(SendScheduleData);
                 return true;
@@ -126,6 +144,20 @@ public partial class AppShell
             CrashHandler.WriteEntry("SendScheduleData", ex);
             Invoke(() => SendToJS("hubSchedule", new { error = "Could not read your history." }));
         }
+    }
+
+    private void SendCalendarEvents()
+    {
+        var events = HubModules.Calendar.List();
+        if (events == null) SendToJS("hubCalendarEvents", new { error = "Your calendar events couldn't be read." });
+        else SendToJS("hubCalendarEvents", new
+        {
+            events = events.Select(e => new
+            {
+                id = e.Id, title = e.Title, description = e.Description, startsAt = e.StartsAt,
+                endsAt = e.EndsAt, repeat = e.Repeat, repeatUntil = e.RepeatUntil,
+            }),
+        });
     }
 
     private void RunVrcxArchive(string source)

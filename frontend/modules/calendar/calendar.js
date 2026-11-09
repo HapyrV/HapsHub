@@ -86,6 +86,7 @@ function _renderCalUI() {
                 <button class="vrcn-button sub-tab-btn cal-filter-btn${calendarFilter === 'featured' ? ' active' : ''}" data-filter="featured" onclick="setCalFilter('featured')"><span class="msi" style="font-size:14px;">star</span> ${esc(t('calendar.filters.featured', 'Featured'))}</button>
                 <button class="vrcn-button sub-tab-btn cal-filter-btn${calendarFilter === 'following' ? ' active' : ''}" data-filter="following" onclick="setCalFilter('following')"><span class="msi" style="font-size:14px;">notifications_active</span> ${esc(t('calendar.filters.following', 'Following'))}</button>
                 <button class="vrcn-button" id="calRefreshBtn" onclick="refreshCalendar()" title="${refreshTitle}"${refreshDisabled}><span class="msi" style="font-size:18px;">${refreshIcon}</span></button>
+                <button class="vrcn-button" id="calCustomNewBtn" onclick="calCustomNew()" title="${esc(t('hub.calendar.new', 'New event'))}"><span class="msi" style="font-size:18px;">add</span></button>
             </div>
             <div style="display:flex;gap:4px;align-items:center;flex-shrink:0;">
                 <button class="vrcn-button sub-tab-btn cal-view-btn${calendarGroupColors ? ' active' : ''}" onclick="toggleCalGroupColors()" title="${esc(t('calendar.help_sort', 'Help Sort'))}"><span class="msi" style="font-size:16px;">palette</span></button>
@@ -325,6 +326,7 @@ function renderCalendarEvents(payload) {
         all = all.filter(e => e.featured === true || _isFeatured(e));
     }
 
+    all = calCustomMerge(all);
     _calEvents = all;
     all.forEach(evt => _eventDayKeys(evt).forEach(key => _calEventDays.add(key)));
     _calSelectedDay = null;

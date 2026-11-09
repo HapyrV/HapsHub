@@ -187,7 +187,7 @@ try {
         `!document.getElementById('vrcndbConsentModal')`));
 
     await main.eval(`hubModulesRefresh()`);
-    await waitFor('module list',() => main.eval(`document.querySelectorAll('.hub-module-row').length === 5`));
+    await waitFor('module list',() => main.eval(`document.querySelectorAll('.hub-module-row').length === 6`));
     if (process.env.HAPSHUB_SMOKE_FAIL) throw new Error('failure forced to test the cleanup');
     const toggles = `[...document.querySelectorAll('.hub-module-row[data-module="hub.forwarding"] input[type=checkbox]')]`;
     check('forwarding toggles start off', await main.eval(`${toggles}.length === 2 && ${toggles}.every(i => !i.checked)`));
@@ -264,6 +264,35 @@ try {
         const after = statSync(vrcxFile);
         check('VRCX database is untouched', after.mtimeMs === before.mtimeMs && after.size === before.size);
     }
+
+    // Your own calendar events: repeats, then saving and deleting through the real backend.
+    const repeats = JSON.parse(await main.eval(`JSON.stringify((() => {
+        const make = (startsAt, repeat, repeatUntil = '') => ({ startsAt, endsAt: new Date(new Date(startsAt).getTime() + 3600000).toISOString(), repeat, repeatUntil });
+        const count = (ev, from, to) => calCustomOccurrences(ev, new Date(from), new Date(to));
+        const week = count(make(new Date(2026, 0, 5, 20, 0).toISOString(), 'weekly'), new Date(2026, 0, 1), new Date(2026, 0, 31, 23));
+        const month = count(make(new Date(2026, 0, 31, 20, 0).toISOString(), 'monthly'), new Date(2026, 0, 1), new Date(2026, 3, 30, 23));
+        const until = count(make(new Date(2026, 0, 1, 20, 0).toISOString(), 'daily', '2026-01-03'), new Date(2026, 0, 1), new Date(2026, 1, 1));
+        const once = count(make(new Date(2026, 0, 1, 20, 0).toISOString(), 'none'), new Date(2026, 1, 1), new Date(2026, 2, 1));
+        const summer = count(make(new Date(2026, 0, 5, 20, 0).toISOString(), 'weekly'), new Date(2026, 6, 1), new Date(2026, 6, 31));
+        return { week: week.length, monthDays: month.map(d => d.getDate()), until: until.length, once: once.length, hours: [...new Set(summer.map(d => d.getHours()))] };
+    })())`));
+    check('calendar: a weekly event lands every week', repeats.week === 4, JSON.stringify(repeats));
+    check('calendar: the 31st falls on the last day of short months', repeats.monthDays.join() === '31,28,31,30', JSON.stringify(repeats));
+    check('calendar: repeats stop at the until date', repeats.until === 3, JSON.stringify(repeats));
+    check('calendar: one-off events stay out of other months', repeats.once === 0, JSON.stringify(repeats));
+    check('calendar: repeats keep local time across clock changes', repeats.hours.join() === '20', JSON.stringify(repeats));
+    const calendarAt = new Date(); calendarAt.setHours(12, 0, 0, 0);
+    await main.eval(`showTab(17)`);
+    await main.eval(`sendToCS({ action: 'hubCalendarSave', title: 'Smoke event', description: '', startsAt: '${calendarAt.toISOString()}', endsAt: '${new Date(calendarAt.getTime() + 3600000).toISOString()}', repeat: 'weekly', repeatUntil: '' })`);
+    await waitFor('saved calendar event', () => main.eval(`_calCustom.some(e => e.title === 'Smoke event')`));
+    await waitFor('calendar event on the page', () => main.eval(`calendarLoaded && _calEvents.some(e => e._custom && e.title === 'Smoke event')`), 15000).catch(() => null);
+    const shown = await main.eval(`calCustomMerge([]).filter(e => e.title === 'Smoke event').length`);
+    check('calendar: a saved event shows with its repeats', shown >= 4, String(shown));
+    await main.eval(`openEventDetail(CAL_CUSTOM_OWNER, calCustomMerge([]).find(e => e.title === 'Smoke event').id)`);
+    check('calendar: clicking an event opens the editor', await main.eval(`document.getElementById('calCustomTitle')?.value === 'Smoke event'`));
+    await main.eval(`calCustomDelete()`);
+    await waitFor('deleted calendar event', () => main.eval(`!_calCustom.some(e => e.title === 'Smoke event')`));
+    check('calendar: an event can be deleted', true);
 
     // Friend Schedule: the real page and worker, fed synthetic history. A friend online Monday 10:00 to 12:00 UTC for four weeks.
     await main.eval(`showTab(30)`);

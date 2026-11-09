@@ -6,6 +6,7 @@ public static class HubModules
     public static UpstreamWatchModule UpstreamWatch { get; } = new();
     public static SteamBranchModule SteamBranch { get; } = new();
     public static VrcxHistoryModule VrcxHistory { get; } = new();
+    public static HubCalendarModule Calendar { get; } = new();
 
     public static IReadOnlyList<IHubModule> All() => new IHubModule[]
     {
@@ -14,5 +15,6 @@ public static class HubModules
         SteamBranch,
         new HubUiModule(),
         VrcxHistory,
+        Calendar,
     };
 }
