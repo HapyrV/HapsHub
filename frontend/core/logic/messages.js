@@ -264,6 +264,8 @@ window.external.receiveMessage(rawMsg => {
                     if (!settings.extraExeDesktop) settings.extraExeDesktop = [];
                     settings.extraExeDesktop.push(payload.path);
                     renderExtraExeDesktop(settings.extraExeDesktop);
+                } else if (typeof payload.target === 'string' && payload.target.startsWith('addon-')) {
+                    if (typeof addLaunchAddonApp === 'function') addLaunchAddonApp(payload.target.slice(6), payload.path);
                 } else if (payload.target === 'extra-vr') {
                     if (!settings.extraExeVR) settings.extraExeVR = [];
                     settings.extraExeVR.push(payload.path);

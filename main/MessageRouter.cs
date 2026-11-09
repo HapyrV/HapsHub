@@ -3454,6 +3454,7 @@ public partial class AppShell
                     break;
 
                 case "vrcLaunchAndJoin":
+                case "setLaunchAddon":
                     _relayCtrl.HandleMessage(action, msg);
                     break;
 

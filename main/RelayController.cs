@@ -165,6 +165,19 @@ public class RelayController : IDisposable
             case "vcStop":
                 StopVcProcess();
                 break;
+            case "setLaunchAddon":
+            {
+                var on = msg["on"]?.Value<bool>() ?? false;
+                switch (msg["kind"]?.ToString())
+                {
+                    case HapsHub.Core.LaunchAddons.Haptics: _core.Settings.LaunchWithHaptics = on; break;
+                    case HapsHub.Core.LaunchAddons.FaceTracking: _core.Settings.LaunchWithFaceTracking = on; break;
+                    case HapsHub.Core.LaunchAddons.Fbt: _core.Settings.LaunchWithFbt = on; break;
+                    default: return;
+                }
+                _core.Settings.Save();
+                break;
+            }
             case "vrcLaunchAndJoin":
                 {
                     var llLoc = msg["location"]?.ToString() ?? "";
@@ -659,7 +672,13 @@ public class RelayController : IDisposable
         bool vr    = _vrcSessionVr;
         bool byUs  = _vrcSessionByUs;
         bool launchApps = byUs || _core.Settings.StartAlwaysWithVrc;
-        var apps = vr ? _core.Settings.ExtraExeVR : _core.Settings.ExtraExeDesktop;
+        var apps = (vr ? _core.Settings.ExtraExeVR : _core.Settings.ExtraExeDesktop).ToList();
+        // The Launch window's switches. Full-body tracking only makes sense in VR.
+        var addons = new List<string>();
+        if (_core.Settings.LaunchWithHaptics) addons.AddRange(_core.Settings.LaunchHapticsApps);
+        if (_core.Settings.LaunchWithFaceTracking) addons.AddRange(_core.Settings.LaunchFaceTrackingApps);
+        if (vr && _core.Settings.LaunchWithFbt) addons.AddRange(_core.Settings.LaunchFbtApps);
+        apps.AddRange(HapsHub.Core.LaunchAddons.NotRunning(addons.Where(a => !apps.Contains(a, StringComparer.OrdinalIgnoreCase))));
 
         Invoke(() =>
         {

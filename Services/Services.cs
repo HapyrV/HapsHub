@@ -284,6 +284,14 @@ public class AppSettings
     public List<string> ExtraExeVR { get; set; } = new();
     public bool CloseWithVrc { get; set; } = false;
     public bool StartAlwaysWithVrc { get; set; } = true;
+    // Launch window switches and the apps each one starts with VRChat (see HapsHub.Core.LaunchAddons).
+    public bool LaunchWithHaptics { get; set; }
+    public bool LaunchWithFaceTracking { get; set; }
+    public bool LaunchWithFbt { get; set; }
+    public List<string> LaunchHapticsApps { get; set; } = new();
+    public List<string> LaunchFaceTrackingApps { get; set; } = new();
+    public List<string> LaunchFbtApps { get; set; } = new();
+    public bool LaunchAddonsDetected { get; set; }
     public bool AutoStart { get; set; }
     public bool StartWithWindows { get; set; }
     public bool PostAll { get; set; }

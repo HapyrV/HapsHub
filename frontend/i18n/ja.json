@@ -4164,5 +4164,11 @@
   "context_menu.avatar.make_public": "公開にする",
   "context_menu.avatar.make_private": "非公開にする",
   "avatars.visibility.now_public": "{name} を公開にしました",
-  "avatars.visibility.now_private": "{name} を非公開にしました"
+  "avatars.visibility.now_private": "{name} を非公開にしました",
+  "launch.addons.title": "起動スイッチ",
+  "launch.addons.desc": "起動ウィンドウにはそれぞれのスイッチがあります。オンのスイッチは、まだ起動していなければVRChatと一緒にアプリを起動します。フルボディトラッキングはVRでのみ起動します。",
+  "launch.addons.haptics": "ハプティクスあり",
+  "launch.addons.face_tracking": "フェイストラッキングあり",
+  "launch.addons.fbt": "FBTあり",
+  "launch.addons.none": "アプリが未設定です。設定 > VRChat で追加してください。"
 }

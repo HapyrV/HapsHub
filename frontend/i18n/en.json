@@ -4164,5 +4164,11 @@
   "context_menu.avatar.make_public": "Make Public",
   "context_menu.avatar.make_private": "Make Private",
   "avatars.visibility.now_public": "{name} is now public",
-  "avatars.visibility.now_private": "{name} is now private"
+  "avatars.visibility.now_private": "{name} is now private",
+  "launch.addons.title": "Launch Switches",
+  "launch.addons.desc": "The Launch window has a switch for each of these. Each switch that's on starts its apps with VRChat, unless they're already running. Full-body tracking starts only in VR.",
+  "launch.addons.haptics": "With haptics",
+  "launch.addons.face_tracking": "With face tracking",
+  "launch.addons.fbt": "With FBT",
+  "launch.addons.none": "No apps set. Add them in Settings > VRChat."
 }

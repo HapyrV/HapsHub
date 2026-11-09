@@ -364,6 +364,7 @@ function showLaunchModal(location, steamVrOpen) {
                     ${running && hasLoc ? '' : `<span class="launch-mode-note">${esc(hasLoc ? t('launch.mode.ingame_note', 'VRChat not running') : t('launch.mode.ingame_no_instance', 'No instance'))}</span>`}
                 </button>
             </div>
+            <div class="launch-addons">${_launchAddonButtons()}</div>
             ${hasLoc ? `<div class="launch-foot">
                 <button class="launch-act" id="_lmInvite">
                     <span class="msi">person_add</span>${esc(t('launch.invite', 'Invite'))}
@@ -382,6 +383,15 @@ function showLaunchModal(location, steamVrOpen) {
         </div>`;
 
     const on = (id, fn) => { const b = el.querySelector(id); if (b) b.addEventListener('click', fn); };
+    el.querySelectorAll('.launch-addon').forEach(b => b.addEventListener('click', () => {
+        const kind = b.dataset.kind;
+        settings.launchWith = settings.launchWith || {};
+        const now = !settings.launchWith[kind];
+        settings.launchWith[kind] = now;
+        b.classList.toggle('on', now);
+        b.setAttribute('aria-pressed', String(now));
+        sendToCS({ action: 'setLaunchAddon', kind, on: now });
+    }));
     on('#_lmClose', closeLaunchModal);
     on('#_lmVr', () => { if (!window.vrcGameRunning) launchAndJoin(location, true); });
     on('#_lmDesktop', () => { if (!window.vrcGameRunning) launchAndJoin(location, false); });
@@ -597,3 +607,19 @@ function renderCurrentInstance(data) {
     if (_iim && _iim.style.display !== 'none') openInstanceInfoModal();
 }
 
+// Launch window switches: each starts its apps with VRChat (lists live in Settings > VRChat).
+function _launchAddonButtons() {
+    const lists = { haptics: 'launchHapticsApps', faceTracking: 'launchFaceTrackingApps', fbt: 'launchFbtApps' };
+    const defs = [
+        ['haptics', 'vibration', t('launch.addons.haptics', 'With haptics')],
+        ['faceTracking', 'face', t('launch.addons.face_tracking', 'With face tracking')],
+        ['fbt', 'accessibility_new', t('launch.addons.fbt', 'With FBT')],
+    ];
+    const s = (typeof settings !== 'undefined' && settings) || {};
+    return defs.map(([kind, icon, label]) => {
+        const on = !!(s.launchWith && s.launchWith[kind]);
+        const apps = (s[lists[kind]] || []).map(p => p.split(/[\\/]/).pop());
+        const tip = apps.length ? apps.join(', ') : t('launch.addons.none', 'No apps set. Add them in Settings > VRChat.');
+        return `<button class="launch-addon${on ? ' on' : ''}" data-kind="${kind}" title="${esc(tip)}" aria-pressed="${on}"><span class="msi">${icon}</span>${esc(label)}</button>`;
+    }).join('');
+}

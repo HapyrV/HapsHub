@@ -640,6 +640,19 @@ public class AuthController
     {
         _readyAt = DateTime.UtcNow;
         SendTranslation(_core.Settings.Language);
+        if (!_core.Settings.LaunchAddonsDetected)
+        {
+            // First run: fill the Launch window's app lists from what's installed. Later edits are the user's.
+            try
+            {
+                if (_core.Settings.LaunchHapticsApps.Count == 0) _core.Settings.LaunchHapticsApps = HapsHub.Core.LaunchAddons.Detect(HapsHub.Core.LaunchAddons.Haptics);
+                if (_core.Settings.LaunchFaceTrackingApps.Count == 0) _core.Settings.LaunchFaceTrackingApps = HapsHub.Core.LaunchAddons.Detect(HapsHub.Core.LaunchAddons.FaceTracking);
+                if (_core.Settings.LaunchFbtApps.Count == 0) _core.Settings.LaunchFbtApps = HapsHub.Core.LaunchAddons.Detect(HapsHub.Core.LaunchAddons.Fbt);
+                _core.Settings.LaunchAddonsDetected = true;
+                _core.Settings.Save();
+            }
+            catch { }
+        }
         _core.SendToJS("loadSettings", _core.Settings);
         _core.SendToJS("dateTimeFormat", new
         {
@@ -2126,6 +2139,13 @@ public class AuthController
                 _core.Settings.ExtraExeVR = extraExeVR;
                 if (vrChanged) AutoStartShortcutHelper.Sync(extraExeVR, vr: true);
             }
+
+            var addonHaptics = data["launchHapticsApps"]?.ToObject<List<string>>();
+            if (addonHaptics != null) _core.Settings.LaunchHapticsApps = FilterStartupAppsLogged(addonHaptics);
+            var addonFace = data["launchFaceTrackingApps"]?.ToObject<List<string>>();
+            if (addonFace != null) _core.Settings.LaunchFaceTrackingApps = FilterStartupAppsLogged(addonFace);
+            var addonFbt = data["launchFbtApps"]?.ToObject<List<string>>();
+            if (addonFbt != null) _core.Settings.LaunchFbtApps = FilterStartupAppsLogged(addonFbt);
 
             _core.Settings.CloseWithVrc = data["closeWithVrc"]?.Value<bool>() ?? false;
             _core.Settings.StartAlwaysWithVrc = data["startAlwaysWithVrc"]?.Value<bool>() ?? true;

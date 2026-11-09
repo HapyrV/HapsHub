@@ -100,6 +100,9 @@ function saveSettings() {
             vrcPath: document.getElementById('setVrcPath').value,
             extraExeDesktop: settings.extraExeDesktop || [],
             extraExeVR: settings.extraExeVR || [],
+            launchHapticsApps: settings.launchHapticsApps || [],
+            launchFaceTrackingApps: settings.launchFaceTrackingApps || [],
+            launchFbtApps: settings.launchFbtApps || [],
             closeWithVrc:       document.getElementById('setCloseWithVrc')?.checked       ?? false,
             startAlwaysWithVrc: document.getElementById('setStartAlwaysWithVrc')?.checked ?? true,
             extraExe: [], // clear legacy field so migration doesn't re-fire after user deletes apps
@@ -602,6 +605,10 @@ function loadSettingsToUI(s) {
     settings.extraExeVR = (s.ExtraExeVR || s.extraExeVR || []).length
         ? (s.ExtraExeVR || s.extraExeVR)
         : (_legacyExe.length ? [..._legacyExe] : []);
+    settings.launchHapticsApps      = s.LaunchHapticsApps      || [];
+    settings.launchFaceTrackingApps = s.LaunchFaceTrackingApps || [];
+    settings.launchFbtApps          = s.LaunchFbtApps          || [];
+    settings.launchWith = { haptics: !!s.LaunchWithHaptics, faceTracking: !!s.LaunchWithFaceTracking, fbt: !!s.LaunchWithFbt };
     const _cwvEl = document.getElementById('setCloseWithVrc');
     if (_cwvEl) _cwvEl.checked = s.CloseWithVrc ?? s.closeWithVrc ?? false;
     const _sawvEl = document.getElementById('setStartAlwaysWithVrc');
@@ -663,6 +670,7 @@ function loadSettingsToUI(s) {
     if (typeof renderRelayFolders === 'function') renderRelayFolders();
     renderExtraExeDesktop(settings.extraExeDesktop);
     renderExtraExeVR(settings.extraExeVR);
+    renderLaunchAddonLists();
     updateFolderFilterOptions(settings.folders);
     currentTheme = s.Theme || s.theme || 'vrcn';
     currentSpecialTheme = s.SpecialTheme || s.specialTheme || '';
@@ -2284,3 +2292,28 @@ function _fotUpdateFavOnly() {
 
 
 document.documentElement.addEventListener('languagechange', sndPopulateSelects);
+
+// ---- Apps started by the Launch window's switches (haptics, face tracking, full-body tracking) ----
+
+const LAUNCH_ADDON_LISTS = { haptics: 'launchHapticsApps', faceTracking: 'launchFaceTrackingApps', fbt: 'launchFbtApps' };
+
+function renderLaunchAddonLists() {
+    for (const [kind, key] of Object.entries(LAUNCH_ADDON_LISTS))
+        _renderExeList('launchAddonList_' + kind, settings[key] || [], `removeLaunchAddonApp.bind(null,'${kind}')`);
+}
+
+function removeLaunchAddonApp(kind, i) {
+    const list = settings[LAUNCH_ADDON_LISTS[kind]];
+    if (!list) return;
+    list.splice(i, 1);
+    renderLaunchAddonLists();
+    autoSave();
+}
+
+function addLaunchAddonApp(kind, path) {
+    const key = LAUNCH_ADDON_LISTS[kind];
+    if (!key || !path) return;
+    settings[key] = settings[key] || [];
+    if (!settings[key].some(p => p.toLowerCase() === path.toLowerCase())) settings[key].push(path);
+    renderLaunchAddonLists();
+}

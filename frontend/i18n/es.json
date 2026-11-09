@@ -4164,5 +4164,11 @@
   "context_menu.avatar.make_public": "Hacer público",
   "context_menu.avatar.make_private": "Hacer privado",
   "avatars.visibility.now_public": "{name} ahora es público",
-  "avatars.visibility.now_private": "{name} ahora es privado"
+  "avatars.visibility.now_private": "{name} ahora es privado",
+  "launch.addons.title": "Interruptores de inicio",
+  "launch.addons.desc": "La ventana de inicio tiene un interruptor para cada grupo. Cada interruptor activo abre sus apps con VRChat, salvo que ya estén abiertas. El seguimiento de cuerpo completo solo se inicia en VR.",
+  "launch.addons.haptics": "Con háptica",
+  "launch.addons.face_tracking": "Con seguimiento facial",
+  "launch.addons.fbt": "Con FBT",
+  "launch.addons.none": "No hay apps. Añádelas en Ajustes > VRChat."
 }

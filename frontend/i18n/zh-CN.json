@@ -4164,5 +4164,11 @@
   "context_menu.avatar.make_public": "设为公开",
   "context_menu.avatar.make_private": "设为私有",
   "avatars.visibility.now_public": "{name} 已设为公开",
-  "avatars.visibility.now_private": "{name} 已设为私有"
+  "avatars.visibility.now_private": "{name} 已设为私有",
+  "launch.addons.title": "启动开关",
+  "launch.addons.desc": "启动窗口为每一组都提供开关。打开的开关会随 VRChat 启动对应的应用（已在运行的除外）。全身追踪只在 VR 模式下启动。",
+  "launch.addons.haptics": "启用触觉",
+  "launch.addons.face_tracking": "启用面部追踪",
+  "launch.addons.fbt": "启用 FBT",
+  "launch.addons.none": "未设置应用。请在 设置 > VRChat 中添加。"
 }

@@ -4168,5 +4168,11 @@
   "context_menu.avatar.make_public": "Сделать публичным",
   "context_menu.avatar.make_private": "Сделать приватным",
   "avatars.visibility.now_public": "{name} теперь публичный",
-  "avatars.visibility.now_private": "{name} теперь приватный"
+  "avatars.visibility.now_private": "{name} теперь приватный",
+  "launch.addons.title": "Переключатели запуска",
+  "launch.addons.desc": "В окне запуска есть переключатель для каждой группы. Включённый переключатель запускает свои приложения вместе с VRChat, если они ещё не запущены. Полнотелый трекинг запускается только в VR.",
+  "launch.addons.haptics": "С тактильной отдачей",
+  "launch.addons.face_tracking": "С трекингом лица",
+  "launch.addons.fbt": "С FBT",
+  "launch.addons.none": "Приложения не заданы. Добавьте их в Настройки > VRChat."
 }

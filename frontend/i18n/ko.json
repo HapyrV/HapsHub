@@ -4164,5 +4164,11 @@
   "context_menu.avatar.make_public": "공개로 전환",
   "context_menu.avatar.make_private": "비공개로 전환",
   "avatars.visibility.now_public": "{name}이(가) 공개로 바뀌었습니다",
-  "avatars.visibility.now_private": "{name}이(가) 비공개로 바뀌었습니다"
+  "avatars.visibility.now_private": "{name}이(가) 비공개로 바뀌었습니다",
+  "launch.addons.title": "실행 스위치",
+  "launch.addons.desc": "실행 창에 각 항목의 스위치가 있습니다. 켜진 스위치는 이미 실행 중이 아니면 VRChat과 함께 앱을 시작합니다. 풀바디 트래킹은 VR에서만 시작됩니다.",
+  "launch.addons.haptics": "햅틱 포함",
+  "launch.addons.face_tracking": "얼굴 트래킹 포함",
+  "launch.addons.fbt": "FBT 포함",
+  "launch.addons.none": "설정된 앱이 없습니다. 설정 > VRChat에서 추가하세요."
 }

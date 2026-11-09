@@ -550,6 +550,17 @@
                         <div class="folder-btns" style="margin-top:10px;margin-bottom:14px;">
                             <button class="vrcn-button" onclick="browseExe('extra-vr')"><span class="msi" style="font-size:16px;">add</span> <span data-i18n="settings.launch.add_app">Add App</span></button>
                         </div>
+                        <div class="sf-section-label" data-i18n="launch.addons.title">Launch Switches</div>
+                        <div class="set-desc" style="margin-bottom:8px;" data-i18n="launch.addons.desc">The Launch window has a switch for each of these. Each switch that's on starts its apps with VRChat, unless they're already running. Full-body tracking starts only in VR.</div>
+                        <div class="set-desc" style="margin:8px 0 4px;font-weight:600;" data-i18n="launch.addons.haptics">With haptics</div>
+                        <div class="exe-list" id="launchAddonList_haptics"><div class="folder-empty" data-i18n="common.none">None</div></div>
+                        <div class="folder-btns" style="margin-top:6px;"><button class="vrcn-button" onclick="browseExe('addon-haptics')"><span class="msi" style="font-size:16px;">add</span> <span data-i18n="settings.launch.add_app">Add App</span></button></div>
+                        <div class="set-desc" style="margin:10px 0 4px;font-weight:600;" data-i18n="launch.addons.face_tracking">With face tracking</div>
+                        <div class="exe-list" id="launchAddonList_faceTracking"><div class="folder-empty" data-i18n="common.none">None</div></div>
+                        <div class="folder-btns" style="margin-top:6px;"><button class="vrcn-button" onclick="browseExe('addon-faceTracking')"><span class="msi" style="font-size:16px;">add</span> <span data-i18n="settings.launch.add_app">Add App</span></button></div>
+                        <div class="set-desc" style="margin:10px 0 4px;font-weight:600;" data-i18n="launch.addons.fbt">With FBT</div>
+                        <div class="exe-list" id="launchAddonList_fbt"><div class="folder-empty" data-i18n="common.none">None</div></div>
+                        <div class="folder-btns" style="margin-top:6px;margin-bottom:14px;"><button class="vrcn-button" onclick="browseExe('addon-fbt')"><span class="msi" style="font-size:16px;">add</span> <span data-i18n="settings.launch.add_app">Add App</span></button></div>
                         <div class="sf-toggle-row">
                             <span data-i18n="settings.launch.close_with_vrc">Close with VRChat</span>
                             <label class="toggle"><input type="checkbox" id="setCloseWithVrc" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
