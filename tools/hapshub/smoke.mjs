@@ -407,6 +407,29 @@ try {
     check('Friend Schedule refresh ignores saved results', (await posts()) === fromDisk + 2);
     await main.eval(`localStorage.removeItem('fschPrefs')`);
 
+    // All history on a long record: this once overflowed the worker's stack, only with real amounts of data.
+    await fschRun('all history on a long record', `(() => {
+        const start = Date.now() - 400 * 86400000, rows = [];
+        for (let i = 0; i < 150000; i++) rows.push([new Date(start + i * 200000).toISOString(), i % 2 ? 0 : 1, 'usr_a']);
+        document.getElementById('fschRange').value = '0';
+        document.getElementById('fschScope').value = 'former';
+        _fschForce = true;
+        onHubSchedule({ presence: rows, relationships: window.__fschRows.relationships, self: [], names: window.__fschRows.names });
+    })()`);
+    check('Friend Schedule handles all history on a long record', (await main.eval(`_fschResult.summary.selectedFriends`)) === 1 && !(await main.eval(`document.getElementById('fschStatus').style.color`)));
+
+    // Translations reach the page's own text, the drawn chart, and come back again for English.
+    const scheduleText = `JSON.stringify({ language: currentLanguage, range: document.querySelector('[data-i18n="hub.schedule.range"]').textContent,
+        former: document.querySelector('#fschScope option[value="former"]').textContent, day: document.querySelector('.fsch-day')?.textContent })`;
+    await main.eval(`requestTranslation('de')`);
+    await waitFor('German text', () => main.eval(`currentLanguage === 'de' && t('hub.schedule.range') === 'Zeitraum'`));
+    const german = JSON.parse(await main.eval(scheduleText));
+    check('Friend Schedule shows in German', german.range === 'Zeitraum' && german.former === 'Ehemalige Freunde' && german.day === 'So', JSON.stringify(german));
+    await main.eval(`requestTranslation('en')`);
+    await waitFor('English text', () => main.eval(`currentLanguage === 'en' && t('hub.schedule.range') === 'Range'`));
+    const english = JSON.parse(await main.eval(scheduleText));
+    check('Friend Schedule comes back to English', english.range === 'Range' && english.former === 'Former friends' && english.day === 'Sun', JSON.stringify(english));
+
     check('main page has no page errors', main.errors.length === 0, main.errors.join(' | '));
     await main.eval(`sendToCS({action:'windowClose'})`);
     check('main page exits cleanly', await closeApp(main, seeded));
