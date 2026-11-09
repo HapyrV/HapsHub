@@ -7,6 +7,7 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, 
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { DatabaseSync } from 'node:sqlite';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const CONFIG = process.argv.includes('--release') ? 'Release' : 'Debug';
@@ -165,20 +166,27 @@ try {
 
     await main.eval(`openNavEditor()`);
     await waitFor('nav editor rows', () => main.eval(`document.querySelectorAll('#navEditorList .ne-row[data-key]').length > 10`));
-    const handleAt = key => main.eval(`(() => {
-        const row = document.querySelector('#navEditorList .ne-row[data-key="${key}"]');
+    // The splash screen covers the page for a few seconds after load.
+    await sleep(6000);
+    const source = await main.eval(`(() => {
+        const row = document.querySelector('#navEditorList .ne-row[data-key="friend-schedule"]');
         row.scrollIntoView({ block: 'center' });
         const box = row.querySelector('.ne-handle').getBoundingClientRect();
         return JSON.stringify({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
     })()`).then(JSON.parse);
-    const source = await handleAt('friend-schedule');
+    // Like a person would: hold the row at the top of the list until it has scrolled, then drop.
+    const listTop = await main.eval(`document.getElementById('navEditorList').getBoundingClientRect().top`);
+    await main.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: source.x, y: source.y });
+    await main.mouse('mousePressed', source.x, source.y);
+    await main.mouse('mouseMoved', source.x, listTop + 10);
+    await waitFor('the list to scroll while dragging', () => main.eval(`document.getElementById('navEditorList').scrollTop === 0`), 8000);
     const target = await main.eval(`(() => {
-        const list = document.getElementById('navEditorList');
-        const row = list.querySelector('.ne-row[data-key="time-spent"]');
-        const box = row.getBoundingClientRect();
-        return JSON.stringify({ x: box.x + 30, y: box.y + box.height + 2, visible: box.bottom > list.getBoundingClientRect().top });
+        const box = document.querySelector('#navEditorList .ne-row[data-key="worlds"]').getBoundingClientRect();
+        return JSON.stringify({ x: box.x + 30, y: box.y + box.height / 2 + 2 });
     })()`).then(JSON.parse);
-    await main.drag(source, target);
+    await main.mouse('mouseMoved', target.x, target.y);
+    await sleep(300);
+    await main.mouse('mouseReleased', target.x, target.y);
     await sleep(400); // The editor settles the row 200 ms after the drop.
     await main.eval(`_edConfirm()`);
     const moved = await main.eval(`(() => {
@@ -187,7 +195,7 @@ try {
         return JSON.stringify({ top: layout.some(e => e.type === 'item' && e.key === 'friend-schedule'), inFolder: folder.items.includes('friend-schedule') });
     })()`).then(JSON.parse);
     check('dragging moves a tool from Tools to Overview and it saves', moved.top && !moved.inFolder, JSON.stringify(moved));
-    check('the moved tool is in the sidebar', await main.eval(`(() => { const btn = document.querySelector('.nav-btn[data-nav-key="friend-schedule"]'); return !!btn && !btn.closest('.nav-folder-items, .nav-folder-group, [class*="folder"]'); })()`));
+    check('the moved tool is in the sidebar', await main.eval(`(() => { const btn = document.querySelector('.nav-btn[data-nav-key="friend-schedule"]'); return !!btn && !btn.closest('.nav-group'); })()`));
 
     await main.eval(`openNavEditor(); _edHideItem('time-spent', null); _edConfirm();`);
     const hidden = await main.eval(`JSON.stringify(navLoadLayout().hidden)`).then(JSON.parse);
@@ -224,6 +232,87 @@ try {
     check('main page has no page errors', main.errors.length === 0, main.errors.join(' | '));
     check('app exits cleanly', await closeMain(main, dir));
     check('no crash report', crashes(dir) === 0);
+
+    // --- History page, on a seeded archive and timeline ---
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const at = hours => new Date(today.getTime() + hours * 3600000).toISOString();
+    const archive = new DatabaseSync(join(dir, 'Hub', 'vrcx-history.db'));
+    archive.exec(`CREATE TABLE IF NOT EXISTS vrcx_rows (source_table TEXT NOT NULL, row_hash BLOB NOT NULL, row_json TEXT NOT NULL, PRIMARY KEY (source_table, row_hash)) WITHOUT ROWID;`);
+    const addRow = archive.prepare('INSERT INTO vrcx_rows VALUES (?, ?, ?)');
+    let rowNumber = 0;
+    const seedRow = (table, row) => addRow.run(table, Buffer.from([++rowNumber]), JSON.stringify(row));
+    seedRow('usrtest_friend_log_history', { created_at: at(-24), type: 'DisplayName', user_id: 'usr_a', display_name: 'New <b>name</b>', previous_display_name: 'Old name' });
+    seedRow('usrtest_friend_log_history', { created_at: at(-48), type: 'TrustLevel', user_id: 'usr_b', display_name: 'Bee', trust_level: 'Known User', previous_trust_level: 'User' });
+    seedRow('usrtest_notifications', { id: 'not_1', created_at: at(-3), type: 'invite', sender_username: 'Dee', sender_user_id: 'usr_d', message: 'come over', world_name: 'A Place' });
+    seedRow('gamelog_video_play', { created_at: at(-5), video_url: 'https://example.com/v', video_name: 'A song', display_name: 'Eff', user_id: 'usr_e' });
+    seedRow('usrtest_avatar_history', { avatar_id: 'avtr_seed', created_at: at(-6), time: 7200000 });
+    archive.close();
+    const timeline = new DatabaseSync(join(dir, 'VRCNData.db'));
+    const addVisit = timeline.prepare(`INSERT INTO events (id, type, timestamp, world_id, world_name, location, left_at) VALUES (?, 'instance_join', ?, ?, ?, ?, ?)`);
+    addVisit.run('visit1', at(1), 'wrld_a', 'First World', 'wrld_a:1', at(3));
+    addVisit.run('visit2', at(3), 'wrld_b', 'Second World', 'wrld_b:2', at(4));
+    addVisit.run('visit3', at(5), 'wrld_a', 'First World', 'wrld_a:3', null);
+    addVisit.run('other_day', at(-20), 'wrld_c', 'Yesterday World', 'wrld_c:1', at(-19));
+    timeline.prepare(`INSERT INTO event_players (event_id, user_id, display_name) VALUES ('visit1', 'usr_p', 'P')`).run();
+    timeline.close();
+
+    main = await openMain(dir);
+    await main.eval(`showTab(31)`);
+    const rowsText = () => main.eval(`document.getElementById('hhistBody')?.innerText || ''`);
+    await waitFor('name history rows', async () => (await rowsText()).includes('Old name'));
+    let text = await rowsText();
+    check('History shows name and trust changes from the archive', text.includes('Known User') && text.includes('Old name'), text);
+    check('History shows names as text, never as markup', await main.eval(`document.querySelectorAll('#hhistBody b').length === 0`));
+    await main.eval(`hhistShow('notifications')`);
+    await waitFor('notification rows', async () => (await rowsText()).includes('come over'));
+    await main.eval(`hhistShow('videos')`);
+    await waitFor('video rows', async () => (await rowsText()).includes('A song'));
+    await main.eval(`hhistShow('avatars')`);
+    await waitFor('avatar rows', async () => (await rowsText()).includes('avtr_seed'));
+    check('History shows how long an avatar was worn', (await rowsText()).includes('2 h'), await rowsText());
+    check('every archive-only list reached the page', true);
+    await main.eval(`hhistShow('names'); document.getElementById('hhistSearch').value = 'bee'; hhistSearchChanged();`);
+    await waitFor('search to narrow the list', async () => {
+        const found = await rowsText();
+        return found.includes('Bee') && !found.includes('Old name');
+    });
+    check('History search narrows the list', true);
+    await main.eval(`document.getElementById('hhistSearch').value = 'bee'; hhistSearchChanged();`);
+
+    await main.eval(`hhistShow('instances')`);
+    await waitFor('instance chart', () => main.eval(`document.querySelectorAll('.hhist-lane').length > 0`));
+    const chart = JSON.parse(await main.eval(`JSON.stringify([...document.querySelectorAll('.hhist-lane')].map(lane => ({
+        name: lane.querySelector('.hhist-lane-name').textContent,
+        bars: [...lane.querySelectorAll('.hhist-bar')].map(bar => ({ left: parseFloat(bar.style.left), width: parseFloat(bar.style.width), open: bar.classList.contains('hhist-open'), title: bar.title })),
+    })))`));
+    check('the instance chart has one line per place on that day', chart.length === 2 && chart[0].name === 'First World' && chart[1].name === 'Second World', JSON.stringify(chart));
+    const firstBar = chart[0]?.bars[0];
+    check('a visit is placed at the right time of day', firstBar && Math.abs(firstBar.left - 100 / 24) < 0.2 && Math.abs(firstBar.width - 200 / 24) < 0.2, JSON.stringify(firstBar));
+    check('a visit with no end is marked', chart[0]?.bars[1]?.open === true, JSON.stringify(chart[0]));
+    check('a visit shows how many people were seen', firstBar?.title.includes('1 people'), firstBar?.title);
+    await main.eval(`hhistDayStep(-1)`);
+    await waitFor('previous day', async () => (await main.eval(`document.getElementById('hhistBody').innerText`)).includes('Yesterday World'), 6000)
+        .catch(async error => { throw new Error(`${error.message}; day ${await main.eval(`document.getElementById('hhistDay').value`)}; body: ${await main.eval(`document.getElementById('hhistBody').innerText`)}`); });
+    check('the chart moves between days', true);
+    await main.eval(`hhistDayStep(1)`);
+
+    await main.eval(`hhistShow('purchases')`);
+    await waitFor('signed-out purchases message', async () => (await rowsText()).includes('Sign in'));
+    await main.eval(`hhistShow('moderation')`);
+    await waitFor('signed-out reports message', async () => (await rowsText()).includes('Sign in'));
+    check('account lists ask you to sign in instead of failing', true);
+    await main.eval(`onHubHistoryAccount({ view: 'moderation', offset: 0, more: false, error: '', items: [{ id: 'r', type: 'user', contentName: '<i>Someone</i>', category: 'behavior', reason: 'abuse', description: 'd', created: '${at(1)}' }] })`);
+    check('a moderation report draws safely', (await rowsText()).includes('<i>Someone</i>'), await rowsText());
+    await main.eval(`hhistShow('purchases')`);
+    await waitFor('purchases message', async () => (await rowsText()).includes('Sign in'));
+    await main.eval(`onHubHistoryAccount({ view: 'purchases', offset: 0, more: false, error: '', items: [{ purchaseId: 'p', listingDisplayName: 'A thing', listingType: 'subscription', purchaseDate: '${at(1)}', purchasePrice: 1200, sellerDisplayName: 'Seller', purchaseActive: false }] })`);
+    text = await rowsText();
+    check('a purchase draws with its price and state', text.includes('A thing') && text.includes('1,200 V') && text.includes('Not active'), text);
+
+    await main.eval(`showTab(0); onHubHistoryAccount({ view: 'names' });`);
+    check('History page has no page errors', main.errors.length === 0, main.errors.join(' | '));
+    check('app exits cleanly after History', await closeMain(main, dir));
+    check('no crash report after History', crashes(dir) === 0);
 } catch (error) {
     check('feature run finished', false, error.message);
     for (const pid of started) spawnSync('taskkill', ['/PID', String(pid), '/F', '/T']);

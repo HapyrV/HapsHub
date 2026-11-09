@@ -374,6 +374,7 @@ public partial class AppShell
         Directory.CreateDirectory(_customThemesDir);
         _core.CustomThemesDir = _customThemesDir;
         _hub = HubHost.Start(HubModules.All(), message => CrashHandler.AddBreadcrumb($"hub: {message}"));
+        HookHistoryRecording();
         SeedBuiltInThemes();
         var logFileName = $"vrcn-log-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.txt";
         _activityLogPath = Path.Combine(_activityLogDir, logFileName);

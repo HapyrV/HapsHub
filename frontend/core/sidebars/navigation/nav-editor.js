@@ -515,7 +515,10 @@ function _edInitDrag(list) {
             offsetX: e.clientX - rect.left,
             offsetY: e.clientY - rect.top,
             lastKey: null,
+            lastY: e.clientY,
+            scrollFrame: 0,
         };
+        drag.scrollFrame = requestAnimationFrame(autoScroll);
 
         handle.setPointerCapture?.(e.pointerId);
         window.addEventListener('pointermove', onMove);
@@ -524,12 +527,23 @@ function _edInitDrag(list) {
         document.body.style.cursor = 'grabbing';
     }
 
-    function onMove(e) {
+    // The list is taller than the window, so holding a row near an edge scrolls it.
+    function autoScroll() {
         if (!drag) return;
-        drag.ghost.style.top  = (e.clientY - drag.offsetY) + 'px';
-        drag.ghost.style.left = (e.clientX - drag.offsetX) + 'px';
+        const box = list.getBoundingClientRect();
+        const edge = 44;
+        const y = drag.lastY;
+        const step = y < box.top + edge ? -Math.ceil((box.top + edge - y) / 4)
+                   : y > box.bottom - edge ? Math.ceil((y - box.bottom + edge) / 4) : 0;
+        if (step) {
+            list.scrollTop += Math.max(-18, Math.min(18, step));
+            placeAt(y);
+        }
+        drag.scrollFrame = requestAnimationFrame(autoScroll);
+    }
 
-        const drop = resolveTarget(e.clientY, drag.block);
+    function placeAt(clientY) {
+        const drop = resolveTarget(clientY, drag.block);
         const key  = drop
             ? `${drop.mode}:${drop.target.dataset.folderId || drop.target.dataset.key || ''}`
             : 'none';
@@ -541,8 +555,17 @@ function _edInitDrag(list) {
         flip(prev);
     }
 
+    function onMove(e) {
+        if (!drag) return;
+        drag.ghost.style.top  = (e.clientY - drag.offsetY) + 'px';
+        drag.ghost.style.left = (e.clientX - drag.offsetX) + 'px';
+        drag.lastY = e.clientY;
+        placeAt(e.clientY);
+    }
+
     function onUp() {
         if (!drag) return;
+        cancelAnimationFrame(drag.scrollFrame);
         window.removeEventListener('pointermove', onMove);
         window.removeEventListener('pointerup',   onUp);
         window.removeEventListener('pointercancel', onUp);

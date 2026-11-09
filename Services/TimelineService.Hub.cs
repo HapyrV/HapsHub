@@ -5,6 +5,111 @@ namespace VRCNext.Services;
 // HapsHub's own reads of the timeline, kept apart from upstream's file.
 public partial class TimelineService
 {
+    public sealed record HubEvent(string At, string WorldId, string WorldName, string Location, string UserId, string UserName,
+        string NotifId, string NotifType, string SenderName, string SenderId, string Message, string Title);
+
+    public sealed record HubFriendEvent(string At, string Type, string UserId, string Name, string OldValue, string NewValue);
+
+    public sealed record HubInstanceVisit(string Id, string At, string LeftAt, string WorldId, string WorldName, string Location, int Players);
+
+    /// <summary>Everything HapsHub logged of one type, for the History page.</summary>
+    public List<HubEvent> ReadHubEvents(string type)
+    {
+        var rows = new List<HubEvent>();
+        lock (_lock)
+        {
+            using var command = _db.CreateCommand();
+            command.CommandText = @"SELECT timestamp, IFNULL(world_id,''), IFNULL(world_name,''), IFNULL(location,''),
+                IFNULL(user_id,''), IFNULL(user_name,''), IFNULL(notif_id,''), IFNULL(notif_type,''), IFNULL(sender_name,''),
+                IFNULL(sender_id,''), IFNULL(message,''), IFNULL(notif_title,'') FROM events WHERE type = $type";
+            command.Parameters.AddWithValue("$type", type);
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+                rows.Add(new HubEvent(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetString(3),
+                    reader.GetString(4), reader.GetString(5), reader.GetString(6), reader.GetString(7), reader.GetString(8),
+                    reader.GetString(9), reader.GetString(10), reader.GetString(11)));
+        }
+        return rows;
+    }
+
+    public List<HubFriendEvent> ReadHubFriendEvents(params string[] types)
+    {
+        var rows = new List<HubFriendEvent>();
+        lock (_lock)
+        {
+            foreach (var type in types)
+            {
+                using var command = _db.CreateCommand();
+                command.CommandText = @"SELECT timestamp, IFNULL(friend_id,''), IFNULL(friend_name,''), IFNULL(old_value,''),
+                    IFNULL(new_value,'') FROM friend_events WHERE type = $type AND id NOT LIKE 'vrcx\_%' ESCAPE '\'";
+                command.Parameters.AddWithValue("$type", type);
+                using var reader = command.ExecuteReader();
+                while (reader.Read())
+                    rows.Add(new HubFriendEvent(reader.GetString(0), type, reader.GetString(1), reader.GetString(2), reader.GetString(3), reader.GetString(4)));
+            }
+        }
+        return rows;
+    }
+
+    /// <summary>The name a world had on your latest visit that recorded one.</summary>
+    public string ReadHubWorldName(string worldId)
+    {
+        if (string.IsNullOrEmpty(worldId)) return "";
+        lock (_lock)
+        {
+            using var command = _db.CreateCommand();
+            command.CommandText = @"SELECT world_name FROM events WHERE world_id = $id AND IFNULL(world_name,'') <> ''
+                ORDER BY timestamp DESC LIMIT 1";
+            command.Parameters.AddWithValue("$id", worldId);
+            return command.ExecuteScalar() as string ?? "";
+        }
+    }
+
+    public Dictionary<string, string> ReadHubAvatarNames()
+    {
+        var names = new Dictionary<string, string>();
+        lock (_lock)
+        {
+            try
+            {
+                using var command = _db.CreateCommand();
+                command.CommandText = "SELECT avatar_id, name FROM avatar_tracking WHERE name <> ''";
+                using var reader = command.ExecuteReader();
+                while (reader.Read()) names[reader.GetString(0)] = reader.GetString(1);
+            }
+            catch (SqliteException) { /* The table is created later on a new install. */ }
+        }
+        return names;
+    }
+
+    /// <summary>Your visits overlapping a time range, with how many people the log saw there.</summary>
+    public List<HubInstanceVisit> ReadHubInstanceVisits(string from, string to)
+    {
+        var rows = new List<HubInstanceVisit>();
+        if (!Helpers.DateTimeHelper.TryParseUtc(from, out var start) || !Helpers.DateTimeHelper.TryParseUtc(to, out var end)) return rows;
+        lock (_lock)
+        {
+            using var command = _db.CreateCommand();
+            // A visit can start well before the range, and timestamps differ in precision, so go wide and filter here.
+            command.CommandText = @"SELECT e.id, e.timestamp, IFNULL(e.left_at,''), IFNULL(e.world_id,''), IFNULL(e.world_name,''), IFNULL(e.location,''),
+                    (SELECT COUNT(*) FROM event_players p WHERE p.event_id = e.id)
+                FROM events e WHERE e.type = 'instance_join' AND e.timestamp >= $wide AND e.timestamp <= $to ORDER BY e.timestamp";
+            command.Parameters.AddWithValue("$wide", start.AddDays(-2).ToString("o"));
+            command.Parameters.AddWithValue("$to", end.ToString("o"));
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var at = reader.GetString(1);
+                var leftAt = reader.GetString(2);
+                if (!Helpers.DateTimeHelper.TryParseUtc(at, out var began)) continue;
+                var ended = Helpers.DateTimeHelper.TryParseUtc(leftAt, out var left) ? left : began;
+                if (ended < start && began < start) continue;
+                rows.Add(new HubInstanceVisit(reader.GetString(0), at, leftAt, reader.GetString(3), reader.GetString(4), reader.GetString(5), reader.GetInt32(6)));
+            }
+        }
+        return rows;
+    }
+
     /// <summary>Your HapsHub notes, and everyone's known name so VRCX's notes can show one too.</summary>
     public (List<(string Id, string Memo, string Edited)> Memos, Dictionary<string, string> Names) ReadNotesForExport()
     {

@@ -1134,6 +1134,9 @@ case 'vrcNews':
             case 'hubSchedule':          onHubSchedule(payload); break;
             case 'hubCalendarEvents':    onHubCalendarEvents(payload); break;
             case 'hubVrcxRows':          onHubVrcxRows(payload); break;
+            case 'hubHistory':           onHubHistory(payload); break;
+            case 'hubHistoryInstances':  onHubHistoryInstances(payload); break;
+            case 'hubHistoryAccount':    onHubHistoryAccount(payload); break;
             case 'hubNotesExported':     onHubNotesExported(payload); break;
             case 'hubSteamSwitched':     onHubSteamSwitched(payload); break;
             case 'showChangelog':        onShowChangelog(payload); break;

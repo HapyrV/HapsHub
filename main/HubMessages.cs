@@ -8,6 +8,7 @@ public partial class AppShell
 {
     private bool HandleHubMessage(string action, JObject msg)
     {
+        if (HandleHistoryMessage(action, msg)) return true;
         switch (action)
         {
             case "hubGetModules":

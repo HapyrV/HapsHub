@@ -1,0 +1,16 @@
+<div class="tab-toolbar hhist-toolbar">
+    <div class="hhist-views" id="hhistViews"></div>
+</div>
+<div class="hhist-controls" id="hhistListControls">
+    <input type="search" id="hhistSearch" class="hhist-search" data-i18n-placeholder="hub.history.search" placeholder="Search this list" oninput="hhistSearchChanged()">
+    <span class="hhist-count" id="hhistCount"></span>
+    <button class="vrcn-button" id="hhistPrev" onclick="hhistPage(-1)"><span class="msi" style="font-size:16px;">chevron_left</span></button>
+    <button class="vrcn-button" id="hhistNext" onclick="hhistPage(1)"><span class="msi" style="font-size:16px;">chevron_right</span></button>
+</div>
+<div class="hhist-controls" id="hhistDayControls" style="display:none;">
+    <button class="vrcn-button" onclick="hhistDayStep(-1)"><span class="msi" style="font-size:16px;">chevron_left</span></button>
+    <input type="date" id="hhistDay" class="hhist-search hhist-date" onchange="hhistLoadDay()">
+    <button class="vrcn-button" onclick="hhistDayStep(1)"><span class="msi" style="font-size:16px;">chevron_right</span></button>
+    <span class="hhist-count" id="hhistDayTotal"></span>
+</div>
+<div class="hhist-body vrcn-scrollbar" id="hhistBody"></div>

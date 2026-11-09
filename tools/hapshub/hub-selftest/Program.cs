@@ -860,6 +860,158 @@ await Check("backup: copies a database in use, and a missing or bad target only 
 
 // ---- VRCX history archive ----
 
+async Task<(HubHistoryModule Module, ModuleRegistry Registry)> StartHistory(HubDatabase db)
+{
+    var module = new HubHistoryModule();
+    var registry = new ModuleRegistry(db);
+    registry.Register(module);
+    await registry.StartAllAsync();
+    return (module, registry);
+}
+
+async Task<(HubHistoryModule Module, ModuleRegistry Registry)> NewHistory(string name) => await StartHistory(OpenDb(Fresh(name)));
+
+await Check("history: the first sighting of a friend isn't a change, later ones are", async () =>
+{
+    var (module, registry) = await NewHistory("history-observe");
+    module.ObserveFriend("usr_a", "Alice", "User");
+    Assert(module.ReadFriendChanges().Count == 0, "a first sighting was recorded as a change");
+    module.ObserveFriend("usr_a", "Alice", "User");
+    Assert(module.ReadFriendChanges().Count == 0, "no change was recorded as a change");
+    module.ObserveFriend("usr_a", "Alicia", "Known User");
+    var changes = module.ReadFriendChanges();
+    Assert(changes.Count == 2, $"expected a name and a trust change, got {changes.Count}");
+    var name = changes.Single(c => c.Kind == "DisplayName");
+    Assert(name.Old == "Alice" && name.New == "Alicia" && name.UserId == "usr_a", "name change has the wrong values");
+    var trust = changes.Single(c => c.Kind == "TrustLevel");
+    Assert(trust.Old == "User" && trust.New == "Known User", "trust change has the wrong values");
+    module.ObserveFriend("usr_a", "", "");
+    module.ObserveFriend("usr_a", "Alicia", "");
+    Assert(module.ReadFriendChanges().Count == 2, "an update without a value was treated as a change");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
+await Check("history: known friends survive a restart, so changes while closed are caught", async () =>
+{
+    var dir = Fresh("history-restart");
+    var (module, registry) = await StartHistory(OpenDb(dir));
+    module.ObserveFriend("usr_b", "Bob", "User");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+
+    (module, registry) = await StartHistory(OpenDb(dir));
+    module.ObserveFriend("usr_b", "Robert", "User");
+    var changes = module.ReadFriendChanges();
+    Assert(changes.Count == 1 && changes[0].Old == "Bob" && changes[0].New == "Robert", $"got {changes.Count} changes");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
+await Check("history: trust names follow VRChat's order", () =>
+{
+    Assert(HubHistoryModule.TrustFromTags(new[] { "system_trust_basic", "system_trust_known", "system_trust_trusted", "system_trust_veteran" }) == "Trusted User", "veteran");
+    Assert(HubHistoryModule.TrustFromTags(new[] { "system_trust_basic", "system_trust_known", "system_trust_trusted" }) == "Known User", "trusted");
+    Assert(HubHistoryModule.TrustFromTags(new[] { "system_trust_basic", "system_trust_known" }) == "User", "known");
+    Assert(HubHistoryModule.TrustFromTags(new[] { "system_trust_basic" }) == "New User", "basic");
+    Assert(HubHistoryModule.TrustFromTags(new[] { "language_eng" }) == "Visitor", "visitor");
+    Assert(HubHistoryModule.TrustFromTags(null) == "" && HubHistoryModule.TrustFromTags(Array.Empty<string>()) == "", "no tags must mean unknown");
+    return Task.CompletedTask;
+});
+
+await Check("history: portals are recorded and read back", async () =>
+{
+    var (module, registry) = await NewHistory("history-portal");
+    module.AddPortal("spawn", "wrld_x:1", "A World");
+    module.AddPortal("used", "wrld_x:1", "A World");
+    var rows = module.ReadPortals();
+    Assert(rows.Count == 2 && rows.Any(r => r.Kind == "spawn" && r.Text == "A World" && r.Link == "wrld_x:1"), "portal rows are wrong");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
+await Check("history: pages sort newest first, search, and treat rows with one key as one event", () =>
+{
+    HubHistoryRow Row(string at, string text, string key = "") => new(at, "k", "", "", "", "", text, "", "s", key);
+    var rows = new[]
+    {
+        Row("2026-01-01T00:00:00Z", "oldest"),
+        Row("2026-01-03T00:00:00Z", "newest", "same"),
+        Row("2026-01-03T00:00:30Z", "duplicate", "same"),
+        Row("2026-01-02T01:00:00+02:00", "middle"),
+        Row("not a date", "undated"),
+    };
+    var page = HubHistoryViews.Page(rows, "", 0, 10);
+    Assert(page.Total == 4, $"total {page.Total}");
+    Assert(string.Join(",", page.Rows.Select(r => r.Text)) == "newest,middle,oldest,undated", string.Join(",", page.Rows.Select(r => r.Text)));
+    var second = HubHistoryViews.Page(rows, "", 2, 1);
+    Assert(second.Rows.Single().Text == "oldest" && second.Total == 4 && second.Offset == 2, "second page is wrong");
+    var found = HubHistoryViews.Page(rows, "MIDD", 0, 10);
+    Assert(found.Total == 1 && found.Rows[0].Text == "middle", "search is wrong");
+    return Task.CompletedTask;
+});
+
+await Check("history: archived rows become page lines, for every account, and only the right kinds", () =>
+{
+    var dir = Fresh("history-archive");
+    var path = Path.Combine(dir, "vrcx-history.db");
+    using (var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={path};Pooling=False"))
+    {
+        connection.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = "CREATE TABLE vrcx_rows (source_table TEXT NOT NULL, row_hash BLOB NOT NULL, row_json TEXT NOT NULL, PRIMARY KEY (source_table, row_hash)) WITHOUT ROWID;";
+        command.ExecuteNonQuery();
+        var id = 0;
+        void Add(string table, string json)
+        {
+            using var insert = connection.CreateCommand();
+            insert.CommandText = "INSERT INTO vrcx_rows VALUES($t, $h, $j)";
+            insert.Parameters.AddWithValue("$t", table);
+            insert.Parameters.AddWithValue("$h", BitConverter.GetBytes(++id));
+            insert.Parameters.AddWithValue("$j", json);
+            insert.ExecuteNonQuery();
+        }
+        Add("usra_friend_log_history", """{"created_at":"2026-01-01T00:00:00Z","type":"DisplayName","user_id":"usr_a","display_name":"New","previous_display_name":"Old"}""");
+        Add("usrb_friend_log_history", """{"created_at":"2026-01-02T00:00:00Z","type":"TrustLevel","user_id":"usr_b","display_name":"B","trust_level":"Known User","previous_trust_level":"User"}""");
+        Add("usrb_friend_log_history", """{"created_at":"2026-01-03T00:00:00Z","type":"Unfriend","user_id":"usr_c","display_name":"C"}""");
+        Add("usra_notifications", """{"id":"not_1","created_at":"2026-01-04T00:00:00Z","type":"invite","sender_username":"D","sender_user_id":"usr_d","message":"hi","world_name":"W"}""");
+        Add("usra_notifications_v2", """{"id":"not_2","created_at":"2026-01-05T00:00:00Z","type":"boop","title":"T","message":"M","sender_user_id":null}""");
+        Add("gamelog_video_play", """{"created_at":"2026-01-06T00:00:00Z","video_url":"https://x/y","video_name":"Song","display_name":"E","user_id":"usr_e"}""");
+        Add("usra_avatar_history", """{"avatar_id":"avtr_1","created_at":"2026-01-07T00:00:00Z","time":120000}""");
+        Add("usra_feed_avatar", """{"created_at":"2026-01-08T00:00:00Z","display_name":"F","user_id":"usr_f","avatar_name":"Fancy"}""");
+        Add("gamelog_event", """{"created_at":"2026-01-09T00:00:00Z","data":"VideoError: x"}""");
+        Add("usra_friend_log_history_extra", """{"created_at":"2026-01-10T00:00:00Z","type":"DisplayName"}""");
+        Add("usra_notifications", """not json at all""");
+    }
+    Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+    var archive = new VrcxHistoryModule(() => false, path, Path.Combine(dir, "work"));
+
+    var names = HubHistoryViews.FromArchive(archive, "names");
+    Assert(names.Count == 2, $"names {names.Count}");
+    var name = names.Single(r => r.Kind == "DisplayName");
+    Assert(name.Old == "Old" && name.New == "New" && name.UserId == "usr_a" && name.Source == "VRCX", "name row is wrong");
+    Assert(names.Single(r => r.Kind == "TrustLevel").New == "Known User", "trust row is wrong");
+    var friends = HubHistoryViews.FromArchive(archive, "friends");
+    Assert(friends.Count == 1 && friends[0].Kind == "Unfriend", "friend log is wrong");
+    var notes = HubHistoryViews.FromArchive(archive, "notifications");
+    Assert(notes.Count == 2, $"a bad row must be skipped, not stop the rest: {notes.Count}");
+    Assert(notes.Any(r => r.Key == "not_1" && r.Text == "hi" && r.New == "W"), "old notification is wrong");
+    Assert(notes.Any(r => r.Key == "not_2" && r.Text == "T: M"), "new notification is wrong");
+    var videos = HubHistoryViews.FromArchive(archive, "videos");
+    Assert(videos.Single().Link == "https://x/y" && videos[0].Text == "Song", "video is wrong");
+    Assert(videos[0].Key.Length > 0, "videos need a key so both apps' logs merge");
+    var avatars = HubHistoryViews.FromArchive(archive, "avatars");
+    Assert(avatars.Single().Link == "avtr_1" && avatars[0].New == "120000", "avatar is wrong");
+    Assert(HubHistoryViews.FromArchive(archive, "friendavatars").Single().Text == "Fancy", "friend avatar is wrong");
+    Assert(HubHistoryViews.FromArchive(archive, "gamelog").Single().Text == "VideoError: x", "game event is wrong");
+    Assert(HubHistoryViews.FromArchive(archive, "nope").Count == 0, "an unknown view must be empty");
+    return Task.CompletedTask;
+});
+
+await Check("history: no archive yet means empty lists, not an error", () =>
+{
+    var dir = Fresh("history-noarchive");
+    var archive = new VrcxHistoryModule(() => false, Path.Combine(dir, "missing.db"), Path.Combine(dir, "work"));
+    Assert(HubHistoryViews.FromArchive(archive, "names").Count == 0, "expected nothing");
+    return Task.CompletedTask;
+});
+
 (VrcxHistoryModule Module, string Source, string Archive) NewVrcx(string name, Func<bool>? running = null)
 {
     var dir = Fresh(name);

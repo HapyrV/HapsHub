@@ -50,6 +50,7 @@ public class VRChatLogWatcher : IDisposable
     public event Action<string, string>? PlayerLeft;
     public event Action<string>? ScreenshotTaken;
     public event Action? PortalUsed;
+    public event Action? PortalSpawned;
     public event Action<string>? ImageLoadError;
     public event Action? AvatarBlockedPerf;
     public event Action? ConnectionLost;
@@ -193,6 +194,8 @@ public class VRChatLogWatcher : IDisposable
     private static readonly Regex RxAvatarId = new(
         @"avtr_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}", RegexOptions.Compiled);
     private const string RxPortalStr     = "[PortalManager] Pending portal request fulfilled";
+    private static bool IsPortalSpawn(string line) =>
+        line.Contains("[Behaviour] Instantiated a (Clone [") && line.Contains("] Portals/PortalInternalDynamic)");
     private const string RxAvatarBlkStr  = "Avatar was blocked by local perf limits";
     private const string RxConnLostStr   = "Lost connection to realtime network";
 
@@ -370,6 +373,7 @@ public class VRChatLogWatcher : IDisposable
                     continue;
                 }
                 if (line.Contains(RxPortalStr)) { outp.Add(new GameLogLine("gl_portal", ts, "Portal used", "")); continue; }
+                if (IsPortalSpawn(line)) { outp.Add(new GameLogLine("gl_portal_spawn", ts, "Portal opened", "")); continue; }
                 if (line.Contains(RxAvatarBlkStr)) { outp.Add(new GameLogLine("gl_avatar_blocked", ts, "Avatar blocked (perf limit)", "")); continue; }
                 if (line.Contains(RxConnLostStr)) { outp.Add(new GameLogLine("gl_connection_lost", ts, "Connection lost", "")); continue; }
                 if (line.Contains("web request exception occurred while loading image"))
@@ -730,6 +734,13 @@ public class VRChatLogWatcher : IDisposable
         {
             PortalUsed?.Invoke();
             EmitGameLog(catchUp, "gl_portal", ParseLogTimestamp(line), "Portal used", "");
+            return;
+        }
+
+        if (!catchUp && IsPortalSpawn(line))
+        {
+            PortalSpawned?.Invoke();
+            EmitGameLog(catchUp, "gl_portal_spawn", ParseLogTimestamp(line), "Portal opened", "");
             return;
         }
 

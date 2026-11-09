@@ -22,7 +22,7 @@ const GL_FILTER_GROUPS = {
     world:      ['gl_world_join', 'gl_instance_closed'],
     players:    ['gl_player_join', 'gl_player_left'],
     media:      ['gl_video_url', 'gl_screenshot'],
-    portal:     ['gl_portal'],
+    portal:     ['gl_portal', 'gl_portal_spawn'],
     errors:     ['gl_avatar_blocked', 'gl_image_error', 'gl_connection_lost'],
 };
 

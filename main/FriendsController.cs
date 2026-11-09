@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using HapsHub.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using VRCNext.Services;
@@ -1458,6 +1459,7 @@ public class FriendsController
             {
                 var id = f["id"]?.ToString() ?? "";
                 seenIds.Add(id);
+                HubModules.History.ObserveFriend(id, f["displayName"]?.ToString() ?? "", HubHistoryModule.TrustFromTags(f["tags"]?.ToObject<List<string>>()));
                 var location = f["location"]?.ToString() ?? "";
                 var platform = f["platform"]?.ToString() ?? f["last_platform"]?.ToString() ?? "";
                 bool isWebPlatform = platform.Equals("web", StringComparison.OrdinalIgnoreCase);
@@ -3183,6 +3185,7 @@ public class FriendsController
         var fimg = VRChatApiService.GetUserImage(e.User);
         if (fimg.Length == 0) fimg = _friendNameImg.GetValueOrDefault(e.UserId).image ?? "";
         _friendNameImg[e.UserId] = (fname, fimg);
+        HubModules.History.ObserveFriend(e.UserId, e.User["displayName"]?.ToString() ?? "", HubHistoryModule.TrustFromTags(e.User["tags"]?.ToObject<List<string>>()));
 
         var newStatus = e.User["status"]?.ToString() ?? "";
         var newStatusDesc = (e.User["statusDescription"]?.ToString() ?? "").Trim();

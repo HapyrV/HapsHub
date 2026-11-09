@@ -183,6 +183,31 @@ public sealed class VrcxHistoryModule : IHubModule
         return (rows, more);
     }
 
+    /// <summary>
+    /// Every row of the named tables. A name starting with "_" matches that table for each VRCX
+    /// account, whose tables begin with the account's ID.
+    /// </summary>
+    public IEnumerable<string> ReadRowsOfTables(IReadOnlyCollection<string> tables)
+    {
+        if (!File.Exists(ArchivePath)) yield break;
+        using var archive = Open(ArchivePath, SqliteOpenMode.ReadOnly);
+        var names = new List<string>();
+        using (var list = archive.CreateCommand())
+        {
+            list.CommandText = "SELECT DISTINCT source_table FROM vrcx_rows;";
+            using var reader = list.ExecuteReader();
+            while (reader.Read()) names.Add(reader.GetString(0));
+        }
+        foreach (var name in names.Where(n => tables.Any(t => t.StartsWith('_') ? n.StartsWith("usr") && n.EndsWith(t) : n == t)))
+        {
+            using var command = archive.CreateCommand();
+            command.CommandText = "SELECT row_json FROM vrcx_rows WHERE source_table = $table;";
+            command.Parameters.AddWithValue("$table", name);
+            using var reader = command.ExecuteReader();
+            while (reader.Read()) yield return reader.GetString(0);
+        }
+    }
+
     /// <summary>The notes VRCX kept on people, worlds and avatars, from the archive.</summary>
     public IReadOnlyList<ExportedNote> ReadNotes()
     {
