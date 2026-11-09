@@ -229,3 +229,56 @@ function onHubVrcxArchive(payload) {
     };
     setTimeout(ask, 1000);
 })();
+
+// ---- Fold any favorites group: click its header. Remembered per list and group. ----
+
+(function () {
+    const KEY = 'hub_folded_groups';
+    let folded;
+    try { folded = new Set(JSON.parse(localStorage.getItem(KEY) || '[]')); } catch { folded = new Set(); }
+    const save = () => { try { localStorage.setItem(KEY, JSON.stringify([...folded].slice(-500))); } catch {} };
+
+    const groupId = header => {
+        const grid = header.closest('[id]');
+        const title = header.querySelector('.fav-group-name-input')?.dataset.orig
+            || header.querySelector('.topbar-title, .fav-group-title')?.textContent
+            || header.dataset.wid || header.textContent;
+        return (grid ? grid.id : '') + '|' + (title || '').trim();
+    };
+
+    // Hide or show everything after the header up to the next header.
+    const apply = header => {
+        const isFolded = folded.has(groupId(header));
+        header.classList.toggle('is-folded', isFolded);
+        for (let el = header.nextElementSibling; el && !el.classList.contains('fav-group-header'); el = el.nextElementSibling)
+            el.classList.toggle('hub-folded-hide', isFolded);
+    };
+    const applyAll = root => root.querySelectorAll('.fav-group-header').forEach(apply);
+
+    document.addEventListener('click', e => {
+        const header = e.target.closest?.('.fav-group-header');
+        if (!header || e.target.closest('input, button, select, a, label, .fav-group-name-actions, .pl-inst-link')) return;
+        const id = groupId(header);
+        if (folded.has(id)) folded.delete(id); else folded.add(id);
+        save();
+        apply(header);
+    });
+
+    // Lists are redrawn often; put the fold back each time.
+    const watch = () => {
+        for (const id of ['favWorldsGrid', 'favAvatarsGrid', 'favFriendsGrid', 'allFriendsGrid']) {
+            const grid = document.getElementById(id);
+            if (!grid || grid._hubFoldWatch) continue;
+            grid._hubFoldWatch = true;
+            let queued = false;
+            new MutationObserver(() => {
+                if (queued) return;
+                queued = true;
+                requestAnimationFrame(() => { queued = false; applyAll(grid); });
+            }).observe(grid, { childList: true });
+            applyAll(grid);
+        }
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch); else watch();
+    setTimeout(watch, 3000);
+})();

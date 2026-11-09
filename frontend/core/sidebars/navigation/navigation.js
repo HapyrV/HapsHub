@@ -161,7 +161,18 @@ function navRender() {
         }
     });
 
+    navEl.querySelectorAll('.nav-sep').forEach(_navApplySepFold);
     applyNavFolderMode();
+}
+
+// Hide what follows a folded section title, up to the next title. The open page stays visible.
+function _navApplySepFold(sep) {
+    const folded = localStorage.getItem('hub_navsep_' + (sep.dataset.sepId || '')) === '1';
+    sep.classList.toggle('is-folded', folded);
+    for (let el = sep.nextElementSibling; el && !el.classList.contains('nav-sep'); el = el.nextElementSibling) {
+        const keep = el.classList.contains('active') || el.classList.contains('has-active');
+        el.classList.toggle('nav-folded-hide', folded && !keep);
+    }
 }
 
 function navIsModernFolders() {
@@ -286,6 +297,19 @@ function _navMakeSeparator(entry) {
     lbl.className = 'nav-sep-label nl';
     lbl.textContent = navEntryLabel(entry);
     sep.appendChild(lbl);
+
+    // Click a section title to fold the entries under it.
+    const chev = document.createElement('span');
+    chev.className = 'nav-sep-chev msi nl';
+    chev.textContent = 'expand_more';
+    sep.appendChild(chev);
+    sep.title = navEntryLabel(entry);
+    sep.addEventListener('click', () => {
+        const key = 'hub_navsep_' + (entry.id || '');
+        const now = localStorage.getItem(key) !== '1';
+        try { localStorage.setItem(key, now ? '1' : '0'); } catch {}
+        _navApplySepFold(sep);
+    });
 
     return sep;
 }

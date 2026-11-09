@@ -350,3 +350,16 @@
     min-width: 0;
 }
 
+/* Foldable favorites groups (HapsHub) */
+.fav-group-header { cursor: pointer; user-select: none; }
+.fav-group-header::before {
+    content: 'expand_more';
+    font-family: 'Material Symbols Rounded';
+    font-size: 20px;
+    line-height: 1;
+    color: var(--tx2);
+    transition: transform .15s;
+}
+.fav-group-header.is-folded::before { transform: rotate(-90deg); }
+.fav-group-header:hover::before { color: var(--tx0); }
+.hub-folded-hide { display: none !important; }

@@ -565,3 +565,16 @@ body:has(#tab0.active) .sidebar.collapsed::after {
     pointer-events: none;
     z-index: -1;
 }
+
+/* Foldable section titles (HapsHub) */
+.nav-sep { cursor: pointer; user-select: none; gap: 4px; }
+.nav-sep-chev {
+    margin-left: auto;
+    font-size: 16px;
+    color: var(--tx3);
+    transition: transform .15s, color .12s;
+}
+.nav-sep:hover .nav-sep-chev { color: var(--tx0); }
+.nav-sep.is-folded .nav-sep-chev { transform: rotate(-90deg); }
+.sidebar.collapsed .nav-sep-chev { display: none; }
+.sidebar:not(.collapsed) .nav-folded-hide { display: none !important; }
