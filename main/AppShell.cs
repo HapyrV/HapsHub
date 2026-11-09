@@ -956,6 +956,13 @@ public partial class AppShell
 
     private void OnDeepLinkReceived(string url)
     {
+        if (string.Equals(url.Trim(), DeepLinkService.ShowCommand, StringComparison.OrdinalIgnoreCase))
+        {
+#if WINDOWS
+            try { _windowCtrl?.BringToFront(); } catch { }
+#endif
+            return;
+        }
         var parsed = DeepLinkService.Parse(url);
         if (parsed == null) return;
 #if WINDOWS

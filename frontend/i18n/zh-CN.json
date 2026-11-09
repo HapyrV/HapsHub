@@ -1330,8 +1330,8 @@
   "settings.db.cleanup.events": "它还将删除个人时间线和好友时间线中的某些事件。在个人时间线中，所有通知和URL条目将被清除。在好友时间线中，所有\"在线\"、\"离线\"和\"状态变更\"条目（例如\"询问我\"→\"加入我\"）将被清除。",
   "settings.db.cleanup.instructions": "请先运行分析，之后您将看到将被清除的内容。建议备份数据库，以防仍需要这些条目。数据库通常存储在：",
   "settings.avtrdb.title": "Avtrdb 社区支持",
-  "settings.avtrdb.tabs.support": "支持",
-  "settings.avtrdb.tabs.reports": "报告",
+  "settings.avtrdb.tabs.support": "发送内容",
+  "settings.avtrdb.tabs.reports": "本次会话已发送",
   "settings.avtrdb.support.deleted_desc": "通过报告已删除的虚拟形象来帮助改善 avtrdb 虚拟形象数据库。启用后，当你遇到已删除或被 DMCA 的虚拟形象时，HapsHub 会通知 avtrdb。这有助于为所有人保持数据库的清洁和更新。",
   "settings.avtrdb.support.deleted_toggle": "向 Avtrdb 报告已删除的虚拟形象",
   "settings.avtrdb.support.deleted_toggle_icu": "向 Avtr.icu 报告已删除的虚拟形象",
@@ -3915,7 +3915,7 @@
   "hub.dash.status_ok": "正常",
   "hub.fonts.letter_spacing": "字间距",
   "hub.fonts.search": "搜索已安装的字体...",
-  "hub.forwarding.closed_note": "转发被阻止时不会发送任何内容,因此这些选项已关闭。可在“常规 > Hub 模块”中通过“Send avatar data to avatar databases”开启。",
+  "hub.forwarding.closed_note": "页面顶部的“发送模型数据”关闭时不会发送任何内容，因此这些选项也已关闭。",
   "hub.modules.show": "显示模块",
   "hub.modules.status.degraded": "受限",
   "hub.modules.status.failed": "失败",
@@ -4155,5 +4155,9 @@
   "hub.embed.hint": "“在此打开”会在这里显示应用。“放回去”会让它回到自己的窗口。",
   "hub.embed.not_found": "未找到 {app}。请在“设置”>“Hub 模块”的“应用嵌入”中设置路径。",
   "hub.embed.testing": "正在测试...",
-  "hub.embed.opening": "正在打开..."
+  "hub.embed.opening": "正在打开...",
+  "hub.forwarding.card_title": "发送模型数据",
+  "hub.forwarding.card_desc": "下面所有选项的总开关。关闭时，HapsHub 不会向任何模型数据库发送任何内容。",
+  "timespent.summary.friends_met": "游戏中见过的好友",
+  "timespent.summary.friends_tip": "所有好友中与你同处过一个实例的好友。其余好友在记录中从未与你同处一个实例。"
 }

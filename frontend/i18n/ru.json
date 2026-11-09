@@ -1332,8 +1332,8 @@
   "settings.db.cleanup.events": "Очистить события",
   "settings.db.cleanup.instructions": "Выберите данные для очистки",
   "settings.avtrdb.title": "База аватаров",
-  "settings.avtrdb.tabs.support": "Поддержка",
-  "settings.avtrdb.tabs.reports": "Отчёты",
+  "settings.avtrdb.tabs.support": "Что отправлять",
+  "settings.avtrdb.tabs.reports": "Отправлено за сеанс",
   "settings.avtrdb.support.deleted_desc": "Отправлять данные об удалённых аватарах",
   "settings.avtrdb.support.deleted_toggle": "Удалённые аватары",
   "settings.avtrdb.support.deleted_toggle_icu": "ICU",
@@ -3919,7 +3919,7 @@
   "hub.dash.status_ok": "ОК",
   "hub.fonts.letter_spacing": "Межбуквенный интервал",
   "hub.fonts.search": "Поиск установленных шрифтов...",
-  "hub.forwarding.closed_note": "Пока пересылка заблокирована, ничего не отправляется, поэтому эти параметры отключены. Разблокировать её можно через «Send avatar data to avatar databases» в разделе Основные > Модули Hub.",
+  "hub.forwarding.closed_note": "Пока «Отправка данных аватаров» вверху этой страницы выключена, ничего не отправляется.",
   "hub.modules.show": "Показать модули",
   "hub.modules.status.degraded": "Ограничен",
   "hub.modules.status.failed": "Ошибка",
@@ -4159,5 +4159,9 @@
   "hub.embed.hint": "«Открыть здесь» показывает приложение в этой области. «Вернуть» возвращает его в собственное окно.",
   "hub.embed.not_found": "{app} не найдено. Укажите путь в разделе «Встроенные приложения»: Настройки, модули Hub.",
   "hub.embed.testing": "Проверка...",
-  "hub.embed.opening": "Открытие..."
+  "hub.embed.opening": "Открытие...",
+  "hub.forwarding.card_title": "Отправка данных аватаров",
+  "hub.forwarding.card_desc": "Главный переключатель для всего ниже. Пока он выключен, HapsHub ничего не отправляет в базы аватаров.",
+  "timespent.summary.friends_met": "Друзья, встреченные в игре",
+  "timespent.summary.friends_tip": "Друзья, с которыми вы были в одном инстансе, из всех друзей. С остальными общих инстансов в записях нет."
 }

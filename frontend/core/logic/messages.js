@@ -1344,6 +1344,9 @@ case 'vrcNews':
             case 'meetNetworkData':
                 if (typeof meetNetworkDataLoaded === 'function') meetNetworkDataLoaded(payload);
                 break;
+            case 'meetNetworkImage':
+                if (typeof _mnetGraph !== 'undefined' && _mnetGraph) _mnetGraph.setImage(payload.userId, payload.image);
+                break;
             case 'meetNetworkWorlds':
                 if (typeof meetNetworkWorldsLoaded === 'function') meetNetworkWorldsLoaded(payload);
                 break;

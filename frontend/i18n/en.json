@@ -1371,8 +1371,8 @@
   "settings.db.cleanup.events": "It will also delete certain events in your Personal and Friends Timeline. In the Personal Timeline, all notifications and URL entries will be wiped. In the Friends Timeline, all \"Online\", \"Offline\", and \"Status Change\" entries, for example \"Ask Me\" > \"Join Me\", will be wiped.",
   "settings.db.cleanup.instructions": "Run the analysis first. After that, you will see what will be wiped. It is recommended to create a backup of your database in case you still need those entries. Your database is usually stored at:",
   "settings.avtrdb.title": "Avatar Avtrdb and Avtr.icu Community Support",
-  "settings.avtrdb.tabs.support": "Support",
-  "settings.avtrdb.tabs.reports": "Reports",
+  "settings.avtrdb.tabs.support": "What to send",
+  "settings.avtrdb.tabs.reports": "Sent this session",
   "settings.avtrdb.support.deleted_desc": "Help improve the avatar databases by reporting deleted avatars. When enabled, HapsHub will notify the respective database whenever you encounter a deleted or DMCA'd avatar, but only if that avatar exists in that database.",
   "settings.avtrdb.support.deleted_toggle": "Report deleted avatars to Avtrdb",
   "settings.avtrdb.support.deleted_toggle_icu": "Report deleted avatars to Avtr.icu",
@@ -3915,7 +3915,7 @@
   "hub.dash.status_ok": "OK",
   "hub.fonts.letter_spacing": "Letter Spacing",
   "hub.fonts.search": "Search installed fonts...",
-  "hub.forwarding.closed_note": "Nothing is sent while the forwarding block is closed, so these are off. Open it with \"Send avatar data to avatar databases\" in General > Hub modules.",
+  "hub.forwarding.closed_note": "Nothing is sent while \"Send avatar data\" at the top of this page is off, so these are off too.",
   "hub.modules.show": "Show modules",
   "hub.modules.status.degraded": "Limited",
   "hub.modules.status.failed": "Failed",
@@ -4155,5 +4155,9 @@
   "hub.embed.hint": "Open here shows the app in this space. Put it back returns it to its own window.",
   "hub.embed.not_found": "{app} was not found. Set its path under App embeds in Settings, Hub modules.",
   "hub.embed.testing": "Testing...",
-  "hub.embed.opening": "Opening..."
+  "hub.embed.opening": "Opening...",
+  "hub.forwarding.card_title": "Send avatar data",
+  "hub.forwarding.card_desc": "The master switch for everything below. While it's off, HapsHub sends nothing to any avatar database, whatever the switches below say.",
+  "timespent.summary.friends_met": "Friends met in-game",
+  "timespent.summary.friends_tip": "Friends you have shared an instance with, out of all your friends. The rest have never been in an instance with you on record."
 }

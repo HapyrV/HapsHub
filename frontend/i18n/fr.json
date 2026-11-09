@@ -1330,8 +1330,8 @@
   "settings.db.cleanup.events": "Elle supprimera également certains événements de votre Timeline personnelle et amis. Dans la Timeline personnelle, toutes les notifications et les entrées URL seront effacées. Dans la Timeline amis, toutes les entrées \"En ligne\", \"Hors ligne\" et \"Changement de statut\", par exemple \"Demandez-moi\" > \"Rejoignez-moi\", seront effacées.",
   "settings.db.cleanup.instructions": "Lancez d'abord l'analyse. Vous verrez ensuite ce qui sera supprimé. Il est recommandé de créer une sauvegarde de votre base de données. Elle est généralement stockée à l'emplacement suivant :",
   "settings.avtrdb.title": "Support communautaire Avtrdb",
-  "settings.avtrdb.tabs.support": "Support",
-  "settings.avtrdb.tabs.reports": "Rapports",
+  "settings.avtrdb.tabs.support": "Quoi envoyer",
+  "settings.avtrdb.tabs.reports": "Envoyé pendant cette session",
   "settings.avtrdb.support.deleted_desc": "Aidez à améliorer la base de données d'avatars avtrdb en signalant les avatars supprimés. Lorsqu'il est activé, HapsHub notifiera avtrdb chaque fois que vous rencontrerez un avatar supprimé ou soumis à un DMCA. Cela aide à maintenir la base de données propre et à jour pour tous.",
   "settings.avtrdb.support.deleted_toggle": "Signaler les avatars supprimés à Avtrdb",
   "settings.avtrdb.support.deleted_toggle_icu": "Signaler les avatars supprimés à Avtr.icu",
@@ -3915,7 +3915,7 @@
   "hub.dash.status_ok": "OK",
   "hub.fonts.letter_spacing": "Espacement des lettres",
   "hub.fonts.search": "Rechercher dans les polices installées...",
-  "hub.forwarding.closed_note": "Rien n'est envoyé tant que le transfert est bloqué, ces options sont donc désactivées. Ouvrez-le avec « Send avatar data to avatar databases » dans Général > Modules du Hub.",
+  "hub.forwarding.closed_note": "Rien n'est envoyé tant que « Envoyer les données d'avatars », en haut de cette page, est désactivé.",
   "hub.modules.show": "Afficher les modules",
   "hub.modules.status.degraded": "Limité",
   "hub.modules.status.failed": "Échec",
@@ -4155,5 +4155,9 @@
   "hub.embed.hint": "Ouvrir ici affiche l'application dans cet espace. Remettre la renvoie dans sa propre fenêtre.",
   "hub.embed.not_found": "{app} est introuvable. Indique son chemin sous Applications intégrées dans Paramètres, Modules Hub.",
   "hub.embed.testing": "Test en cours...",
-  "hub.embed.opening": "Ouverture..."
+  "hub.embed.opening": "Ouverture...",
+  "hub.forwarding.card_title": "Envoyer les données d'avatars",
+  "hub.forwarding.card_desc": "L'interrupteur principal de tout ce qui suit. Tant qu'il est désactivé, HapsHub n'envoie rien aux bases de données d'avatars.",
+  "timespent.summary.friends_met": "Amis croisés en jeu",
+  "timespent.summary.friends_tip": "Amis avec qui tu as partagé une instance, sur l'ensemble de tes amis. Aucune instance commune n'est enregistrée avec les autres."
 }

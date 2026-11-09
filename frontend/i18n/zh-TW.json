@@ -1354,8 +1354,8 @@
   "settings.db.cleanup.events": "它還將刪除個人時間線和好友時間線中的某些事件。在個人時間線中，所有通知和URL條目將被清除。在好友時間線中，所有\"線上\"、\"離線\"和\"狀態變更\"條目（例如\"詢問我\"→\"加入我\"）將被清除。",
   "settings.db.cleanup.instructions": "請先執行分析，之後您將看到將被清除的內容。建議備份資料庫，以防仍需要這些條目。資料庫通常儲存在：",
   "settings.avtrdb.title": "Avtrdb 社群支援",
-  "settings.avtrdb.tabs.support": "支援",
-  "settings.avtrdb.tabs.reports": "報告",
+  "settings.avtrdb.tabs.support": "傳送內容",
+  "settings.avtrdb.tabs.reports": "本次工作階段已傳送",
   "settings.avtrdb.support.deleted_desc": "透過報告已刪除的角色來幫助改善 Avtrdb 角色資料庫。啟用後，當你遇到已刪除或被 DMCA 的角色時，HapsHub 會通知 Avtrdb。這有助於為所有人保持資料庫的清潔和更新。",
   "settings.avtrdb.support.deleted_toggle": "向 Avtrdb 報告已刪除的角色",
   "settings.avtrdb.support.deleted_toggle_icu": "向 Avtr.icu 報告已刪除的角色",
@@ -3915,7 +3915,7 @@
   "hub.dash.status_ok": "正常",
   "hub.fonts.letter_spacing": "字距",
   "hub.fonts.search": "搜尋已安裝的字型...",
-  "hub.forwarding.closed_note": "轉發被封鎖時不會傳送任何內容,因此這些選項已關閉。可在「一般 > Hub 模組」中透過「Send avatar data to avatar databases」開啟。",
+  "hub.forwarding.closed_note": "頁面頂部的「傳送模型資料」關閉時不會傳送任何內容，因此這些選項也已關閉。",
   "hub.modules.show": "顯示模組",
   "hub.modules.status.degraded": "受限",
   "hub.modules.status.failed": "失敗",
@@ -4155,5 +4155,9 @@
   "hub.embed.hint": "「在此開啟」會在這裡顯示應用程式。「放回去」會讓它回到自己的視窗。",
   "hub.embed.not_found": "找不到 {app}。請在「設定」>「Hub 模組」的「應用程式嵌入」中設定路徑。",
   "hub.embed.testing": "正在測試...",
-  "hub.embed.opening": "正在開啟..."
+  "hub.embed.opening": "正在開啟...",
+  "hub.forwarding.card_title": "傳送模型資料",
+  "hub.forwarding.card_desc": "下面所有選項的總開關。關閉時，HapsHub 不會向任何模型資料庫傳送任何內容。",
+  "timespent.summary.friends_met": "遊戲中見過的好友",
+  "timespent.summary.friends_tip": "所有好友中與你同處過一個實例的好友。其餘好友在紀錄中從未與你同處一個實例。"
 }

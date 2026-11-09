@@ -308,8 +308,8 @@ function tsRenderPersons() {
             </div>
             <div class="ts-stat">
                 <span class="msi ts-stat-icon" style="color:var(--ok);">person</span>
-                <div class="ts-stat-val">${_tsGlobalFriendCount}</div>
-                <div class="ts-stat-label">${t('timespent.summary.friends', 'Friends')}</div>
+                <div class="ts-stat-val">${_tsGlobalFriendCount}<span style="font-size:.55em;opacity:.6;"> / ${(typeof vrcFriendsData !== 'undefined' ? vrcFriendsData.length : 0) || '?'}</span></div>
+                <div class="ts-stat-label" title="${esc(t('timespent.summary.friends_tip', 'Friends you have shared an instance with, out of all your friends. The rest have never been in an instance with you on record.'))}">${t('timespent.summary.friends_met', 'Friends met in-game')}</div>
             </div>
             <div class="ts-stat">
                 <span class="msi ts-stat-icon" style="color:var(--cyan);">person_outline</span>

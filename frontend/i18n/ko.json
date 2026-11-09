@@ -1369,8 +1369,8 @@
   "settings.db.cleanup.events": "나와 내 친구의 타임라인에서 특정 이벤트도 같이 삭제합니다. 내 타임라인에서 모든 알림과 URL 항목은 모두 지워집니다. 친구 타임라인에서 모든 \"온라인\", \"오프라인\", 그리고 \"상태 변경\"은, 예를 들어, \"참가 요청 필요\" > \"참가 환영\"은 모두 삭제됩니다.",
   "settings.db.cleanup.instructions": "분석을 먼저 실행합니다. 그러면 어떤 데이터가 삭제될지 확인할 수 있습니다. 해당 항목이 필요할 경우를 대비해 데이터베이스의 백업본을 만드는 걸 추천합니다. 데이터베이스는 보통 여기에 저장됩니다:",
   "settings.avtrdb.title": "아바타 Avtrdb와 Avtr.icu 커뮤니티 지원",
-  "settings.avtrdb.tabs.support": "지원",
-  "settings.avtrdb.tabs.reports": "제보",
+  "settings.avtrdb.tabs.support": "보낼 항목",
+  "settings.avtrdb.tabs.reports": "이번 세션에 보낸 항목",
   "settings.avtrdb.support.deleted_desc": "삭제된 아바타를 제보해서 아바타 데이터베이스 개선에 도움을 줍니다. 활성화되면, HapsHub가 삭제되었거나 저작권 침해 신고를 받은 아바타를 발견하면 해당 데이터베이스에 알려줍니다. 단, 해당 아바타가 데이터베이스에 있을 때만 알립니다.",
   "settings.avtrdb.support.deleted_toggle": "삭제된 아바타를 Avtrdb에 제보하기",
   "settings.avtrdb.support.deleted_toggle_icu": "삭제된 아바타를 Avtr.icu에 제보하기",
@@ -3915,7 +3915,7 @@
   "hub.dash.status_ok": "정상",
   "hub.fonts.letter_spacing": "자간",
   "hub.fonts.search": "설치된 글꼴 검색...",
-  "hub.forwarding.closed_note": "전달이 차단된 동안에는 아무것도 전송되지 않으므로 이 항목은 꺼져 있습니다. 일반 > Hub 모듈의 \"Send avatar data to avatar databases\"로 차단을 해제하세요.",
+  "hub.forwarding.closed_note": "이 페이지 위쪽의 \"아바타 데이터 보내기\"가 꺼져 있으면 아무것도 보내지 않으므로 이 항목들도 꺼집니다.",
   "hub.modules.show": "모듈 표시",
   "hub.modules.status.degraded": "제한됨",
   "hub.modules.status.failed": "실패",
@@ -4155,5 +4155,9 @@
   "hub.embed.hint": "여기서 열기는 앱을 이 공간에 표시합니다. 되돌리기는 앱을 원래 창으로 돌려놓습니다.",
   "hub.embed.not_found": "{app}을(를) 찾을 수 없습니다. 설정, Hub 모듈의 앱 임베드에서 경로를 지정하세요.",
   "hub.embed.testing": "테스트 중...",
-  "hub.embed.opening": "여는 중..."
+  "hub.embed.opening": "여는 중...",
+  "hub.forwarding.card_title": "아바타 데이터 보내기",
+  "hub.forwarding.card_desc": "아래 모든 항목의 주 스위치입니다. 꺼져 있는 동안 HapsHub는 어떤 아바타 데이터베이스에도 아무것도 보내지 않습니다.",
+  "timespent.summary.friends_met": "게임에서 만난 친구",
+  "timespent.summary.friends_tip": "전체 친구 중 같은 인스턴스에 있었던 친구입니다. 나머지는 기록상 함께 있었던 적이 없습니다."
 }

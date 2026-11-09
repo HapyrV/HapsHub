@@ -788,10 +788,16 @@
                     </div>
 
                     <div class="vrcn-panel-card" data-section="community" style="display:none;">
+                        <div class="vrcn-panel-card-header"><span class="msi">lock_open</span> <span data-i18n="hub.forwarding.card_title">Send avatar data</span></div>
+                        <div class="set-desc" style="margin-top:12px;" data-i18n="hub.forwarding.card_desc">The master switch for everything below. While it's off, HapsHub sends nothing to any avatar database, whatever the switches below say.</div>
+                        <div id="hubForwardingSlot"></div>
+                    </div>
+
+                    <div class="vrcn-panel-card" data-section="community" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">database</span> <span data-i18n="settings.avtrdb.title">Avatar Avtrdb and Avtr.icu Community Support</span></div>
                         <div class="fd-tabs" style="margin-top:10px;">
-                            <button class="fd-tab active" onclick="switchAvtrdbTab('support',this)" data-i18n="settings.avtrdb.tabs.support">Support</button>
-                            <button class="fd-tab" onclick="switchAvtrdbTab('reports',this)" data-i18n="settings.avtrdb.tabs.reports">Reports</button>
+                            <button class="fd-tab active" onclick="switchAvtrdbTab('support',this)" data-i18n="settings.avtrdb.tabs.support">What to send</button>
+                            <button class="fd-tab" onclick="switchAvtrdbTab('reports',this)" data-i18n="settings.avtrdb.tabs.reports">Sent this session</button>
                         </div>
                         <div id="avtrdbTabSupport">
                             <div class="set-desc" data-i18n="settings.avtrdb.support.deleted_desc">Help improve the avatar databases by reporting deleted avatars. When enabled, HapsHub will notify the respective database whenever you encounter a deleted or DMCA'd avatar, but only if that avatar exists in that database.</div>

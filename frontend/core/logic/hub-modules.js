@@ -23,7 +23,13 @@ function hubSettingChanged(input) {
     });
 }
 
-function _hubModuleRow(module) {
+// Settings shown on another settings page instead of under General > Hub modules.
+const _HUB_MOVED_SETTINGS = { 'hub.forwarding': { forward_avatar_data: 'hubForwardingSlot' } };
+
+function _hubModuleRow(module, onlyKey) {
+    const moved = _HUB_MOVED_SETTINGS[module.id] || {};
+    const keep = s => onlyKey ? s.key === onlyKey : !moved[s.key];
+    module = { ...module, settings: (module.settings || []).filter(keep) };
     const [key, fallback] = _HUB_STATUS_LABELS[module.status] || ['', module.status];
     const problem = module.status === 'Failed' || module.status === 'Degraded';
     const status = t(key, fallback) + (module.detail ? `: ${module.detail}` : '');
@@ -49,6 +55,12 @@ function _hubModuleRow(module) {
 function onHubModules(payload) {
     const list = document.getElementById('hubModulesList');
     // Empty only in the moment before the hub has started. Keep the button so it can be retried.
-    if (list && payload.modules?.length) list.innerHTML = payload.modules.map(_hubModuleRow).join('');
+    if (list && payload.modules?.length) list.innerHTML = payload.modules.map(m => _hubModuleRow(m)).join('');
+    for (const module of payload.modules || []) {
+        for (const [key, slotId] of Object.entries(_HUB_MOVED_SETTINGS[module.id] || {})) {
+            const slot = document.getElementById(slotId);
+            if (slot) slot.innerHTML = _hubModuleRow(module, key);
+        }
+    }
     if (payload.modules?.length) hubUiApply(payload.modules);
 }

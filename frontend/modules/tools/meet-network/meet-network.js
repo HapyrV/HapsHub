@@ -147,6 +147,13 @@ class MeetGraph {
         img.onerror = () => { nd._imgLoading = false; };
     }
 
+    setImage(userId, image) {
+        const nd = this.nodes[this.nodeMap[userId]];
+        if (!nd || !image || nd.image) return;
+        nd.image = image;
+        this._loadImage(nd);
+    }
+
     unloadImages() {
         let count = 0;
         const drop = nd => {

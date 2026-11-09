@@ -80,7 +80,7 @@ function _hubApplyForwardingNote(open) {
             note = document.createElement('div');
             note.className = 'set-desc hub-forwarding-note';
             note.style.cssText = 'color:var(--err);margin-bottom:10px;';
-            note.textContent = t('hub.forwarding.closed_note', 'Nothing is sent while the forwarding block is closed, so these are off. Open it with "Send avatar data to avatar databases" in General > Hub modules.');
+            note.textContent = t('hub.forwarding.closed_note', 'Nothing is sent while "Send avatar data" at the top of this page is off, so these are off too.');
             tab.prepend(note);
         }
         note.style.display = open ? 'none' : '';

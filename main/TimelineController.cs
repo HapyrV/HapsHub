@@ -1634,7 +1634,32 @@ public class TimelineController
                 meets       = p.Meets,
             }).ToList();
             _core.SendToJS("meetNetworkData", new { people });
+            _ = FillMeetNetworkImagesAsync(people.Where(p => string.IsNullOrEmpty(p.image)).Select(p => p.userId).ToList());
         });
+    }
+
+    private int _meetImageRun;
+
+    // People imported from VRCX come without a picture. Look each one up once, slowly so the API isn't
+    // hammered, and keep it in the image cache so the next visit to the graph already has it.
+    private async Task FillMeetNetworkImagesAsync(List<string> userIds)
+    {
+        var run = Interlocked.Increment(ref _meetImageRun);
+        foreach (var userId in userIds)
+        {
+            if (run != Volatile.Read(ref _meetImageRun)) return;
+            try
+            {
+                var user = await _core.Users.GetUserAsync(userId);
+                var url = user != null ? VRChatApiService.GetUserImage(user) : "";
+                if (string.IsNullOrEmpty(url)) continue;
+                var disk = await ImageCacheHelper.CacheUserAsync(userId, url);
+                var image = disk != null ? ImageCacheHelper.ToLocalUrl(disk) : url;
+                _core.SendToJS("meetNetworkImage", new { userId, image });
+            }
+            catch { }
+            await Task.Delay(500);
+        }
     }
 
     private void HandleGetMeetNetworkWorlds(JObject msg)

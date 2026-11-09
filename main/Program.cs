@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using VRCNext.Services;
 
 namespace VRCNext;
@@ -9,6 +9,9 @@ static class Program
     // so the pin survives Velopack updates that move the exe to a new versioned folder.
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
     private static extern int SetCurrentProcessExplicitAppUserModelID(string appID);
+
+    [DllImport("user32.dll")]
+    private static extern bool AllowSetForegroundWindow(int processId);
 
     [STAThread]
     static void Main(string[] args)
@@ -62,7 +65,12 @@ static class Program
 
         if (!AcquireMutex("Global\\HapsHub" + HubPaths.InstanceSuffix, out var mainMutex, waitMs: isRelaunch ? 10000 : 0))
         {
+#if WINDOWS
+            // This launch came from the user, so it may hand the foreground to the running app.
+            AllowSetForegroundWindow(-1);
+#endif
             if (deepLink != null) { DeepLinkService.Forward(deepLink); return; }
+            if (DeepLinkService.Forward(DeepLinkService.ShowCommand)) return;
             ShowAlreadyRunningMessage();
             return;
         }

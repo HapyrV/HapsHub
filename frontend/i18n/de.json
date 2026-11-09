@@ -1358,8 +1358,8 @@
   "settings.db.cleanup.events": "Außerdem werden bestimmte Einträge in der persönlichen Timeline und der Freunde-Timeline gelöscht. In der persönlichen Timeline werden alle Benachrichtigungen und URL-Einträge gelöscht. In der Freunde-Timeline werden alle \"Online\"-, \"Offline\"- und \"Status-Änderungs\"-Einträge gelöscht, zum Beispiel \"Frag mich\" > \"Komm rein\".",
   "settings.db.cleanup.instructions": "Führe zuerst die Analyse durch. Danach siehst du, was gelöscht wird. Es wird empfohlen, ein Backup der Datenbank zu erstellen, falls diese Einträge noch benötigt werden. Die Datenbank befindet sich normalerweise hier:",
   "settings.avtrdb.title": "Avtrdb-Community-Support",
-  "settings.avtrdb.tabs.support": "Support",
-  "settings.avtrdb.tabs.reports": "Berichte",
+  "settings.avtrdb.tabs.support": "Was gesendet wird",
+  "settings.avtrdb.tabs.reports": "In dieser Sitzung gesendet",
   "settings.avtrdb.support.deleted_desc": "Hilf mit, die avtrdb-Avatar-Datenbank zu verbessern, indem geloeschte Avatare gemeldet werden. Wenn aktiviert, benachrichtigt HapsHub avtrdb, sobald du einem geloeschten oder DMCA-Avatar begegnest. Das haelt die Datenbank fuer alle sauber und aktuell.",
   "settings.avtrdb.support.deleted_toggle": "Geloeschte Avatare an Avtrdb melden",
   "settings.avtrdb.support.deleted_toggle_icu": "Geloeschte Avatare an Avtr.icu melden",
@@ -3915,7 +3915,7 @@
   "hub.dash.status_ok": "OK",
   "hub.fonts.letter_spacing": "Zeichenabstand",
   "hub.fonts.search": "Installierte Schriften suchen...",
-  "hub.forwarding.closed_note": "Solange die Weiterleitung gesperrt ist, wird nichts gesendet, darum sind diese Optionen aus. Öffne sie mit \"Send avatar data to avatar databases\" unter Allgemein > Hub-Module.",
+  "hub.forwarding.closed_note": "Solange „Avatardaten senden“ oben auf dieser Seite aus ist, wird nichts gesendet, daher sind diese ebenfalls aus.",
   "hub.modules.show": "Module anzeigen",
   "hub.modules.status.degraded": "Eingeschränkt",
   "hub.modules.status.failed": "Fehlgeschlagen",
@@ -4155,5 +4155,9 @@
   "hub.embed.hint": "„Hier öffnen“ zeigt die App in diesem Bereich. „Zurückgeben“ bringt sie wieder in ihr eigenes Fenster.",
   "hub.embed.not_found": "{app} wurde nicht gefunden. Lege den Pfad unter App-Einbettungen in Einstellungen, Hub-Module fest.",
   "hub.embed.testing": "Wird getestet...",
-  "hub.embed.opening": "Wird geöffnet..."
+  "hub.embed.opening": "Wird geöffnet...",
+  "hub.forwarding.card_title": "Avatardaten senden",
+  "hub.forwarding.card_desc": "Der Hauptschalter für alles darunter. Solange er aus ist, sendet HapsHub nichts an Avatar-Datenbanken, egal was die Schalter darunter sagen.",
+  "timespent.summary.friends_met": "Im Spiel getroffene Freunde",
+  "timespent.summary.friends_tip": "Freunde, mit denen du eine Instanz geteilt hast, von allen deinen Freunden. Mit den übrigen gibt es keine gemeinsame Instanz in den Daten."
 }

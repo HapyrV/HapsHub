@@ -1330,8 +1330,8 @@
   "settings.db.cleanup.events": "また、個人タイムラインとフレンドタイムラインの特定のイベントも削除されます。個人タイムラインではすべての通知とURLエントリが削除されます。フレンドタイムラインでは「オンライン」「オフライン」「ステータス変更」（例：「確認して」→「参加して」）のエントリがすべて削除されます。",
   "settings.db.cleanup.instructions": "まず分析を実行してください。その後、削除される内容が表示されます。まだそれらのエントリが必要な場合に備えて、データベースのバックアップを作成することをお勧めします。データベースは通常、次の場所に保存されています：",
   "settings.avtrdb.title": "Avtrdbコミュニティサポート",
-  "settings.avtrdb.tabs.support": "サポート",
-  "settings.avtrdb.tabs.reports": "レポート",
+  "settings.avtrdb.tabs.support": "送信する内容",
+  "settings.avtrdb.tabs.reports": "このセッションで送信済み",
   "settings.avtrdb.support.deleted_desc": "削除されたアバターを報告してavtrdbアバターデータベースの改善に協力してください。有効にすると、HapsHubは削除またはDMCAされたアバターに遭遇した際にavtrdbに通知します。これにより、データベースが全員のために最新の状態に保たれます。",
   "settings.avtrdb.support.deleted_toggle": "削除されたアバターをAvtrdbに報告",
   "settings.avtrdb.support.deleted_toggle_icu": "削除されたアバターをAvtr.icuに報告",
@@ -3915,7 +3915,7 @@
   "hub.dash.status_ok": "正常",
   "hub.fonts.letter_spacing": "文字間隔",
   "hub.fonts.search": "インストール済みのフォントを検索...",
-  "hub.forwarding.closed_note": "転送がブロックされている間は何も送信されないため、これらはオフになっています。一般 > Hub モジュールの「Send avatar data to avatar databases」で解除できます。",
+  "hub.forwarding.closed_note": "このページ上部の「アバターデータを送信」がオフの間は何も送信されないため、これらもオフです。",
   "hub.modules.show": "モジュールを表示",
   "hub.modules.status.degraded": "制限あり",
   "hub.modules.status.failed": "失敗",
@@ -4155,5 +4155,9 @@
   "hub.embed.hint": "「ここで開く」でアプリをこの場所に表示します。「元に戻す」で元のウィンドウに戻します。",
   "hub.embed.not_found": "{app} が見つかりません。設定の Hub モジュール、アプリ埋め込みでパスを指定してください。",
   "hub.embed.testing": "テスト中...",
-  "hub.embed.opening": "開いています..."
+  "hub.embed.opening": "開いています...",
+  "hub.forwarding.card_title": "アバターデータを送信",
+  "hub.forwarding.card_desc": "以下すべての主スイッチです。オフの間、HapsHubはどのアバターデータベースにも何も送信しません。",
+  "timespent.summary.friends_met": "ゲーム内で会ったフレンド",
+  "timespent.summary.friends_tip": "全フレンドのうち、インスタンスを共にしたことのあるフレンド。残りは記録上一度も同じインスタンスにいません。"
 }

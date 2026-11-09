@@ -1,4 +1,5 @@
 using System.IO.Pipes;
+using HapsHub.Core;
 #if WINDOWS
 using Microsoft.Win32;
 #endif
@@ -8,7 +9,11 @@ namespace VRCNext.Services;
 public static class DeepLinkService
 {
     public const string Scheme = "hapshub";
-    private const string PipeName = "HapsHub_DeepLink";
+    // Test copies (HAPSHUB_DATA_DIR) get their own pipe, so they never talk to the real app.
+    private static string PipeName => "HapsHub_DeepLink" + HubPaths.InstanceSuffix;
+
+    /// <summary>Sent by a second launch: show the running window instead of a second app.</summary>
+    public const string ShowCommand = Scheme + "://show";
 
     private static bool IsUuid(string s) => Guid.TryParseExact(s, "D", out _);
 
@@ -116,7 +121,7 @@ public static class DeepLinkService
 #endif
     }
 
-    public static void Forward(string url)
+    public static bool Forward(string url)
     {
         try
         {
@@ -124,8 +129,9 @@ public static class DeepLinkService
             client.Connect(3000);
             using var w = new StreamWriter(client) { AutoFlush = true };
             w.WriteLine(url);
+            return true;
         }
-        catch { }
+        catch { return false; }
     }
 
     public static void StartServer(Action<string> onLink, CancellationToken ct)
