@@ -34,7 +34,7 @@ public static class HubPaths
     public static string HubRoot => Data("Hub");
 
     /// <summary>True when a test run has pointed the app at its own folders.</summary>
-    public static bool IsOverridden => !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(DataDirVariable));
+    public static bool IsOverridden => Override() != null;
 
     /// <summary>Keeps a run with its own folders from colliding with the real app's single-instance locks.</summary>
     public static string InstanceSuffix => IsOverridden
@@ -54,9 +54,15 @@ public static class HubPaths
         return Path.Combine(all);
     }
 
+    /// <summary>A file with this name beside the exe keeps all data in a Data folder there.</summary>
+    public const string PortableMarker = "portable.txt";
+
     private static string? Override()
     {
         var value = Environment.GetEnvironmentVariable(DataDirVariable);
-        return string.IsNullOrWhiteSpace(value) ? null : Path.GetFullPath(value);
+        if (!string.IsNullOrWhiteSpace(value)) return Path.GetFullPath(value);
+        return File.Exists(Path.Combine(AppContext.BaseDirectory, PortableMarker))
+            ? Path.Combine(AppContext.BaseDirectory, "Data")
+            : null;
     }
 }
