@@ -78,11 +78,60 @@ static class Program
         {
             if (OperatingSystem.IsWindows())
                 SetCurrentProcessExplicitAppUserModelID("com.hapshub.app");
+#if WINDOWS
+            if (!args.Contains(HapsHub.Core.SourceUpdate.SkipArg) && HandOffToUpdater(args)) return;
+#endif
             CrashHandler.Register();
             Velopack.VelopackApp.Build().Run();
             new AppShell(args).Run();
         }
     }
+
+#if WINDOWS
+    /// <summary>
+    /// When the repository this copy was built from has a newer commit, starts the updater and returns true so this
+    /// copy closes. The updater rebuilds HapsHub and opens it again, or opens this version if the build fails.
+    /// </summary>
+    static bool HandOffToUpdater(string[] args)
+    {
+        try
+        {
+            // Throwaway test copies keep the version they were started as.
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("HAPSHUB_DATA_DIR"))) return false;
+            var dir = AppContext.BaseDirectory;
+            var exe = Environment.ProcessPath;
+            var repo = HapsHub.Core.SourceUpdate.RepositoryOf(dir);
+            if (exe == null || repo == null || !HapsHub.Core.SourceUpdate.IsReleaseBuildIn(repo, dir)) return false;
+            var stamp = Path.Combine(dir, HapsHub.Core.SourceUpdate.StampFile);
+            var builtFrom = File.Exists(stamp) ? File.ReadAllText(stamp).Trim() : null;
+            var gitDir = HapsHub.Core.SourceUpdate.GitDir(repo);
+            var head = gitDir == null ? null : HapsHub.Core.SourceUpdate.HeadCommit(gitDir);
+            if (!HapsHub.Core.SourceUpdate.Behind(builtFrom, head)) return false;
+            if (HapsHub.Core.SourceUpdate.HasUnfinishedChanges(repo) != false) return false;
+            var script = Path.Combine(repo, "tools", "hapshub", "auto-update.ps1");
+            if (!File.Exists(script)) return false;
+
+            static string Quote(string value) => "\"" + value.Replace("\"", "\\\"") + "\"";
+            var passOn = args.Where(a => a != HapsHub.Core.SourceUpdate.UpdatedArg && a != HapsHub.Core.SourceUpdate.FailedArg);
+            var line = $"-NoProfile -ExecutionPolicy Bypass -File {Quote(script)} -Root {Quote(repo)} -Exe {Quote(exe)} "
+                + $"-WaitPid {Environment.ProcessId} -LogFile {Quote(HubPaths.Data("Logs", HapsHub.Core.SourceUpdate.FailedLogName))}";
+            // PowerShell would read "--minimized" as one of its own parameters, so the arguments travel as one value.
+            var rest = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(string.Join("\n", passOn)));
+            if (rest.Length > 0) line += " -PassArgs " + rest;
+            using var updater = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("powershell.exe", line)
+            {
+                UseShellExecute = true,
+                // Started with Windows into the tray, it stays out of the way too.
+                WindowStyle = args.Contains("--minimized") ? System.Diagnostics.ProcessWindowStyle.Minimized : System.Diagnostics.ProcessWindowStyle.Normal,
+            });
+            return updater != null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            return false;
+        }
+    }
+#endif
 
     static void EnsureConfigRootExists()
     {

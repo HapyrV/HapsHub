@@ -1704,6 +1704,36 @@ await Check("launch addons: unknown kinds find nothing; running programs are ski
     return Task.CompletedTask;
 });
 
+await Check("source update: reads the commit from .git and updates only a Release copy that's behind", () =>
+{
+    const string a = "1111111111111111111111111111111111111111", b = "2222222222222222222222222222222222222222";
+    var repo = Path.Combine(root, "update-repo");
+    var git = Path.Combine(repo, ".git");
+    Directory.CreateDirectory(Path.Combine(git, "refs", "heads", "hub"));
+    File.WriteAllText(Path.Combine(repo, "VRCNext.csproj"), "<Project />");
+    File.WriteAllText(Path.Combine(git, "HEAD"), "ref: refs/heads/hub/canvas\n");
+    File.WriteAllText(Path.Combine(git, "refs", "heads", "hub", "canvas"), a + "\n");
+    Assert(SourceUpdate.HeadCommit(git) == a, "a branch's own file gives its commit");
+    File.Delete(Path.Combine(git, "refs", "heads", "hub", "canvas"));
+    File.WriteAllText(Path.Combine(git, "packed-refs"), "# pack-refs with: peeled fully-peeled sorted\n" + b + " refs/heads/hub/canvas\n");
+    Assert(SourceUpdate.HeadCommit(git) == b, "a packed branch gives its commit");
+    File.WriteAllText(Path.Combine(git, "HEAD"), a);
+    Assert(SourceUpdate.HeadCommit(git) == a, "a detached HEAD is the commit itself");
+
+    var exeDir = Path.Combine(repo, "bin", "Release", "net10.0-windows10.0.19041.0");
+    Directory.CreateDirectory(exeDir);
+    Assert(SourceUpdate.RepositoryOf(exeDir) == new DirectoryInfo(repo).FullName, "the repository is found from bin\\Release");
+    Assert(SourceUpdate.IsReleaseBuildIn(repo, exeDir), "a Release copy in the repository updates");
+    Assert(!SourceUpdate.IsReleaseBuildIn(repo, Path.Combine(repo, "bin", "Debug", "net10.0-windows10.0.19041.0")), "a Debug copy doesn't");
+    Assert(SourceUpdate.RepositoryOf(Path.Combine(root, "elsewhere")) == null, "a copy outside a repository has none");
+
+    Assert(SourceUpdate.Behind(a, b), "a new commit means an update");
+    Assert(!SourceUpdate.Behind(a, a), "the same commit means none");
+    Assert(!SourceUpdate.Behind(null, b), "a copy that doesn't know its commit never updates, so it can't loop");
+    Assert(!SourceUpdate.Behind(a, "not a commit"), "an unreadable HEAD means none");
+    return Task.CompletedTask;
+});
+
 SqliteConnection.ClearAllPools();
 try { Directory.Delete(root, recursive: true); }
 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }

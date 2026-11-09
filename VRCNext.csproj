@@ -96,6 +96,15 @@
     </None>
   </ItemGroup>
 
+  <!-- Notes the commit this build came from, so a copy in bin\Release can tell when the repository has moved on -->
+  <Target Name="StampSourceCommit" AfterTargets="Build" Condition="'$(OS)' == 'Windows_NT'">
+    <Exec Command="git rev-parse HEAD" WorkingDirectory="$(MSBuildProjectDirectory)" ConsoleToMSBuild="true" IgnoreExitCode="true" ContinueOnError="true" StandardOutputImportance="low" StandardErrorImportance="low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_HubSourceCommit" />
+      <Output TaskParameter="ExitCode" PropertyName="_HubSourceExit" />
+    </Exec>
+    <WriteLinesToFile Condition="'$(_HubSourceExit)' == '0'" File="$(OutDir)source-commit.txt" Lines="$(_HubSourceCommit)" Overwrite="true" />
+  </Target>
+
   <!-- Inject webhook key from build environment into a generated file -->
   <Target Name="GenerateWhKeySecret" BeforeTargets="CoreCompile">
     <WriteLinesToFile File="$(MSBuildProjectDirectory)\BuildSecrets.cs" Lines="namespace VRCNext%3B internal static class BuildSecrets { internal const string HypeRateApiKey = %22$(VRCNextHypeRateApiKey)%22%3B internal const string VrcndbKey = %22$(VRCNextVrcndbKey)%22%3B }" Overwrite="true" />

@@ -9,6 +9,9 @@ namespace VRCNext;
 
 public partial class AppShell
 {
+    /// <summary>The update notice shows once, not again when the page reloads.</summary>
+    private bool _updateNoticeShown;
+
     // Persisted cache: contentId -> { name, rawImageUrl }
     private Dictionary<string, (string name, string rawImageUrl)>? _sharedContentCache;
     private readonly object _sharedContentCacheLock = new();
@@ -491,6 +494,15 @@ public partial class AppShell
                     SendToJS("localHttpInfo", new { port = _core.HttpPort, token = _core.HttpCorsToken });
                     _windowCtrl.InstallChrome();
                     _windowCtrl.RestoreMaximizedState();
+                    if (!_updateNoticeShown)
+                    {
+                        _updateNoticeShown = true;
+                        var launchArgs = Environment.GetCommandLineArgs();
+                        if (launchArgs.Contains(HapsHub.Core.SourceUpdate.UpdatedArg))
+                            SendToJS("toast", new { ok = true, msg = "HapsHub was updated to the newest version." });
+                        else if (launchArgs.Contains(HapsHub.Core.SourceUpdate.FailedArg))
+                            SendToJS("toast", new { ok = false, msg = $"HapsHub couldn't update, so this is the previous version. The reason is in {HubPaths.Data("Logs", HapsHub.Core.SourceUpdate.FailedLogName)}" });
+                    }
                     // Debug: show what Load() did
                     if (AppSettings.LastLoadError != null)
                         SendToJS("log", new { msg = $"[LOAD ERROR] {AppSettings.LastLoadError}", color = "err" });
