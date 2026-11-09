@@ -45,4 +45,5 @@ function onHubModules(payload) {
     const list = document.getElementById('hubModulesList');
     // Empty only in the moment before the hub has started. Keep the button so it can be retried.
     if (list && payload.modules?.length) list.innerHTML = payload.modules.map(_hubModuleRow).join('');
+    if (payload.modules?.length) hubUiApply(payload.modules);
 }

@@ -1,7 +1,7 @@
-#define MyAppName      "VRCNext"
+#define MyAppName      "HapsHub"
 #define MyAppVersion   "2026.1.0"
-#define MyAppPublisher "VRCNext"
-#define MyAppURL       "https://vrcnext.app"
+#define MyAppPublisher "HapsHub"
+#define MyAppURL       ""
 
 [Setup]
 AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
@@ -14,7 +14,7 @@ DefaultDirName={autopf}\{#MyAppName}
 DisableDirPage=yes
 DisableProgramGroupPage=yes
 OutputDir=..\installer
-OutputBaseFilename=VRCNext_Setup_{#MyAppVersion}_x64
+OutputBaseFilename=HapsHub_Setup_{#MyAppVersion}_x64
 SetupIconFile=..\logo.ico
 WizardImageFile=installer_banner.png
 WizardSmallImageFile=installer_small.png
@@ -31,7 +31,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "german"; MessagesFile: "compiler:Languages\German.isl"
 
 [Files]
-Source: "..\releases\VRCNext-win-Setup.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
+Source: "..\releases\HapsHub-win-Setup.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 
 [Run]
-Filename: "{tmp}\VRCNext-win-Setup.exe"; Flags: waituntilterminated; StatusMsg: "Installing VRCNext..."
+Filename: "{tmp}\HapsHub-win-Setup.exe"; Flags: waituntilterminated; StatusMsg: "Installing HapsHub..."

@@ -187,7 +187,7 @@ try {
         `!document.getElementById('vrcndbConsentModal')`));
 
     await main.eval(`hubModulesRefresh()`);
-    await waitFor('module list',() => main.eval(`document.querySelectorAll('.hub-module-row').length === 3`));
+    await waitFor('module list',() => main.eval(`document.querySelectorAll('.hub-module-row').length === 4`));
     if (process.env.HAPSHUB_SMOKE_FAIL) throw new Error('failure forced to test the cleanup');
     const toggles = `[...document.querySelectorAll('.hub-module-row[data-module="hub.forwarding"] input[type=checkbox]')]`;
     check('forwarding toggles start off', await main.eval(`${toggles}.length === 2 && ${toggles}.every(i => !i.checked)`));
@@ -220,6 +220,29 @@ try {
         const shot = await main.send('Page.captureScreenshot', { format: 'png' });
         writeFileSync(screenshotPath, Buffer.from(shot.result.data, 'base64'));
     }
+
+    // The interface changes: toggles reach the dashboard, and the crash card is gone.
+    await main.eval(`sendToCS({action:'hubSetSetting',module:'hub.ui',key:'dash_welcome',value:'false'})`);
+    await waitFor('welcome message to hide', () => main.eval(`document.getElementById('dashWelcome').style.display === 'none'`));
+    await main.eval(`sendToCS({action:'hubSetSetting',module:'hub.ui',key:'dash_welcome',value:'true'})`);
+    await waitFor('welcome message to return', () => main.eval(`document.getElementById('dashWelcome').style.display === ''`));
+    check('dashboard welcome toggle works both ways', true);
+    check('dashboard has a VRChat status stat', await main.eval(`!!document.getElementById('dashStatVrcStatus')`));
+    check('crash reporting card is gone', !(await main.eval(`document.getElementById('hubModulesList').closest('.settings-page, body').innerText.includes('Crash Reporting')`)));
+    check('avatar database toggles are off while the block is closed', await main.eval(`document.getElementById('setAvtrdbSubmit').disabled && !!document.querySelector('.hub-forwarding-note')`));
+    check('font search narrows the list', await main.eval(`(() => { loadSystemFonts(['Arial','Comic Sans MS']); hubFontSearch('comic'); const n = document.getElementById('setCustomFont').options.length; hubFontSearch(''); return n === 2; })()`));
+    check('People groups collapse and stay collapsed after a redraw', await main.eval(`(() => {
+        const grid = document.getElementById('allFriendsGrid');
+        const saved = grid.innerHTML;
+        const draw = () => grid.innerHTML = '<div class="fav-group-header"><span class="topbar-title">T</span></div><div class="c">x</div><div class="fav-group-header"><span class="topbar-title">U</span></div><div class="d">y</div>';
+        draw(); _hubApplyCollapsed(grid);
+        grid.firstChild.click();
+        const hidden = grid.querySelector('.c').classList.contains('hub-group-hidden') && !grid.querySelector('.d').classList.contains('hub-group-hidden');
+        draw(); _hubApplyCollapsed(grid);
+        const kept = grid.querySelector('.c').classList.contains('hub-group-hidden');
+        localStorage.removeItem('hapshub.people.collapsed'); grid.innerHTML = saved;
+        return hidden && kept;
+    })()`));
 
     check('main page has no page errors', main.errors.length === 0, main.errors.join(' | '));
     await main.eval(`sendToCS({action:'windowClose'})`);

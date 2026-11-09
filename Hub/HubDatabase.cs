@@ -82,6 +82,28 @@ public sealed class HubDatabase
         return TryOpen(out _);
     }
 
+    /// <summary>Copies a hub database while it's in use. False if there's nothing to copy or the copy failed.</summary>
+    public static bool TryBackup(string databasePath, string destinationPath, Action<string>? log = null)
+    {
+        if (!File.Exists(databasePath)) return false;
+        try
+        {
+            var source = new SqliteConnectionStringBuilder { DataSource = databasePath, Mode = SqliteOpenMode.ReadOnly, Pooling = false }.ToString();
+            using var connection = new SqliteConnection(source);
+            connection.Open();
+            using var command = connection.CreateCommand();
+            command.CommandText = "VACUUM INTO $path;";
+            command.Parameters.AddWithValue("$path", destinationPath);
+            command.ExecuteNonQuery();
+            return true;
+        }
+        catch (Exception ex) when (ex is SqliteException or IOException or UnauthorizedAccessException)
+        {
+            log?.Invoke($"Could not back up the hub database: {ex.Message}");
+            return false;
+        }
+    }
+
     public SqliteConnection OpenConnection()
     {
         var connection = new SqliteConnection(_connectionString);

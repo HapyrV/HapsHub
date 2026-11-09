@@ -830,6 +830,34 @@ await Check("steam: a reviewed beta build survives restart, and bad input is ref
     await reopened.StopAllAsync(TimeSpan.FromSeconds(5));
 });
 
+// ---- Hub database backup ----
+
+await Check("backup: copies a database in use, and a missing or bad target only returns false", async () =>
+{
+    var dir = Fresh("hub-backup");
+    var database = OpenDb(dir);
+    using (var connection = database.OpenConnection())
+    using (var command = connection.CreateCommand())
+    {
+        command.CommandText = "CREATE TABLE IF NOT EXISTS t (v TEXT); INSERT INTO t VALUES ('kept');";
+        command.ExecuteNonQuery();
+    }
+    var copy = Path.Combine(dir, "copy.db");
+    Assert(HubDatabase.TryBackup(database.FilePath, copy), "backup failed");
+    using (var check = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={copy};Pooling=False"))
+    {
+        check.Open();
+        using var read = check.CreateCommand();
+        read.CommandText = "SELECT v FROM t;";
+        Assert(read.ExecuteScalar() as string == "kept", "copy has no data");
+    }
+    Assert(!HubDatabase.TryBackup(Path.Combine(dir, "missing.db"), Path.Combine(dir, "c2.db")), "missing source reported success");
+    string? logged = null;
+    Assert(!HubDatabase.TryBackup(database.FilePath, Path.Combine(dir, "no", "such", "folder", "c3.db"), m => logged = m), "bad target reported success");
+    Assert(logged != null, "failure not logged");
+    await Task.CompletedTask;
+});
+
 // ---- Host ----
 
 await Check("host: the db opens in the background and Stop is bounded", async () =>

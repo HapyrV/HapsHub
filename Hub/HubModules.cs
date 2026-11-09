@@ -11,5 +11,6 @@ public static class HubModules
         new ForwardingModule(),
         UpstreamWatch,
         SteamBranch,
+        new HubUiModule(),
     };
 }

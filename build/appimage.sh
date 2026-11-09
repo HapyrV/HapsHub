@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
-CACHE="$HOME/.cache/vrcnext-build"
+CACHE="$HOME/.cache/hapshub-build"
 STAGE="$CACHE/stage"
 APPDIR="$CACHE/AppDir"
 OUT_DIR="$REPO/publish/linux"
@@ -11,7 +11,7 @@ OUT_DIR="$REPO/publish/linux"
 VERSION="$(grep -oP 'Version = "\K[^"]+' "$REPO/main/AppInfo.cs")"
 [ -n "$VERSION" ] || { echo "[ERROR] Could not read version from main/AppInfo.cs"; exit 1; }
 
-echo "==> VRCNext $VERSION Linux AppImage build"
+echo "==> HapsHub $VERSION Linux AppImage build"
 mkdir -p "$CACHE" "$OUT_DIR"
 
 # ---------------------------------------------------------------- dotnet SDK 9
@@ -67,7 +67,7 @@ rm -rf "$STAGE"
     -p:VRCNextVrcndbKey="${VRCNEXT_VRCNDB_KEY:-}" \
     -p:VRCNextHypeRateApiKey="${VRCNEXT_HYPERATE_API_KEY:-}"
 
-[ -f "$STAGE/VRCNext" ] || { echo "[ERROR] Publish output missing VRCNext binary"; exit 1; }
+[ -f "$STAGE/HapsHub" ] || { echo "[ERROR] Publish output missing HapsHub binary"; exit 1; }
 [ -d "$STAGE/frontend" ] || { echo "[ERROR] Publish output missing frontend/"; exit 1; }
 [ -f "$STAGE/Photino.Native.so" ] || { echo "[ERROR] Publish output missing Photino.Native.so"; exit 1; }
 [ -f "$STAGE/libnfd.so" ] || { echo "[ERROR] Publish output missing libnfd.so (file dialogs)"; exit 1; }
@@ -94,52 +94,52 @@ done
 find "$STAGE" -maxdepth 1 -name "*.exe" -delete
 [ -z "$LEFTOVERS" ] || echo "    removed:$LEFTOVERS"
 
-chmod +x "$STAGE/VRCNext"
+chmod +x "$STAGE/HapsHub"
 [ -f "$STAGE/createdump" ] && chmod +x "$STAGE/createdump"
 
 # --------------------------------------------------------------------- AppDir
 echo "==> Building AppDir..."
 rm -rf "$APPDIR"
-mkdir -p "$APPDIR/usr/bin/vrcnext" \
+mkdir -p "$APPDIR/usr/bin/hapshub" \
          "$APPDIR/usr/lib" \
          "$APPDIR/usr/share/applications" \
          "$APPDIR/usr/share/icons/hicolor/512x512/apps"
 
-cp -a "$STAGE/." "$APPDIR/usr/bin/vrcnext/"
+cp -a "$STAGE/." "$APPDIR/usr/bin/hapshub/"
 
 for lib in /usr/lib/x86_64-linux-gnu/libnotify.so.4*; do
     [ -e "$lib" ] && cp -a "$lib" "$APPDIR/usr/lib/"
 done
 [ -e "$APPDIR/usr/lib/libnotify.so.4" ] || echo "[WARN] libnotify.so.4 not found on build system — not bundled"
 
-cat > "$APPDIR/vrcnext.desktop" <<EOF
+cat > "$APPDIR/hapshub.desktop" <<EOF
 [Desktop Entry]
 Type=Application
-Name=VRCNext
+Name=HapsHub
 Comment=VRChat companion app
-Exec=VRCNext %u
-Icon=vrcnext
+Exec=HapsHub %u
+Icon=hapshub
 Terminal=false
 Categories=Game;Utility;Network;
-StartupWMClass=VRCNext
+StartupWMClass=HapsHub
 MimeType=x-scheme-handler/vrcn;
 X-AppImage-Version=$VERSION
 EOF
-cp "$APPDIR/vrcnext.desktop" "$APPDIR/usr/share/applications/vrcnext.desktop"
+cp "$APPDIR/hapshub.desktop" "$APPDIR/usr/share/applications/hapshub.desktop"
 
-cp "$REPO/frontend/logo.png" "$APPDIR/vrcnext.png"
-cp "$REPO/frontend/logo.png" "$APPDIR/usr/share/icons/hicolor/512x512/apps/vrcnext.png"
+cp "$REPO/frontend/logo.png" "$APPDIR/hapshub.png"
+cp "$REPO/frontend/logo.png" "$APPDIR/usr/share/icons/hicolor/512x512/apps/hapshub.png"
 cp "$REPO/frontend/logo.png" "$APPDIR/.DirIcon"
 
 cat > "$APPDIR/AppRun" <<'EOF'
 #!/bin/bash
 HERE="$(dirname "$(readlink -f "$0")")"
-APP="$HERE/usr/bin/vrcnext/VRCNext"
+APP="$HERE/usr/bin/hapshub/HapsHub"
 export LD_LIBRARY_PATH="$HERE/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
-MISSING="$(ldd "$HERE/usr/bin/vrcnext/Photino.Native.so" 2>&1 | grep -E 'not found' | sed 's|'"$HERE"'/usr/bin/vrcnext/||g' | sort -u)"
+MISSING="$(ldd "$HERE/usr/bin/hapshub/Photino.Native.so" 2>&1 | grep -E 'not found' | sed 's|'"$HERE"'/usr/bin/hapshub/||g' | sort -u)"
 if [ -n "$MISSING" ]; then
-    MSG="VRCNext cannot start on this system:
+    MSG="HapsHub cannot start on this system:
 
 $MISSING
 
@@ -151,11 +151,11 @@ If a library is missing, install the WebKitGTK package of your distribution, e.g
 If a GLIBC version is reported as missing, your distribution is too old for this build (glibc 2.38 or newer is required)."
     echo "$MSG" >&2
     if command -v zenity >/dev/null 2>&1; then
-        zenity --error --title="VRCNext" --width=520 --text="$MSG" || true
+        zenity --error --title="HapsHub" --width=520 --text="$MSG" || true
     elif command -v kdialog >/dev/null 2>&1; then
         kdialog --error "$MSG" || true
     elif command -v notify-send >/dev/null 2>&1; then
-        notify-send "VRCNext" "Missing system libraries: $MISSING" || true
+        notify-send "HapsHub" "Missing system libraries: $MISSING" || true
     fi
     exit 1
 fi
@@ -173,7 +173,7 @@ if [ ! -x "$APPIMAGETOOL" ]; then
     chmod +x "$APPIMAGETOOL"
 fi
 
-OUT_FILE="$OUT_DIR/VRCNext-$VERSION-x86_64.AppImage"
+OUT_FILE="$OUT_DIR/HapsHub-$VERSION-x86_64.AppImage"
 echo "==> Packing AppImage..."
 rm -f "$OUT_FILE"
 ARCH=x86_64 "$APPIMAGETOOL" --appimage-extract-and-run -n "$APPDIR" "$OUT_FILE" >/dev/null

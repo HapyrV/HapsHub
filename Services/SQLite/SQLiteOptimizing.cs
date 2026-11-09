@@ -433,6 +433,8 @@ public static class SQLiteOptimizing
         cmd.CommandText = $"VACUUM INTO '{destPath.Replace("'", "''")}'";
         cmd.ExecuteNonQuery();
 
+        HubDatabase.TryBackup(HubPaths.Data("Hub", "hub.db"), Path.Combine(backupDir, $"Hub_Backup_{stamp}.db"));
+
         return destPath;
     }
 

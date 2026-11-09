@@ -59,18 +59,8 @@
                         <div id="hubModulesList"><button class="vrcn-button-round" onclick="hubModulesRefresh()"><span data-i18n="hub.modules.show">Show modules</span></button></div>
                     </div>
 
-                    <!-- CRASH REPORTING -->
-                    <div class="vrcn-panel-card" data-section="general">
-                        <div class="vrcn-panel-card-header"><span class="msi">bug_report</span> <span data-i18n="settings.crash.title">Crash Reporting</span></div>
-                        <div class="sf-toggle-row">
-                            <span data-i18n="settings.crash.restart_after_crash">Restart After Crash</span>
-                            <label class="toggle">
-                                <input type="checkbox" id="setRestartAfterCrash" checked onchange="autoSave()">
-                                <div class="toggle-track"><div class="toggle-knob"></div></div>
-                            </label>
-                        </div>
-                        <div class="set-desc" data-i18n="settings.crash.restart_after_crash_desc">HapsHub will automatically restart after an unexpected crash. Does not apply when the app is closed normally or force-quit via Task Manager.</div>
-                    </div>
+                    <!-- The crash reporting card is gone. Restart after a crash stays on; settings.js still reads this. -->
+                    <input type="checkbox" id="setRestartAfterCrash" checked hidden>
 
                     <!-- LANGUAGE -->
                     <div class="vrcn-panel-card" data-section="general">
@@ -240,9 +230,12 @@
                         <div class="sf-section-label" style="margin-top:18px;" data-i18n="settings.design.fonts.custom">Installed Font</div>
                         <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.design.fonts.custom_desc">Pick any font installed on your system. Choosing one overrides the selection above.</div>
                         <div style="display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;">
+                            <div style="display:flex;flex-direction:column;gap:8px;">
+                            <input type="text" id="setCustomFontSearch" class="vrcn-input" style="min-width:220px;max-width:320px;" placeholder="Search installed fonts..." data-i18n-placeholder="hub.fonts.search" oninput="hubFontSearch(this.value)">
                             <select id="setCustomFont" class="vrcn-dropdown" style="min-width:220px;max-width:320px;" onchange="setCustomFont(this.value)">
                                 <option value="" data-i18n="settings.design.fonts.custom_none">None</option>
                             </select>
+                            </div>
                             <div class="fs-slider-block">
                                 <div class="fs-slider-head">
                                     <span data-i18n="settings.design.fonts.size">Font Size</span>
@@ -252,6 +245,16 @@
                                     <div class="fs-ticks"></div>
                                     <input type="range" id="setFontSize" class="fs-slider" min="-5" max="5" step="1" value="0"
                                            oninput="setFontSizeOffset(this.value)">
+                                </div>
+                            </div>
+                            <div class="fs-slider-block">
+                                <div class="fs-slider-head">
+                                    <span data-i18n="hub.fonts.letter_spacing">Letter Spacing</span>
+                                    <span class="fs-slider-val" id="letterSpacingVal">0 px</span>
+                                </div>
+                                <div class="fs-slider-wrap">
+                                    <input type="range" id="setLetterSpacing" class="fs-slider" min="-0.5" max="2" step="0.1" value="0"
+                                           oninput="hubLetterSpacingChanged(this.value)" onchange="hubLetterSpacingSave(this.value)">
                                 </div>
                             </div>
                         </div>

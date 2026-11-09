@@ -1211,7 +1211,9 @@ function renderCustomFontOptions() {
     if (!sel) return;
     const none = t('settings.design.fonts.custom_none', 'None');
     let html = `<option value="">${esc(none)}</option>`;
+    const filter = window._hubFontFilter || '';
     for (const f of _systemFonts) {
+        if (filter && f !== currentCustomFont && !f.toLowerCase().includes(filter)) continue;
         html += `<option value="${esc(f)}" data-vn-font="${esc(f)}">${esc(f)}</option>`;
     }
     sel.innerHTML = html;

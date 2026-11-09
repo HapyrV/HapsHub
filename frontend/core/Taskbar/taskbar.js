@@ -45,6 +45,7 @@ function onApiHealth(payload) {
     }
     if (btn) btn.title = payload.description || t('apihealth.title', 'VRChat API Status');
     _applyApiHealthVisibility();
+    if (typeof hubDashStatus === 'function') hubDashStatus(payload);
 }
 
 function _apiHealthPanelEl() {
