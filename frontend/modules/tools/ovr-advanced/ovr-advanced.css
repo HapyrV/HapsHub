@@ -1,0 +1,14 @@
+#tab35 { flex-direction: column; }
+.ovr-title { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--tx0); }
+.ovr-body { padding: 4px 14px 24px; max-width: 760px; overflow: auto; box-sizing: border-box; }
+.ovr-help { color: var(--tx2); margin: 0 0 8px; }
+.ovr-status { min-height: 22px; margin: 0 0 12px; color: var(--tx1); overflow-wrap: anywhere; }
+.ovr-status.ovr-problem { color: var(--err); }
+.ovr-card { margin-bottom: 12px; }
+.ovr-card.ovr-locked { opacity: 0.5; pointer-events: none; }
+.ovr-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx2); }
+.ovr-row + .ovr-row { border-top: 1px solid var(--brd); }
+.ovr-slider-row > span:first-child { flex: 1; min-width: 0; }
+.ovr-slider { width: 220px; max-width: 45%; accent-color: var(--accent); }
+.ovr-value { width: 72px; text-align: right; color: var(--tx1); font-variant-numeric: tabular-nums; }
+.ovr-hint { color: var(--tx3); font-size: calc(12px + var(--fs-off, 0px)); margin: 6px 0 0; }

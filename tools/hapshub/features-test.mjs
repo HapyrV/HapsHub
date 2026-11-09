@@ -324,8 +324,29 @@ try {
     })()`));
     check('every tunnel icon exists in the icon font', wideTunnelIcons.length === 0, wideTunnelIcons.join(', '));
 
+    // --- OVR Advanced Settings page. Only draws state; never changes an input, so the real settings file is untouched ---
+    await main.eval(`showTab(35)`);
+    await waitFor('OVRAS page and its real state', () => main.eval(`!!document.querySelector('#tab35 [data-ovr="gravityStrength"]') && !!_ovr.fields.gravityStrength`));
+    const ovrFields = await main.eval(`JSON.stringify(Object.values(_ovr.fields))`);
+    await main.eval(`onHubOvrasState({ found: true, running: false, result: '', fields: ${ovrFields}, values: { gravityStrength: 0, snapTurnAngle: 45, moveShortcutLeft: true, lockYToggle: false, dragMult: 2 } })`);
+    check('the OVRAS page shows the file\'s values', await main.eval(`(() => { const q = k => document.querySelector('#tab35 [data-ovr="' + k + '"]'); return q('gravityStrength').value === '0' && q('snapTurnAngle').value === '45' && q('moveShortcutLeft').checked && !q('lockYToggle').checked && document.querySelector('[data-ovr-value="snapTurnAngle"]').textContent === '45°'; })()`));
+    check('every OVRAS input is one the app can save', await main.eval(`[...document.querySelectorAll('#tab35 [data-ovr]')].every(i => !!_ovr.fields[i.dataset.ovr])`));
+    await main.eval(`onHubOvrasState({ found: true, running: true, result: '', fields: ${ovrFields}, values: {} })`);
+    check('the OVRAS page locks while OVRAS is running', await main.eval(`document.querySelectorAll('#tab35 .ovr-card.ovr-locked').length === 4 && document.getElementById('ovrStatus').classList.contains('ovr-problem')`));
+    await main.eval(`onHubOvrasState({ found: true, running: false, result: 'saved', fields: ${ovrFields}, values: {} })`);
+    check('the OVRAS page unlocks and says it saved', await main.eval(`document.querySelectorAll('#tab35 .ovr-card.ovr-locked').length === 0 && ovrStatus.textContent.length > 0 && !ovrStatus.classList.contains('ovr-problem')`));
+    const wideOvrIcons = JSON.parse(await main.eval(`(() => {
+        const probe = document.createElement('div');
+        probe.innerHTML = ['open_with', 'flight', 'rotate_right', 'lock'].map(name => '<span class="msi" style="position:absolute">' + name + '</span>').join('');
+        document.body.appendChild(probe);
+        const wide = [...probe.children].filter(icon => icon.getBoundingClientRect().width > 24).map(icon => icon.textContent);
+        probe.remove();
+        return JSON.stringify(wide);
+    })()`));
+    check('every OVRAS icon exists in the icon font', wideOvrIcons.length === 0, wideOvrIcons.join(', '));
+
     // --- OyasumiVR and Eagle pages. Only draws state here; embed-live.mjs moves the real windows ---
-    check('a saved sidebar layout gets new tools in its Tools folder', await main.eval(`navSanitizeLayout([{ type: 'folder', id: 'folder-tools', name: 'Tools', items: [] }]).find(e => e.id === 'folder-tools').items.filter(k => ['youtube-tunnel', 'oyasumi', 'eagle'].includes(k)).length === 3`));
+    check('a saved sidebar layout gets new tools in its Tools folder', await main.eval(`navSanitizeLayout([{ type: 'folder', id: 'folder-tools', name: 'Tools', items: [] }]).find(e => e.id === 'folder-tools').items.filter(k => ['youtube-tunnel', 'oyasumi', 'eagle', 'ovr-advanced'].includes(k)).length === 4`));
     for (const [tab, app] of [[33, 'oyasumi'], [34, 'eagle']]) {
         await main.eval(`showTab(${tab})`);
         await waitFor(`${app} page`, () => main.eval(`!!document.getElementById('aemb-pane-${app}')`));

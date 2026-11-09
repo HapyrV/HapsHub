@@ -1140,6 +1140,7 @@ case 'vrcNews':
             case 'hubVrcxRows':          onHubVrcxRows(payload); break;
             case 'hubHistory':           onHubHistory(payload); break;
             case 'hubTunnelState':       onHubTunnelState(payload); break;
+            case 'hubOvrasState':        onHubOvrasState(payload); break;
             case 'hubEmbedState':        onHubEmbedState(payload); break;
             case 'hubEmbedFrozen':       onHubEmbedFrozen(payload); break;
             case 'hubBlockedGroups':     onHubBlockedGroups(payload); break;

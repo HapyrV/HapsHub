@@ -1734,6 +1734,40 @@ await Check("source update: reads the commit from .git and updates only a Releas
     return Task.CompletedTask;
 });
 
+await Check("ovras: changes only the edited lines and keeps the file's bytes", () =>
+{
+    var original = "[playspaceSettings]\r\nlockXToggle=false\r\ngravityStrength=9.8\r\nsnapTurnAngle=4500\r\n[applicationSettings]\r\nappVolume=0.7\r\nautoApplyChaperoneName=\\xabnone\\xbb\r\n";
+    var values = OvrasSettings.Read(original);
+    Assert((double)values["snapTurnAngle"] == 45, "the snap angle wasn't shown in degrees");
+    Assert((double)values["gravityStrength"] == 9.8, "gravity wasn't read");
+    Assert((bool)values["lockXToggle"] == false, "a bool wasn't read");
+    Assert((double)values["dragMult"] == 1, "a missing key didn't get its default");
+
+    var changes = new Dictionary<string, string>
+    {
+        ["gravityStrength"] = OvrasSettings.Format("gravityStrength", "0")!,
+        ["snapTurnAngle"] = OvrasSettings.Format("snapTurnAngle", "30")!,
+        ["lockXToggle"] = OvrasSettings.Format("lockXToggle", "True")!,
+        ["dragMult"] = OvrasSettings.Format("dragMult", "2.5")!,
+    };
+    var updated = OvrasSettings.Apply(original, OvrasSettings.Section, changes);
+    Assert(updated == "[playspaceSettings]\r\nlockXToggle=true\r\ngravityStrength=0\r\nsnapTurnAngle=3000\r\ndragMult=2.5\r\n[applicationSettings]\r\nappVolume=0.7\r\nautoApplyChaperoneName=\\xabnone\\xbb\r\n",
+        "the file changed in the wrong places: " + updated.Replace("\r\n", "|"));
+    Assert(OvrasSettings.Apply(original, OvrasSettings.Section, new Dictionary<string, string>()) == original, "no change still changed the file");
+    Assert(OvrasSettings.Format("gravityStrength", "-1") == null, "a value below the range was accepted");
+    Assert(OvrasSettings.Format("snapTurnAngle", "NaN") == null, "NaN was accepted");
+    Assert(OvrasSettings.Format("enableDebug", "true") == null, "a key the page doesn't offer was accepted");
+    Assert(OvrasSettings.Apply("", OvrasSettings.Section, changes).StartsWith("[playspaceSettings]\n"), "a missing section wasn't added");
+
+    var file = Path.Combine(root, "ovras", "OVR Advanced Settings.ini");
+    Directory.CreateDirectory(Path.GetDirectoryName(file)!);
+    File.WriteAllText(file, original);
+    OvrasSettings.Save(file, changes);
+    Assert(File.ReadAllText(Path.Combine(root, "ovras", "OVR Advanced Settings" + OvrasSettings.BackupSuffix)) == original, "the backup isn't the old file");
+    Assert(File.ReadAllText(file) == updated, "the saved file isn't the edited text");
+    return Task.CompletedTask;
+});
+
 SqliteConnection.ClearAllPools();
 try { Directory.Delete(root, recursive: true); }
 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }

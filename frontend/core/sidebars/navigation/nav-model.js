@@ -24,6 +24,7 @@ const NAV_ITEMS_DEF = {
     'youtube-tunnel':   { icon: 'music_note',      tab: 32, i18n: 'nav.youtube_tunnel',     label: 'YouTube Tunnel',   defaultFolder: 'folder-tools', windowsOnly: true },
     'oyasumi':          { icon: 'bedtime',         tab: 33, i18n: 'nav.oyasumi',            label: 'OyasumiVR',        defaultFolder: 'folder-tools', windowsOnly: true },
     'eagle':            { icon: 'photo_library',   tab: 34, i18n: 'nav.eagle',              label: 'Eagle',            defaultFolder: 'folder-tools', windowsOnly: true },
+    'ovr-advanced':     { icon: 'open_with',       tab: 35, i18n: 'nav.ovr_advanced',       label: 'OVR Advanced Settings', defaultFolder: 'folder-tools', windowsOnly: true },
     'time-spent':       { icon: 'schedule',        tab: 16, i18n: 'nav.time_spent',         label: 'Time Spent'       },
     'voice-fight':      { icon: 'mic',             tab: 18, i18n: 'nav.voice_fight',        label: 'Voice Fight',      windowsOnly: true },
     'discord-presence': { icon: 'sensors',         tab: 19, i18n: 'nav.discord_presence',   label: 'Discord Presence', windowsOnly: true },
@@ -96,7 +97,7 @@ const NAV_DEFAULT_LAYOUT = [
         type: 'folder', id: 'folder-tools', name: 'Tools', icon: 'adjust',
         items: [
             'chatbox','media-relay','frame-shot','osc-tool',
-            'activity-log','meet-network','friend-schedule','history','youtube-tunnel','oyasumi','eagle','voice-fight',
+            'activity-log','meet-network','friend-schedule','history','youtube-tunnel','oyasumi','eagle','ovr-advanced','voice-fight',
             'discord-presence','vr-overlay','permini','kikitan-xd','event-snipe','avatar-scaling','action-flow',
             'status-schedule',
         ],

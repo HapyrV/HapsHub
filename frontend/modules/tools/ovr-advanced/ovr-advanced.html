@@ -1,0 +1,38 @@
+<div class="tab-toolbar">
+    <div class="ovr-title"><span class="msi">open_with</span> <span data-i18n="nav.ovr_advanced">OVR Advanced Settings</span></div>
+</div>
+<div class="ovr-body">
+    <p class="ovr-help" data-i18n="hub.ovras.help">Movement settings for OVR Advanced Settings. HapsHub changes its settings file, so close OVR Advanced Settings first; it uses them the next time it starts.</p>
+    <div id="ovrStatus" class="ovr-status" role="status"></div>
+
+    <div class="vrcn-panel-card ovr-card">
+        <div class="vrcn-panel-card-header"><span class="msi">open_with</span> <span data-i18n="hub.ovras.drag">Drag</span></div>
+        <div class="ovr-row"><span data-i18n="hub.ovras.drag_left">Drag with the left hand</span><label class="toggle"><input type="checkbox" data-ovr="moveShortcutLeft"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+        <div class="ovr-row"><span data-i18n="hub.ovras.drag_right">Drag with the right hand</span><label class="toggle"><input type="checkbox" data-ovr="moveShortcutRight"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+        <div class="ovr-row ovr-slider-row"><span data-i18n="hub.ovras.drag_mult">Drag speed</span><input type="range" class="ovr-slider" data-ovr="dragMult"><span class="ovr-value" data-ovr-value="dragMult" data-unit="×"></span></div>
+        <div class="ovr-row ovr-slider-row"><span data-i18n="hub.ovras.drag_comfort">Drag comfort (less motion)</span><input type="range" class="ovr-slider" data-ovr="dragComfortFactor"><span class="ovr-value" data-ovr-value="dragComfortFactor"></span></div>
+    </div>
+
+    <div class="vrcn-panel-card ovr-card">
+        <div class="vrcn-panel-card-header"><span class="msi">flight</span> <span data-i18n="hub.ovras.gravity">Gravity</span></div>
+        <div class="ovr-row ovr-slider-row"><span data-i18n="hub.ovras.gravity_strength">Gravity strength (0 = float)</span><input type="range" class="ovr-slider" data-ovr="gravityStrength"><span class="ovr-value" data-ovr-value="gravityStrength" data-unit=" m/s²"></span></div>
+        <div class="ovr-row ovr-slider-row"><span data-i18n="hub.ovras.fling">Fling strength</span><input type="range" class="ovr-slider" data-ovr="flingStrength"><span class="ovr-value" data-ovr-value="flingStrength" data-unit="×"></span></div>
+        <div class="ovr-row ovr-slider-row"><span data-i18n="hub.ovras.friction">Friction</span><input type="range" class="ovr-slider" data-ovr="frictionPercent"><span class="ovr-value" data-ovr-value="frictionPercent" data-unit="%"></span></div>
+        <div class="ovr-row"><span data-i18n="hub.ovras.momentum">Keep momentum between sessions</span><label class="toggle"><input type="checkbox" data-ovr="momentumSave"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+    </div>
+
+    <div class="vrcn-panel-card ovr-card">
+        <div class="vrcn-panel-card-header"><span class="msi">rotate_right</span> <span data-i18n="hub.ovras.turning">Turning</span></div>
+        <div class="ovr-row ovr-slider-row"><span data-i18n="hub.ovras.snap_angle">Snap turn angle</span><input type="range" class="ovr-slider" data-ovr="snapTurnAngle"><span class="ovr-value" data-ovr-value="snapTurnAngle" data-unit="°"></span></div>
+        <div class="ovr-row ovr-slider-row"><span data-i18n="hub.ovras.smooth_rate">Smooth turn speed</span><input type="range" class="ovr-slider" data-ovr="smoothTurnRate"><span class="ovr-value" data-ovr-value="smoothTurnRate" data-unit="%"></span></div>
+        <div class="ovr-row ovr-slider-row"><span data-i18n="hub.ovras.turn_comfort">Turn comfort (less motion)</span><input type="range" class="ovr-slider" data-ovr="turnComfortFactor"><span class="ovr-value" data-ovr-value="turnComfortFactor"></span></div>
+        <p class="ovr-hint" data-i18n="hub.ovras.snap_hint">Snap turning needs a button: in SteamVR's controller bindings, give OVR Advanced Settings' Snap Turn Left and Right to a thumbstick.</p>
+    </div>
+
+    <div class="vrcn-panel-card ovr-card">
+        <div class="vrcn-panel-card-header"><span class="msi">lock</span> <span data-i18n="hub.ovras.locks">Lock movement</span></div>
+        <div class="ovr-row"><span data-i18n="hub.ovras.lock_x">Lock left / right</span><label class="toggle"><input type="checkbox" data-ovr="lockXToggle"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+        <div class="ovr-row"><span data-i18n="hub.ovras.lock_y">Lock up / down</span><label class="toggle"><input type="checkbox" data-ovr="lockYToggle"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+        <div class="ovr-row"><span data-i18n="hub.ovras.lock_z">Lock forward / back</span><label class="toggle"><input type="checkbox" data-ovr="lockZToggle"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+    </div>
+</div>
