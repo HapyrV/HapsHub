@@ -245,11 +245,10 @@ public sealed class ModuleRegistry
             // Task.Run so that a module blocking before its first await can't hold up the rest.
             var start = Task.Run(() => module.StartAsync(context, context.Stopping));
             await start.WaitAsync(StartTimeout, _closing.Token);
-            lock (_lock)
-            {
-                if (entry.Status == HubModuleStatus.Starting) entry.Status = HubModuleStatus.Running;
-            }
-            PersistStatus(entry);
+            bool started;
+            lock (_lock) started = entry.Status == HubModuleStatus.Starting;
+            // A module may already have reported itself degraded during its start. Keep that.
+            if (started) SetStatus(entry, HubModuleStatus.Running, "");
         }
         catch (OperationCanceledException) when (_closing.IsCancellationRequested)
         {

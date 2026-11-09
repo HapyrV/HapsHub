@@ -1,0 +1,48 @@
+// Hub modules card: each module's state and the settings it declares.
+
+const _HUB_STATUS_LABELS = {
+    Registered: ['hub.modules.status.waiting', 'Waiting to start'],
+    Disabled:   ['hub.modules.status.off', 'Off'],
+    Starting:   ['hub.modules.status.starting', 'Starting'],
+    Running:    ['hub.modules.status.running', 'Running'],
+    Degraded:   ['hub.modules.status.degraded', 'Limited'],
+    Failed:     ['hub.modules.status.failed', 'Failed'],
+    Stopped:    ['hub.modules.status.stopped', 'Stopped'],
+};
+
+function hubModulesRefresh() {
+    sendToCS({ action: 'hubGetModules' });
+}
+
+function hubSettingChanged(input) {
+    sendToCS({
+        action: 'hubSetSetting',
+        module: input.dataset.module,
+        key: input.dataset.key,
+        value: input.checked ? 'true' : 'false',
+    });
+}
+
+function _hubModuleRow(module) {
+    const [key, fallback] = _HUB_STATUS_LABELS[module.status] || ['', module.status];
+    const problem = module.status === 'Failed' || module.status === 'Degraded';
+    const status = t(key, fallback) + (module.detail ? `: ${module.detail}` : '');
+    const settings = (module.settings || []).filter(s => s.kind === 'Toggle').map(s => `
+        <div class="sf-toggle-row" style="margin-top:6px;">
+            <div>${esc(s.label)}</div>
+            <label class="toggle">
+                <input type="checkbox" data-module="${esc(module.id)}" data-key="${esc(s.key)}" ${s.value === 'true' ? 'checked' : ''} onchange="hubSettingChanged(this)">
+                <div class="toggle-track"><div class="toggle-knob"></div></div>
+            </label>
+        </div>`).join('');
+    return `<div class="hub-module-row" data-module="${esc(module.id)}" style="margin-top:12px;">
+        <div><strong>${esc(module.name)}</strong> <span class="sf-desc"${problem ? ' style="color:var(--err);"' : ''}>${esc(status)}</span></div>
+        ${settings}
+    </div>`;
+}
+
+function onHubModules(payload) {
+    const list = document.getElementById('hubModulesList');
+    // Empty only in the moment before the hub has started. Keep the button so it can be retried.
+    if (list && payload.modules?.length) list.innerHTML = payload.modules.map(_hubModuleRow).join('');
+}

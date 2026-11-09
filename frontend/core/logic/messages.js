@@ -30,7 +30,7 @@ window.external.receiveMessage(rawMsg => {
                 if (!window.__vrcndbConsentChecked) {
                     window.__vrcndbConsentChecked = true;
                     const shown = payload.VrcndbConsentShown ?? payload.vrcndbConsentShown ?? false;
-                    if (!shown && typeof showVrcndbConsent === 'function') showVrcndbConsent(true);
+                    // HapsHub: no first-run prompt. Forwarding is off until opened in Settings > Hub modules.
                 }
                 break;
             // Multi-Account events.
@@ -1126,6 +1126,9 @@ case 'vrcNews':
             case 'updateAvailable':      showUpdateAvailable(payload.version); break;
             case 'updateProgress':       onUpdateProgress(payload); break;
             case 'updateReady':          onUpdateReady(); break;
+            case 'hubUpstream':          onHubUpstream(payload); break;
+            case 'hubModules':           onHubModules(payload); break;
+            case 'hubUpstreamReviewed':  onHubUpstreamReviewed(payload); break;
             case 'showChangelog':        onShowChangelog(payload); break;
             case 'dbMigrationProgress':  onDbMigrationProgress(payload); break;
             case 'gameLogEvent':         addGameLogEntry(payload);        break;

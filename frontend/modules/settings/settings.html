@@ -22,33 +22,40 @@
                     </nav>
                     <div class="settings-content">
 
-                    <!-- UPDATE VRCNEXT -->
+                    <!-- UPDATES -->
                     <div class="vrcn-panel-card" data-section="general">
-                        <div class="vrcn-panel-card-header"><span class="msi">system_update_alt</span> <span data-i18n="settings.update.title">Update VRCNext</span></div>
+                        <div class="vrcn-panel-card-header"><span class="msi">system_update_alt</span> <span data-i18n="hub.update.title">Updates</span></div>
                         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                            <button class="vrcn-button-round" id="setUpdCheckBtn" onclick="settingsCheckUpdate()"><span class="msi" style="font-size:15px;">refresh</span> <span data-i18n="settings.update.check_btn">Check for Update</span></button>
+                            <button class="vrcn-button-round" id="setUpdCheckBtn" onclick="settingsCheckUpdate(); hubUpstreamCheck()"><span class="msi" style="font-size:15px;">refresh</span> <span data-i18n="hub.update.check_btn">Check VRCNext, VRCX and Space Calibrator</span></button>
                             <span id="setUpdStatus" style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);"></span>
                         </div>
                         <div class="sf-toggle-row" style="margin-top:10px;">
                             <div>
-                                <div data-i18n="settings.update.auto_update">Auto-Update VRCNext</div>
-                                <div class="sf-desc" data-i18n="settings.update.auto_update_desc">Automatically download and install updates on startup.</div>
+                                <div data-i18n="hub.update.auto_check">Check for new VRCNext releases on startup</div>
+                                <div class="sf-desc" data-i18n="hub.update.auto_check_desc">Only tells you about a new release. HapsHub never installs upstream updates.</div>
                             </div>
                             <label class="toggle">
                                 <input type="checkbox" id="setAutoUpdate" checked onchange="autoSave()">
                                 <div class="toggle-track"><div class="toggle-knob"></div></div>
                             </label>
                         </div>
+                        <div id="hubUpstreamList"></div>
                         <div id="setUpdInstallWrap" style="display:none;margin-top:12px;">
                             <div style="font-size:calc(13px + var(--fs-off, 0px));color:var(--tx1);margin-bottom:8px;">
                                 <span data-i18n="settings.update.available_label">New version available:</span> <strong id="setUpdVersion" style="color:var(--accent);"></strong>
                             </div>
-                            <button class="vrcn-button-round vrcn-btn-join" id="setUpdInstallBtn" onclick="settingsInstallUpdate()"><span class="msi" style="font-size:15px;">download</span> <span data-i18n="settings.update.install_btn">Download &amp; Install</span></button>
+                            <button class="vrcn-button-round vrcn-btn-join" id="setUpdInstallBtn" onclick="settingsInstallUpdate()"><span class="msi" style="font-size:15px;">open_in_new</span> <span data-i18n="hub.update.open_release">Open release page</span></button>
                             <div id="setUpdProgressWrap" style="display:none;margin-top:10px;">
                                 <div class="upd-progress-bar"><div class="upd-progress-fill" id="setUpdProgressFill"></div></div>
                                 <div id="setUpdProgressStatus" style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx2);margin-top:4px;" data-i18n="update.downloading">Downloading...</div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- HUB MODULES -->
+                    <div class="vrcn-panel-card" data-section="general">
+                        <div class="vrcn-panel-card-header"><span class="msi">extension</span> <span data-i18n="hub.modules.title">Hub modules</span></div>
+                        <div id="hubModulesList"><button class="vrcn-button-round" onclick="hubModulesRefresh()"><span data-i18n="hub.modules.show">Show modules</span></button></div>
                     </div>
 
                     <!-- CRASH REPORTING -->

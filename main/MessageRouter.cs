@@ -477,6 +477,7 @@ public partial class AppShell
                 msg = JObject.Load(_jr);
             var action = msg["action"]?.ToString() ?? "";
             CrashHandler.AddBreadcrumb($"JS→C# action={action}");
+            if (HandleHubMessage(action, msg)) return;
 
 #if !WINDOWS
             if (IsWindowsOnlyAction(action)) return;

@@ -579,6 +579,81 @@ await Check("forwarding: without a database everything stays closed", async () =
     await registry.StopAllAsync(TimeSpan.FromSeconds(2));
 });
 
+// ---- Upstream watch ----
+
+async Task<(ModuleRegistry Registry, UpstreamWatchModule Module, FakeGitHub GitHub)> StartWatch(string name, string? baseline)
+{
+    var github = new FakeGitHub();
+    var sources = new[] { new UpstreamSource("a", "A", "o/a", "main", baseline), new UpstreamSource("b", "B", "o/b", "main", "b1b1b1b") };
+    var module = new UpstreamWatchModule(github, sources);
+    var registry = new ModuleRegistry(OpenDb(Fresh(name)));
+    registry.Register(module);
+    await registry.StartAllAsync();
+    return (registry, module, github);
+}
+
+await Check("upstream: counts commits and flags API, log parser and auth files", async () =>
+{
+    var (_, module, github) = await StartWatch("up-flags", "a0a0a0a");
+    github.CompareFiles["o/a"] = new[] { "Services/VRChatAPI/UsersAPI.cs", "Services/VRChatAPI/VRChatLogWatcher.cs", "main/AuthController.cs", "README.md" };
+    var report = (await module.CheckAllAsync())[0];
+    Assert(report.Error == null, "error: " + report.Error);
+    Assert(report.NewCommits == 7, $"commits {report.NewCommits}");
+    Assert(report.LatestRelease == "v1" && report.HeadCommit == "ffffffa", "head or release wrong");
+    var flags = report.Flags.ToDictionary(f => f.Category, f => f.Files.Count);
+    Assert(flags["API"] == 2 && flags["Log parser"] == 1 && flags["Auth"] == 1, string.Join(",", flags));
+});
+
+await Check("upstream: one failing source doesn't affect the others", async () =>
+{
+    var (_, module, github) = await StartWatch("up-isolated", "a0a0a0a");
+    github.FailRepo = "o/a";
+    var reports = await module.CheckAllAsync();
+    Assert(reports[0].Error != null && reports[0].Error!.Contains("limit"), "no rate limit message: " + reports[0].Error);
+    Assert(reports[1].Error == null && reports[1].NewCommits == 7, "second source was affected");
+});
+
+await Check("upstream: no baseline means no comparison until one is marked", async () =>
+{
+    var (_, module, github) = await StartWatch("up-baseline", null);
+    var first = (await module.CheckAllAsync())[0];
+    Assert(first.NewCommits == null && first.Error == null, "should have no count");
+    Assert(!github.Requests.Any(r => r.Contains("o/a/compare")), "compared without a baseline");
+    Assert(module.MarkReviewed("a", first.HeadCommit!), "mark failed");
+    var second = (await module.CheckAllAsync())[0];
+    Assert(second.NewCommits == 0, "head should now be reviewed");
+    Assert(!github.Requests.Any(r => r.Contains("o/a/compare")), "compared an up-to-date source");
+});
+
+await Check("upstream: a reviewed commit replaces the baseline and survives restart", async () =>
+{
+    var dir = Fresh("up-persist");
+    var sources = new[] { new UpstreamSource("a", "A", "o/a", "main", "a0a0a0a") };
+    var firstRegistry = new ModuleRegistry(OpenDb(dir));
+    var firstModule = new UpstreamWatchModule(new FakeGitHub(), sources);
+    firstRegistry.Register(firstModule);
+    await firstRegistry.StartAllAsync();
+    Assert(firstModule.MarkReviewed("a", "abcdef1"), "mark failed");
+    await firstRegistry.StopAllAsync(TimeSpan.FromSeconds(2));
+
+    var github = new FakeGitHub();
+    var secondRegistry = new ModuleRegistry(OpenDb(dir));
+    var secondModule = new UpstreamWatchModule(github, sources);
+    secondRegistry.Register(secondModule);
+    await secondRegistry.StartAllAsync();
+    await secondModule.CheckAllAsync();
+    Assert(github.Requests.Any(r => r.Contains("compare/abcdef1...")), "old baseline used: " + string.Join(" ", github.Requests));
+});
+
+await Check("upstream: bad input is refused, and the address sent carries no email", async () =>
+{
+    var (_, module, github) = await StartWatch("up-input", "a0a0a0a");
+    Assert(!module.MarkReviewed("a", "../../etc"), "accepted a bad commit");
+    Assert(!module.MarkReviewed("nope", "abcdef1"), "accepted an unknown source");
+    await module.CheckAllAsync();
+    Assert(github.UserAgents.All(u => u == "HapsHub"), "user agent: " + string.Join(",", github.UserAgents.Distinct()));
+});
+
 // ---- Host ----
 
 await Check("host: the db opens in the background and Stop is bounded", async () =>
@@ -725,6 +800,34 @@ static async Task<int> RunCrashChild(string dir)
 internal sealed partial class Program
 {
     private const int PayloadSize = 4 * 1024 * 1024;
+}
+
+internal sealed class FakeGitHub : HttpMessageHandler
+{
+    public Dictionary<string, string[]> CompareFiles { get; } = new();
+    public List<string> Requests { get; } = new();
+    public List<string> UserAgents { get; } = new();
+    public string? FailRepo { get; set; }
+
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        var path = request.RequestUri!.AbsolutePath;
+        Requests.Add(path);
+        UserAgents.Add(request.Headers.UserAgent.ToString());
+        if (FailRepo != null && path.Contains(FailRepo))
+            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.Forbidden));
+
+        var repo = string.Join('/', path.Split('/')[2..4]);
+        string body;
+        if (path.Contains("/releases")) body = """[{"tag_name":"v1","html_url":"https://example.test/r"}]""";
+        else if (path.Contains("/commits/")) body = """{"sha":"ffffffa"}""";
+        else
+        {
+            var files = CompareFiles.GetValueOrDefault(repo, Array.Empty<string>()).Select(f => new { filename = f });
+            body = System.Text.Json.JsonSerializer.Serialize(new { total_commits = 7, html_url = "https://example.test/c", files });
+        }
+        return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new StringContent(body) });
+    }
 }
 
 internal sealed class FakeModule : IHubModule
