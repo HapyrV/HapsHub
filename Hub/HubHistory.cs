@@ -316,15 +316,22 @@ public static class HubHistoryViews
     private static bool TryParse(string at, out DateTimeOffset time) =>
         DateTimeOffset.TryParse(at, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out time);
 
-    /// <summary>Newest first. Rows sharing a Key are one event; the first one given wins.</summary>
+    /// <summary>
+    /// Newest first. Rows sharing a Key from different apps are one event, and the first given wins.
+    /// Within one app they stay apart: a video played twice in a minute was played twice.
+    /// </summary>
     public static HubHistoryPage Page(IEnumerable<HubHistoryRow> rows, string search, int offset, int limit)
     {
-        var seen = new HashSet<string>();
+        var firstSource = new Dictionary<string, string>();
         var query = (search ?? "").Trim();
         var matched = new List<(DateTimeOffset Time, HubHistoryRow Row)>();
         foreach (var row in rows)
         {
-            if (row.Key.Length > 0 && !seen.Add(row.Key)) continue;
+            if (row.Key.Length > 0)
+            {
+                if (firstSource.TryGetValue(row.Key, out var source) && source != row.Source) continue;
+                firstSource.TryAdd(row.Key, row.Source);
+            }
             if (query.Length > 0 && !Matches(row, query)) continue;
             matched.Add((TryParse(row.At, out var time) ? time : DateTimeOffset.MinValue, row));
         }

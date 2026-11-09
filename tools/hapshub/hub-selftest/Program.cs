@@ -1169,14 +1169,14 @@ await Check("history: portals are recorded and read back", async () =>
     await registry.StopAllAsync(TimeSpan.FromSeconds(5));
 });
 
-await Check("history: pages sort newest first, search, and treat rows with one key as one event", () =>
+await Check("history: pages sort newest first, search, and merge one event logged by two apps", () =>
 {
-    HubHistoryRow Row(string at, string text, string key = "") => new(at, "k", "", "", "", "", text, "", "s", key);
+    HubHistoryRow Row(string at, string text, string key = "", string source = "HapsHub") => new(at, "k", "", "", "", "", text, "", source, key);
     var rows = new[]
     {
         Row("2026-01-01T00:00:00Z", "oldest"),
         Row("2026-01-03T00:00:00Z", "newest", "same"),
-        Row("2026-01-03T00:00:30Z", "duplicate", "same"),
+        Row("2026-01-03T00:00:30Z", "duplicate", "same", "VRCX"),
         Row("2026-01-02T01:00:00+02:00", "middle"),
         Row("not a date", "undated"),
     };
@@ -1185,6 +1185,8 @@ await Check("history: pages sort newest first, search, and treat rows with one k
     Assert(string.Join(",", page.Rows.Select(r => r.Text)) == "newest,middle,oldest,undated", string.Join(",", page.Rows.Select(r => r.Text)));
     var second = HubHistoryViews.Page(rows, "", 2, 1);
     Assert(second.Rows.Single().Text == "oldest" && second.Total == 4 && second.Offset == 2, "second page is wrong");
+    var replays = new[] { Row("2026-01-03T00:00:00Z", "first play", "same", "VRCX"), Row("2026-01-03T00:00:30Z", "second play", "same", "VRCX") };
+    Assert(HubHistoryViews.Page(replays, "", 0, 10).Total == 2, "two plays logged by one app are two plays");
     var found = HubHistoryViews.Page(rows, "MIDD", 0, 10);
     Assert(found.Total == 1 && found.Rows[0].Text == "middle", "search is wrong");
     return Task.CompletedTask;
