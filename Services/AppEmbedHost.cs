@@ -161,8 +161,13 @@ public sealed class AppEmbedHost : IDisposable
             var nowForeground = GetForegroundWindow();
             var appPid = await Run(() => slot.Pid);
             GetWindowThreadProcessId(nowForeground, out var focusPid);
+            // Held inside the pane, an app that took focus for itself shows up as HapsHub in front, so the window
+            // with the keyboard focus says whose it really is.
+            var keyboard = new GUITHREADINFO { cbSize = Marshal.SizeOf<GUITHREADINFO>() };
+            uint keyboardPid = 0;
+            if (GetGUIThreadInfo(0, ref keyboard) && keyboard.hwndFocus != 0) GetWindowThreadProcessId(keyboard.hwndFocus, out keyboardPid);
             Add("Focus stayed where it was",
-                GetAncestor(nowForeground, GA_ROOT) == GetAncestor(foreground, GA_ROOT) || (int)focusPid == appPid,
+                GetAncestor(nowForeground, GA_ROOT) == GetAncestor(foreground, GA_ROOT) || (int)focusPid == appPid || (int)keyboardPid == appPid,
                 $"now on {Describe(nowForeground)}, was on {Describe(foreground)}");
 
             var placed = await Run(() => WindowIn(slot));
@@ -185,6 +190,9 @@ public sealed class AppEmbedHost : IDisposable
             Add("The hole closes after a menu", await Run(() => RegionHas(slot.Window, hole.X + 5, hole.Y + 5)));
 
             await Task.Delay(1000);
+            // If the app swapped its window meanwhile, the new one is taken in again; that's waited for here.
+            var settle = DateTime.UtcNow + TimeSpan.FromSeconds(20);
+            while (DateTime.UtcNow < settle && !await Run(() => slot.Attached && IsWindow(slot.Window))) await Task.Delay(250);
             var (drawn, colours, startedHere) = await Run(() =>
             {
                 using var picture = Capture(slot);
@@ -358,6 +366,18 @@ public sealed class AppEmbedHost : IDisposable
         {
             slot.Attached = false;
             slot.Window = 0;
+            slot.AppliedRegion = "";
+            // OyasumiVR swaps its first window for another a few seconds after it starts. While the app still runs,
+            // its next window is taken in again rather than calling it closed.
+            var running = Process.GetProcessesByName(slot.App.ProcessName);
+            foreach (var process in running) process.Dispose();
+            if (running.Length > 0)
+            {
+                slot.State = "starting";
+                slot.StartDeadline = DateTime.UtcNow + StartLimit;
+                Notify(slot);
+                return;
+            }
             slot.State = "idle";
             slot.Message = $"{slot.App.Name} was closed.";
             Notify(slot);
@@ -554,7 +574,7 @@ public sealed class AppEmbedHost : IDisposable
         string name;
         try { using var process = Process.GetProcessById((int)pid); name = process.ProcessName; }
         catch (ArgumentException) { name = $"process {pid}"; }
-        return $"{name} \"{new string(title, 0, Math.Max(read, 0))}\"{(GetParent(window) != 0 ? " (held)" : "")}";
+        return $"{name} {pid} \"{new string(title, 0, Math.Max(read, 0))}\"{(GetParent(window) != 0 ? " (held)" : "")}";
     }
 
     private static IEnumerable<int> Samples(Bitmap picture)
@@ -581,7 +601,11 @@ public sealed class AppEmbedHost : IDisposable
     [StructLayout(LayoutKind.Sequential)]
     private struct WINDOWPLACEMENT { public int length, flags, showCmd; public POINT minPosition, maxPosition; public RECT normalPosition; }
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct GUITHREADINFO { public int cbSize, flags; public nint hwndActive, hwndFocus, hwndCapture, hwndMenuOwner, hwndMoveSize, hwndCaret; public RECT rcCaret; }
+
     private delegate bool EnumWindowsProc(nint window, nint param);
+    [DllImport("user32.dll")] private static extern bool GetGUIThreadInfo(uint thread, ref GUITHREADINFO info);
 
     [DllImport("user32.dll")] private static extern bool EnumWindows(EnumWindowsProc callback, nint param);
     [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(nint window, out uint pid);

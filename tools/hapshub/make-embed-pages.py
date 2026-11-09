@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[2]
 PAGE = """<div class="aemb-page">
     <div class="tab-toolbar">
         <div class="aemb-title"><span class="msi">{icon}</span> <span data-i18n="{nav}">{name}</span></div>
+        <div id="aemb-status-{app}" class="aemb-status" role="status"></div>
         <div class="aemb-actions">
             <select id="aemb-mode-{app}" class="vrcn-dropdown" onchange="aembMode('{app}')">
                 <option value="child" data-i18n="hub.embed.mode_child">Inside this page</option>
@@ -17,7 +18,6 @@ PAGE = """<div class="aemb-page">
             <button id="aemb-test-{app}" class="vrcn-button-round" onclick="aembTest('{app}')"><span class="msi">bug_report</span> <span data-i18n="hub.embed.test">Test</span></button>
         </div>
     </div>
-    <div id="aemb-status-{app}" class="aemb-status" role="status"></div>
     <div id="aemb-pane-{app}" class="aemb-pane">
         <div id="aemb-hint-{app}" class="aemb-hint" data-i18n="hub.embed.hint">Open here shows the app in this space. Put it back returns it to its own window.</div>
     </div>

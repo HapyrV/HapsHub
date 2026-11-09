@@ -1,6 +1,7 @@
 <div class="aemb-page">
     <div class="tab-toolbar">
         <div class="aemb-title"><span class="msi">gps_fixed</span> <span data-i18n="nav.spacecal">Space Calibrator</span></div>
+        <div id="aemb-status-spacecal" class="aemb-status" role="status"></div>
         <div class="aemb-actions">
             <select id="aemb-mode-spacecal" class="vrcn-dropdown" onchange="aembMode('spacecal')">
                 <option value="child" data-i18n="hub.embed.mode_child">Inside this page</option>
@@ -11,7 +12,6 @@
             <button id="aemb-test-spacecal" class="vrcn-button-round" onclick="aembTest('spacecal')"><span class="msi">bug_report</span> <span data-i18n="hub.embed.test">Test</span></button>
         </div>
     </div>
-    <div id="aemb-status-spacecal" class="aemb-status" role="status"></div>
     <div id="aemb-pane-spacecal" class="aemb-pane">
         <div id="aemb-hint-spacecal" class="aemb-hint" data-i18n="hub.embed.hint">Open here shows the app in this space. Put it back returns it to its own window.</div>
     </div>

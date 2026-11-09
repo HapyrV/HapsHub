@@ -350,6 +350,7 @@ try {
     for (const [tab, app] of [[33, 'oyasumi'], [34, 'eagle'], [36, 'spacecal'], [37, 'vrct'], [38, 'ovrtoolkit']]) {
         await main.eval(`showTab(${tab})`);
         await waitFor(`${app} page`, () => main.eval(`!!document.getElementById('aemb-pane-${app}')`));
+        await sleep(1000); // lets the app's own answer to the page's state request land before the made-up state below
         check(`the ${app} pane has room to hold a window`, await main.eval(`(() => { const r = document.getElementById('aemb-pane-${app}').getBoundingClientRect(); return r.width > 300 && r.height > 200; })()`));
         await main.eval(`onHubEmbedState({ app: '${app}', name: '<b>App</b>', state: 'failed', mode: 'tracked', message: '<i>Stuck</i>', found: true, enabled: true, result: 'Failed', testing: false, checks: [{ name: '<u>One</u>', passed: false, detail: 'why' }, { name: 'Two', passed: true, detail: '' }] })`);
         check(`the ${app} page shows problems and checks as text`, await main.eval(`(() => { const s = document.getElementById('aemb-status-${app}'); const r = document.getElementById('aemb-results-${app}'); return s.textContent === '<i>Stuck</i>' && s.querySelector('i') === null && r.querySelector('u') === null && r.children.length === 2 && r.children[0].className === 'aemb-fail'; })()`));
