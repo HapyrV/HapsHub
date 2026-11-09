@@ -4170,5 +4170,10 @@
   "launch.addons.haptics": "ハプティクスあり",
   "launch.addons.face_tracking": "フェイストラッキングあり",
   "launch.addons.fbt": "FBTあり",
-  "launch.addons.none": "アプリが未設定です。設定 > VRChat で追加してください。"
+  "launch.addons.none": "アプリが未設定です。設定 > VRChat で追加してください。",
+  "settings.friend_toast.groups": "お気に入りグループ",
+  "settings.friend_toast.groups_desc": "グループを選ぶと、そのグループのフレンドだけ通知します。未選択なら上の「お気に入りのみ」に従います。",
+  "settings.friend_toast.no_group": "グループ外のフレンド",
+  "settings.friend_toast.groups_all": "すべて",
+  "settings.friend_toast.groups_count": "{count} グループ"
 }

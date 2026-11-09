@@ -62,6 +62,33 @@ public class FriendsController
     }
 
     public bool IsFavorited(string userId) => _favoriteFriends.ContainsKey(userId);
+
+    public const string NoGroupKey = "__none__";
+
+    /// <summary>The favorite groups a friend is in: their VRChat group and any local groups.</summary>
+    public List<string> FavoriteGroupsOf(string userId)
+    {
+        var groups = new List<string>();
+        lock (_favoriteFriends)
+            if (_favoriteFriends.TryGetValue(userId, out var fav) && !string.IsNullOrEmpty(fav.groupName)) groups.Add(fav.groupName);
+        try
+        {
+            foreach (var item in _core.LocalFavorites.GetItems("friend"))
+                if (item.EntityId == userId && !groups.Contains(item.GroupName)) groups.Add(item.GroupName);
+        }
+        catch { }
+        return groups;
+    }
+
+    /// <summary>Whether a friend's online toast passes the group choice in Settings > Notifications.</summary>
+    public bool ToastGroupAllowed(string userId)
+    {
+        var picked = _core.Settings.FriendOnlineToastGroups;
+        if (picked == null || picked.Count == 0)
+            return !_core.Settings.FriendOnlineToastFavOnly || IsFavorited(userId);
+        var mine = FavoriteGroupsOf(userId);
+        return mine.Count == 0 ? picked.Contains(NoGroupKey) : mine.Any(picked.Contains);
+    }
     public string GetFavoriteFriendId(string userId)
         => _favoriteFriends.TryGetValue(userId, out var v) ? v.fvrtId : "";
     public List<JObject> GetStoreSnapshot()
@@ -3160,7 +3187,7 @@ public class FriendsController
         {
             var alertLevel = _core.TimeEngine.GetFriendAlert(e.UserId);
             var shouldToast = alertLevel == 1 // always notify (per friend override)
-                || (alertLevel == 0 && (!_core.Settings.FriendOnlineToastFavOnly || IsFavorited(e.UserId)));
+                || (alertLevel == 0 && ToastGroupAllowed(e.UserId));
             if (shouldToast)
                 _core.SendToJS("friendOnlineToast", new { userId = e.UserId, displayName = fname, image = fimg, alertLevel });
         }

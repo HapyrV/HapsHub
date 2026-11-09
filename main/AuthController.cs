@@ -2006,6 +2006,8 @@ public class AuthController
             _core.Settings.SteamOverlaySoundVolume = data["steamOverlaySoundVolume"]?.Value<int>() ?? 50;
             _core.Settings.FriendOnlineToastEnabled = data["friendOnlineToastEnabled"]?.Value<bool>() ?? false;
             _core.Settings.FriendOnlineToastFavOnly = data["friendOnlineToastFavOnly"]?.Value<bool>() ?? false;
+            var toastGroups = data["friendOnlineToastGroups"]?.ToObject<List<string>>();
+            if (toastGroups != null) _core.Settings.FriendOnlineToastGroups = toastGroups.Where(g => !string.IsNullOrWhiteSpace(g)).Distinct().Take(200).ToList();
             _core.Settings.FriendsSidebarLocationOnly = data["friendsSidebarLocationOnly"]?.Value<bool>() ?? true;
             _core.Settings.FriendsSidebarPreviewCollapsed = data["friendsSidebarPreviewCollapsed"]?.Value<bool>() ?? true;
             _core.Settings.FriendsSidebarPreviewOpen = data["friendsSidebarPreviewOpen"]?.Value<bool>() ?? false;

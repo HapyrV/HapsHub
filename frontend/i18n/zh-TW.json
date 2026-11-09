@@ -4170,5 +4170,10 @@
   "launch.addons.haptics": "啟用觸覺",
   "launch.addons.face_tracking": "啟用臉部追蹤",
   "launch.addons.fbt": "啟用 FBT",
-  "launch.addons.none": "未設定應用程式。請在 設定 > VRChat 中新增。"
+  "launch.addons.none": "未設定應用程式。請在 設定 > VRChat 中新增。",
+  "settings.friend_toast.groups": "收藏分組",
+  "settings.friend_toast.groups_desc": "選擇分組後，只為其中的好友彈出通知。未選擇時依上方的「僅收藏」。",
+  "settings.friend_toast.no_group": "未分組的好友",
+  "settings.friend_toast.groups_all": "全部",
+  "settings.friend_toast.groups_count": "{count} 個分組"
 }

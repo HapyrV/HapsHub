@@ -312,6 +312,9 @@ public class AppSettings
     public int SteamOverlaySoundVolume { get; set; } = 50;
     public bool FriendOnlineToastEnabled { get; set; }
     public bool FriendOnlineToastFavOnly { get; set; }
+    // Favorite groups (VRChat or local) whose friends get online toasts. "__none__" means friends in no group.
+    // Empty: everyone, or every favorite when FriendOnlineToastFavOnly is on.
+    public List<string> FriendOnlineToastGroups { get; set; } = new();
     public bool FriendsSidebarLocationOnly { get; set; } = true;
     public bool FriendsSidebarPreviewCollapsed { get; set; } = true;
     public bool FriendsSidebarPreviewOpen { get; set; } = false;

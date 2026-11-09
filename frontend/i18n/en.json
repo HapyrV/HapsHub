@@ -4170,5 +4170,10 @@
   "launch.addons.haptics": "With haptics",
   "launch.addons.face_tracking": "With face tracking",
   "launch.addons.fbt": "With FBT",
-  "launch.addons.none": "No apps set. Add them in Settings > VRChat."
+  "launch.addons.none": "No apps set. Add them in Settings > VRChat.",
+  "settings.friend_toast.groups": "Favorite groups",
+  "settings.friend_toast.groups_desc": "Pick groups to get toasts only for friends in them. Nothing picked follows \"Favorites only\" above.",
+  "settings.friend_toast.no_group": "Friends in no group",
+  "settings.friend_toast.groups_all": "All",
+  "settings.friend_toast.groups_count": "{count} groups"
 }

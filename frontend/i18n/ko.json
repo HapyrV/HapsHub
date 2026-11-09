@@ -4170,5 +4170,10 @@
   "launch.addons.haptics": "햅틱 포함",
   "launch.addons.face_tracking": "얼굴 트래킹 포함",
   "launch.addons.fbt": "FBT 포함",
-  "launch.addons.none": "설정된 앱이 없습니다. 설정 > VRChat에서 추가하세요."
+  "launch.addons.none": "설정된 앱이 없습니다. 설정 > VRChat에서 추가하세요.",
+  "settings.friend_toast.groups": "즐겨찾기 그룹",
+  "settings.friend_toast.groups_desc": "그룹을 고르면 그 그룹의 친구만 알림을 받습니다. 아무것도 고르지 않으면 위의 \"즐겨찾기만\"을 따릅니다.",
+  "settings.friend_toast.no_group": "그룹 없는 친구",
+  "settings.friend_toast.groups_all": "전체",
+  "settings.friend_toast.groups_count": "그룹 {count}개"
 }

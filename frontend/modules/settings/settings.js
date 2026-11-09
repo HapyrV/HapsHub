@@ -127,6 +127,7 @@ function saveSettings() {
             steamOverlaySoundVolume: Number(document.getElementById('setSteamOverlaySoundVolume')?.value ?? 50),
             friendOnlineToastEnabled: document.getElementById('setFriendOnlineToastEnabled')?.checked ?? false,
             friendOnlineToastFavOnly: document.getElementById('setFriendOnlineToastFavOnly')?.checked ?? false,
+            friendOnlineToastGroups: settings.friendOnlineToastGroups || [],
             friendsSidebarLocationOnly: document.getElementById('setFriendsSidebarLocationOnly')?.checked ?? true,
             friendsSidebarPreviewCollapsed: document.getElementById('setFriendsSidebarPreviewCollapsed')?.checked ?? true,
             friendsSidebarPreviewOpen: document.getElementById('setFriendsSidebarPreviewOpen')?.checked ?? false,
@@ -638,6 +639,8 @@ function loadSettingsToUI(s) {
     applySoundSettings();
     settings.friendOnlineToastEnabled = s.FriendOnlineToastEnabled ?? s.friendOnlineToastEnabled ?? false;
     settings.friendOnlineToastFavOnly = s.FriendOnlineToastFavOnly ?? s.friendOnlineToastFavOnly ?? false;
+    settings.friendOnlineToastGroups = s.FriendOnlineToastGroups || [];
+    fotRenderGroupLabel();
     const _sovEl = document.getElementById('setSteamOverlaySoundEnabled');
     if (_sovEl) _sovEl.checked = settings.steamOverlaySoundEnabled;
     // Restore GUI zoom level
@@ -2288,6 +2291,7 @@ function _fotUpdateFavOnly() {
     const enabled = document.getElementById('setFriendOnlineToastEnabled')?.checked ?? false;
     const row = document.getElementById('fotFavRow');
     if (row) row.classList.toggle('disabled', !enabled);
+    document.getElementById('fotGroupRow')?.classList.toggle('disabled', !enabled);
 }
 
 
@@ -2316,4 +2320,53 @@ function addLaunchAddonApp(kind, path) {
     settings[key] = settings[key] || [];
     if (!settings[key].some(p => p.toLowerCase() === path.toLowerCase())) settings[key].push(path);
     renderLaunchAddonLists();
+}
+
+// ---- Friend online toasts: which favorite groups get them ----
+
+const FOT_NO_GROUP = '__none__';
+
+function _fotGroups() {
+    const groups = (typeof favFriendGroups !== 'undefined' ? favFriendGroups : []) || [];
+    return groups.map(g => ({ key: g.name, label: g.displayName || g.name }))
+        .concat([{ key: FOT_NO_GROUP, label: t('settings.friend_toast.no_group', 'Friends in no group') }]);
+}
+
+function fotRenderGroupLabel() {
+    const label = document.getElementById('fotGroupLabel');
+    if (!label) return;
+    const picked = settings.friendOnlineToastGroups || [];
+    if (!picked.length) { label.textContent = t('settings.friend_toast.groups_all', 'All'); return; }
+    const names = _fotGroups().filter(g => picked.includes(g.key)).map(g => g.label);
+    label.textContent = names.length ? names.join(', ') : tf('settings.friend_toast.groups_count', { count: picked.length }, '{count} groups');
+}
+
+function fotToggleGroupPanel(btn) {
+    const panel = document.getElementById('fotGroupPanel');
+    if (!panel) return;
+    if (panel.style.display === 'block') { panel.style.display = 'none'; return; }
+    if (typeof favFriendGroups !== 'undefined' && !favFriendGroups.length) sendToCS({ action: 'vrcGetFavoriteFriends' });
+    const picked = new Set(settings.friendOnlineToastGroups || []);
+    panel.innerHTML = _fotGroups().map(g => `
+        <label class="sf-toggle-row" style="padding:6px 8px;cursor:pointer;gap:10px;">
+            <span>${esc(g.label)}</span>
+            <input type="checkbox" data-key="${esc(g.key)}" ${picked.has(g.key) ? 'checked' : ''} onchange="fotGroupChanged()">
+        </label>`).join('');
+    panel.style.display = 'block';
+    setTimeout(() => {
+        const close = e => {
+            if (!panel.contains(e.target) && !btn.contains(e.target)) {
+                panel.style.display = 'none';
+                document.removeEventListener('click', close);
+            }
+        };
+        document.addEventListener('click', close);
+    }, 0);
+}
+
+function fotGroupChanged() {
+    const panel = document.getElementById('fotGroupPanel');
+    settings.friendOnlineToastGroups = [...panel.querySelectorAll('input[data-key]:checked')].map(i => i.dataset.key);
+    fotRenderGroupLabel();
+    autoSave();
 }
