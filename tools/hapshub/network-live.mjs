@@ -70,8 +70,14 @@ try {
 
     // Six circles of friends, linked inside their circle and a little across.
     await evaluate(`(() => {
-        const friends = [];
-        for (let i = 0; i < 300; i++) friends.push({ id: 'usr_' + i, displayName: 'Friend ' + i, status: i % 3 ? 'offline' : 'active' });
+        const friends = [], pics = [];
+        for (let k = 0; k < 6; k++) {
+            const c = document.createElement('canvas'); c.width = c.height = 64;
+            const x = c.getContext('2d'); x.fillStyle = 'hsl(' + k * 60 + ',70%,55%)'; x.fillRect(0, 0, 64, 64);
+            x.fillStyle = '#fff'; x.font = 'bold 40px sans-serif'; x.fillText(String.fromCharCode(65 + k), 18, 46);
+            pics.push(c.toDataURL());
+        }
+        for (let i = 0; i < 300; i++) friends.push({ id: 'usr_' + i, displayName: 'Friend ' + i, status: i % 3 ? 'offline' : 'active', image: i % 10 === 9 ? '' : pics[i % 6] });
         vrcFriendsData = friends;
         const cache = {};
         let seed = 7;
@@ -103,12 +109,15 @@ try {
             nodes: g.order, edges: g.size, smallest: Math.min(...sizes), biggest: Math.max(...sizes),
             communities: _netGraph._commList.length, webgl: !!document.querySelector('#netCanvas canvas.sigma-nodes'),
             spread: spread.maxX - spread.minX,
+            pictures: g.filterNodes((id, at) => !!at.image).length,
+            pictureProgram: !!(_netGraph._sigma.nodePrograms && _netGraph._sigma.nodePrograms.border && _netGraph._sigma.nodePrograms.border.programs),
         };
     })())`));
     check('the graph is drawn with WebGL', facts.webgl);
     check('every friend is a node', facts.nodes === 300, `${facts.nodes} nodes, ${facts.edges} links`);
     check('sizes run from 4 to 22 by mutual count', Math.abs(facts.smallest - 4) < 2.5 && Math.abs(facts.biggest - 22) < 0.01, `${facts.smallest.toFixed(1)} to ${facts.biggest.toFixed(1)}`);
     check('communities are found and coloured', facts.communities >= 3, `${facts.communities} communities`);
+    check('friends carry their profile pictures', facts.pictures === 270 && facts.pictureProgram, `${facts.pictures} pictures, compound program ${facts.pictureProgram}`);
     check('the layout spread people out', facts.spread > 50, `width ${facts.spread.toFixed(0)}`);
     await shot('network-fit');
 

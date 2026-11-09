@@ -253,14 +253,14 @@
                         <div class="font-grid" id="fontGrid"></div>
                         <div class="sf-section-label" style="margin-top:18px;" data-i18n="settings.design.fonts.custom">Installed Font</div>
                         <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.design.fonts.custom_desc">Pick any font installed on your system. Choosing one overrides the selection above.</div>
-                        <div style="display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;">
-                            <div style="display:flex;flex-direction:column;gap:8px;">
-                            <input type="text" id="setCustomFontSearch" class="vrcn-input" style="min-width:220px;max-width:320px;" placeholder="Search installed fonts..." data-i18n-placeholder="hub.fonts.search" oninput="hubFontSearch(this.value)">
-                            <select id="setCustomFont" class="vrcn-dropdown" style="min-width:220px;max-width:320px;" onchange="setCustomFont(this.value)">
-                                <option value="" data-i18n="settings.design.fonts.custom_none">None</option>
-                            </select>
-                            </div>
-                            <div style="display:flex;flex-direction:column;gap:14px;">
+                        <div style="display:flex;align-items:stretch;gap:20px;flex-wrap:wrap;">
+                            <div style="display:flex;flex-direction:column;gap:14px;width:320px;max-width:100%;">
+                                <div style="display:flex;flex-direction:column;gap:8px;">
+                                    <input type="text" id="setCustomFontSearch" class="vrcn-input" style="width:100%;" placeholder="Search installed fonts..." data-i18n-placeholder="hub.fonts.search" oninput="hubFontSearch(this.value)">
+                                    <select id="setCustomFont" class="vrcn-dropdown" style="width:100%;" onchange="setCustomFont(this.value)">
+                                        <option value="" data-i18n="settings.design.fonts.custom_none">None</option>
+                                    </select>
+                                </div>
                                 <div class="fs-slider-block">
                                     <div class="fs-slider-head">
                                         <span data-i18n="hub.fonts.letter_spacing">Letter Spacing</span>
@@ -269,9 +269,6 @@
                                     <div class="fs-slider-wrap">
                                         <input type="range" id="setLetterSpacing" class="fs-slider" min="-0.5" max="2" step="0.1" value="0"
                                                oninput="hubLetterSpacingChanged(this.value)" onchange="hubLetterSpacingSave(this.value)">
-                                    </div>
-                                    <div class="hub-letter-sample" style="margin-top:8px;padding:10px 12px;border-radius:8px;background:var(--bg-input);color:var(--tx0);font-size:calc(15px + var(--fs-off, 0px));line-height:1.4;">
-                                        <span data-i18n="hub.fonts.letter_sample">The quick brown fox jumps over the lazy dog. 0123456789</span>
                                     </div>
                                 </div>
                                 <div class="fs-slider-block">
@@ -285,6 +282,9 @@
                                                oninput="setFontSizeOffset(this.value)">
                                     </div>
                                 </div>
+                            </div>
+                            <div class="hub-letter-sample" style="flex:1;min-width:220px;display:flex;align-items:center;padding:14px 16px;border-radius:8px;background:var(--bg-input);color:var(--tx0);font-size:calc(18px + var(--fs-off, 0px));line-height:1.5;">
+                                <span data-i18n="hub.fonts.letter_sample">The quick brown fox jumps over the lazy dog. 0123456789</span>
                             </div>
                         </div>
                     </div>

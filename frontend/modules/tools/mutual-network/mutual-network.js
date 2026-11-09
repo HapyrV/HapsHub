@@ -246,7 +246,7 @@ class MutualGraph {
         }
         this._friendsLoaded = true;
         this._friendIds = new Set(friends.map(f => f.id));
-        friends.forEach(f => this._addNode({ id: f.id, displayName: f.displayName || f.id, status: f.status || 'offline' }));
+        friends.forEach(f => this._addNode({ id: f.id, displayName: f.displayName || f.id, status: f.status || 'offline', image: f.image || '' }));
 
         const online  = friends.filter(f => f.status && f.status !== 'offline');
         const offline = friends.filter(f => !f.status || f.status === 'offline');
@@ -283,7 +283,7 @@ class MutualGraph {
         if (mutualIdxs.length === 0) return;
 
         let idx = this.nodeMap[nf.id];
-        if (idx === undefined) idx = this._addNode({ id: nf.id, displayName: nf.displayName || nf.id, status: 'offline' });
+        if (idx === undefined) idx = this._addNode({ id: nf.id, displayName: nf.displayName || nf.id, status: 'offline', image: nf.image || '' });
         this.nodes[idx].isNonFriend = true;
 
         let changed = false;
@@ -293,7 +293,7 @@ class MutualGraph {
 
     _addNode(opts) {
         const idx = this.nodes.length;
-        this.nodes.push({ id: opts.id, displayName: opts.displayName, status: opts.status || 'offline' });
+        this.nodes.push({ id: opts.id, displayName: opts.displayName, status: opts.status || 'offline', image: opts.image || '' });
         this.nodeMap[opts.id] = idx;
         return idx;
     }
@@ -450,6 +450,7 @@ class MutualGraph {
                 fullName: nd.displayName || nd.id,
                 size: 4 + (most ? (degree[i] / most) * 18 : 0),
                 type: 'border',
+                image: nd.image || '',
                 mutuals: degree[i],
                 nonFriend: !!nd.isNonFriend,
                 borderColor: nd.isNonFriend ? NET_NF_RGB.raw : '#f2f2f2',
@@ -546,7 +547,7 @@ class MutualGraph {
 
     _draw() {
         if (!this.graph || !this.container.offsetWidth) return;
-        const { Sigma, EdgeCurveProgram, createNodeBorderProgram } = window.HHGraphLib;
+        const { Sigma, EdgeCurveProgram, createNodeBorderProgram, createNodeImageProgram, createNodeCompoundProgram } = window.HHGraphLib;
         const theme = this._theme();
         this._colors = theme;
         if (this._sigma) {
@@ -554,12 +555,24 @@ class MutualGraph {
             this._sigma.setSetting('labelColor', { color: theme.label });
             this._sigma.setSetting('defaultEdgeColor', theme.edge);
         } else {
-            const BorderProgram = createNodeBorderProgram({
+            // Profile picture filling the circle (photo square just covers it, the circle crop rounds it).
+            // Small textures keep hundreds of friends in one atlas. People without a picture show the plain colour.
+            const ImageProgram = createNodeImageProgram({
+                padding: -0.15,
+                size: { mode: 'force', value: 96 },
+                objectFit: 'cover',
+                drawingMode: 'background',
+                keepWithinCircle: true,
+            });
+            // Drawn over the picture: a thin outline and a ring in the community colour, see-through inside.
+            const RingProgram = createNodeBorderProgram({
                 borders: [
-                    { size: { value: 0.1 }, color: { attribute: 'borderColor' } },
-                    { size: { fill: true }, color: { attribute: 'color' } },
+                    { size: { value: 0.07 }, color: { attribute: 'borderColor' } },
+                    { size: { value: 0.13 }, color: { attribute: 'color' } },
+                    { size: { fill: true }, color: { value: 'rgba(0,0,0,0)' } },
                 ],
             });
+            const PictureProgram = createNodeCompoundProgram([ImageProgram, RingProgram]);
             this._sigma = new Sigma(this.graph, this.container, {
                 allowInvalidContainer: true,
                 renderLabels: true,
@@ -569,7 +582,7 @@ class MutualGraph {
                 defaultEdgeColor: theme.edge,
                 zIndex: true,
                 defaultNodeType: 'border',
-                nodeProgramClasses: { border: BorderProgram },
+                nodeProgramClasses: { border: PictureProgram },
                 edgeProgramClasses: { curve: EdgeCurveProgram },
                 defaultDrawNodeHover: (ctx, data, settings) => this._drawHover(ctx, data, settings),
             });
@@ -600,7 +613,7 @@ class MutualGraph {
             return { ...out, color: '#facc15', size: (data.size || 4) * 1.6, label: `${data.label} (${this._neighbors.size})`, zIndex: 3, forceLabel: true };
         }
         if (this._neighbors.has(id)) return { ...out, size: (data.size || 4) * 1.2, zIndex: 2, forceLabel: this._neighbors.size <= 40 };
-        return { ...out, color: this._colors.faded, borderColor: this._colors.faded, size: 0.7, label: '', zIndex: 0 };
+        return { ...out, color: this._colors.faded, borderColor: this._colors.faded, image: '', size: 0.7, label: '', zIndex: 0 };
     }
 
     _reduceEdge(id, data) {
