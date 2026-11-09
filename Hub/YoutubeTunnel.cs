@@ -53,7 +53,7 @@ public sealed class YoutubeTunnelModule : IHubModule
     public IReadOnlyList<HubSettingDefinition> Settings { get; } = new[]
     {
         new HubSettingDefinition(PathKey, "Path to yt-dlp. Empty looks for it on your PATH", HubSettingKind.Text, ""),
-        new HubSettingDefinition(CookiesKey, "Browser to borrow your YouTube sign-in from, like firefox. Empty means none", HubSettingKind.Text, ""),
+        new HubSettingDefinition(CookiesKey, "Browser to borrow your YouTube sign-in from, like firefox. For Waterfox use firefox:<profile folder>. Empty means none", HubSettingKind.Text, ""),
         new HubSettingDefinition(SendDeviceKey, "Send to", HubSettingKind.Hidden, ""),
         new HubSettingDefinition(HearDeviceKey, "Hear it on", HubSettingKind.Hidden, ""),
         new HubSettingDefinition(SendVolumeKey, "Mic volume", HubSettingKind.Hidden, "100"),
@@ -100,13 +100,14 @@ public sealed class YoutubeTunnelModule : IHubModule
         return null;
     }
 
-    /// <summary>Only formats Windows can decode without ffmpeg. The link is checked and comes after "--", so it can't become an option.</summary>
+    /// <summary>Only formats Windows can decode without ffmpeg. yt-dlp only tries Deno by default, and YouTube's challenge needs a JavaScript runtime, so Node is allowed too. The link is checked and comes after "--", so it can't become an option.</summary>
     public static IReadOnlyList<string> BuildArguments(string link, string outputTemplate, string? cookiesBrowser)
     {
         var arguments = new List<string>
         {
             "--ignore-config", "--no-playlist", "--no-warnings", "--no-progress", "--no-simulate", "--force-overwrites",
             "--encoding", "utf-8",
+            "--js-runtimes", "node",
             "--max-filesize", "300M",
             "-f", "bestaudio[ext=m4a]/best[ext=mp4]",
             "--print", "video:title",
@@ -142,6 +143,8 @@ public sealed class YoutubeTunnelModule : IHubModule
             return "YouTube wants a signed-in browser for this. Set one under YouTube tunnel in Settings, Hub modules.";
         if (errors.Contains("Requested format is not available", StringComparison.OrdinalIgnoreCase))
             return "This video has no audio Windows can play.";
+        if (errors.Contains("page needs to be reloaded", StringComparison.OrdinalIgnoreCase))
+            return "YouTube's check needs Node.js, and yt-dlp couldn't use it. Install Node.js and try again.";
         if (errors.Contains("could not find", StringComparison.OrdinalIgnoreCase) && errors.Contains("cookies", StringComparison.OrdinalIgnoreCase))
             return "Could not read that browser's sign-in. Check the browser name in Settings, Hub modules.";
         var last = errors.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).LastOrDefault(l => l.StartsWith("ERROR", StringComparison.OrdinalIgnoreCase))

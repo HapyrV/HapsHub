@@ -1132,6 +1132,8 @@ await Check("tunnel: the link can't become an option, and a browser is only used
     var plain = YoutubeTunnelModule.BuildArguments("https://youtu.be/a", "out", "");
     Assert(plain[^2] == "--" && plain[^1] == "https://youtu.be/a", "the link isn't after the end of the options");
     Assert(!plain.Contains("--cookies-from-browser"), "asked for browser cookies without a browser");
+    var runtime = plain.ToList().IndexOf("--js-runtimes");
+    Assert(runtime >= 0 && plain[runtime + 1] == "node", "yt-dlp can't solve YouTube's challenge without a JavaScript runtime");
     Assert(plain.Contains("--ignore-config"), "a yt-dlp config file could change what runs");
     Assert(YoutubeTunnelModule.BuildArguments("https://youtu.be/a", "out", " firefox ").Contains("firefox"), "the browser was dropped");
     return Task.CompletedTask;
