@@ -81,6 +81,11 @@ public sealed class HubHistoryModule : IHubModule
         return "Visitor";
     }
 
+    public void ObserveFriends(IEnumerable<(string UserId, string Name, string Trust)> friends)
+    {
+        foreach (var friend in friends) ObserveFriend(friend.UserId, friend.Name, friend.Trust);
+    }
+
     /// <summary>
     /// Compares a friend with what was last seen. The first sighting only remembers them, so a
     /// new install doesn't report every friend as changed. An empty value means "not in this update".

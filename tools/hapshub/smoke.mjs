@@ -353,7 +353,8 @@ try {
             detail: document.getElementById('fschDetail').innerText, planner: document.getElementById('fschPlanner').innerText });
     })()`));
     console.log(`      schedule: Monday 10:00 average ${schedule.monday}, Tuesday 10:00 ${schedule.tuesday}; ${schedule.planner.split('\n')[0]}`);
-    check('Friend Schedule finds the Monday pattern through the worker', schedule.monday > 0.9 && schedule.tuesday < schedule.monday, JSON.stringify(schedule));
+    // 0.8 is right when this runs on a Monday after 10:00: today is a fifth Monday, with nobody online yet.
+    check('Friend Schedule finds the Monday pattern through the worker', schedule.monday >= 0.8 && schedule.tuesday < schedule.monday, JSON.stringify(schedule));
     check('Friend Schedule draws every cell, the graph, details and planner', schedule.heat === schedule.expected && schedule.graph && schedule.detail.includes('Friend A') && schedule.planner.length > 0, JSON.stringify(schedule));
 
     // The leftovers: hours left out, picking friends by hand, and saved results.
@@ -389,7 +390,7 @@ try {
         return JSON.stringify({ count: r.summary.selectedFriends, monday: r.cells[index].average, who: (r.contributorsByCell[index] || []).map(person => person.userId),
             label: document.getElementById('fschPickCount').textContent, remembered: JSON.parse(localStorage.getItem('fschPrefs')).chosen });
     })()`));
-    check('Friend Schedule counts only the friend picked by hand', picked.count === 1 && picked.monday > 0.9 && picked.who.length === 1 && picked.who[0] === 'usr_a' && picked.remembered[0] === 'usr_a', JSON.stringify(picked));
+    check('Friend Schedule counts only the friend picked by hand', picked.count === 1 && picked.monday >= 0.8 && picked.who.length === 1 && picked.who[0] === 'usr_a' && picked.remembered[0] === 'usr_a', JSON.stringify(picked));
 
     // Back to options analysed earlier: no new work, from memory and then from the disk store.
     const posts = async () => Number(await main.eval(`window.__fschPosts`));

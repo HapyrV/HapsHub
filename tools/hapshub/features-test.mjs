@@ -357,6 +357,14 @@ try {
     text = await rowsText();
     check('a purchase draws with its price and state', text.includes('A thing') && text.includes('1,200 V') && text.includes('Not active'), text);
 
+    // --- Settings: letter spacing reaches the page and survives being redrawn ---
+    await main.eval(`sendToCS({ action: 'hubSetSetting', module: 'hub.ui', key: 'letter_spacing', value: '1.5' })`);
+    await waitFor('letter spacing to apply', () => main.eval(`document.body.style.letterSpacing === '1.5px'`));
+    await main.eval(`sendToCS({ action: 'hubSetSetting', module: 'hub.ui', key: 'letter_spacing', value: '0' })`);
+    await waitFor('letter spacing to clear', () => main.eval(`document.body.style.letterSpacing === ''`));
+    check('letter spacing applies and clears', true);
+    check('font search and the update item are on the settings page', await main.eval(`typeof hubFontSearch === 'function' && !!document.getElementById('hubUpstreamList')`));
+
     // --- Every theme: the new pages must stay readable, light themes included ---
     await main.eval(`hhistShow('names')`);
     await waitFor('rows for the theme check', () => main.eval(`document.querySelectorAll('.hhist-row').length > 0`));

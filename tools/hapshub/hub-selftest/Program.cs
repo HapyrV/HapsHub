@@ -1118,6 +1118,22 @@ await Check("history: the first sighting of a friend isn't a change, later ones 
     await registry.StopAllAsync(TimeSpan.FromSeconds(5));
 });
 
+await Check("history: a full friend list is quick, the first time and every time after", async () =>
+{
+    var (module, registry) = await NewHistory("history-many");
+    var friends = Enumerable.Range(0, 1000).Select(i => ($"usr_{i}", $"Friend {i}", "User")).ToList();
+    var first = System.Diagnostics.Stopwatch.StartNew();
+    module.ObserveFriends(friends);
+    first.Stop();
+    var again = System.Diagnostics.Stopwatch.StartNew();
+    module.ObserveFriends(friends);
+    again.Stop();
+    Console.WriteLine($"      1000 friends: first {first.ElapsedMilliseconds} ms, again {again.ElapsedMilliseconds} ms");
+    Assert(module.ReadFriendChanges().Count == 0, "no one changed");
+    Assert(again.ElapsedMilliseconds < 100, $"unchanged friends took {again.ElapsedMilliseconds} ms");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
 await Check("history: known friends survive a restart, so changes while closed are caught", async () =>
 {
     var dir = Fresh("history-restart");

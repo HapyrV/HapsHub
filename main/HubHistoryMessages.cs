@@ -31,6 +31,7 @@ public partial class AppShell
 
     private void ShowOverlayEvent(string title, string text, string image, string friendId)
     {
+#if WINDOWS
         try
         {
             // The overlay's Action Flow type is its one general notice: it's always allowed when notifications are on.
@@ -42,6 +43,7 @@ public partial class AppShell
         {
             CrashHandler.WriteEntry("ShowOverlayEvent", ex);
         }
+#endif
     }
 
     // Adds what a screenshot's file knows about itself to the library, for pictures HapsHub didn't see being taken.

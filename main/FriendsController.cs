@@ -1443,6 +1443,9 @@ public class FriendsController
             }
 
             var warmFriends = online.Concat(offline).ToList();
+            // Off the friend list's path: the first time it remembers every friend, which takes a moment.
+            var observed = warmFriends.Select(f => (f["id"]?.ToString() ?? "", f["displayName"]?.ToString() ?? "", HubHistoryModule.TrustFromTags(f["tags"]?.ToObject<List<string>>()))).ToList();
+            _ = Task.Run(() => HubModules.History.ObserveFriends(observed));
             _ = Task.Run(async () =>
             {
                 if (await WarmDecorationsAsync(warmFriends) > 0)
@@ -1459,7 +1462,6 @@ public class FriendsController
             {
                 var id = f["id"]?.ToString() ?? "";
                 seenIds.Add(id);
-                HubModules.History.ObserveFriend(id, f["displayName"]?.ToString() ?? "", HubHistoryModule.TrustFromTags(f["tags"]?.ToObject<List<string>>()));
                 var location = f["location"]?.ToString() ?? "";
                 var platform = f["platform"]?.ToString() ?? f["last_platform"]?.ToString() ?? "";
                 bool isWebPlatform = platform.Equals("web", StringComparison.OrdinalIgnoreCase);

@@ -77,6 +77,12 @@ sizes = [16, 32, 48, 64, 128, 256]
 frames = [mark(s, gradient, (255, 255, 255, 255)) for s in sizes]
 frames[-1].save(os.path.join(ROOT, 'logo.ico'), format='ICO', sizes=[(s, s) for s in sizes], append_images=frames[:-1])
 
+# The installer's small corner picture.
+corner = Image.new('RGB', (110, 116), (255, 255, 255))
+art = mark(88, gradient, (255, 255, 255, 255))
+corner.paste(art, (11, 14), art)
+corner.save(os.path.join(ROOT, 'build', 'installer_small.png'))
+
 preview = Image.new('RGB', (760, 300), (24, 26, 34))
 x = 16
 tinted = Image.new('RGBA', mask.size, (255, 255, 255, 255))

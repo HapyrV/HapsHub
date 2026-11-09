@@ -256,9 +256,6 @@ public partial class AppShell
         _stCtrl = new SpaceTurnController(_core, _vroCtrl);
 #if WINDOWS
         _core.SpeakToast = (evType, name, text) => _vroCtrl.SpeakToast(evType, name, text);
-        _core.WriteScreenshotDetails = (path, selfId, selfName, worldId, people) => WritePhotoMetadata(path, new HapsHub.Core.PhotoMetadata(
-            "HapsHub", selfId, selfName, worldId, _core.Timeline.ReadHubWorldName(worldId), _logWatcher.CurrentLocation ?? "",
-            people.Select(p => new HapsHub.Core.PhotoPerson(p.Item1, p.Item2)).ToList()));
 #endif
         _fsCtrl = new FrameShotController(_core, _vroCtrl, _photos);
         _discordCtrl = new DiscordController(_core, _instance, _vroCtrl);
@@ -378,6 +375,9 @@ public partial class AppShell
         _core.CustomThemesDir = _customThemesDir;
         _hub = HubHost.Start(HubModules.All(), message => CrashHandler.AddBreadcrumb($"hub: {message}"));
         HookHistoryRecording();
+        _core.WriteScreenshotDetails = (path, selfId, selfName, worldId, people) => WritePhotoMetadata(path, new HapsHub.Core.PhotoMetadata(
+            "HapsHub", selfId, selfName, worldId, _core.Timeline.ReadHubWorldName(worldId), _logWatcher.CurrentLocation ?? "",
+            people.Select(p => new HapsHub.Core.PhotoPerson(p.Item1, p.Item2)).ToList()));
         StartCrashRejoinWatch();
         SeedBuiltInThemes();
         var logFileName = $"vrcn-log-{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.txt";
