@@ -356,7 +356,7 @@ public partial class AppShell
         _core.HttpPort = _httpPort;
         _core.HttpCorsToken = _httpCorsToken;
 
-        DeepLinkService.RegisterProtocol();
+        if (!HubPaths.IsOverridden) DeepLinkService.RegisterProtocol();
         DeepLinkService.StartServer(OnDeepLinkReceived, _deepLinkCts.Token);
 
         VRCNext.Services.Helpers.ImageCacheHelper.Initialize(_vrcApi.GetHttpClient());

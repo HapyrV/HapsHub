@@ -1129,6 +1129,8 @@ case 'vrcNews':
             case 'hubUpstream':          onHubUpstream(payload); break;
             case 'hubModules':           onHubModules(payload); break;
             case 'hubUpstreamReviewed':  onHubUpstreamReviewed(payload); break;
+            case 'hubSteamBranch':       onHubSteamBranch(payload); break;
+            case 'hubSteamSwitched':     onHubSteamSwitched(payload); break;
             case 'showChangelog':        onShowChangelog(payload); break;
             case 'dbMigrationProgress':  onDbMigrationProgress(payload); break;
             case 'gameLogEvent':         addGameLogEntry(payload);        break;

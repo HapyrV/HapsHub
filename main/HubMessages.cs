@@ -32,6 +32,33 @@ public partial class AppShell
 
             case "hubUpstreamCheck":
                 _ = Task.Run(RunUpstreamCheck);
+                _ = Task.Run(() => SendSteamBranch(online: true));
+                return true;
+
+            case "hubSteamStatus":
+                _ = Task.Run(() => SendSteamBranch(online: false));
+                return true;
+
+            case "hubSteamReviewed":
+                HubModules.SteamBranch.MarkBetaReviewed(msg["build"]?.ToString() ?? "");
+                _ = Task.Run(() => SendSteamBranch(online: true));
+                return true;
+
+            case "hubSteamSwitch":
+                var branch = msg["branch"]?.ToString() ?? "";
+                _ = Task.Run(() => RunSteamSwitch(branch));
+                return true;
+
+            case "hubSteamOpen":
+                try
+                {
+                    using var steam = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(
+                        $"steam://nav/games/details/{SteamBranchModule.SpaceCalibratorAppId}") { UseShellExecute = true });
+                }
+                catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+                {
+                    CrashHandler.WriteEntry("hubSteamOpen", ex);
+                }
                 return true;
 
             case "hubUpstreamReviewed":
@@ -66,6 +93,56 @@ public partial class AppShell
                 }),
             }),
         });
+    }
+
+    private async Task SendSteamBranch(bool online)
+    {
+        try
+        {
+            var report = await HubModules.SteamBranch.CheckAsync(online);
+            Invoke(() => SendToJS("hubSteamBranch", new
+            {
+                name = report.Name,
+                watchOn = report.WatchOn,
+                checkedOnline = online,
+                installed = report.Installed == null ? null : new
+                {
+                    branch = report.Installed.Branch,
+                    mountedBranch = report.Installed.MountedBranch,
+                    buildId = report.Installed.BuildId,
+                    ready = report.Installed.Ready,
+                },
+                publicBuild = SteamBuild(report.Public),
+                betaBuild = SteamBuild(report.Beta),
+                reviewedBeta = report.ReviewedBetaBuild,
+                error = report.Error,
+            }));
+        }
+        catch (Exception ex)
+        {
+            CrashHandler.WriteEntry("SendSteamBranch", ex);
+        }
+    }
+
+    private static object? SteamBuild(SteamBranchBuild? build) => build == null ? null : new
+    {
+        buildId = build.BuildId,
+        updated = build.Updated?.ToString("O"),
+    };
+
+    private async Task RunSteamSwitch(string branch)
+    {
+        try
+        {
+            var result = await HubModules.SteamBranch.SwitchAsync(branch);
+            Invoke(() => SendToJS("hubSteamSwitched", new { outcome = result.Outcome.ToString(), message = result.Message }));
+            await SendSteamBranch(online: false);
+        }
+        catch (Exception ex)
+        {
+            CrashHandler.WriteEntry("RunSteamSwitch", ex);
+            Invoke(() => SendToJS("hubSteamSwitched", new { outcome = "Failed", message = "The switch stopped unexpectedly. Check Steam is open." }));
+        }
     }
 
     private async Task RunUpstreamCheck()

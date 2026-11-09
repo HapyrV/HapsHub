@@ -10,7 +10,9 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const EXE = join(ROOT, 'bin', 'Debug', 'net10.0-windows10.0.19041.0', 'HapsHub.exe');
+// --release tests the Release build, for when the Debug exe is in use by a real session.
+const CONFIG = process.argv.includes('--release') ? 'Release' : 'Debug';
+const EXE = join(ROOT, 'bin', CONFIG, 'net10.0-windows10.0.19041.0', 'HapsHub.exe');
 const PORT = 9333;
 const REAL_DATA = join(process.env.APPDATA, 'HapsHub');
 const screenshotPath = process.argv.slice(2).find(arg => !arg.startsWith('--'));
@@ -41,8 +43,11 @@ function realFolderStamp() {
         .sort().join('|');
 }
 
+// Only what this run started. A real session may be open, so never stop HapsHub by name.
+const started = [];
+
 function startApp(dataDir) {
-    return spawn(EXE, [], {
+    const app = spawn(EXE, [], {
         detached: true,
         stdio: 'ignore',
         env: {
@@ -51,6 +56,8 @@ function startApp(dataDir) {
             WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${PORT}`,
         },
     });
+    started.push(app.pid);
+    return app;
 }
 
 class Page {
@@ -135,11 +142,10 @@ if (!existsSync(EXE)) {
     check('app is built', false, EXE);
     process.exit(1);
 }
+// Test runs use their own folders and locks, so they can sit beside a real session.
+// A running session keeps writing to the real folder, so that check can't mean anything then.
 const running = spawnSync('tasklist', ['/FI', 'IMAGENAME eq HapsHub.exe', '/NH'], { encoding: 'utf8' }).stdout;
-if (running.includes('HapsHub.exe')) {
-    check('no other HapsHub is running', false, 'close it first: only one instance can run');
-    process.exit(1);
-}
+const realSessionOpen = running.includes('HapsHub.exe');
 
 const realBefore = realFolderStamp();
 const fresh = mkdtempSync(join(tmpdir(), 'hapshub-smoke-'));
@@ -181,8 +187,9 @@ try {
         `!document.getElementById('vrcndbConsentModal')`));
 
     await main.eval(`hubModulesRefresh()`);
-    await waitFor('module list',() => main.eval(`document.querySelectorAll('.hub-module-row').length === 2`));
-    const toggles = `[...document.querySelectorAll('.hub-module-row input[type=checkbox]')]`;
+    await waitFor('module list',() => main.eval(`document.querySelectorAll('.hub-module-row').length === 3`));
+    if (process.env.HAPSHUB_SMOKE_FAIL) throw new Error('failure forced to test the cleanup');
+    const toggles = `[...document.querySelectorAll('.hub-module-row[data-module="hub.forwarding"] input[type=checkbox]')]`;
     check('forwarding toggles start off', await main.eval(`${toggles}.length === 2 && ${toggles}.every(i => !i.checked)`));
     await main.eval(`(() => { const i = ${toggles}[0]; i.checked = true; hubSettingChanged(i); })()`);
     await waitFor('saved toggle to come back on', () => main.eval(`${toggles}[0]?.checked === true`));
@@ -195,6 +202,11 @@ try {
     const rows = await main.eval(`JSON.stringify([...document.querySelectorAll('.hub-upstream-row')].map(r => r.innerText.replace(/\\s+/g, ' ').trim()))`);
     console.log(`      ${rows}`);
     check('all three sources report', ['VRCNext', 'VRCX', 'Space Calibrator'].every(name => rows.includes(name)), rows);
+    await waitFor('Steam branch panel', () => main.eval(`!!document.querySelector('.hub-steam-branch [data-branch="beta"]')`));
+    await waitFor('Steam builds', () => main.eval(`/Beta: \\d+/.test(document.getElementById('hubSteamBranch').innerText)`));
+    const steamText = await main.eval(`document.getElementById('hubSteamBranch').innerText.replace(/\\s+/g, ' ')`);
+    console.log(`      ${steamText}`);
+    check('Steam panel shows the installed branch and beta build', /Installed: \w+, build \d+/.test(steamText) && /Beta: \d+/.test(steamText), steamText);
     // GitHub allows 60 anonymous requests an hour, so repeated runs can use them up.
     // That is reported as not checked, never as a pass; any other error is a failure.
     if (rows.includes('hourly limit')) console.log('NOT CHECKED  live GitHub results: the hourly limit was reached');
@@ -213,10 +225,11 @@ try {
     await main.eval(`sendToCS({action:'windowClose'})`);
     check('main page exits cleanly', await closeApp(main, seeded));
     check('main launch has no crash report', crashes(seeded) === 0);
-    check('real data folder is unchanged', realFolderStamp() === realBefore);
+    if (realSessionOpen) console.log('NOT CHECKED  real data folder is unchanged: a real session is open');
+    else check('real data folder is unchanged', realFolderStamp() === realBefore);
 } catch (error) {
     check('smoke run finished', false, `${error.message}; page errors: ${Page.last?.errors.join(' | ') || 'none'}`);
-    spawnSync('taskkill', ['/IM', 'HapsHub.exe', '/F', '/T']);
+    for (const pid of started) spawnSync('taskkill', ['/PID', String(pid), '/F', '/T']);
 } finally {
     await sleep(1500);
     for (const dir of [fresh, seeded]) {

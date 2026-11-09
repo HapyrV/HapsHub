@@ -4,10 +4,12 @@ namespace HapsHub.Core;
 public static class HubModules
 {
     public static UpstreamWatchModule UpstreamWatch { get; } = new();
+    public static SteamBranchModule SteamBranch { get; } = new();
 
     public static IReadOnlyList<IHubModule> All() => new IHubModule[]
     {
         new ForwardingModule(),
         UpstreamWatch,
+        SteamBranch,
     };
 }

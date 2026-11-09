@@ -37,14 +37,14 @@ static class Program
 
         if (args.Length >= 4 && args[0] == "--watchdog")
         {
-            if (!AcquireMutex("Global\\HapsHub_Watchdog", out var wdMutex)) return;
+            if (!AcquireMutex("Global\\HapsHub_Watchdog" + HubPaths.InstanceSuffix, out var wdMutex)) return;
             using (wdMutex) WatchdogRunner.Run(args);
             return;
         }
 
         if (args.Length >= 1 && args[0] == "--vr-subprocess")
         {
-            if (!AcquireMutex("Global\\HapsHub_VROverlay", out var vrMutex)) return;
+            if (!AcquireMutex("Global\\HapsHub_VROverlay" + HubPaths.InstanceSuffix, out var vrMutex)) return;
             using (vrMutex) VRSubprocess.Run();
             return;
         }
@@ -60,7 +60,7 @@ static class Program
             try { System.Diagnostics.Process.GetProcessById(waitPid).WaitForExit(10000); } catch { }
         }
 
-        if (!AcquireMutex("Global\\HapsHub", out var mainMutex, waitMs: isRelaunch ? 10000 : 0))
+        if (!AcquireMutex("Global\\HapsHub" + HubPaths.InstanceSuffix, out var mainMutex, waitMs: isRelaunch ? 10000 : 0))
         {
             if (deepLink != null) { DeepLinkService.Forward(deepLink); return; }
             ShowAlreadyRunningMessage();

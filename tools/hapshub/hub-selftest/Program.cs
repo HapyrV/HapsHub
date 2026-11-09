@@ -654,6 +654,182 @@ await Check("upstream: bad input is refused, and the address sent carries no ema
     Assert(github.UserAgents.All(u => u == "HapsHub"), "user agent: " + string.Join(",", github.UserAgents.Distinct()));
 });
 
+// ---- Steam branch ----
+
+const string SteamManifestText = "\"AppState\"\n{\n\t\"appid\"\t\t\"3368750\"\n\t\"StateFlags\"\t\t\"4\"\n\t\"buildid\"\t\t\"18832234\"\n\t\"UserConfig\"\n\t{\n\t\t\"language\"\t\t\"english\"\n\t\t\"BetaKey\"\t\t\"public\"\n\t}\n\t\"MountedConfig\"\n\t{\n\t\t\"language\"\t\t\"english\"\n\t\t\"BetaKey\"\t\t\"public\"\n\t}\n}\n";
+
+async Task<(ModuleRegistry Registry, SteamBranchModule Module, FakeSteam Steam, FakeSteamApi Api, string Manifest)> StartSteam(string name, string manifest = SteamManifestText)
+{
+    var dir = Fresh(name);
+    var path = Path.Combine(dir, "appmanifest_3368750.acf");
+    File.WriteAllText(path, manifest);
+    var steam = new FakeSteam { Manifest = path };
+    var api = new FakeSteamApi();
+    var module = new SteamBranchModule(api, steam, TimeSpan.FromMilliseconds(120), TimeSpan.FromMilliseconds(20), Path.Combine(dir, "backup"));
+    var registry = new ModuleRegistry(OpenDb(Path.Combine(dir, "db")));
+    registry.Register(module);
+    await registry.StartAllAsync();
+    return (registry, module, steam, api, path);
+}
+
+await Check("steam: reads the selected branch, installed branch and build", async () =>
+{
+    var read = SteamManifest.Read("p", SteamManifestText)!;
+    Assert(read.Branch == "public" && read.MountedBranch == "public" && read.BuildId == "18832234" && read.Ready, "manifest misread");
+    var updating = SteamManifest.Read("p", SteamManifestText.Replace("\"StateFlags\"\t\t\"4\"", "\"StateFlags\"\t\t\"1026\""))!;
+    Assert(!updating.Ready, "an updating app was reported ready");
+    Assert(SteamManifest.Read("p", "not a manifest") == null, "garbage was accepted");
+    await Task.CompletedTask;
+});
+
+await Check("steam: a branch edit changes the selected branch and nothing else", async () =>
+{
+    var edited = SteamManifest.WithBranch(SteamManifestText, "beta")!;
+    Assert(edited == SteamManifestText.Replace("\"language\"\t\t\"english\"\n\t\t\"BetaKey\"\t\t\"public\"\n\t}\n\t\"MountedConfig\"", "\"language\"\t\t\"english\"\n\t\t\"BetaKey\"\t\t\"beta\"\n\t}\n\t\"MountedConfig\""), "other text changed");
+    var read = SteamManifest.Read("p", edited)!;
+    Assert(read.Branch == "beta" && read.MountedBranch == "public", "wrong section edited");
+    var noKey = SteamManifestText.Replace("\t\t\"language\"\t\t\"english\"\n\t\t\"BetaKey\"\t\t\"public\"\n\t}\n\t\"MountedConfig\"", "\t\t\"language\"\t\t\"english\"\n\t}\n\t\"MountedConfig\"");
+    Assert(SteamManifest.Read("p", SteamManifest.WithBranch(noKey, "beta")!)!.Branch == "beta", "missing key wasn't added");
+    Assert(SteamManifest.WithBranch("not a manifest", "beta") == null, "garbage was edited");
+    await Task.CompletedTask;
+});
+
+await Check("steam: switching closes Steam, edits the file, reopens Steam and keeps a backup", async () =>
+{
+    var (registry, module, steam, _, path) = await StartSteam("steam-ok");
+    steam.OnStart = () => File.WriteAllText(path, File.ReadAllText(path).Replace("\"MountedConfig\"\n\t{\n\t\t\"language\"\t\t\"english\"\n\t\t\"BetaKey\"\t\t\"public\"", "\"MountedConfig\"\n\t{\n\t\t\"language\"\t\t\"english\"\n\t\t\"BetaKey\"\t\t\"beta\"").Replace("18832234", "26185367"));
+    var result = await module.SwitchAsync("beta");
+    Assert(result.Outcome == SteamSwitchOutcome.Applied, $"{result.Outcome}: {result.Message}");
+    Assert(result.Message.Contains("26185367"), "new build not reported");
+    Assert(steam.Shutdowns == 1 && steam.Starts == 1, $"closed {steam.Shutdowns}, opened {steam.Starts}");
+    var backup = Path.Combine(Path.GetDirectoryName(path)!, "backup", "appmanifest_3368750.before-switch.acf");
+    Assert(File.ReadAllText(backup) == SteamManifestText, "backup isn't the original");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
+await Check("steam: refuses while VRChat or SteamVR runs, and touches nothing", async () =>
+{
+    var (registry, module, steam, _, path) = await StartSteam("steam-blocked");
+    steam.Blockers = new[] { "VRChat", "vrserver" };
+    var result = await module.SwitchAsync("beta");
+    Assert(result.Outcome == SteamSwitchOutcome.Blocked && result.Message.Contains("VRChat"), $"{result.Outcome}: {result.Message}");
+    Assert(steam.Shutdowns == 0 && steam.Starts == 0, "Steam was touched");
+    Assert(File.ReadAllText(path) == SteamManifestText, "file changed");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
+await Check("steam: refuses while Steam is updating the app", async () =>
+{
+    var (registry, module, steam, _, path) = await StartSteam("steam-updating", SteamManifestText.Replace("\"StateFlags\"\t\t\"4\"", "\"StateFlags\"\t\t\"1026\""));
+    var result = await module.SwitchAsync("beta");
+    Assert(result.Outcome == SteamSwitchOutcome.Blocked, $"{result.Outcome}");
+    Assert(steam.Shutdowns == 0, "Steam was closed");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
+await Check("steam: if Steam won't close, nothing is written and it isn't force-closed", async () =>
+{
+    var (registry, module, steam, _, path) = await StartSteam("steam-stuck");
+    steam.ShutdownWorks = false;
+    var result = await module.SwitchAsync("beta");
+    Assert(result.Outcome == SteamSwitchOutcome.Failed, $"{result.Outcome}");
+    Assert(File.ReadAllText(path) == SteamManifestText, "file changed");
+    Assert(steam.Starts == 1, "Steam's start wasn't called to recover");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
+await Check("steam: a failed write still reopens Steam and reports it", async () =>
+{
+    var (registry, module, steam, _, path) = await StartSteam("steam-locked");
+    FileStream? hold = null;
+    steam.OnShutdown = () => hold = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+    try
+    {
+        var result = await module.SwitchAsync("beta");
+        Assert(result.Outcome == SteamSwitchOutcome.Failed, $"{result.Outcome}: {result.Message}");
+    }
+    finally { hold?.Dispose(); }
+    Assert(steam.Starts == 1, $"Steam opened {steam.Starts} times");
+    Assert(File.ReadAllText(path) == SteamManifestText, "file changed");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
+await Check("steam: Steam putting the branch back is reported, not hidden", async () =>
+{
+    var (registry, module, steam, _, path) = await StartSteam("steam-reverted");
+    steam.OnStart = () => File.WriteAllText(path, SteamManifestText);
+    var result = await module.SwitchAsync("beta");
+    Assert(result.Outcome == SteamSwitchOutcome.Reverted, $"{result.Outcome}: {result.Message}");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
+await Check("steam: an accepted branch still downloading reports waiting", async () =>
+{
+    var (registry, module, _, _, _) = await StartSteam("steam-waiting");
+    var result = await module.SwitchAsync("beta");
+    Assert(result.Outcome == SteamSwitchOutcome.Waiting, $"{result.Outcome}: {result.Message}");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
+await Check("steam: other branches, a missing install and the current branch are refused safely", async () =>
+{
+    var (registry, module, steam, _, path) = await StartSteam("steam-refused");
+    Assert((await module.SwitchAsync("v1.5.1")).Outcome == SteamSwitchOutcome.Failed, "pinned branch accepted");
+    Assert((await module.SwitchAsync("public")).Outcome == SteamSwitchOutcome.AlreadyOn, "current branch not recognised");
+    Assert(steam.Shutdowns == 0, "Steam was closed");
+    steam.Manifest = null;
+    Assert((await module.SwitchAsync("beta")).Outcome == SteamSwitchOutcome.Failed, "missing install accepted");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
+await Check("steam: reads builds, and a failed lookup keeps the installed state", async () =>
+{
+    var (registry, module, _, api, _) = await StartSteam("steam-lookup");
+    var report = await module.CheckAsync(online: true);
+    Assert(report.Beta?.BuildId == "26185367" && report.Public?.BuildId == "18832234" && report.Error == null, "builds misread");
+    Assert(report.Beta!.Updated?.Year == 2026, "date misread");
+    Assert(api.Requests.All(r => !r.UserAgent.Contains('@')), "address sent");
+    api.Fail = true;
+    var failed = await module.CheckAsync(online: true);
+    Assert(failed.Error != null && failed.Installed?.BuildId == "18832234", "failure lost the installed state");
+    api.Garbage = true;
+    Assert((await module.CheckAsync(online: true)).Error != null, "bad answer not reported");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
+await Check("steam: no lookup is made offline or with the watch off", async () =>
+{
+    var (registry, module, _, api, _) = await StartSteam("steam-off");
+    await module.CheckAsync(online: false);
+    Assert(api.Requests.Count == 0, "offline read used the network");
+    Assert(registry.SetSetting(SteamBranchModule.ModuleId, SteamBranchModule.WatchKey, "false"), "setting not saved");
+    var report = await module.CheckAsync(online: true);
+    Assert(api.Requests.Count == 0 && !report.WatchOn, "watch off still used the network");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
+await Check("steam: a reviewed beta build survives restart, and bad input is refused", async () =>
+{
+    var dir = Fresh("steam-review");
+    var path = Path.Combine(dir, "appmanifest_3368750.acf");
+    File.WriteAllText(path, SteamManifestText);
+    var steam = new FakeSteam { Manifest = path };
+    var first = new SteamBranchModule(new FakeSteamApi(), steam);
+    var registry = new ModuleRegistry(OpenDb(Path.Combine(dir, "db")));
+    registry.Register(first);
+    await registry.StartAllAsync();
+    Assert(!first.MarkBetaReviewed("not-a-build"), "bad build accepted");
+    Assert(first.MarkBetaReviewed("26185367"), "build not saved");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+
+    var second = new SteamBranchModule(new FakeSteamApi(), steam);
+    var reopened = new ModuleRegistry(OpenDb(Path.Combine(dir, "db")));
+    reopened.Register(second);
+    await reopened.StartAllAsync();
+    Assert((await second.CheckAsync(online: false)).ReviewedBetaBuild == "26185367", "review lost");
+    await reopened.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
 // ---- Host ----
 
 await Check("host: the db opens in the background and Stop is bounded", async () =>
@@ -857,5 +1033,54 @@ internal sealed class FakeModule : IHubModule
     {
         Stopped++;
         return OnStop?.Invoke() ?? Task.CompletedTask;
+    }
+}
+
+internal sealed class FakeSteam : ISteamHost
+{
+    public string? Manifest { get; set; }
+    public IReadOnlyList<string> Blockers { get; set; } = Array.Empty<string>();
+    public bool ShutdownWorks { get; set; } = true;
+    public bool SteamOpen { get; set; } = true;
+    public int Shutdowns { get; private set; }
+    public int Starts { get; private set; }
+    public Action? OnStart { get; set; }
+    public Action? OnShutdown { get; set; }
+
+    public string? FindManifest(int appId) => Manifest;
+    public IReadOnlyList<string> RunningBlockers() => Blockers;
+    public bool IsSteamRunning() => SteamOpen;
+
+    public Task<bool> ShutdownAsync(CancellationToken cancellationToken)
+    {
+        Shutdowns++;
+        if (ShutdownWorks) SteamOpen = false;
+        OnShutdown?.Invoke();
+        return Task.FromResult(ShutdownWorks);
+    }
+
+    public void Start()
+    {
+        Starts++;
+        SteamOpen = true;
+        OnStart?.Invoke();
+    }
+}
+
+internal sealed class FakeSteamApi : HttpMessageHandler
+{
+    public sealed record Seen(string Url, string UserAgent);
+    public List<Seen> Requests { get; } = new();
+    public bool Fail { get; set; }
+    public bool Garbage { get; set; }
+
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        Requests.Add(new Seen(request.RequestUri!.ToString(), request.Headers.UserAgent.ToString()));
+        if (Fail && !Garbage) return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.BadGateway));
+        var body = Garbage
+            ? "{\"nope\":1}"
+            : "{\"data\":{\"3368750\":{\"depots\":{\"branches\":{\"public\":{\"buildid\":\"18832234\",\"timeupdated\":\"1749685565\"},\"beta\":{\"buildid\":\"26185367\",\"timeupdated\":\"1793662372\"}}}}}}";
+        return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new StringContent(body) });
     }
 }

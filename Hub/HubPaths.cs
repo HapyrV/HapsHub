@@ -33,6 +33,15 @@ public static class HubPaths
     /// <summary>HapsHub's own files, kept apart from the ones inherited from upstream.</summary>
     public static string HubRoot => Data("Hub");
 
+    /// <summary>True when a test run has pointed the app at its own folders.</summary>
+    public static bool IsOverridden => !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(DataDirVariable));
+
+    /// <summary>Keeps a run with its own folders from colliding with the real app's single-instance locks.</summary>
+    public static string InstanceSuffix => IsOverridden
+        ? "_" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+            System.Text.Encoding.UTF8.GetBytes(DataRoot.ToLowerInvariant())))[..12]
+        : "";
+
     public static string Data(params string[] parts) => Under(DataRoot, parts);
 
     public static string Local(params string[] parts) => Under(LocalRoot, parts);
