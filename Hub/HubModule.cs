@@ -2,7 +2,7 @@ namespace HapsHub.Core;
 
 public enum HubModuleStatus { Registered, Disabled, Starting, Running, Degraded, Failed, Stopped }
 
-public enum HubSettingKind { Toggle, Text, Number }
+public enum HubSettingKind { Toggle, Text, Number, Hidden }
 
 /// <summary>A setting owned by a module. Settings only exist through a module, so no toggle is left without a feature.</summary>
 public sealed record HubSettingDefinition(string Key, string Label, HubSettingKind Kind, string DefaultValue);

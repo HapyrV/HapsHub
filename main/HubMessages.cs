@@ -10,6 +10,7 @@ public partial class AppShell
     {
         if (HandleHistoryMessage(action, msg)) return true;
         if (HandleGroupMessage(action, msg)) return true;
+        if (HandleTunnelMessage(action, msg)) return true;
         switch (action)
         {
             case "hubGetModules":

@@ -1,0 +1,35 @@
+<div class="tab-toolbar">
+    <div class="ytt-title"><span class="msi">music_note</span> <span data-i18n="nav.youtube_tunnel">YouTube Tunnel</span></div>
+</div>
+<div class="ytt-body">
+    <p class="ytt-help" data-i18n="hub.tunnel.help">Plays a YouTube song into your VRChat mic, past the voice changer, so people hear the real song.</p>
+
+    <div class="ytt-row">
+        <input id="yttLink" class="ytt-link" type="text" spellcheck="false" autocomplete="off"
+            placeholder="https://www.youtube.com/watch?v=..." data-i18n-placeholder="hub.tunnel.link_placeholder"
+            onkeydown="if (event.key === 'Enter') yttPlay()">
+        <button id="yttPlayBtn" class="vrcn-button-round vrcn-btn-join" onclick="yttPlay()"><span class="msi">play_arrow</span> <span data-i18n="hub.tunnel.play">Play</span></button>
+        <button id="yttStopBtn" class="vrcn-button-round" onclick="yttStop()" disabled><span class="msi">stop</span> <span data-i18n="hub.tunnel.stop">Stop</span></button>
+    </div>
+
+    <div id="yttStatus" class="ytt-status" role="status"></div>
+
+    <label class="ytt-field">
+        <span data-i18n="hub.tunnel.send_to">Send to</span>
+        <select id="yttSend" class="vrcn-dropdown" onchange="yttDevicesChanged()"></select>
+        <span class="ytt-hint" data-i18n="hub.tunnel.send_hint">The input that reaches your VRChat mic without going through the voice changer.</span>
+    </label>
+    <label class="ytt-field">
+        <span data-i18n="hub.tunnel.mic_volume">Mic volume</span>
+        <input id="yttSendVolume" class="ytt-slider" type="range" min="0" max="100" oninput="yttVolumeChanged(false)" onchange="yttVolumeChanged(true)">
+    </label>
+
+    <label class="ytt-field">
+        <span data-i18n="hub.tunnel.hear_on">Hear it on</span>
+        <select id="yttHear" class="vrcn-dropdown" onchange="yttDevicesChanged()"></select>
+    </label>
+    <label class="ytt-field">
+        <span data-i18n="hub.tunnel.your_volume">Your volume</span>
+        <input id="yttHearVolume" class="ytt-slider" type="range" min="0" max="100" oninput="yttVolumeChanged(false)" onchange="yttVolumeChanged(true)">
+    </label>
+</div>

@@ -4130,5 +4130,19 @@
   "hub.groups.unblock": "Unblock",
   "hub.groups.blocked_ok": "Group blocked.",
   "hub.groups.unblocked_ok": "Group unblocked.",
-  "hub.groups.block_failed": "{action}: VRChat did not accept this."
+  "hub.groups.block_failed": "{action}: VRChat did not accept this.",
+  "nav.youtube_tunnel": "YouTube Tunnel",
+  "hub.tunnel.help": "Plays a YouTube song into your VRChat mic, past the voice changer, so people hear the real song.",
+  "hub.tunnel.link_placeholder": "YouTube link",
+  "hub.tunnel.play": "Play",
+  "hub.tunnel.stop": "Stop",
+  "hub.tunnel.send_to": "Send to",
+  "hub.tunnel.send_hint": "The input that reaches your VRChat mic without going through the voice changer.",
+  "hub.tunnel.mic_volume": "Mic volume",
+  "hub.tunnel.hear_on": "Hear it on",
+  "hub.tunnel.your_volume": "Your volume",
+  "hub.tunnel.fetching": "Getting the song...",
+  "hub.tunnel.no_ytdlp": "yt-dlp was not found. Set its path under YouTube tunnel in Settings, Hub modules.",
+  "hub.tunnel.choose": "Choose a device",
+  "hub.tunnel.nowhere": "Don't play it for me"
 }

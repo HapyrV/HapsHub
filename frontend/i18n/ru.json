@@ -4134,5 +4134,19 @@
   "hub.groups.unblock": "Разблокировать",
   "hub.groups.blocked_ok": "Группа заблокирована.",
   "hub.groups.unblocked_ok": "Группа разблокирована.",
-  "hub.groups.block_failed": "{action}: VRChat не принял это действие."
+  "hub.groups.block_failed": "{action}: VRChat не принял это действие.",
+  "nav.youtube_tunnel": "Туннель YouTube",
+  "hub.tunnel.help": "Воспроизводит песню с YouTube в микрофон VRChat, минуя изменитель голоса, чтобы другие слышали оригинал.",
+  "hub.tunnel.link_placeholder": "Ссылка YouTube",
+  "hub.tunnel.play": "Играть",
+  "hub.tunnel.stop": "Стоп",
+  "hub.tunnel.send_to": "Отправлять в",
+  "hub.tunnel.send_hint": "Вход, который попадает в микрофон VRChat, минуя изменитель голоса.",
+  "hub.tunnel.mic_volume": "Громкость микрофона",
+  "hub.tunnel.hear_on": "Слушать через",
+  "hub.tunnel.your_volume": "Ваша громкость",
+  "hub.tunnel.fetching": "Загрузка песни...",
+  "hub.tunnel.no_ytdlp": "yt-dlp не найден. Укажите путь в разделе YouTube tunnel: Настройки, Hub modules.",
+  "hub.tunnel.choose": "Выберите устройство",
+  "hub.tunnel.nowhere": "Не воспроизводить для меня"
 }

@@ -4130,5 +4130,19 @@
   "hub.groups.unblock": "Desbloquear",
   "hub.groups.blocked_ok": "Grupo bloqueado.",
   "hub.groups.unblocked_ok": "Grupo desbloqueado.",
-  "hub.groups.block_failed": "{action}: VRChat no lo aceptó."
+  "hub.groups.block_failed": "{action}: VRChat no lo aceptó.",
+  "nav.youtube_tunnel": "Túnel de YouTube",
+  "hub.tunnel.help": "Reproduce una canción de YouTube en tu micrófono de VRChat, sin pasar por el cambiador de voz, para que oigan la canción real.",
+  "hub.tunnel.link_placeholder": "Enlace de YouTube",
+  "hub.tunnel.play": "Reproducir",
+  "hub.tunnel.stop": "Detener",
+  "hub.tunnel.send_to": "Enviar a",
+  "hub.tunnel.send_hint": "La entrada que llega a tu micrófono de VRChat sin pasar por el cambiador de voz.",
+  "hub.tunnel.mic_volume": "Volumen del micrófono",
+  "hub.tunnel.hear_on": "Escuchar en",
+  "hub.tunnel.your_volume": "Tu volumen",
+  "hub.tunnel.fetching": "Obteniendo la canción...",
+  "hub.tunnel.no_ytdlp": "No se encontró yt-dlp. Indica su ruta en YouTube tunnel, en Ajustes, Hub modules.",
+  "hub.tunnel.choose": "Elige un dispositivo",
+  "hub.tunnel.nowhere": "No reproducirlo para mí"
 }

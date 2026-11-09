@@ -4130,5 +4130,19 @@
   "hub.groups.unblock": "ブロック解除",
   "hub.groups.blocked_ok": "グループをブロックしました。",
   "hub.groups.unblocked_ok": "ブロックを解除しました。",
-  "hub.groups.block_failed": "{action}：VRChatに受け付けられませんでした。"
+  "hub.groups.block_failed": "{action}：VRChatに受け付けられませんでした。",
+  "nav.youtube_tunnel": "YouTube トンネル",
+  "hub.tunnel.help": "YouTube の曲をボイスチェンジャーを通さずに VRChat のマイクへ流し、本来の音で聞いてもらえます。",
+  "hub.tunnel.link_placeholder": "YouTube のリンク",
+  "hub.tunnel.play": "再生",
+  "hub.tunnel.stop": "停止",
+  "hub.tunnel.send_to": "送信先",
+  "hub.tunnel.send_hint": "ボイスチェンジャーを通さずに VRChat のマイクへ届く入力です。",
+  "hub.tunnel.mic_volume": "マイクの音量",
+  "hub.tunnel.hear_on": "再生先",
+  "hub.tunnel.your_volume": "自分の音量",
+  "hub.tunnel.fetching": "曲を取得中...",
+  "hub.tunnel.no_ytdlp": "yt-dlp が見つかりません。設定の Hub modules にある YouTube tunnel でパスを指定してください。",
+  "hub.tunnel.choose": "デバイスを選択",
+  "hub.tunnel.nowhere": "自分には再生しない"
 }

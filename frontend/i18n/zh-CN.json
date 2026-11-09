@@ -4130,5 +4130,19 @@
   "hub.groups.unblock": "取消屏蔽",
   "hub.groups.blocked_ok": "已屏蔽群组。",
   "hub.groups.unblocked_ok": "已取消屏蔽群组。",
-  "hub.groups.block_failed": "{action}：VRChat 未接受此操作。"
+  "hub.groups.block_failed": "{action}：VRChat 未接受此操作。",
+  "nav.youtube_tunnel": "YouTube 隧道",
+  "hub.tunnel.help": "将 YouTube 歌曲绕过变声器送入你的 VRChat 麦克风，让别人听到原曲。",
+  "hub.tunnel.link_placeholder": "YouTube 链接",
+  "hub.tunnel.play": "播放",
+  "hub.tunnel.stop": "停止",
+  "hub.tunnel.send_to": "发送到",
+  "hub.tunnel.send_hint": "不经过变声器、直接到达 VRChat 麦克风的输入。",
+  "hub.tunnel.mic_volume": "麦克风音量",
+  "hub.tunnel.hear_on": "监听设备",
+  "hub.tunnel.your_volume": "你的音量",
+  "hub.tunnel.fetching": "正在获取歌曲...",
+  "hub.tunnel.no_ytdlp": "未找到 yt-dlp。请在设置的 Hub modules 中的 YouTube tunnel 里设置路径。",
+  "hub.tunnel.choose": "选择设备",
+  "hub.tunnel.nowhere": "不为我播放"
 }

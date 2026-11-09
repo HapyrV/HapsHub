@@ -1135,6 +1135,7 @@ case 'vrcNews':
             case 'hubCalendarEvents':    onHubCalendarEvents(payload); break;
             case 'hubVrcxRows':          onHubVrcxRows(payload); break;
             case 'hubHistory':           onHubHistory(payload); break;
+            case 'hubTunnelState':       onHubTunnelState(payload); break;
             case 'hubBlockedGroups':     onHubBlockedGroups(payload); break;
             case 'hubGroupBlocked':      onHubGroupBlocked(payload); break;
             case 'hubGroupBanPreview':   onHubGroupBanPreview(payload); break;

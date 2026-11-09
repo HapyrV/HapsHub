@@ -1118,6 +1118,70 @@ await Check("history: the first sighting of a friend isn't a change, later ones 
     await registry.StopAllAsync(TimeSpan.FromSeconds(5));
 });
 
+await Check("tunnel: only YouTube links get through", () =>
+{
+    Assert(TunnelLink.Clean(" https://youtu.be/abc ") == "https://youtu.be/abc", "a short link was refused");
+    Assert(TunnelLink.Clean("https://music.youtube.com/watch?v=abc") != null, "a YouTube Music link was refused");
+    foreach (var bad in new[] { "", "--exec calc", "file:///C:/x.m4a", "https://youtube.com.evil.test/watch", "https://example.com/watch?v=abc", "javascript:alert(1)" })
+        Assert(TunnelLink.Clean(bad) == null, $"accepted {bad}");
+    return Task.CompletedTask;
+});
+
+await Check("tunnel: the link can't become an option, and a browser is only used when set", () =>
+{
+    var plain = YoutubeTunnelModule.BuildArguments("https://youtu.be/a", "out", "");
+    Assert(plain[^2] == "--" && plain[^1] == "https://youtu.be/a", "the link isn't after the end of the options");
+    Assert(!plain.Contains("--cookies-from-browser"), "asked for browser cookies without a browser");
+    Assert(plain.Contains("--ignore-config"), "a yt-dlp config file could change what runs");
+    Assert(YoutubeTunnelModule.BuildArguments("https://youtu.be/a", "out", " firefox ").Contains("firefox"), "the browser was dropped");
+    return Task.CompletedTask;
+});
+
+await Check("tunnel: only a file in our own folder is accepted as the result", () =>
+{
+    var folder = Path.Combine(Path.GetTempPath(), "tunnel-check");
+    var inside = Path.Combine(folder, "tunnel-a.m4a");
+    var track = YoutubeTunnelModule.ParseOutput($"A song\n{inside}\n", folder);
+    Assert(track != null && track.Title == "A song" && track.Path == inside, "a normal result wasn't read");
+    Assert(YoutubeTunnelModule.ParseOutput($"A song\n{Path.Combine(Path.GetTempPath(), "other.m4a")}\n", folder) == null, "a file elsewhere was accepted");
+    Assert(YoutubeTunnelModule.ParseOutput($"{folder}2\\x.m4a", folder) == null, "one line was accepted");
+    Assert(YoutubeTunnelModule.ParseOutput($"A song\n{folder}2\\x.m4a\n", folder) == null, "a neighbouring folder was accepted");
+    return Task.CompletedTask;
+});
+
+await Check("tunnel: yt-dlp problems read as something you can act on", () =>
+{
+    Assert(YoutubeTunnelModule.Explain("ERROR: [youtube] abc: Sign in to confirm you're not a bot.").Contains("signed-in browser"), "the bot check wasn't explained");
+    Assert(YoutubeTunnelModule.Explain("noise\nERROR: Private video\nmore").Contains("Private video"), "the error line wasn't picked");
+    Assert(YoutubeTunnelModule.Explain("").Length > 0, "an empty error gave no message");
+    return Task.CompletedTask;
+});
+
+await Check("tunnel: finds yt-dlp, and a wrong path isn't silently replaced", () =>
+{
+    var folder = Path.Combine(Path.GetTempPath(), $"tunnel-find-{Guid.NewGuid():N}");
+    Directory.CreateDirectory(folder);
+    var file = Path.Combine(folder, "yt-dlp.exe");
+    File.WriteAllText(file, "");
+    Assert(YoutubeTunnelModule.FindYtDlp("", folder) == file, "wasn't found on the PATH");
+    Assert(YoutubeTunnelModule.FindYtDlp(file, "") == file, "the configured file wasn't used");
+    Assert(YoutubeTunnelModule.FindYtDlp(file + ".missing", folder) == null, "a wrong path fell back to another copy");
+    Directory.Delete(folder, true);
+    return Task.CompletedTask;
+});
+
+await Check("tunnel: clearing removes only fetched songs", () =>
+{
+    var folder = Path.Combine(Path.GetTempPath(), $"tunnel-clear-{Guid.NewGuid():N}");
+    Directory.CreateDirectory(folder);
+    File.WriteAllText(Path.Combine(folder, "tunnel-a.m4a"), "x");
+    File.WriteAllText(Path.Combine(folder, "keep.txt"), "x");
+    new YoutubeTunnelModule(folder).ClearCache();
+    Assert(!File.Exists(Path.Combine(folder, "tunnel-a.m4a")) && File.Exists(Path.Combine(folder, "keep.txt")), "cleared the wrong files");
+    Directory.Delete(folder, true);
+    return Task.CompletedTask;
+});
+
 const string BanA = "usr_11111111-1111-1111-1111-111111111111";
 const string BanB = "usr_22222222-2222-2222-2222-222222222222";
 const string BanC = "usr_33333333-3333-3333-3333-333333333333";

@@ -899,6 +899,7 @@ public partial class AppShell
 
         // Add watch dog at first Mark: Watchdog test
         CrashHandler.OnCleanShutdown();
+        ShutDownTunnel();
         _hub?.Stop(TimeSpan.FromSeconds(5));
         _relayCtrl?.Dispose();
         _fileWatcher.Dispose();

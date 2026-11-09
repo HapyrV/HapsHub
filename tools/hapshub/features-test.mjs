@@ -236,7 +236,6 @@ try {
     check('app exits cleanly', await closeMain(main, dir));
     check('no crash report', crashes(dir) === 0);
 
-    // --- History page, on a seeded archive and timeline ---
     fuzzy: {
         main = await openMain(dir);
         const score = (text, query) => main.eval(`hubSearchScore(${JSON.stringify(text)}, ${JSON.stringify(query)})`);
@@ -304,6 +303,26 @@ try {
     await waitFor('proxy problem to clear', () => main.eval(`!document.querySelector('.hub-module-row[data-module="hub.proxy"]').innerText.includes('Proxy address not used')`));
     check('a bad proxy address is reported and can be cleared', true);
     check('new modules start with their risky options off', await main.eval(`['hub.crash-rejoin', 'hub.photo-metadata'].every(id => [...document.querySelectorAll('.hub-module-row[data-module="' + id + '"] input[type=checkbox]')].every(i => !i.checked))`));
+
+    // --- History page, on a seeded archive and timeline, after the tunnel page ---
+    // --- YouTube tunnel page ---
+    await main.eval(`showTab(32)`);
+    await waitFor('tunnel page', () => main.eval(`!!document.getElementById('yttLink')`));
+    await main.eval(`onHubTunnelState({ state: 'playing', title: '<b>A song</b>', seconds: 75, message: '', found: true, send: 'a', hear: '', sendVolume: 80, hearVolume: 30, devices: [{ id: 'a', name: '<i>Cable</i>' }, { id: 'b', name: 'Speakers' }] })`);
+    check('the tunnel shows the song title as text, never as markup', await main.eval(`document.querySelector('#yttStatus b') === null && document.getElementById('yttStatus').textContent.includes('<b>A song</b>')`));
+    check('the tunnel shows the saved devices and volumes', await main.eval(`yttSend.value === 'a' && yttHear.value === '' && yttSendVolume.value === '80' && yttHearVolume.value === '30'`));
+    check('Stop works while a song plays', await main.eval(`!document.getElementById('yttStopBtn').disabled`));
+    await main.eval(`onHubTunnelState({ state: 'idle', title: '', seconds: 0, message: 'A problem', found: true, send: 'a', hear: '', sendVolume: 80, hearVolume: 30, devices: [] })`);
+    check('the tunnel shows problems, and Stop rests when idle', await main.eval(`yttStatus.textContent === 'A problem' && document.getElementById('yttStopBtn').disabled`));
+    const wideTunnelIcons = JSON.parse(await main.eval(`(() => {
+        const probe = document.createElement('div');
+        probe.innerHTML = ['music_note', 'play_arrow', 'stop'].map(name => '<span class="msi" style="position:absolute">' + name + '</span>').join('');
+        document.body.appendChild(probe);
+        const wide = [...probe.children].filter(icon => icon.getBoundingClientRect().width > 24).map(icon => icon.textContent);
+        probe.remove();
+        return JSON.stringify(wide);
+    })()`));
+    check('every tunnel icon exists in the icon font', wideTunnelIcons.length === 0, wideTunnelIcons.join(', '));
 
     await main.eval(`showTab(31)`);
     const rowsText = () => main.eval(`document.getElementById('hhistBody')?.innerText || ''`);

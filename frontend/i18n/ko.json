@@ -4130,5 +4130,19 @@
   "hub.groups.unblock": "차단 해제",
   "hub.groups.blocked_ok": "그룹을 차단했습니다.",
   "hub.groups.unblocked_ok": "그룹 차단을 해제했습니다.",
-  "hub.groups.block_failed": "{action}: VRChat이 받아들이지 않았습니다."
+  "hub.groups.block_failed": "{action}: VRChat이 받아들이지 않았습니다.",
+  "nav.youtube_tunnel": "YouTube 터널",
+  "hub.tunnel.help": "YouTube 노래를 음성 변조기를 거치지 않고 VRChat 마이크로 보내 다른 사람이 원곡을 듣게 합니다.",
+  "hub.tunnel.link_placeholder": "YouTube 링크",
+  "hub.tunnel.play": "재생",
+  "hub.tunnel.stop": "정지",
+  "hub.tunnel.send_to": "보낼 곳",
+  "hub.tunnel.send_hint": "음성 변조기를 거치지 않고 VRChat 마이크에 도달하는 입력입니다.",
+  "hub.tunnel.mic_volume": "마이크 음량",
+  "hub.tunnel.hear_on": "들을 곳",
+  "hub.tunnel.your_volume": "내 음량",
+  "hub.tunnel.fetching": "노래를 가져오는 중...",
+  "hub.tunnel.no_ytdlp": "yt-dlp를 찾을 수 없습니다. 설정의 Hub modules에 있는 YouTube tunnel에서 경로를 지정하세요.",
+  "hub.tunnel.choose": "장치 선택",
+  "hub.tunnel.nowhere": "나에게는 재생하지 않음"
 }
