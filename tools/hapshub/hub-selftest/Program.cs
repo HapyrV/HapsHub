@@ -1193,6 +1193,27 @@ await Check("embeds: apps are minimized when HapsHub closes unless another choic
     await registry.StopAllAsync(TimeSpan.FromSeconds(5));
 });
 
+await Check("name: the app's own name is cleaned before it's shown", () =>
+{
+    Assert(HubBranding.Clean(null) == "HapsHub" && HubBranding.Clean("   ") == "HapsHub", "an empty name didn't fall back");
+    Assert(HubBranding.Clean("  Moon Base ") == "Moon Base", "spaces around a name were kept");
+    Assert(HubBranding.Clean("A\r\nB\tC") == "ABC", "control characters were kept");
+    Assert(HubBranding.Clean(new string('x', 90)).Length == HubBranding.MaxLength, "a long name wasn't cut");
+    var heard = "";
+    Action<string> listen = name => heard = name;
+    HubBranding.Changed += listen;
+    try
+    {
+        Assert(HubBranding.Set(" Test Name ") == "Test Name" && HubBranding.DisplayName == "Test Name" && heard == "Test Name", "a new name wasn't taken or announced");
+        heard = "";
+        HubBranding.Set("Test Name");
+        Assert(heard == "", "the same name was announced twice");
+        Assert(HubBranding.Set("") == "HapsHub" && heard == "HapsHub", "clearing the name didn't bring HapsHub back");
+    }
+    finally { HubBranding.Changed -= listen; HubBranding.Set(""); }
+    return Task.CompletedTask;
+});
+
 await Check("tunnel: only YouTube links get through", () =>
 {
     Assert(TunnelLink.Clean(" https://youtu.be/abc ") == "https://youtu.be/abc", "a short link was refused");

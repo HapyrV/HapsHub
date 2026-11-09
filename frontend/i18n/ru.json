@@ -4261,5 +4261,14 @@
   "hub.set.hub.app-embeds.on_exit": "При закрытии HapsHub приложения на его страницах",
   "hub.set.hub.app-embeds.on_exit.minimize": "сворачиваются",
   "hub.set.hub.app-embeds.on_exit.close": "тоже закрываются",
-  "hub.set.hub.app-embeds.on_exit.leave": "остаются открытыми"
+  "hub.set.hub.app-embeds.on_exit.leave": "остаются открытыми",
+  "hub.credit.pill_html": "<span class=\"tb-credit-lead\">Во многом основано на </span><strong>VRCNext</strong><span class=\"tb-credit-more\"> · поддержите их работу</span>",
+  "hub.credit.tooltip": "HapsHub во многом основан на VRCNext. Поддержите их работу.",
+  "hub.credit.title": "{name} во многом основан на VRCNext",
+  "hub.credit.body": "VRCNext — исходное приложение, созданное shinyflvre и участниками проекта VRCNext. Почти всё, что вы здесь видите, — их работа. Если приложение вам нравится, поддержите их.",
+  "hub.credit.github": "Поставить звезду VRCNext на GitHub",
+  "hub.credit.patreon": "Поддержать на Patreon",
+  "hub.brand.title": "Название приложения",
+  "hub.brand.desc": "Показывается в заголовке окна, боковой панели и трее. Оставьте пустым, чтобы вернуть исходное название. Упоминание VRCNext остаётся при любом названии.",
+  "hub.brand.reset": "Вернуть исходное название"
 }

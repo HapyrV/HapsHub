@@ -4257,5 +4257,14 @@
   "hub.set.hub.app-embeds.on_exit": "HapsHub を閉じたとき、ページ内で開いているアプリ",
   "hub.set.hub.app-embeds.on_exit.minimize": "最小化する",
   "hub.set.hub.app-embeds.on_exit.close": "一緒に閉じる",
-  "hub.set.hub.app-embeds.on_exit.leave": "開いたままにする"
+  "hub.set.hub.app-embeds.on_exit.leave": "開いたままにする",
+  "hub.credit.pill_html": "<strong>VRCNext</strong><span class=\"tb-credit-lead\"> を大きくベースにしています</span><span class=\"tb-credit-more\"> · ぜひ応援を</span>",
+  "hub.credit.tooltip": "HapsHub は VRCNext を大きくベースにしています。ぜひ応援してください。",
+  "hub.credit.title": "{name} は VRCNext を大きくベースにしています",
+  "hub.credit.body": "VRCNext は shinyflvre と VRCNext のコントリビューターによる元のアプリです。ここにあるものの大半は彼らの成果です。このアプリが気に入ったら、ぜひ彼らを応援してください。",
+  "hub.credit.github": "GitHub で VRCNext にスターを付ける",
+  "hub.credit.patreon": "Patreon で支援する",
+  "hub.brand.title": "アプリ名",
+  "hub.brand.desc": "タイトルバー、サイドバー、トレイに表示されます。空にすると元の名前になります。どんな名前にしても VRCNext のクレジットは残ります。",
+  "hub.brand.reset": "元の名前に戻す"
 }

@@ -82,6 +82,7 @@
     <link rel="stylesheet" href="core/Keybinds/Keybind.css">
     <link rel="stylesheet" href="Debug/CacheTests/cache-debug.css">
     <link rel="stylesheet" href="core/Taskbar/taskbar.css">
+    <link rel="stylesheet" href="Styles/hub.css">
     <style id="vrcnSplashStyle">
         #vrcnSplash {
             position: fixed;
@@ -289,6 +290,8 @@
                     </div>
                     <span style="font-size:calc(10px + var(--fs-off, 0px));color:var(--tx2);flex-shrink:0;" id="dbMigrationPct">0%</span>
                 </div>
+                <!-- The credit to VRCNext. Always shown: its licence asks every fork to name it. -->
+                <button class="tb-credit" id="tbCredit" onclick="hubCreditToggle()" title="HapsHub is heavily based on VRCNext. Go support their work." data-i18n-title="hub.credit.tooltip"><span class="msi">favorite</span><span class="tb-credit-text" data-i18n-html="hub.credit.pill_html"><span class="tb-credit-lead">Heavily based on </span><strong>VRCNext</strong><span class="tb-credit-more"> · go support their work</span></span></button>
             </div>
             <div id="tb-right">
                 <div id="tbAppControls">
@@ -385,6 +388,21 @@
             </div>
             <div style="padding:14px 16px;overflow-y:auto;flex:1;">
                 <p id="helpPanelText" style="font-size:calc(13px + var(--fs-off, 0px));line-height:1.65;color:var(--tx2);margin:0;white-space:pre-wrap;"></p>
+            </div>
+        </div>
+
+        <!-- VRCNext credit panel -->
+        <div class="notif-panel credit-panel" id="creditPanel" style="display:none;">
+            <div class="notif-panel-header">
+                <span id="creditPanelTitle" style="font-weight:700;font-size:calc(13px + var(--fs-off, 0px));"></span>
+                <button class="vrcn-icon-button" onclick="hubCreditToggle()" title="Close" data-i18n-title="common.close"><span class="msi" style="font-size:18px;">close</span></button>
+            </div>
+            <div style="padding:14px 16px;">
+                <p class="credit-panel-text" data-i18n="hub.credit.body">VRCNext is the original app, made by shinyflvre and the VRCNext contributors. Most of what you see here is their work. If you like this app, go support them.</p>
+                <div class="credit-panel-buttons">
+                    <button class="vrcn-button vrcn-btn-primary" onclick="hubCreditOpenLink('github')"><span class="msi" style="font-size:15px;">star</span> <span data-i18n="hub.credit.github">Star VRCNext on GitHub</span></button>
+                    <button class="vrcn-button" onclick="hubCreditOpenLink('patreon')"><span class="msi" style="font-size:15px;">favorite</span> <span data-i18n="hub.credit.patreon">Support them on Patreon</span></button>
+                </div>
             </div>
         </div>
 
@@ -813,6 +831,7 @@
             'core/sidebars/navigation/nav-model.js',
             'core/sidebars/navigation/navigation.js',
             'core/i18n/i18n.js',
+            'core/logic/hub-brand.js',
             'modules/tools/media-relay/media-relay.js',
             'modules/settings/settings.js',
             'modules/settings/accounts.js',

@@ -4257,5 +4257,14 @@
   "hub.set.hub.app-embeds.on_exit": "关闭 HapsHub 时，页面中打开的应用",
   "hub.set.hub.app-embeds.on_exit.minimize": "最小化",
   "hub.set.hub.app-embeds.on_exit.close": "一起关闭",
-  "hub.set.hub.app-embeds.on_exit.leave": "保持打开"
+  "hub.set.hub.app-embeds.on_exit.leave": "保持打开",
+  "hub.credit.pill_html": "<span class=\"tb-credit-lead\">主要基于 </span><strong>VRCNext</strong><span class=\"tb-credit-more\"> · 请支持他们的工作</span>",
+  "hub.credit.tooltip": "HapsHub 主要基于 VRCNext。请支持他们的工作。",
+  "hub.credit.title": "{name} 主要基于 VRCNext",
+  "hub.credit.body": "VRCNext 是原版应用，由 shinyflvre 和 VRCNext 贡献者制作。你在这里看到的大部分内容都是他们的成果。如果你喜欢这个应用，请去支持他们。",
+  "hub.credit.github": "在 GitHub 上给 VRCNext 点星",
+  "hub.credit.patreon": "在 Patreon 上支持他们",
+  "hub.brand.title": "应用名称",
+  "hub.brand.desc": "显示在标题栏、侧边栏和托盘中。留空则使用原名。无论叫什么，对 VRCNext 的致谢都会保留。",
+  "hub.brand.reset": "使用原名"
 }

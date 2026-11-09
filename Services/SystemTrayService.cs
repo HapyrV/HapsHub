@@ -127,9 +127,13 @@ public class SystemTrayService : IDisposable
         _trayIcon = new NotifyIcon
         {
             Icon = _warningIcon ?? _defaultIcon,
-            Text = AppInfo.AppName,
+            Text = HapsHub.Core.HubBranding.DisplayName,
             Visible = _pendingVisible,
         };
+        HapsHub.Core.HubBranding.Changed += name => _syncCtx?.Post(_ =>
+        {
+            if (_trayIcon != null && !_loggedIn) _trayIcon.Text = name;
+        }, null);
         _trayIcon.MouseClick += (_, e) =>
         {
             if (e.Button == MouseButtons.Left)
@@ -211,7 +215,7 @@ public class SystemTrayService : IDisposable
             _trayIcon.Icon = loggedIn
                 ? (_statusIcons.TryGetValue(_status, out var sIcon) ? sIcon : _defaultIcon)
                 : (_warningIcon ?? _defaultIcon);
-            if (!loggedIn) _trayIcon.Text = AppInfo.AppName;
+            if (!loggedIn) _trayIcon.Text = HapsHub.Core.HubBranding.DisplayName;
         }, null);
     }
 
@@ -908,7 +912,7 @@ public class SystemTrayService : IDisposable
             using (var nf = PxFont(14, FontStyle.Bold))
             using (var nb = new SolidBrush(_theme.Tx1))
             {
-                var nameStr = string.IsNullOrEmpty(_name) ? AppInfo.AppName : _name;
+                var nameStr = string.IsNullOrEmpty(_name) ? HapsHub.Core.HubBranding.DisplayName : _name;
                 g.DrawString(nameStr, nf, nb, new RectangleF(tx, avRect.Y + S(2), tw, S(18)), noWrap);
             }
 

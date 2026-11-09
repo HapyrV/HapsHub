@@ -4257,5 +4257,14 @@
   "hub.set.hub.app-embeds.on_exit": "HapsHub를 닫을 때 페이지 안에 열린 앱",
   "hub.set.hub.app-embeds.on_exit.minimize": "최소화",
   "hub.set.hub.app-embeds.on_exit.close": "함께 닫기",
-  "hub.set.hub.app-embeds.on_exit.leave": "열어 둠"
+  "hub.set.hub.app-embeds.on_exit.leave": "열어 둠",
+  "hub.credit.pill_html": "<strong>VRCNext</strong><span class=\"tb-credit-lead\"> 기반으로 만들었습니다</span><span class=\"tb-credit-more\"> · 응원해 주세요</span>",
+  "hub.credit.tooltip": "HapsHub는 VRCNext를 기반으로 만들었습니다. 그들의 작업을 응원해 주세요.",
+  "hub.credit.title": "{name}는 VRCNext를 기반으로 만들었습니다",
+  "hub.credit.body": "VRCNext는 shinyflvre와 VRCNext 기여자들이 만든 원본 앱입니다. 여기 보이는 대부분이 그들의 작업입니다. 이 앱이 마음에 든다면 그들을 응원해 주세요.",
+  "hub.credit.github": "GitHub에서 VRCNext에 별 주기",
+  "hub.credit.patreon": "Patreon에서 후원하기",
+  "hub.brand.title": "앱 이름",
+  "hub.brand.desc": "제목 표시줄, 사이드바, 트레이에 표시됩니다. 비워 두면 원래 이름을 씁니다. 어떤 이름을 쓰든 VRCNext 크레딧은 그대로 남습니다.",
+  "hub.brand.reset": "원래 이름 사용"
 }

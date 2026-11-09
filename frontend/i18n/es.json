@@ -4257,5 +4257,14 @@
   "hub.set.hub.app-embeds.on_exit": "Al cerrar HapsHub, las apps abiertas en sus páginas",
   "hub.set.hub.app-embeds.on_exit.minimize": "se minimizan",
   "hub.set.hub.app-embeds.on_exit.close": "se cierran también",
-  "hub.set.hub.app-embeds.on_exit.leave": "siguen abiertas"
+  "hub.set.hub.app-embeds.on_exit.leave": "siguen abiertas",
+  "hub.credit.pill_html": "<span class=\"tb-credit-lead\">Basado en gran parte en </span><strong>VRCNext</strong><span class=\"tb-credit-more\"> · apoya su trabajo</span>",
+  "hub.credit.tooltip": "HapsHub se basa en gran parte en VRCNext. Apoya su trabajo.",
+  "hub.credit.title": "{name} se basa en gran parte en VRCNext",
+  "hub.credit.body": "VRCNext es la app original, creada por shinyflvre y los colaboradores de VRCNext. Casi todo lo que ves aquí es obra suya. Si te gusta esta app, apóyalos.",
+  "hub.credit.github": "Dar una estrella a VRCNext en GitHub",
+  "hub.credit.patreon": "Apoyarlos en Patreon",
+  "hub.brand.title": "Nombre de la app",
+  "hub.brand.desc": "Se muestra en la barra de título, la barra lateral y la bandeja. Déjalo vacío para usar el nombre original. El crédito a VRCNext se mantiene sea cual sea el nombre.",
+  "hub.brand.reset": "Usar el nombre original"
 }

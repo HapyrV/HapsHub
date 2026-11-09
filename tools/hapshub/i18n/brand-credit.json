@@ -1,0 +1,74 @@
+{
+  "hub.credit.pill_html": {
+    "en": "<span class=\"tb-credit-lead\">Heavily based on </span><strong>VRCNext</strong><span class=\"tb-credit-more\"> · go support their work</span>",
+    "de": "<span class=\"tb-credit-lead\">Basiert stark auf </span><strong>VRCNext</strong><span class=\"tb-credit-more\"> · unterstütze ihre Arbeit</span>",
+    "es": "<span class=\"tb-credit-lead\">Basado en gran parte en </span><strong>VRCNext</strong><span class=\"tb-credit-more\"> · apoya su trabajo</span>",
+    "fr": "<span class=\"tb-credit-lead\">Largement basé sur </span><strong>VRCNext</strong><span class=\"tb-credit-more\"> · soutenez leur travail</span>",
+    "ja": "<strong>VRCNext</strong><span class=\"tb-credit-lead\"> を大きくベースにしています</span><span class=\"tb-credit-more\"> · ぜひ応援を</span>",
+    "ko": "<strong>VRCNext</strong><span class=\"tb-credit-lead\"> 기반으로 만들었습니다</span><span class=\"tb-credit-more\"> · 응원해 주세요</span>",
+    "ru": "<span class=\"tb-credit-lead\">Во многом основано на </span><strong>VRCNext</strong><span class=\"tb-credit-more\"> · поддержите их работу</span>",
+    "zh-CN": "<span class=\"tb-credit-lead\">主要基于 </span><strong>VRCNext</strong><span class=\"tb-credit-more\"> · 请支持他们的工作</span>",
+    "zh-TW": "<span class=\"tb-credit-lead\">主要基於 </span><strong>VRCNext</strong><span class=\"tb-credit-more\"> · 請支持他們的工作</span>"
+  },
+  "hub.credit.tooltip": {
+    "en": "HapsHub is heavily based on VRCNext. Go support their work.",
+    "de": "HapsHub basiert stark auf VRCNext. Unterstütze ihre Arbeit.",
+    "es": "HapsHub se basa en gran parte en VRCNext. Apoya su trabajo.",
+    "fr": "HapsHub est largement basé sur VRCNext. Soutenez leur travail.",
+    "ja": "HapsHub は VRCNext を大きくベースにしています。ぜひ応援してください。",
+    "ko": "HapsHub는 VRCNext를 기반으로 만들었습니다. 그들의 작업을 응원해 주세요.",
+    "ru": "HapsHub во многом основан на VRCNext. Поддержите их работу.",
+    "zh-CN": "HapsHub 主要基于 VRCNext。请支持他们的工作。",
+    "zh-TW": "HapsHub 主要基於 VRCNext。請支持他們的工作。"
+  },
+  "hub.credit.title": {
+    "en": "{name} is heavily based on VRCNext",
+    "de": "{name} basiert stark auf VRCNext",
+    "es": "{name} se basa en gran parte en VRCNext",
+    "fr": "{name} est largement basé sur VRCNext",
+    "ja": "{name} は VRCNext を大きくベースにしています",
+    "ko": "{name}는 VRCNext를 기반으로 만들었습니다",
+    "ru": "{name} во многом основан на VRCNext",
+    "zh-CN": "{name} 主要基于 VRCNext",
+    "zh-TW": "{name} 主要基於 VRCNext"
+  },
+  "hub.credit.body": {
+    "en": "VRCNext is the original app, made by shinyflvre and the VRCNext contributors. Most of what you see here is their work. If you like this app, go support them.",
+    "de": "VRCNext ist die ursprüngliche App von shinyflvre und den VRCNext-Mitwirkenden. Das meiste, was du hier siehst, ist ihre Arbeit. Wenn dir diese App gefällt, unterstütze sie.",
+    "es": "VRCNext es la app original, creada por shinyflvre y los colaboradores de VRCNext. Casi todo lo que ves aquí es obra suya. Si te gusta esta app, apóyalos.",
+    "fr": "VRCNext est l'application d'origine, créée par shinyflvre et les contributeurs de VRCNext. Presque tout ce que vous voyez ici est leur travail. Si cette appli vous plaît, soutenez-les.",
+    "ja": "VRCNext は shinyflvre と VRCNext のコントリビューターによる元のアプリです。ここにあるものの大半は彼らの成果です。このアプリが気に入ったら、ぜひ彼らを応援してください。",
+    "ko": "VRCNext는 shinyflvre와 VRCNext 기여자들이 만든 원본 앱입니다. 여기 보이는 대부분이 그들의 작업입니다. 이 앱이 마음에 든다면 그들을 응원해 주세요.",
+    "ru": "VRCNext — исходное приложение, созданное shinyflvre и участниками проекта VRCNext. Почти всё, что вы здесь видите, — их работа. Если приложение вам нравится, поддержите их.",
+    "zh-CN": "VRCNext 是原版应用，由 shinyflvre 和 VRCNext 贡献者制作。你在这里看到的大部分内容都是他们的成果。如果你喜欢这个应用，请去支持他们。",
+    "zh-TW": "VRCNext 是原版應用程式，由 shinyflvre 和 VRCNext 貢獻者製作。你在這裡看到的大部分內容都是他們的成果。如果你喜歡這個應用程式，請去支持他們。"
+  },
+  "hub.credit.github": {
+    "en": "Star VRCNext on GitHub", "de": "VRCNext auf GitHub einen Stern geben", "es": "Dar una estrella a VRCNext en GitHub",
+    "fr": "Mettre une étoile à VRCNext sur GitHub", "ja": "GitHub で VRCNext にスターを付ける", "ko": "GitHub에서 VRCNext에 별 주기",
+    "ru": "Поставить звезду VRCNext на GitHub", "zh-CN": "在 GitHub 上给 VRCNext 点星", "zh-TW": "在 GitHub 上給 VRCNext 按星"
+  },
+  "hub.credit.patreon": {
+    "en": "Support them on Patreon", "de": "Auf Patreon unterstützen", "es": "Apoyarlos en Patreon", "fr": "Les soutenir sur Patreon",
+    "ja": "Patreon で支援する", "ko": "Patreon에서 후원하기", "ru": "Поддержать на Patreon", "zh-CN": "在 Patreon 上支持他们", "zh-TW": "在 Patreon 上支持他們"
+  },
+  "hub.brand.title": {
+    "en": "App name", "de": "App-Name", "es": "Nombre de la app", "fr": "Nom de l'appli", "ja": "アプリ名", "ko": "앱 이름",
+    "ru": "Название приложения", "zh-CN": "应用名称", "zh-TW": "應用程式名稱"
+  },
+  "hub.brand.desc": {
+    "en": "Shown in the title bar, the sidebar and the tray. Leave it empty to use the original name. The credit to VRCNext stays whatever you call it.",
+    "de": "Wird in der Titelleiste, der Seitenleiste und im Infobereich angezeigt. Leer lassen für den ursprünglichen Namen. Der Hinweis auf VRCNext bleibt, egal wie du es nennst.",
+    "es": "Se muestra en la barra de título, la barra lateral y la bandeja. Déjalo vacío para usar el nombre original. El crédito a VRCNext se mantiene sea cual sea el nombre.",
+    "fr": "Affiché dans la barre de titre, la barre latérale et la zone de notification. Laissez vide pour le nom d'origine. La mention de VRCNext reste, quel que soit le nom.",
+    "ja": "タイトルバー、サイドバー、トレイに表示されます。空にすると元の名前になります。どんな名前にしても VRCNext のクレジットは残ります。",
+    "ko": "제목 표시줄, 사이드바, 트레이에 표시됩니다. 비워 두면 원래 이름을 씁니다. 어떤 이름을 쓰든 VRCNext 크레딧은 그대로 남습니다.",
+    "ru": "Показывается в заголовке окна, боковой панели и трее. Оставьте пустым, чтобы вернуть исходное название. Упоминание VRCNext остаётся при любом названии.",
+    "zh-CN": "显示在标题栏、侧边栏和托盘中。留空则使用原名。无论叫什么，对 VRCNext 的致谢都会保留。",
+    "zh-TW": "顯示在標題列、側邊欄和系統匣中。留空則使用原名。無論叫什麼，對 VRCNext 的致謝都會保留。"
+  },
+  "hub.brand.reset": {
+    "en": "Use the original name", "de": "Ursprünglichen Namen verwenden", "es": "Usar el nombre original", "fr": "Utiliser le nom d'origine",
+    "ja": "元の名前に戻す", "ko": "원래 이름 사용", "ru": "Вернуть исходное название", "zh-CN": "使用原名", "zh-TW": "使用原名"
+  }
+}

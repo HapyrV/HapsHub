@@ -16,4 +16,9 @@ if (-not $SkipFeatures) {
     node tools/hapshub/features-test.mjs *> $out
     Get-Content $out | ForEach-Object { $_.Substring(0, [Math]::Min(500, $_.Length)) } | Where-Object { $_ -notmatch '^ok ' -or $_ -match 'NOT CHECKED' }
     "ok lines: " + (Get-Content $out | Where-Object { $_ -match '^ok ' }).Count
+    # The newer tests share one harness and print their own totals.
+    foreach ($test in 'round5-test.mjs', 'embed-fake-test.mjs') {
+        $lines = node "tools/hapshub/$test" 2>&1
+        $lines | Where-Object { $_ -notmatch '^ok ' } | ForEach-Object { "$test`: $_" }
+    }
 }

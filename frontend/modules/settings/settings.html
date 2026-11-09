@@ -162,6 +162,16 @@
                         </div>
                     </div>
 
+                    <!-- APP NAME -->
+                    <div class="vrcn-panel-card" data-section="appearance" style="display:none;">
+                        <div class="vrcn-panel-card-header"><span class="msi">badge</span> <span data-i18n="hub.brand.title">App name</span></div>
+                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="hub.brand.desc">Shown in the title bar, the sidebar and the tray. Leave it empty to use the original name. The credit to VRCNext stays whatever you call it.</div>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <input type="text" id="hubAppNameInput" class="vrcn-input" maxlength="40" placeholder="HapsHub" spellcheck="false" style="flex:1;min-width:160px;max-width:320px;" onchange="hubBrandSave(this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+                            <button class="vrcn-button" onclick="hubBrandReset()"><span class="msi" style="font-size:15px;">restart_alt</span> <span data-i18n="hub.brand.reset">Use the original name</span></button>
+                        </div>
+                    </div>
+
                     <!-- BACKGROUND -->
                     <div class="vrcn-panel-card" data-section="appearance" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">wallpaper</span> <span data-i18n="settings.design.tabs.background">Background</span></div>

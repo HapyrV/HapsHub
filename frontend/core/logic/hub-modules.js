@@ -28,7 +28,7 @@ function hubSettingChanged(input) {
 const _HUB_MOVED_SETTINGS = {
     'hub.forwarding': { forward_avatar_data: 'hubForwardingSlot' },
     'hub.ui': {
-        welcome_off: 'hubOwnPage', welcome_custom: 'hubOwnPage', letter_spacing: 'hubOwnPage',
+        welcome_off: 'hubOwnPage', welcome_custom: 'hubOwnPage', letter_spacing: 'hubOwnPage', app_name: 'hubOwnPage',
         dash_welcome: 'hubOwnPage', dash_online: 'hubOwnPage', dash_status: 'hubOwnPage', dash_friends: 'hubOwnPage', dash_web: 'hubOwnPage',
     },
 };

@@ -588,6 +588,9 @@ public partial class AppShell
         _window = windowBuilder.Load(startUrl);
 #endif
         _core.Window = _window;
+        // The name on the taskbar follows the one chosen in Settings.
+        HubBranding.Changed += name => { try { _window.SetTitle(name); } catch (Exception ex) { CrashHandler.WriteEntry("hubAppName", ex); } };
+        if (HubBranding.DisplayName != AppInfo.AppName) { try { _window.SetTitle(HubBranding.DisplayName); } catch { } }
         _ = RunJsDispatcherAsync();
         _ = RunAutoBackupsAsync();
         EfficiencyModeService.Apply(_settings.EfficiencyMode);
