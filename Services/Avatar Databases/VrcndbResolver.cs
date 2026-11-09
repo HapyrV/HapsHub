@@ -128,7 +128,6 @@ public sealed class VrcndbResolver
 
         using var client = new HttpClient(new VrcndbSigningHandler()) { Timeout = TimeSpan.FromSeconds(25) };
         client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", AppInfo.UserAgent);
-        client.DefaultRequestHeaders.TryAddWithoutValidation("Referer", $"https://{AppInfo.Website}");
         client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
 
         var body = await SendAsync(client, payload);

@@ -30,7 +30,6 @@ public static class PopularityReporter
                     Content = new StringContent(payload, Encoding.UTF8, "application/json")
                 };
                 req.Headers.TryAddWithoutValidation("User-Agent", AppInfo.UserAgent);
-                req.Headers.TryAddWithoutValidation("Referer", $"https://{AppInfo.Website}");
                 await _client.SendAsync(req);
             }
             catch { }
@@ -90,7 +89,6 @@ public static class PopularityReporter
                     Content = new StringContent(payload, Encoding.UTF8, "application/json")
                 };
                 req.Headers.TryAddWithoutValidation("User-Agent", AppInfo.UserAgent);
-                req.Headers.TryAddWithoutValidation("Referer", $"https://{AppInfo.Website}");
                 var resp = await _client.SendAsync(req);
                 if (resp.IsSuccessStatusCode) sent.AddRange(batch);
             }

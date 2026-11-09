@@ -137,7 +137,6 @@ public sealed class AvtrdbResolver
         client.DefaultRequestVersion = System.Net.HttpVersion.Version20;
         client.DefaultVersionPolicy  = System.Net.Http.HttpVersionPolicy.RequestVersionExact;
         client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", AppInfo.UserAgent);
-        client.DefaultRequestHeaders.TryAddWithoutValidation("Referer", $"https://{AppInfo.Website}");
         client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
 
         var body = await SendAsync(client, payload);
