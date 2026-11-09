@@ -4175,5 +4175,14 @@
   "settings.friend_toast.groups_desc": "그룹을 고르면 그 그룹의 친구만 알림을 받습니다. 아무것도 고르지 않으면 위의 \"즐겨찾기만\"을 따릅니다.",
   "settings.friend_toast.no_group": "그룹 없는 친구",
   "settings.friend_toast.groups_all": "전체",
-  "settings.friend_toast.groups_count": "그룹 {count}개"
+  "settings.friend_toast.groups_count": "그룹 {count}개",
+  "people.sort.title": "정렬",
+  "people.sort.default": "정렬: 기본",
+  "people.sort.timespent": "함께한 시간이 많은 순",
+  "people.sort.meets": "가장 많이 만난 순",
+  "people.sort.mutualfriends": "공통 친구가 많은 순",
+  "people.sort.mutualgroups": "공통 그룹이 많은 순",
+  "people.sort.lastseen": "최근에 본 순",
+  "people.sort.joined": "최신 계정 순",
+  "people.sort.name": "이름순"
 }

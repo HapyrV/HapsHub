@@ -4175,5 +4175,14 @@
   "settings.friend_toast.groups_desc": "グループを選ぶと、そのグループのフレンドだけ通知します。未選択なら上の「お気に入りのみ」に従います。",
   "settings.friend_toast.no_group": "グループ外のフレンド",
   "settings.friend_toast.groups_all": "すべて",
-  "settings.friend_toast.groups_count": "{count} グループ"
+  "settings.friend_toast.groups_count": "{count} グループ",
+  "people.sort.title": "並べ替え",
+  "people.sort.default": "並べ替え: 標準",
+  "people.sort.timespent": "一緒に過ごした時間が長い順",
+  "people.sort.meets": "会った回数が多い順",
+  "people.sort.mutualfriends": "共通のフレンドが多い順",
+  "people.sort.mutualgroups": "共通のグループが多い順",
+  "people.sort.lastseen": "最近見かけた順",
+  "people.sort.joined": "新しいアカウント順",
+  "people.sort.name": "名前順"
 }

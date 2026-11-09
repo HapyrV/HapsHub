@@ -4175,5 +4175,14 @@
   "settings.friend_toast.groups_desc": "选择分组后，只为其中的好友弹出通知。未选择时按上方的“仅收藏”。",
   "settings.friend_toast.no_group": "未分组的好友",
   "settings.friend_toast.groups_all": "全部",
-  "settings.friend_toast.groups_count": "{count} 个分组"
+  "settings.friend_toast.groups_count": "{count} 个分组",
+  "people.sort.title": "排序",
+  "people.sort.default": "排序：默认",
+  "people.sort.timespent": "相处时间最长",
+  "people.sort.meets": "见面次数最多",
+  "people.sort.mutualfriends": "共同好友最多",
+  "people.sort.mutualgroups": "共同群组最多",
+  "people.sort.lastseen": "最近见过",
+  "people.sort.joined": "最新账号",
+  "people.sort.name": "名称 A 到 Z"
 }

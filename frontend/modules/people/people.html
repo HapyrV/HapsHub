@@ -64,6 +64,16 @@
                             <button class="vrcn-button sub-tab-btn" id="allFriendFilterOffline" onclick="setAllFriendsStatusFilter('offline')"><span data-i18n="profiles.people.status_filter.offline">Offline</span> <span class="vrcn-badge fd-tab-badge" id="allFriendFilterOfflineCount">0</span></button>
                         </div>
                         <div class="search-bar-row" style="margin-bottom:0;flex:1;min-width:140px;"><span class="msi search-ico">search</span><input type="text" id="allFriendSearchInput" class="vrcn-input" placeholder="Filter friends..." data-i18n-placeholder="profiles.people.all_search_placeholder" oninput="_dbFilterAllFriends()"></div>
+                        <select id="allFriendSort" class="vrcn-dropdown" onchange="setPeopleAllSort(this.value)" title="Sort" data-i18n-title="people.sort.title" style="min-width:170px;">
+                            <option value="default" data-i18n="people.sort.default">Sort: Default</option>
+                            <option value="timespent" data-i18n="people.sort.timespent">Spent the most time with</option>
+                            <option value="meets" data-i18n="people.sort.meets">Met the most</option>
+                            <option value="mutualfriends" data-i18n="people.sort.mutualfriends">Most mutual friends</option>
+                            <option value="mutualgroups" data-i18n="people.sort.mutualgroups">Most mutual groups</option>
+                            <option value="lastseen" data-i18n="people.sort.lastseen">Seen most recently</option>
+                            <option value="joined" data-i18n="people.sort.joined">Newest accounts</option>
+                            <option value="name" data-i18n="people.sort.name">Name A to Z</option>
+                        </select>
                     </div>
                     </div>
                     <div id="allFriendsGrid" class="search-grid"><div class="empty-msg" data-i18n="profiles.people.loading_all">Loading friends...</div></div>

@@ -4175,5 +4175,14 @@
   "settings.friend_toast.groups_desc": "Pick groups to get toasts only for friends in them. Nothing picked follows \"Favorites only\" above.",
   "settings.friend_toast.no_group": "Friends in no group",
   "settings.friend_toast.groups_all": "All",
-  "settings.friend_toast.groups_count": "{count} groups"
+  "settings.friend_toast.groups_count": "{count} groups",
+  "people.sort.title": "Sort",
+  "people.sort.default": "Sort: Default",
+  "people.sort.timespent": "Spent the most time with",
+  "people.sort.meets": "Met the most",
+  "people.sort.mutualfriends": "Most mutual friends",
+  "people.sort.mutualgroups": "Most mutual groups",
+  "people.sort.lastseen": "Seen most recently",
+  "people.sort.joined": "Newest accounts",
+  "people.sort.name": "Name A to Z"
 }

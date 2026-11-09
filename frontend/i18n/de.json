@@ -4175,5 +4175,14 @@
   "settings.friend_toast.groups_desc": "Wähle Gruppen, um nur für Freunde darin Hinweise zu bekommen. Ohne Auswahl gilt „Nur Favoriten“ oben.",
   "settings.friend_toast.no_group": "Freunde ohne Gruppe",
   "settings.friend_toast.groups_all": "Alle",
-  "settings.friend_toast.groups_count": "{count} Gruppen"
+  "settings.friend_toast.groups_count": "{count} Gruppen",
+  "people.sort.title": "Sortieren",
+  "people.sort.default": "Sortierung: Standard",
+  "people.sort.timespent": "Meiste gemeinsame Zeit",
+  "people.sort.meets": "Am häufigsten getroffen",
+  "people.sort.mutualfriends": "Meiste gemeinsame Freunde",
+  "people.sort.mutualgroups": "Meiste gemeinsame Gruppen",
+  "people.sort.lastseen": "Zuletzt gesehen",
+  "people.sort.joined": "Neueste Konten",
+  "people.sort.name": "Name A bis Z"
 }

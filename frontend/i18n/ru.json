@@ -4179,5 +4179,14 @@
   "settings.friend_toast.groups_desc": "Выберите группы, чтобы получать уведомления только о друзьях из них. Без выбора действует «Только избранные».",
   "settings.friend_toast.no_group": "Друзья вне групп",
   "settings.friend_toast.groups_all": "Все",
-  "settings.friend_toast.groups_count": "Групп: {count}"
+  "settings.friend_toast.groups_count": "Групп: {count}",
+  "people.sort.title": "Сортировка",
+  "people.sort.default": "Сортировка: по умолчанию",
+  "people.sort.timespent": "Больше всего времени вместе",
+  "people.sort.meets": "Чаще всего встречались",
+  "people.sort.mutualfriends": "Больше общих друзей",
+  "people.sort.mutualgroups": "Больше общих групп",
+  "people.sort.lastseen": "Недавно замеченные",
+  "people.sort.joined": "Новые аккаунты",
+  "people.sort.name": "Имя от А до Я"
 }

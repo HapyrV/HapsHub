@@ -254,6 +254,7 @@ function onPeopleStatsData(payload) {
     _peopleStatsMax = max;
     _peopleStatsLoaded = true;
     _plStatsPending = false;
+    if ((_peopleAllSort === 'timespent' || _peopleAllSort === 'meets') && peopleFilter === 'all') filterAllFriends();
     if (window._peopleStatsMode) applyPeopleStatsBars();
     if (typeof window._fpOnStatsLoaded === 'function') window._fpOnStatsLoaded();
     _plLiveRerender();
@@ -763,7 +764,8 @@ function filterAllFriends() {
     _updateAllFriendsFilterCounts(all);
     if (_allFriendsStatusFilter !== 'all') all = all.filter(f => _allFriendCategory(f) === _allFriendsStatusFilter);
     const listMode = _peopleListMode();
-    all = listMode ? _plSort(all) : all.sort((a, b) => (a.displayName || '').localeCompare(b.displayName || ''));
+    all = _peopleAllSort !== 'default' ? _plSortBy(all, _peopleAllSort)
+        : listMode ? _plSort(all) : all.sort((a, b) => (a.displayName || '').localeCompare(b.displayName || ''));
     const pageSize = listMode ? peopleListPageSize : PEOPLE_PAGE_SIZE;
     const totalPages = Math.ceil(all.length / pageSize) || 1;
     if (_peopleAllPage >= totalPages) _peopleAllPage = totalPages - 1;
@@ -1550,3 +1552,37 @@ lvEditRegister('people', {
     toggle: id => { if (_favFriendEditSelected.has(id)) _favFriendEditSelected.delete(id); else _favFriendEditSelected.add(id); },
     onChange: () => updateFriendEditBar(),
 });
+
+// ---- All Friends: sort picker (works in grid and list view) ----
+
+const PEOPLE_ALL_SORTS = ['default', 'timespent', 'meets', 'mutualfriends', 'mutualgroups', 'lastseen', 'joined', 'name'];
+let _peopleAllSort = (() => {
+    try { const v = localStorage.getItem('vrcn_people_all_sort'); return PEOPLE_ALL_SORTS.includes(v) ? v : 'default'; }
+    catch { return 'default'; }
+})();
+
+// Highest first, except names, which go A to Z.
+function _plSortBy(list, field) {
+    const mul = field === 'name' ? 1 : -1;
+    return [...list].sort((a, b) => {
+        const va = _plSortValue(a, field), vb = _plSortValue(b, field);
+        const d = (typeof va === 'number' && typeof vb === 'number') ? (va - vb) : String(va).localeCompare(String(vb));
+        return d * mul || (a.displayName || '').localeCompare(b.displayName || '');
+    });
+}
+
+function setPeopleAllSort(value) {
+    if (!PEOPLE_ALL_SORTS.includes(value)) return;
+    _peopleAllSort = value;
+    try { localStorage.setItem('vrcn_people_all_sort', value); } catch {}
+    if (value === 'timespent' || value === 'meets') _plEnsureStats();
+    _peopleAllPage = 0;
+    filterAllFriends();
+}
+
+function peopleAllSortInit() {
+    const sel = document.getElementById('allFriendSort');
+    if (sel) sel.value = _peopleAllSort;
+    if (_peopleAllSort === 'timespent' || _peopleAllSort === 'meets') _plEnsureStats();
+}
+document.addEventListener('DOMContentLoaded', () => setTimeout(peopleAllSortInit, 0));
