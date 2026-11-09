@@ -315,7 +315,7 @@
   "timeline.friend.online_game": "オンライン (ゲーム)",
   "timeline.friend.went_offline": "オフラインになりました",
   "timeline.friend.added": "フレンドに追加されました",
-  "timeline.friend.unfriended_you": "フレンドを解除されました",
+  "timeline.friend.unfriended_you": "フレンドではなくなりました",
   "timeline.notif.friend_request": "フレンドリクエスト",
   "timeline.notif.world_invite": "ワールド招待",
   "timeline.notif.invite_request": "招待リクエスト",

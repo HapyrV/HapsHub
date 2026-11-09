@@ -315,7 +315,7 @@
   "timeline.friend.online_game": "在线（游戏中）",
   "timeline.friend.went_offline": "已离线",
   "timeline.friend.added": "已添加好友",
-  "timeline.friend.unfriended_you": "已将你删除好友",
+  "timeline.friend.unfriended_you": "已不再是好友",
   "timeline.notif.friend_request": "好友请求",
   "timeline.notif.world_invite": "世界邀请",
   "timeline.notif.invite_request": "邀请请求",

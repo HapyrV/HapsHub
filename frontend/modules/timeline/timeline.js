@@ -1722,7 +1722,7 @@ function renderFtRemovedBody(ev) {
     const av = ftFriendAv(ev, 'tl-av');
     return `<div class="tl-card-body">${av}<div class="tl-card-info">
         <div class="tl-main-label">${esc(ev.friendName || ev.friendId || t('timeline.unknown', 'Unknown'))}</div>
-        <div class="tl-sub-label" style="color:var(--err);">${esc(t('timeline.friend.unfriended_you', 'Unfriended you'))}</div>
+        <div class="tl-sub-label" style="color:var(--err);">${esc(t('timeline.friend.unfriended_you', 'No longer friends'))}</div>
     </div></div>`;
 }
 
