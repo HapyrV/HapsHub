@@ -4144,5 +4144,16 @@
   "hub.tunnel.fetching": "正在获取歌曲...",
   "hub.tunnel.no_ytdlp": "未找到 yt-dlp。请在设置的 Hub modules 中的 YouTube tunnel 里设置路径。",
   "hub.tunnel.choose": "选择设备",
-  "hub.tunnel.nowhere": "不为我播放"
+  "hub.tunnel.nowhere": "不为我播放",
+  "nav.oyasumi": "OyasumiVR",
+  "nav.eagle": "Eagle",
+  "hub.embed.open": "在此打开",
+  "hub.embed.release": "放回去",
+  "hub.embed.test": "测试",
+  "hub.embed.mode_child": "在此页面内",
+  "hub.embed.mode_tracked": "此页面上方的独立窗口",
+  "hub.embed.hint": "“在此打开”会在这里显示应用。“放回去”会让它回到自己的窗口。",
+  "hub.embed.not_found": "未找到 {app}。请在“设置”>“Hub 模块”的“应用嵌入”中设置路径。",
+  "hub.embed.testing": "正在测试...",
+  "hub.embed.opening": "正在打开..."
 }

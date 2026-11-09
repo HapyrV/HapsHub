@@ -4144,5 +4144,16 @@
   "hub.tunnel.fetching": "노래를 가져오는 중...",
   "hub.tunnel.no_ytdlp": "yt-dlp를 찾을 수 없습니다. 설정의 Hub modules에 있는 YouTube tunnel에서 경로를 지정하세요.",
   "hub.tunnel.choose": "장치 선택",
-  "hub.tunnel.nowhere": "나에게는 재생하지 않음"
+  "hub.tunnel.nowhere": "나에게는 재생하지 않음",
+  "nav.oyasumi": "OyasumiVR",
+  "nav.eagle": "Eagle",
+  "hub.embed.open": "여기서 열기",
+  "hub.embed.release": "되돌리기",
+  "hub.embed.test": "테스트",
+  "hub.embed.mode_child": "이 페이지 안",
+  "hub.embed.mode_tracked": "이 페이지 위의 별도 창",
+  "hub.embed.hint": "여기서 열기는 앱을 이 공간에 표시합니다. 되돌리기는 앱을 원래 창으로 돌려놓습니다.",
+  "hub.embed.not_found": "{app}을(를) 찾을 수 없습니다. 설정, Hub 모듈의 앱 임베드에서 경로를 지정하세요.",
+  "hub.embed.testing": "테스트 중...",
+  "hub.embed.opening": "여는 중..."
 }

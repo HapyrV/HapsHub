@@ -4144,5 +4144,16 @@
   "hub.tunnel.fetching": "Song wird geholt...",
   "hub.tunnel.no_ytdlp": "yt-dlp wurde nicht gefunden. Lege den Pfad unter YouTube tunnel in Einstellungen, Hub modules fest.",
   "hub.tunnel.choose": "Gerät wählen",
-  "hub.tunnel.nowhere": "Nicht für mich abspielen"
+  "hub.tunnel.nowhere": "Nicht für mich abspielen",
+  "nav.oyasumi": "OyasumiVR",
+  "nav.eagle": "Eagle",
+  "hub.embed.open": "Hier öffnen",
+  "hub.embed.release": "Zurückgeben",
+  "hub.embed.test": "Testen",
+  "hub.embed.mode_child": "In dieser Seite",
+  "hub.embed.mode_tracked": "Eigenes Fenster über dieser Seite",
+  "hub.embed.hint": "„Hier öffnen“ zeigt die App in diesem Bereich. „Zurückgeben“ bringt sie wieder in ihr eigenes Fenster.",
+  "hub.embed.not_found": "{app} wurde nicht gefunden. Lege den Pfad unter App-Einbettungen in Einstellungen, Hub-Module fest.",
+  "hub.embed.testing": "Wird getestet...",
+  "hub.embed.opening": "Wird geöffnet..."
 }

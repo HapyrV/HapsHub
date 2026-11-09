@@ -324,8 +324,30 @@ try {
     })()`));
     check('every tunnel icon exists in the icon font', wideTunnelIcons.length === 0, wideTunnelIcons.join(', '));
 
+    // --- OyasumiVR and Eagle pages. Only draws state here; embed-live.mjs moves the real windows ---
+    check('a saved sidebar layout gets new tools in its Tools folder', await main.eval(`navSanitizeLayout([{ type: 'folder', id: 'folder-tools', name: 'Tools', items: [] }]).find(e => e.id === 'folder-tools').items.filter(k => ['youtube-tunnel', 'oyasumi', 'eagle'].includes(k)).length === 3`));
+    for (const [tab, app] of [[33, 'oyasumi'], [34, 'eagle']]) {
+        await main.eval(`showTab(${tab})`);
+        await waitFor(`${app} page`, () => main.eval(`!!document.getElementById('aemb-pane-${app}')`));
+        check(`the ${app} pane has room to hold a window`, await main.eval(`(() => { const r = document.getElementById('aemb-pane-${app}').getBoundingClientRect(); return r.width > 300 && r.height > 200; })()`));
+        await main.eval(`onHubEmbedState({ app: '${app}', name: '<b>App</b>', state: 'failed', mode: 'tracked', message: '<i>Stuck</i>', found: true, enabled: true, result: 'Failed', testing: false, checks: [{ name: '<u>One</u>', passed: false, detail: 'why' }, { name: 'Two', passed: true, detail: '' }] })`);
+        check(`the ${app} page shows problems and checks as text`, await main.eval(`(() => { const s = document.getElementById('aemb-status-${app}'); const r = document.getElementById('aemb-results-${app}'); return s.textContent === '<i>Stuck</i>' && s.querySelector('i') === null && r.querySelector('u') === null && r.children.length === 2 && r.children[0].className === 'aemb-fail'; })()`));
+        check(`the ${app} page offers Open and keeps the chosen placement`, await main.eval(`!document.getElementById('aemb-start-${app}').disabled && document.getElementById('aemb-release-${app}').disabled && document.getElementById('aemb-mode-${app}').value === 'tracked'`));
+        await main.eval(`onHubEmbedState({ app: '${app}', name: 'App', state: 'idle', mode: 'child', message: '', found: false, enabled: true, result: '', testing: false })`);
+        check(`the ${app} page says when the app is missing`, await main.eval(`document.getElementById('aemb-status-${app}').textContent.includes('App') && document.getElementById('aemb-start-${app}').disabled`));
+    }
+    const wideEmbedIcons = JSON.parse(await main.eval(`(() => {
+        const probe = document.createElement('div');
+        probe.innerHTML = ['bedtime', 'photo_library', 'open_in_new', 'close', 'bug_report'].map(name => '<span class="msi" style="position:absolute">' + name + '</span>').join('');
+        document.body.appendChild(probe);
+        const wide = [...probe.children].filter(icon => icon.getBoundingClientRect().width > 24).map(icon => icon.textContent);
+        probe.remove();
+        return JSON.stringify(wide);
+    })()`));
+    check('every embed icon exists in the icon font', wideEmbedIcons.length === 0, wideEmbedIcons.join(', '));
+
     await main.eval(`showTab(31)`);
-    const rowsText = () => main.eval(`document.getElementById('hhistBody')?.innerText || ''`);
+    const rowsText =() => main.eval(`document.getElementById('hhistBody')?.innerText || ''`);
     await waitFor('name history rows', async () => (await rowsText()).includes('Old name'));
     let text = await rowsText();
     check('History shows name and trust changes from the archive', text.includes('Known User') && text.includes('Old name'), text);

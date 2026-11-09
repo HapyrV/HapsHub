@@ -4144,5 +4144,16 @@
   "hub.tunnel.fetching": "Récupération de la chanson...",
   "hub.tunnel.no_ytdlp": "yt-dlp est introuvable. Indiquez son chemin sous YouTube tunnel dans Paramètres, Hub modules.",
   "hub.tunnel.choose": "Choisir un appareil",
-  "hub.tunnel.nowhere": "Ne pas le jouer pour moi"
+  "hub.tunnel.nowhere": "Ne pas le jouer pour moi",
+  "nav.oyasumi": "OyasumiVR",
+  "nav.eagle": "Eagle",
+  "hub.embed.open": "Ouvrir ici",
+  "hub.embed.release": "Remettre",
+  "hub.embed.test": "Tester",
+  "hub.embed.mode_child": "Dans cette page",
+  "hub.embed.mode_tracked": "Sa propre fenêtre sur cette page",
+  "hub.embed.hint": "Ouvrir ici affiche l'application dans cet espace. Remettre la renvoie dans sa propre fenêtre.",
+  "hub.embed.not_found": "{app} est introuvable. Indique son chemin sous Applications intégrées dans Paramètres, Modules Hub.",
+  "hub.embed.testing": "Test en cours...",
+  "hub.embed.opening": "Ouverture..."
 }

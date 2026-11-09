@@ -1118,6 +1118,64 @@ await Check("history: the first sighting of a friend isn't a change, later ones 
     await registry.StopAllAsync(TimeSpan.FromSeconds(5));
 });
 
+await Check("embeds: picks the app's main window, not its helpers", () =>
+{
+    var picked = EmbedWindows.Pick(new[]
+    {
+        new EmbedCandidate(1, true, "", 1000, 800, false, false),
+        new EmbedCandidate(2, true, "Tooltip", 1000, 800, false, true),
+        new EmbedCandidate(3, true, "Dialog", 1000, 800, true, false),
+        new EmbedCandidate(4, true, "Tiny", 100, 100, false, false),
+        new EmbedCandidate(5, false, "Hidden and big", 3000, 2000, false, false),
+        new EmbedCandidate(6, true, "Small", 400, 300, false, false),
+        new EmbedCandidate(7, true, "Main", 1200, 900, false, false),
+    });
+    Assert(picked?.Handle == 7, $"picked {picked?.Handle}");
+    var hidden = EmbedWindows.Pick(new[] { new EmbedCandidate(5, false, "In the tray", 1000, 800, false, false) });
+    Assert(hidden?.Handle == 5, "an app hidden in the tray was not found");
+    Assert(EmbedWindows.Pick(Array.Empty<EmbedCandidate>()) == null, "picked a window from nothing");
+    return Task.CompletedTask;
+});
+
+await Check("embeds: geometry, blank pictures and the reported result", () =>
+{
+    var pane = new EmbedRect(10, 20, 800, 600);
+    Assert(pane.Matches(new EmbedRect(11, 19, 802, 598)), "two pixels off should still match");
+    Assert(!pane.Matches(new EmbedRect(10, 20, 803, 600)), "three pixels off matched");
+    Assert(!pane.Matches(new EmbedRect(11, 20, 800, 600), 0), "an exact match accepted a difference");
+    Assert(!new EmbedRect(0, 0, 39, 500).Usable, "a sliver of a pane counted as usable");
+    Assert(!EmbedWindows.LooksDrawn(new[] { 5, 5, 5 }), "one flat colour counted as drawn");
+    Assert(EmbedWindows.LooksDrawn(new[] { 5, 5, 6 }), "two colours counted as blank");
+
+    var good = new[] { new EmbedCheck("A", true), new EmbedCheck("B", true) };
+    var bad = new[] { new EmbedCheck("A", true), new EmbedCheck("B", false) };
+    Assert(EmbedWindows.Summary(AppEmbedsModule.ModeChild, good, "today") == "Passed inside the pane on today.", "the passing summary changed");
+    var failure = EmbedWindows.Summary(AppEmbedsModule.ModeTracked, bad, "today");
+    Assert(failure.StartsWith("Failed in its own window") && failure.Contains("B") && !failure.Contains("A,"), failure);
+    return Task.CompletedTask;
+});
+
+await Check("embeds: finds the app where it's installed, and a set path wins", () =>
+{
+    var library = Path.Combine(Path.GetTempPath(), "hub-embed-" + Guid.NewGuid().ToString("N"));
+    var folder = Path.Combine(library, "steamapps", "common", "OyasumiVR");
+    Directory.CreateDirectory(folder);
+    var inSteam = Path.Combine(folder, "OyasumiVR.exe");
+    File.WriteAllText(inSteam, "");
+    var chosen = Path.Combine(library, "chosen.exe");
+    File.WriteAllText(chosen, "");
+    try
+    {
+        var app = AppEmbedsModule.Oyasumi;
+        Assert(AppEmbedsModule.FindExe(app, "", new[] { library }) == inSteam, "the Steam copy was not found");
+        Assert(AppEmbedsModule.FindExe(app, $"\"{chosen}\"", new[] { library }) == chosen, "the set path lost");
+        Assert(AppEmbedsModule.FindExe(app, Path.Combine(library, "gone.exe"), new[] { library }) == null, "a wrong set path fell through to another copy");
+        Assert(AppEmbedsModule.App("eagle") == AppEmbedsModule.Eagle && AppEmbedsModule.App("nope") == null, "an app id resolved wrongly");
+    }
+    finally { Directory.Delete(library, true); }
+    return Task.CompletedTask;
+});
+
 await Check("tunnel: only YouTube links get through", () =>
 {
     Assert(TunnelLink.Clean(" https://youtu.be/abc ") == "https://youtu.be/abc", "a short link was refused");

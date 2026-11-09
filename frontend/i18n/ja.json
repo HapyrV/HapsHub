@@ -4144,5 +4144,16 @@
   "hub.tunnel.fetching": "曲を取得中...",
   "hub.tunnel.no_ytdlp": "yt-dlp が見つかりません。設定の Hub modules にある YouTube tunnel でパスを指定してください。",
   "hub.tunnel.choose": "デバイスを選択",
-  "hub.tunnel.nowhere": "自分には再生しない"
+  "hub.tunnel.nowhere": "自分には再生しない",
+  "nav.oyasumi": "OyasumiVR",
+  "nav.eagle": "Eagle",
+  "hub.embed.open": "ここで開く",
+  "hub.embed.release": "元に戻す",
+  "hub.embed.test": "テスト",
+  "hub.embed.mode_child": "このページの中",
+  "hub.embed.mode_tracked": "このページの上に別ウィンドウ",
+  "hub.embed.hint": "「ここで開く」でアプリをこの場所に表示します。「元に戻す」で元のウィンドウに戻します。",
+  "hub.embed.not_found": "{app} が見つかりません。設定の Hub モジュール、アプリ埋め込みでパスを指定してください。",
+  "hub.embed.testing": "テスト中...",
+  "hub.embed.opening": "開いています..."
 }

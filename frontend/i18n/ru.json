@@ -4148,5 +4148,16 @@
   "hub.tunnel.fetching": "Загрузка песни...",
   "hub.tunnel.no_ytdlp": "yt-dlp не найден. Укажите путь в разделе YouTube tunnel: Настройки, Hub modules.",
   "hub.tunnel.choose": "Выберите устройство",
-  "hub.tunnel.nowhere": "Не воспроизводить для меня"
+  "hub.tunnel.nowhere": "Не воспроизводить для меня",
+  "nav.oyasumi": "OyasumiVR",
+  "nav.eagle": "Eagle",
+  "hub.embed.open": "Открыть здесь",
+  "hub.embed.release": "Вернуть",
+  "hub.embed.test": "Проверить",
+  "hub.embed.mode_child": "Внутри этой страницы",
+  "hub.embed.mode_tracked": "Отдельное окно поверх страницы",
+  "hub.embed.hint": "«Открыть здесь» показывает приложение в этой области. «Вернуть» возвращает его в собственное окно.",
+  "hub.embed.not_found": "{app} не найдено. Укажите путь в разделе «Встроенные приложения»: Настройки, модули Hub.",
+  "hub.embed.testing": "Проверка...",
+  "hub.embed.opening": "Открытие..."
 }

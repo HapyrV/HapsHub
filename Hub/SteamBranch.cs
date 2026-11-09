@@ -109,8 +109,16 @@ public sealed class SteamHost : ISteamHost
 
     public string? FindManifest(int appId)
     {
+        return SteamLibraries()
+            .Select(library => Path.Combine(library, "steamapps", $"appmanifest_{appId}.acf"))
+            .FirstOrDefault(File.Exists);
+    }
+
+    /// <summary>Every Steam library folder on this PC. Empty when Steam isn't installed.</summary>
+    public static IReadOnlyList<string> SteamLibraries()
+    {
         var root = SteamRoot();
-        if (root == null) return null;
+        if (root == null) return Array.Empty<string>();
         var libraries = new List<string> { root };
         try
         {
@@ -120,10 +128,7 @@ public sealed class SteamHost : ISteamHost
         }
         catch (IOException) { }
         catch (UnauthorizedAccessException) { }
-
-        return libraries
-            .Select(library => Path.Combine(library, "steamapps", $"appmanifest_{appId}.acf"))
-            .FirstOrDefault(File.Exists);
+        return libraries;
     }
 
     public IReadOnlyList<string> RunningBlockers()

@@ -1,0 +1,19 @@
+<div class="aemb-page">
+    <div class="tab-toolbar">
+        <div class="aemb-title"><span class="msi">photo_library</span> <span data-i18n="nav.eagle">Eagle</span></div>
+        <div class="aemb-actions">
+            <select id="aemb-mode-eagle" class="vrcn-dropdown" onchange="aembMode('eagle')">
+                <option value="child" data-i18n="hub.embed.mode_child">Inside this page</option>
+                <option value="tracked" data-i18n="hub.embed.mode_tracked">Its own window over this page</option>
+            </select>
+            <button id="aemb-start-eagle" class="vrcn-button-round vrcn-btn-join" onclick="aembStart('eagle')"><span class="msi">open_in_new</span> <span data-i18n="hub.embed.open">Open here</span></button>
+            <button id="aemb-release-eagle" class="vrcn-button-round" onclick="aembRelease('eagle')" disabled><span class="msi">close</span> <span data-i18n="hub.embed.release">Put it back</span></button>
+            <button id="aemb-test-eagle" class="vrcn-button-round" onclick="aembTest('eagle')"><span class="msi">bug_report</span> <span data-i18n="hub.embed.test">Test</span></button>
+        </div>
+    </div>
+    <div id="aemb-status-eagle" class="aemb-status" role="status"></div>
+    <div id="aemb-pane-eagle" class="aemb-pane">
+        <div id="aemb-hint-eagle" class="aemb-hint" data-i18n="hub.embed.hint">Open here shows the app in this space. Put it back returns it to its own window.</div>
+    </div>
+    <div class="aemb-report"><div id="aemb-result-eagle"></div><div id="aemb-results-eagle"></div></div>
+</div>

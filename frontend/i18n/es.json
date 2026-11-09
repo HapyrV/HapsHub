@@ -4144,5 +4144,16 @@
   "hub.tunnel.fetching": "Obteniendo la canción...",
   "hub.tunnel.no_ytdlp": "No se encontró yt-dlp. Indica su ruta en YouTube tunnel, en Ajustes, Hub modules.",
   "hub.tunnel.choose": "Elige un dispositivo",
-  "hub.tunnel.nowhere": "No reproducirlo para mí"
+  "hub.tunnel.nowhere": "No reproducirlo para mí",
+  "nav.oyasumi": "OyasumiVR",
+  "nav.eagle": "Eagle",
+  "hub.embed.open": "Abrir aquí",
+  "hub.embed.release": "Devolver",
+  "hub.embed.test": "Probar",
+  "hub.embed.mode_child": "Dentro de esta página",
+  "hub.embed.mode_tracked": "Ventana propia sobre esta página",
+  "hub.embed.hint": "Abrir aquí muestra la aplicación en este espacio. Devolver la regresa a su propia ventana.",
+  "hub.embed.not_found": "No se encontró {app}. Indica su ruta en Inserción de apps, en Ajustes, Módulos de Hub.",
+  "hub.embed.testing": "Probando...",
+  "hub.embed.opening": "Abriendo..."
 }

@@ -1,0 +1,19 @@
+<div class="aemb-page">
+    <div class="tab-toolbar">
+        <div class="aemb-title"><span class="msi">bedtime</span> <span data-i18n="nav.oyasumi">OyasumiVR</span></div>
+        <div class="aemb-actions">
+            <select id="aemb-mode-oyasumi" class="vrcn-dropdown" onchange="aembMode('oyasumi')">
+                <option value="child" data-i18n="hub.embed.mode_child">Inside this page</option>
+                <option value="tracked" data-i18n="hub.embed.mode_tracked">Its own window over this page</option>
+            </select>
+            <button id="aemb-start-oyasumi" class="vrcn-button-round vrcn-btn-join" onclick="aembStart('oyasumi')"><span class="msi">open_in_new</span> <span data-i18n="hub.embed.open">Open here</span></button>
+            <button id="aemb-release-oyasumi" class="vrcn-button-round" onclick="aembRelease('oyasumi')" disabled><span class="msi">close</span> <span data-i18n="hub.embed.release">Put it back</span></button>
+            <button id="aemb-test-oyasumi" class="vrcn-button-round" onclick="aembTest('oyasumi')"><span class="msi">bug_report</span> <span data-i18n="hub.embed.test">Test</span></button>
+        </div>
+    </div>
+    <div id="aemb-status-oyasumi" class="aemb-status" role="status"></div>
+    <div id="aemb-pane-oyasumi" class="aemb-pane">
+        <div id="aemb-hint-oyasumi" class="aemb-hint" data-i18n="hub.embed.hint">Open here shows the app in this space. Put it back returns it to its own window.</div>
+    </div>
+    <div class="aemb-report"><div id="aemb-result-oyasumi"></div><div id="aemb-results-oyasumi"></div></div>
+</div>
