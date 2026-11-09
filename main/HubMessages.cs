@@ -35,6 +35,21 @@ public partial class AppShell
                 _ = Task.Run(() => SendSteamBranch(online: true));
                 return true;
 
+            case "hubVrcxArchive":
+                var vrcxSource = VrcxHistoryModule.DefaultSource;
+                if (msg["choose"]?.Value<bool>() == true)
+                {
+                    var picked = NativeFileDialogSharp.Dialog.FileOpen("sqlite3,db");
+                    if (!picked.IsOk) return true;
+                    vrcxSource = picked.Path;
+                }
+                _ = Task.Run(() => RunVrcxArchive(vrcxSource));
+                return true;
+
+            case "hubVrcxSummary":
+                _ = Task.Run(SendVrcxSummary);
+                return true;
+
             case "hubSteamStatus":
                 _ = Task.Run(() => SendSteamBranch(online: false));
                 return true;
@@ -93,6 +108,41 @@ public partial class AppShell
                 }),
             }),
         });
+    }
+
+    private void RunVrcxArchive(string source)
+    {
+        try
+        {
+            var result = HubModules.VrcxHistory.Run(source,
+                text => Invoke(() => SendToJS("hubVrcxArchive", new { stage = "progress", text })));
+            Invoke(() => SendToJS("hubVrcxArchive", new
+            {
+                stage = "done",
+                error = result.Error,
+                complete = result.Complete,
+                tables = result.Tables.Select(t => new { table = t.Table, source = t.SourceRows, added = t.Added, already = t.AlreadyHere, total = t.ArchivedTotal }),
+                skipped = result.Skipped.Select(s => new { table = s.Table, rows = s.Rows, reason = s.Reason }),
+            }));
+        }
+        catch (Exception ex)
+        {
+            CrashHandler.WriteEntry("RunVrcxArchive", ex);
+            Invoke(() => SendToJS("hubVrcxArchive", new { stage = "done", error = "The archive stopped unexpectedly.", complete = false }));
+        }
+    }
+
+    private void SendVrcxSummary()
+    {
+        try
+        {
+            var tables = HubModules.VrcxHistory.ReadSummary();
+            Invoke(() => SendToJS("hubVrcxArchive", new { stage = "summary", tableCount = tables.Count, rows = tables.Sum(t => t.ArchivedTotal) }));
+        }
+        catch (Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or IOException)
+        {
+            CrashHandler.WriteEntry("SendVrcxSummary", ex);
+        }
     }
 
     private async Task SendSteamBranch(bool online)

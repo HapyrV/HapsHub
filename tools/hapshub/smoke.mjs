@@ -187,7 +187,7 @@ try {
         `!document.getElementById('vrcndbConsentModal')`));
 
     await main.eval(`hubModulesRefresh()`);
-    await waitFor('module list',() => main.eval(`document.querySelectorAll('.hub-module-row').length === 4`));
+    await waitFor('module list',() => main.eval(`document.querySelectorAll('.hub-module-row').length === 5`));
     if (process.env.HAPSHUB_SMOKE_FAIL) throw new Error('failure forced to test the cleanup');
     const toggles = `[...document.querySelectorAll('.hub-module-row[data-module="hub.forwarding"] input[type=checkbox]')]`;
     check('forwarding toggles start off', await main.eval(`${toggles}.length === 2 && ${toggles}.every(i => !i.checked)`));
@@ -243,6 +243,27 @@ try {
         localStorage.removeItem('hapshub.people.collapsed'); grid.innerHTML = saved;
         return hidden && kept;
     })()`));
+
+    // --vrcx reads a temporary copy of the real VRCX database into this run's throwaway folder.
+    if (process.argv.includes('--vrcx')) {
+        const vrcxFile = join(process.env.APPDATA, 'VRCX', 'VRCX.sqlite3');
+        const before = statSync(vrcxFile);
+        const archive = async () => {
+            await main.eval(`window._hubVrcxLast = null; hubVrcxArchive(false)`);
+            await waitFor('VRCX archive', () => main.eval(`window._hubVrcxLast?.stage === 'done'`), 240000);
+            return JSON.parse(await main.eval(`JSON.stringify(window._hubVrcxLast)`));
+        };
+        const first = await archive();
+        const totals = report => (report.tables || []).reduce((sum, row) => ({ source: sum.source + row.source, added: sum.added + row.added, total: sum.total + row.total }), { source: 0, added: 0, total: 0 });
+        console.log(`      first run: ${JSON.stringify(totals(first))} in ${first.tables?.length} tables; not copied: ${(first.skipped || []).map(row => row.table).join(', ')}`);
+        check('VRCX archive accounts for every row', first.complete === true, first.error || '');
+        check('VRCX login tables are not archived', !(first.tables || []).some(row => /cookies|configs/.test(row.table)) && (first.skipped || []).some(row => row.table === 'cookies'));
+        const second = await archive();
+        console.log(`      second run: ${JSON.stringify(totals(second))}`);
+        check('repeating the archive adds nothing', second.complete === true && totals(second).added === 0, JSON.stringify(totals(second)));
+        const after = statSync(vrcxFile);
+        check('VRCX database is untouched', after.mtimeMs === before.mtimeMs && after.size === before.size);
+    }
 
     check('main page has no page errors', main.errors.length === 0, main.errors.join(' | '));
     await main.eval(`sendToCS({action:'windowClose'})`);

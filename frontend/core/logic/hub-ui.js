@@ -160,6 +160,45 @@ function _hubWatchPeopleGrids() {
     if (remaining.length) setTimeout(_hubWatchPeopleGrids, 1000);
 }
 
+// ---- VRCX history archive ----
+
+function hubVrcxArchive(choose) {
+    const status = document.getElementById('hubVrcxArchiveStatus');
+    if (status) { status.style.color = ''; status.textContent = t('hub.vrcx.starting', 'Starting...'); }
+    document.getElementById('hubVrcxArchiveTables')?.replaceChildren();
+    sendToCS({ action: 'hubVrcxArchive', choose: !!choose });
+}
+
+function onHubVrcxArchive(payload) {
+    window._hubVrcxLast = payload;
+    const status = document.getElementById('hubVrcxArchiveStatus');
+    const tables = document.getElementById('hubVrcxArchiveTables');
+    if (!status || !tables) return;
+    if (payload.stage === 'progress') { status.textContent = payload.text; return; }
+    if (payload.stage === 'summary') {
+        if (payload.rows > 0 && !status.textContent)
+            status.textContent = t('hub.vrcx.summary', '{rows} rows archived so far.').replace('{rows}', payload.rows.toLocaleString());
+        return;
+    }
+
+    status.style.color = payload.error || !payload.complete ? 'var(--err)' : '';
+    if (payload.error) { status.textContent = payload.error; return; }
+    const rows = payload.tables || [];
+    const added = rows.reduce((sum, row) => sum + row.added, 0);
+    const total = rows.reduce((sum, row) => sum + row.total, 0);
+    status.textContent = (payload.complete
+        ? t('hub.vrcx.done', 'Done: {added} new rows, {total} archived in {tables} tables. Every row in VRCX is accounted for.')
+        : t('hub.vrcx.incomplete', 'Finished with rows unaccounted for: {added} new, {total} archived in {tables} tables.'))
+        .replace('{added}', added.toLocaleString()).replace('{total}', total.toLocaleString()).replace('{tables}', rows.length);
+
+    const line = text => `<div class="sf-desc">${esc(text)}</div>`;
+    const details = rows.filter(row => row.source > 0).map(row =>
+        line(`${row.table}: ${row.source.toLocaleString()} in VRCX, ${row.added.toLocaleString()} new`)).join('');
+    const skipped = (payload.skipped || []).map(row => line(`${row.table}: ${row.reason}`)).join('');
+    tables.innerHTML = `<details><summary class="sf-desc" style="cursor:pointer;">${esc(t('hub.vrcx.details', 'Show each table'))}</summary>${details}</details>`
+        + (skipped ? `<details style="margin-top:6px;"><summary class="sf-desc" style="cursor:pointer;">${esc(t('hub.vrcx.skipped', 'Not copied'))}</summary>${skipped}</details>` : '');
+}
+
 // ---- Start ----
 
 (function _hubUiStart() {
@@ -172,6 +211,13 @@ function _hubWatchPeopleGrids() {
     document.head.appendChild(style);
     document.addEventListener('click', _hubPeopleClick);
     _hubWatchPeopleGrids();
+    (function watchArchiveCard() {
+        const card = document.getElementById('hubVrcxArchiveCard');
+        if (!card) { setTimeout(watchArchiveCard, 1000); return; }
+        new IntersectionObserver(entries => {
+            if (entries.some(entry => entry.isIntersecting)) sendToCS({ action: 'hubVrcxSummary' });
+        }).observe(card);
+    })();
 
     // A reply sent before messages.js registers is lost, and the hub starts in the background, so keep asking.
     let attempts = 0;

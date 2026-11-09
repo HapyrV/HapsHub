@@ -1130,6 +1130,7 @@ case 'vrcNews':
             case 'hubModules':           onHubModules(payload); break;
             case 'hubUpstreamReviewed':  onHubUpstreamReviewed(payload); break;
             case 'hubSteamBranch':       onHubSteamBranch(payload); break;
+            case 'hubVrcxArchive':       onHubVrcxArchive(payload); break;
             case 'hubSteamSwitched':     onHubSteamSwitched(payload); break;
             case 'showChangelog':        onShowChangelog(payload); break;
             case 'dbMigrationProgress':  onDbMigrationProgress(payload); break;

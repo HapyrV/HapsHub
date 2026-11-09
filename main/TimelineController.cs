@@ -1440,9 +1440,28 @@ public class TimelineController
 
             _core.SendToJS("vrcxImportProgress", new { status = "Merging into HapsHub...", percent = 75 });
 
-            // 6. Merge into VRCNext
-            _core.TimeEngine.BulkMergeWorlds(worldMerge);
-            _core.TimeEngine.BulkMergeUsers(friendMerge);
+            // 6. Merge into VRCNext. These merges add to what's there, so only what a past import
+            // didn't already add goes in. Timeline events below skip duplicates by their own IDs.
+            var ledgerModule = HubModules.VrcxHistory;
+            var worldSeconds = ledgerModule.ReadMergeLedger("world_seconds");
+            var worldVisits  = ledgerModule.ReadMergeLedger("world_visits");
+            var userSeconds  = ledgerModule.ReadMergeLedger("user_seconds");
+            if (worldSeconds == null || worldVisits == null || userSeconds == null)
+                throw new InvalidOperationException("The hub database isn't available, so importing could double your times. Nothing was merged.");
+
+            _core.TimeEngine.BulkMergeWorlds(worldMerge
+                .Select(w => (w.worldId, w.worldName,
+                    VrcxHistoryModule.Remaining(worldSeconds, w.worldId, w.seconds),
+                    (int)VrcxHistoryModule.Remaining(worldVisits, w.worldId, w.visits),
+                    w.lastVisited))
+                .Where(w => w.Item3 > 0 || w.Item4 > 0));
+            _core.TimeEngine.BulkMergeUsers(friendMerge
+                .Select(f => (f.userId, f.displayName, VrcxHistoryModule.Remaining(userSeconds, f.userId, f.seconds), f.lastSeen))
+                .Where(f => f.Item3 > 0));
+            if (!ledgerModule.SaveMergeLedger("world_seconds", worldMerge.Select(w => (w.worldId, w.seconds)))
+                || !ledgerModule.SaveMergeLedger("world_visits", worldMerge.Select(w => (w.worldId, (long)w.visits)))
+                || !ledgerModule.SaveMergeLedger("user_seconds", friendMerge.Select(f => (f.userId, f.seconds))))
+                CrashHandler.WriteEntry("VrcxImport", new InvalidOperationException("The import ledger wasn't saved, so a repeat import would add these times again."));
             _core.SendToJS("vrcxImportProgress", new { status = "Saving timeline...", percent = 88 });
             _core.Timeline.BulkImportEvents(tlEvents);
             _core.Timeline.BulkImportEvents(meetEvents);

@@ -858,6 +858,139 @@ await Check("backup: copies a database in use, and a missing or bad target only 
     await Task.CompletedTask;
 });
 
+// ---- VRCX history archive ----
+
+(VrcxHistoryModule Module, string Source, string Archive) NewVrcx(string name, Func<bool>? running = null)
+{
+    var dir = Fresh(name);
+    var source = Path.Combine(dir, "VRCX.sqlite3");
+    using (var db = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={source};Pooling=False"))
+    {
+        db.Open();
+        using var command = db.CreateCommand();
+        command.CommandText = """
+            CREATE TABLE cookies (key TEXT, value TEXT); INSERT INTO cookies VALUES ('auth', 'SECRET-COOKIE');
+            CREATE TABLE configs (key TEXT, value TEXT); INSERT INTO configs VALUES ('login', 'SECRET-CONFIG');
+            CREATE TABLE cache_world (id TEXT); INSERT INTO cache_world VALUES ('w');
+            CREATE TABLE usrabc_feed_avatar (id INTEGER PRIMARY KEY, name TEXT, thumb BLOB, score REAL, gone TEXT);
+            INSERT INTO usrabc_feed_avatar VALUES (1, 'one "quoted"', x'00FF', 1.5, NULL), (2, 'two', NULL, NULL, NULL);
+            CREATE TABLE usrdef_feed_avatar (id INTEGER PRIMARY KEY, name TEXT); INSERT INTO usrdef_feed_avatar VALUES (1, 'other account');
+            CREATE TABLE gamelog_video_play (id INTEGER PRIMARY KEY, video_url TEXT); INSERT INTO gamelog_video_play VALUES (1, 'u');
+            CREATE TABLE memos (user_id TEXT, memo TEXT);
+            """;
+        command.ExecuteNonQuery();
+    }
+    var module = new VrcxHistoryModule(running ?? (() => false), Path.Combine(dir, "archive", "vrcx-history.db"));
+    return (module, source, module.ArchivePath);
+}
+
+static List<string> ArchivedJson(string archive)
+{
+    var rows = new List<string>();
+    using var db = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={archive};Mode=ReadOnly;Pooling=False");
+    db.Open();
+    using var command = db.CreateCommand();
+    command.CommandText = "SELECT source_table || ' ' || row_json FROM vrcx_rows ORDER BY 1;";
+    using var reader = command.ExecuteReader();
+    while (reader.Read()) rows.Add(reader.GetString(0));
+    return rows;
+}
+
+await Check("vrcx: copies every history row, keeps accounts apart and every value type", async () =>
+{
+    var (module, source, archive) = NewVrcx("vrcx-copy");
+    var result = module.Run(source);
+    Assert(result.Complete, result.Error ?? "not complete");
+    Assert(result.Tables.Count == 4, $"{result.Tables.Count} tables");
+    var rows = ArchivedJson(archive);
+    Assert(rows.Count == 4, $"{rows.Count} rows");
+    Assert(rows.Any(r => r.StartsWith("usrabc_feed_avatar ") && r.Contains("\"thumb\":{\"$bytes\":\"AP8=\"}") && r.Contains("\"score\":1.5") && r.Contains("\"gone\":null")), "values lost");
+    Assert(rows.Any(r => r.StartsWith("usrdef_feed_avatar ")), "second account lost");
+    await Task.CompletedTask;
+});
+
+await Check("vrcx: the login is never copied, and skipped tables are listed", async () =>
+{
+    var (module, source, archive) = NewVrcx("vrcx-secret");
+    var result = module.Run(source);
+    Assert(ArchivedJson(archive).All(r => !r.Contains("SECRET")), "login copied");
+    var bytes = File.ReadAllBytes(archive);
+    Assert(!Encoding.UTF8.GetString(bytes).Contains("SECRET"), "login in the file");
+    Assert(new[] { "cookies", "configs", "cache_world" }.All(t => result.Skipped.Any(s => s.Table == t)), "skipped table not listed");
+    await Task.CompletedTask;
+});
+
+await Check("vrcx: repeating adds only new rows", async () =>
+{
+    var (module, source, archive) = NewVrcx("vrcx-repeat");
+    module.Run(source);
+    var again = module.Run(source);
+    Assert(again.Complete && again.Tables.Sum(t => t.Added) == 0, $"added {again.Tables.Sum(t => t.Added)}");
+    using (var db = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={source};Pooling=False"))
+    {
+        db.Open();
+        using var command = db.CreateCommand();
+        command.CommandText = "INSERT INTO gamelog_video_play VALUES (2, 'new');";
+        command.ExecuteNonQuery();
+    }
+    var third = module.Run(source);
+    Assert(third.Complete && third.Tables.Sum(t => t.Added) == 1, $"added {third.Tables.Sum(t => t.Added)}");
+    Assert(ArchivedJson(archive).Count == 5, "row count wrong");
+    Assert(module.ReadSummary().Sum(t => t.ArchivedTotal) == 5, "summary wrong");
+    await Task.CompletedTask;
+});
+
+await Check("vrcx: leaves the source alone and removes its temporary copy", async () =>
+{
+    var (module, source, archive) = NewVrcx("vrcx-untouched");
+    var before = File.ReadAllBytes(source);
+    var stamp = File.GetLastWriteTimeUtc(source);
+    module.Run(source);
+    Assert(before.SequenceEqual(File.ReadAllBytes(source)) && stamp == File.GetLastWriteTimeUtc(source), "source changed");
+    Assert(!Directory.GetDirectories(Path.GetDirectoryName(archive)!).Any(d => Path.GetFileName(d).StartsWith("vrcx-read-")), "temp copy left");
+    await Task.CompletedTask;
+});
+
+await Check("vrcx: refuses while VRCX runs or the file is missing, and a bad file fails cleanly", async () =>
+{
+    var (blocked, source, archive) = NewVrcx("vrcx-blocked", () => true);
+    var result = blocked.Run(source);
+    Assert(result.Error != null && !result.Complete && !File.Exists(archive), "ran while VRCX was open");
+    var (module, _, _) = NewVrcx("vrcx-missing");
+    Assert(module.Run(Path.Combine(Fresh("vrcx-none"), "nope.sqlite3")).Error != null, "missing file not reported");
+    var bad = Path.Combine(Fresh("vrcx-bad"), "bad.sqlite3");
+    File.WriteAllText(bad, "this is not a database, it just has a name that looks like one");
+    Assert(module.Run(bad).Error != null, "bad file not reported");
+    await Task.CompletedTask;
+});
+
+await Check("vrcx: the import ledger stops a repeat doubling times, and survives restart", async () =>
+{
+    var dir = Fresh("vrcx-ledger");
+    var first = new VrcxHistoryModule(() => false, Path.Combine(dir, "a.db"));
+    Assert(first.ReadMergeLedger("world_seconds") == null, "ledger read before the module started");
+    var registry = new ModuleRegistry(OpenDb(dir));
+    registry.Register(first);
+    await registry.StartAllAsync();
+    var empty = first.ReadMergeLedger("world_seconds")!;
+    Assert(VrcxHistoryModule.Remaining(empty, "w", 100) == 100, "first import should add everything");
+    Assert(first.SaveMergeLedger("world_seconds", new[] { ("w", 100L) }), "not saved");
+    var ledger = first.ReadMergeLedger("world_seconds")!;
+    Assert(VrcxHistoryModule.Remaining(ledger, "w", 100) == 0, "repeat added time");
+    Assert(VrcxHistoryModule.Remaining(ledger, "w", 130) == 30, "growth not added");
+    Assert(VrcxHistoryModule.Remaining(ledger, "w", 90) == 0, "a smaller total took time away");
+    Assert(first.ReadMergeLedger("user_seconds")!.Count == 0, "kinds mixed");
+    Assert(first.SaveMergeLedger("world_seconds", new[] { ("w", 50L) }) && first.ReadMergeLedger("world_seconds")!["w"] == 100, "ledger went backwards");
+    await registry.StopAllAsync(TimeSpan.FromSeconds(5));
+
+    var second = new VrcxHistoryModule(() => false, Path.Combine(dir, "a.db"));
+    var reopened = new ModuleRegistry(OpenDb(dir));
+    reopened.Register(second);
+    await reopened.StartAllAsync();
+    Assert(second.ReadMergeLedger("world_seconds")!["w"] == 100, "ledger lost");
+    await reopened.StopAllAsync(TimeSpan.FromSeconds(5));
+});
+
 // ---- Host ----
 
 await Check("host: the db opens in the background and Stop is bounded", async () =>

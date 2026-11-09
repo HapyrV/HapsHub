@@ -853,6 +853,17 @@
                         </div>
                     </div>
 
+                    <div class="vrcn-panel-card" id="hubVrcxArchiveCard" data-section="vrcx" style="display:none;">
+                        <div class="vrcn-panel-card-header"><span class="msi">inventory_2</span> <span data-i18n="hub.vrcx.title">Archive all VRCX history</span></div>
+                        <div class="set-desc" data-i18n="hub.vrcx.desc">Keeps a copy of everything in VRCX's history, including what the import below doesn't read: notifications, avatar changes, video plays, friend log, mutual friends, notes and favourites. It reads a temporary copy, so VRCX's files aren't touched, and repeating it only adds what's new. Your VRCX login is never copied.</div>
+                        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="vrcn-button-round vrcn-btn-join" id="hubVrcxArchiveBtn" onclick="hubVrcxArchive(false)"><span data-i18n="hub.vrcx.start">Archive from VRCX</span></button>
+                            <button class="vrcn-button-round" onclick="hubVrcxArchive(true)"><span data-i18n="hub.vrcx.choose">Choose another file</span></button>
+                        </div>
+                        <div id="hubVrcxArchiveStatus" class="set-desc" style="margin-top:10px;"></div>
+                        <div id="hubVrcxArchiveTables" style="margin-top:6px;"></div>
+                    </div>
+
                     <div class="vrcn-panel-card" id="vrcxImportCard" data-section="vrcx" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">download</span> <span data-i18n="settings.vrcx.title">Import data from VRCX</span></div>
                         <div class="set-desc"><span data-i18n="settings.vrcx.desc_prefix">Imports your VRCX history into HapsHub: world time, friend time, instance joins, GPS events, online/offline, status and bio changes. Existing data is preserved and values are added on top. Select your</span> <code>VRCX.sqlite3</code> <span data-i18n="settings.vrcx.desc_suffix">file to begin.</span></div>
