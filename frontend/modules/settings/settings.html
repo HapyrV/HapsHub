@@ -260,28 +260,30 @@
                                 <option value="" data-i18n="settings.design.fonts.custom_none">None</option>
                             </select>
                             </div>
-                            <div class="fs-slider-block">
-                                <div class="fs-slider-head">
-                                    <span data-i18n="settings.design.fonts.size">Font Size</span>
-                                    <span class="fs-slider-val" id="fontSizeVal">0 px</span>
+                            <div style="display:flex;flex-direction:column;gap:14px;">
+                                <div class="fs-slider-block">
+                                    <div class="fs-slider-head">
+                                        <span data-i18n="hub.fonts.letter_spacing">Letter Spacing</span>
+                                        <span class="fs-slider-val" id="letterSpacingVal">0 px</span>
+                                    </div>
+                                    <div class="fs-slider-wrap">
+                                        <input type="range" id="setLetterSpacing" class="fs-slider" min="-0.5" max="2" step="0.1" value="0"
+                                               oninput="hubLetterSpacingChanged(this.value)" onchange="hubLetterSpacingSave(this.value)">
+                                    </div>
+                                    <div class="hub-letter-sample" style="margin-top:8px;padding:10px 12px;border-radius:8px;background:var(--bg-input);color:var(--tx0);font-size:calc(15px + var(--fs-off, 0px));line-height:1.4;">
+                                        <span data-i18n="hub.fonts.letter_sample">The quick brown fox jumps over the lazy dog. 0123456789</span>
+                                    </div>
                                 </div>
-                                <div class="fs-slider-wrap">
-                                    <div class="fs-ticks"></div>
-                                    <input type="range" id="setFontSize" class="fs-slider" min="-5" max="5" step="1" value="0"
-                                           oninput="setFontSizeOffset(this.value)">
-                                </div>
-                            </div>
-                            <div class="fs-slider-block">
-                                <div class="fs-slider-head">
-                                    <span data-i18n="hub.fonts.letter_spacing">Letter Spacing</span>
-                                    <span class="fs-slider-val" id="letterSpacingVal">0 px</span>
-                                </div>
-                                <div class="fs-slider-wrap">
-                                    <input type="range" id="setLetterSpacing" class="fs-slider" min="-0.5" max="2" step="0.1" value="0"
-                                           oninput="hubLetterSpacingChanged(this.value)" onchange="hubLetterSpacingSave(this.value)">
-                                </div>
-                                <div class="hub-letter-sample" style="margin-top:8px;padding:10px 12px;border-radius:8px;background:var(--bg-input);color:var(--tx0);font-size:calc(15px + var(--fs-off, 0px));line-height:1.4;">
-                                    <span data-i18n="hub.fonts.letter_sample">The quick brown fox jumps over the lazy dog. 0123456789</span>
+                                <div class="fs-slider-block">
+                                    <div class="fs-slider-head">
+                                        <span data-i18n="settings.design.fonts.size">Font Size</span>
+                                        <span class="fs-slider-val" id="fontSizeVal">0 px</span>
+                                    </div>
+                                    <div class="fs-slider-wrap">
+                                        <div class="fs-ticks"></div>
+                                        <input type="range" id="setFontSize" class="fs-slider" min="-5" max="5" step="1" value="0"
+                                               oninput="setFontSizeOffset(this.value)">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -554,7 +556,7 @@
                         <div class="sf-toggle-row" id="fotGroupRow">
                             <span data-i18n="settings.friend_toast.groups">Favorite groups</span>
                             <div style="position:relative;">
-                                <button class="vrcn-button" id="fotGroupBtn" onclick="fotToggleGroupPanel(this)"><span class="msi" style="font-size:16px;">filter_list</span> <span id="fotGroupLabel">All</span></button>
+                                <button class="vrcn-button" id="fotGroupBtn" style="max-width:220px;" onclick="fotToggleGroupPanel(this)"><span class="msi" style="font-size:16px;">filter_list</span> <span id="fotGroupLabel" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">All</span></button>
                                 <div id="fotGroupPanel" class="vn-select-panel" style="display:none;right:0;min-width:230px;max-height:320px;overflow-y:auto;z-index:1200;padding:6px;"></div>
                             </div>
                         </div>

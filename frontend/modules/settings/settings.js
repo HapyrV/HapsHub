@@ -2345,7 +2345,10 @@ function fotRenderGroupLabel() {
     const picked = settings.friendOnlineToastGroups || [];
     if (!picked.length) { label.textContent = t('settings.friend_toast.groups_all', 'All'); return; }
     const names = _fotGroups().filter(g => picked.includes(g.key)).map(g => g.label);
-    label.textContent = names.length ? names.join(', ') : tf('settings.friend_toast.groups_count', { count: picked.length }, '{count} groups');
+    // One name fits; several would push the button over the row's title, so they become a count with the names on hover.
+    label.textContent = names.length === 1 ? names[0] : tf('settings.friend_toast.groups_count', { count: picked.length }, '{count} groups');
+    const btn = document.getElementById('fotGroupBtn');
+    if (btn) btn.title = names.join(', ');
 }
 
 function fotToggleGroupPanel(btn) {
