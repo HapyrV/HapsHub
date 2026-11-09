@@ -1791,12 +1791,19 @@ function renderFtAvatarBody(ev) {
         _dragging = false;
     });
 
-    document.addEventListener('wheel', e => {
-        const row = e.target.closest('.tl-filter-row, .tt-scroll');
-        if (!row || e.deltaX !== 0) return;
-        row.scrollLeft += e.deltaY;
+    // The wheel turns these rows sideways. The listener goes on each row the first time the mouse is over it,
+    // not on the whole page, so scrolling elsewhere never waits for it.
+    const _rowWheel = e => {
+        if (e.deltaX !== 0) return;
+        e.currentTarget.scrollLeft += e.deltaY;
         e.preventDefault();
-    }, { passive: false });
+    };
+    document.addEventListener('mouseover', e => {
+        const row = e.target instanceof Element ? e.target.closest('.tl-filter-row, .tt-scroll') : null;
+        if (!row || row._hubWheel) return;
+        row._hubWheel = true;
+        row.addEventListener('wheel', _rowWheel, { passive: false });
+    }, { passive: true });
 
     document.addEventListener('scroll', e => {
         if (!(e.target instanceof Element) || !e.target.classList.contains('tt-scroll')) return;

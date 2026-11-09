@@ -175,11 +175,35 @@ function _stepGuiZoom(dir) {
     clearTimeout(_zoomSaveTimer);
     _zoomSaveTimer = setTimeout(() => { try { autoSave(); } catch {} }, 800);
 }
-document.addEventListener('wheel', e => {
+// A wheel listener on the whole page that may cancel scrolling makes every wheel tick wait for the page's
+// script, so scrolling stutters whenever the app is busy. Shortcuts that only act with Ctrl or Alt held
+// register here, and the cancelling listener exists only while one of those keys is down.
+const _modifierWheelHandlers = [];
+let _modifierWheelOn = false;
+function onModifierWheel(handler) { _modifierWheelHandlers.push(handler); }
+function _modifierWheelDispatch(e) {
+    for (const handler of _modifierWheelHandlers) {
+        handler(e);
+        if (e.defaultPrevented) return;
+    }
+}
+function _modifierWheelSet(on) {
+    if (on === _modifierWheelOn) return;
+    _modifierWheelOn = on;
+    if (on) document.addEventListener('wheel', _modifierWheelDispatch, { passive: false });
+    else document.removeEventListener('wheel', _modifierWheelDispatch);
+}
+document.addEventListener('keydown', e => { if (e.ctrlKey || e.altKey) _modifierWheelSet(true); }, true);
+document.addEventListener('keyup', e => { if (!e.ctrlKey && !e.altKey) _modifierWheelSet(false); }, true);
+// Keys pressed while another window had focus never reach the page, but the mouse reports them as it moves.
+document.addEventListener('mousemove', e => _modifierWheelSet(e.ctrlKey || e.altKey), { passive: true, capture: true });
+window.addEventListener('blur', () => _modifierWheelSet(false));
+
+onModifierWheel(e => {
     if (!e.ctrlKey) return;
     e.preventDefault();
     _stepGuiZoom(e.deltaY < 0 ? 1 : -1);
-}, { passive: false });
+});
 // Ctrl+0 resets zoom, Ctrl+Plus / Ctrl+Minus step it — handled here so the host stays in sync
 document.addEventListener('keydown', e => {
     if (!e.ctrlKey) return;

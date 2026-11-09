@@ -124,13 +124,13 @@ function lvScrollBox(target) {
     return null;
 }
 
-document.addEventListener('wheel', e => {
+onModifierWheel(e => {
     if (!e.altKey || e.ctrlKey) return;
     const box = lvScrollBox(e.target);
     if (!box) return;
     e.preventDefault();
     box.scrollLeft += (e.deltaY || e.deltaX);
-}, { passive: false });
+});
 
 const _lvEditConfigs = {};
 let _lvEditBound = false;
