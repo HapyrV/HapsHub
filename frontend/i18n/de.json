@@ -4199,5 +4199,10 @@
   "hub.welcome.add_placeholder": "Hi {name}, bereit für heute Abend?",
   "hub.welcome.add": "Hinzufügen",
   "hub.welcome.count": "{on} von {total} an",
-  "hub.welcome.sample_name": "Name"
+  "hub.welcome.sample_name": "Name",
+  "hub.dashbg.landscape": "Nur Querformat-Bilder",
+  "hub.dashbg.folders": "Hintergrund-Ordner",
+  "hub.dashbg.folders_desc": "Woher der zufällige Hintergrund kommt, inklusive Unterordner. Ohne Eintrag werden deine überwachten Ordner genutzt.",
+  "hub.dashbg.add_folder": "Ordner hinzufügen",
+  "hub.dashbg.shuffle": "Jetzt eines wählen"
 }

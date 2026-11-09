@@ -167,6 +167,8 @@ function saveSettings() {
             guiZoom: Math.round(_guiZoom * 100),
             dashBgPath: dashBgPath,
             randomDashBg: document.getElementById('setRandomBg').checked,
+            dashBgFolders: settings.dashBgFolders || [],
+            dashBgLandscapeOnly: document.getElementById('setDashBgLandscape')?.checked ?? true,
             clockEnabled: document.getElementById('setClockEnabled').checked,
             dateEnabled: document.getElementById('setDateEnabled').checked,
             showVrcPlus: document.getElementById('setShowVrcPlus').checked,
@@ -652,6 +654,10 @@ function loadSettingsToUI(s) {
 
     const randomBg = s.RandomDashBg || s.randomDashBg || false;
     document.getElementById('setRandomBg').checked = randomBg;
+    settings.dashBgFolders = s.DashBgFolders || [];
+    const _dbgLand = document.getElementById('setDashBgLandscape');
+    if (_dbgLand) _dbgLand.checked = s.DashBgLandscapeOnly ?? true;
+    renderDashBgFolders();
     document.getElementById('setClockEnabled').checked = s.ClockEnabled ?? s.clockEnabled ?? false;
     document.getElementById('setDateEnabled').checked = s.DateEnabled ?? s.dateEnabled ?? false;
     document.getElementById('setShowVrcPlus').checked = s.ShowVrcPlus ?? s.showVrcPlus ?? true;
@@ -2368,5 +2374,31 @@ function fotGroupChanged() {
     const panel = document.getElementById('fotGroupPanel');
     settings.friendOnlineToastGroups = [...panel.querySelectorAll('input[data-key]:checked')].map(i => i.dataset.key);
     fotRenderGroupLabel();
+    autoSave();
+}
+
+// ---- Random dashboard background: folders ----
+
+function renderDashBgFolders() {
+    _renderExeList('dashBgFolderList', settings.dashBgFolders || [], 'removeDashBgFolder');
+    // Show the whole folder path, not just its last part.
+    const el = document.getElementById('dashBgFolderList');
+    (settings.dashBgFolders || []).forEach((p, i) => {
+        const span = el?.children[i]?.querySelector('span');
+        if (span) { span.textContent = p; span.title = p; }
+    });
+}
+
+function removeDashBgFolder(i) {
+    (settings.dashBgFolders || []).splice(i, 1);
+    renderDashBgFolders();
+    autoSave();
+}
+
+function addDashBgFolder(path) {
+    if (!path) return;
+    settings.dashBgFolders = settings.dashBgFolders || [];
+    if (!settings.dashBgFolders.some(p => p.toLowerCase() === path.toLowerCase())) settings.dashBgFolders.push(path);
+    renderDashBgFolders();
     autoSave();
 }

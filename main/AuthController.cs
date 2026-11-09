@@ -597,7 +597,8 @@ public class AuthController
                             { ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp" };
                         var allImages = new List<string>();
 
-                        foreach (var folder in _core.Settings.WatchFolders.Where(Directory.Exists))
+                        var bgFolders = _core.Settings.DashBgFolders.Count > 0 ? _core.Settings.DashBgFolders : _core.Settings.WatchFolders;
+                        foreach (var folder in bgFolders.Where(Directory.Exists))
                         {
                             try
                             {
@@ -617,6 +618,22 @@ public class AuthController
 
                         var rng = new Random();
                         var picked = allImages[rng.Next(allImages.Count)];
+                        if (_core.Settings.DashBgLandscapeOnly)
+                        {
+                            // Portrait shots don't fit the wide dashboard. Try random picks, reading only each header.
+                            string? wide = null;
+                            for (int tries = 0; tries < 60 && wide == null; tries++)
+                            {
+                                var candidate = allImages[rng.Next(allImages.Count)];
+                                if (HapsHub.Core.ImageShape.IsLandscape(candidate)) wide = candidate;
+                            }
+                            if (wide == null)
+                            {
+                                Invoke(() => _core.SendToJS("log", new { msg = "Random background: no landscape image found", color = "warn" }));
+                                return;
+                            }
+                            picked = wide;
+                        }
                         var url = _core.DashBgUrl(picked);
                         var sample = DashBgSample(picked);
                         Invoke(() =>
@@ -2085,6 +2102,9 @@ public class AuthController
             if (dashBg != null) _core.Settings.DashBgPath = dashBg;
             _core.Settings.DashOpacity = data["dashOpacity"]?.Value<int>() ?? 40;
             _core.Settings.RandomDashBg = data["randomDashBg"]?.Value<bool>() ?? false;
+            var dashBgFolders = data["dashBgFolders"]?.ToObject<List<string>>();
+            if (dashBgFolders != null) _core.Settings.DashBgFolders = PathSafety.FilterWatchFolders(dashBgFolders);
+            _core.Settings.DashBgLandscapeOnly = data["dashBgLandscapeOnly"]?.Value<bool>() ?? true;
             _core.Settings.ClockEnabled  = data["clockEnabled"]?.Value<bool>()  ?? false;
             _core.Settings.DateEnabled   = data["dateEnabled"]?.Value<bool>()   ?? false;
             _core.Settings.ShowVrcPlus    = data["showVrcPlus"]?.Value<bool>()    ?? true;

@@ -219,6 +219,7 @@ window.external.receiveMessage(rawMsg => {
                 } else addLog(t('messages.delete_failed', 'Delete failed'), 'err');
                 break;
             case 'folderPicked': {
+                if (payload.target === 'dashBgFolderAdd') { if (typeof addDashBgFolder === 'function') addDashBgFolder(payload.path); break; }
                 const el = document.getElementById(payload.target || '');
                 if (el && payload.path) el.value = payload.path;
                 break;

@@ -4199,5 +4199,10 @@
   "hub.welcome.add_placeholder": "Salut {name}, prêt pour ce soir ?",
   "hub.welcome.add": "Ajouter",
   "hub.welcome.count": "{on} sur {total} activés",
-  "hub.welcome.sample_name": "Nom"
+  "hub.welcome.sample_name": "Nom",
+  "hub.dashbg.landscape": "Images au format paysage uniquement",
+  "hub.dashbg.folders": "Dossiers d'arrière-plans",
+  "hub.dashbg.folders_desc": "D'où vient l'arrière-plan aléatoire, sous-dossiers compris. Sans dossier ajouté, tes dossiers surveillés sont utilisés.",
+  "hub.dashbg.add_folder": "Ajouter un dossier",
+  "hub.dashbg.shuffle": "En choisir un maintenant"
 }

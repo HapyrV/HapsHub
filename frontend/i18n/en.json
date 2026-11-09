@@ -4199,5 +4199,10 @@
   "hub.welcome.add_placeholder": "Hi {name}, ready for tonight?",
   "hub.welcome.add": "Add",
   "hub.welcome.count": "{on} of {total} on",
-  "hub.welcome.sample_name": "Name"
+  "hub.welcome.sample_name": "Name",
+  "hub.dashbg.landscape": "Landscape pictures only",
+  "hub.dashbg.folders": "Background Folders",
+  "hub.dashbg.folders_desc": "Where the random background comes from, subfolders included. With none added, your watch folders are used.",
+  "hub.dashbg.add_folder": "Add Folder",
+  "hub.dashbg.shuffle": "Pick one now"
 }

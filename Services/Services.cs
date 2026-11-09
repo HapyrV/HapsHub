@@ -360,6 +360,9 @@ public class AppSettings
     public string DashBgPath { get; set; } = "";
     public int DashOpacity { get; set; } = 40;
     public bool RandomDashBg { get; set; } = false;
+    // Folders the random dashboard background comes from; empty means the watch folders.
+    public List<string> DashBgFolders { get; set; } = new();
+    public bool DashBgLandscapeOnly { get; set; } = true;
     public bool ClockEnabled { get; set; } = false;
     public bool DateEnabled { get; set; } = false;
     public bool ShowVrcPlus { get; set; } = true;

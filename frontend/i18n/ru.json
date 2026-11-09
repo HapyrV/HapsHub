@@ -4203,5 +4203,10 @@
   "hub.welcome.add_placeholder": "Привет, {name}, готов к вечеру?",
   "hub.welcome.add": "Добавить",
   "hub.welcome.count": "Включено {on} из {total}",
-  "hub.welcome.sample_name": "Имя"
+  "hub.welcome.sample_name": "Имя",
+  "hub.dashbg.landscape": "Только горизонтальные снимки",
+  "hub.dashbg.folders": "Папки фонов",
+  "hub.dashbg.folders_desc": "Откуда берётся случайный фон, включая подпапки. Если ничего не добавлено, используются отслеживаемые папки.",
+  "hub.dashbg.add_folder": "Добавить папку",
+  "hub.dashbg.shuffle": "Выбрать сейчас"
 }

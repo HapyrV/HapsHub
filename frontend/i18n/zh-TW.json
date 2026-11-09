@@ -4199,5 +4199,10 @@
   "hub.welcome.add_placeholder": "嗨 {name}，今晚準備好了嗎？",
   "hub.welcome.add": "新增",
   "hub.welcome.count": "已開啟 {on}/{total}",
-  "hub.welcome.sample_name": "名字"
+  "hub.welcome.sample_name": "名字",
+  "hub.dashbg.landscape": "僅橫向圖片",
+  "hub.dashbg.folders": "背景資料夾",
+  "hub.dashbg.folders_desc": "隨機背景的來源（含子資料夾）。未新增時使用監看資料夾。",
+  "hub.dashbg.add_folder": "新增資料夾",
+  "hub.dashbg.shuffle": "立即隨機一張"
 }

@@ -1668,6 +1668,39 @@ await Check("host: the db opens in the background and Stop is bounded", async ()
     Assert(File.Exists(Path.Combine(HubPaths.HubRoot, "hub.log")), "no log written");
 });
 
+await Check("image shape: headers give width and height for each format", () =>
+{
+    static byte[] Pad(byte[] b) { var o = new byte[Math.Max(64, b.Length)]; b.CopyTo(o, 0); return o; }
+    var png = Pad(new byte[] { 0x89, (byte)'P', (byte)'N', (byte)'G', 13, 10, 26, 10, 0, 0, 0, 13, (byte)'I', (byte)'H', (byte)'D', (byte)'R', 0, 0, 7, 128, 0, 0, 4, 56 });
+    Assert(ImageShape.Read(png) == (1920, 1080), "png");
+    var gif = Pad(new byte[] { (byte)'G', (byte)'I', (byte)'F', (byte)'8', (byte)'9', (byte)'a', 100, 0, 200, 0 });
+    Assert(ImageShape.Read(gif) == (100, 200), "gif");
+    var bmp = new byte[64]; bmp[0] = (byte)'B'; bmp[1] = (byte)'M';
+    BitConverter.GetBytes(640).CopyTo(bmp, 18); BitConverter.GetBytes(-480).CopyTo(bmp, 22);
+    Assert(ImageShape.Read(bmp) == (640, 480), "bmp");
+    var jpg = Pad(new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0, 4, 0, 0, 0xFF, 0xC0, 0, 17, 8, 0x04, 0x38, 0x07, 0x80, 3 });
+    Assert(ImageShape.Read(jpg) == (1920, 1080), "jpeg");
+    var webp = new byte[64];
+    System.Text.Encoding.ASCII.GetBytes("RIFF").CopyTo(webp, 0); System.Text.Encoding.ASCII.GetBytes("WEBPVP8X").CopyTo(webp, 8);
+    webp[24] = 0x7F; webp[25] = 0x07; webp[27] = 0x37; webp[28] = 0x04; // 1920-1, 1080-1
+    Assert(ImageShape.Read(webp) == (1920, 1080), "webp");
+    Assert(ImageShape.Read(new byte[64]) == null, "unknown format gives null");
+    var file = Path.Combine(root, "tall.png");
+    File.WriteAllBytes(file, Pad(new byte[] { 0x89, (byte)'P', (byte)'N', (byte)'G', 13, 10, 26, 10, 0, 0, 0, 13, (byte)'I', (byte)'H', (byte)'D', (byte)'R', 0, 0, 4, 56, 0, 0, 7, 128 }));
+    Assert(!ImageShape.IsLandscape(file), "portrait file is not landscape");
+    Assert(!ImageShape.IsLandscape(Path.Combine(root, "missing.png")), "missing file is not landscape");
+    return Task.CompletedTask;
+});
+
+await Check("launch addons: unknown kinds find nothing; running programs are skipped", () =>
+{
+    Assert(LaunchAddons.Detect("nope").Count == 0, "unknown kind");
+    var self = Environment.ProcessPath!;
+    Assert(LaunchAddons.NotRunning(new[] { self }).Count == 0, "this test's own exe counts as running");
+    Assert(LaunchAddons.NotRunning(new[] { @"C:\nowhere\hub-never-runs-1234.exe" }).Count == 1, "a program that isn't running stays");
+    return Task.CompletedTask;
+});
+
 SqliteConnection.ClearAllPools();
 try { Directory.Delete(root, recursive: true); }
 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }

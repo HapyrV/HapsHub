@@ -194,6 +194,14 @@
                             <span id="dashBgName" style="font-size:calc(11px + var(--fs-off, 0px));color:var(--tx0);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;"></span>
                         </div>
                         <div class="sf-toggle-row"><span data-i18n="settings.design.random_background">Random background from watch folders on launch</span><label class="toggle"><input type="checkbox" id="setRandomBg" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+                        <div class="sf-toggle-row"><span data-i18n="hub.dashbg.landscape">Landscape pictures only</span><label class="toggle"><input type="checkbox" id="setDashBgLandscape" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+                        <div class="sf-section-label" style="margin-top:10px;" data-i18n="hub.dashbg.folders">Background Folders</div>
+                        <div class="set-desc" style="margin-bottom:8px;" data-i18n="hub.dashbg.folders_desc">Where the random background comes from, subfolders included. With none added, your watch folders are used.</div>
+                        <div class="exe-list" id="dashBgFolderList"><div class="folder-empty" data-i18n="common.none">None</div></div>
+                        <div class="folder-btns" style="margin-top:8px;display:flex;gap:8px;">
+                            <button class="vrcn-button" onclick="sendToCS({ action: 'pickFolder', target: 'dashBgFolderAdd' })"><span class="msi" style="font-size:16px;">create_new_folder</span> <span data-i18n="hub.dashbg.add_folder">Add Folder</span></button>
+                            <button class="vrcn-button" onclick="sendToCS({ action: 'vrcRandomDashBg' })"><span class="msi" style="font-size:16px;">shuffle</span> <span data-i18n="hub.dashbg.shuffle">Pick one now</span></button>
+                        </div>
                     </div>
 
                     <!-- COLORS -->

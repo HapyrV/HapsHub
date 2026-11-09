@@ -4199,5 +4199,10 @@
   "hub.welcome.add_placeholder": "안녕 {name}, 오늘 밤 준비됐어?",
   "hub.welcome.add": "추가",
   "hub.welcome.count": "{total}개 중 {on}개 켜짐",
-  "hub.welcome.sample_name": "이름"
+  "hub.welcome.sample_name": "이름",
+  "hub.dashbg.landscape": "가로 사진만",
+  "hub.dashbg.folders": "배경 폴더",
+  "hub.dashbg.folders_desc": "무작위 배경을 가져올 폴더(하위 폴더 포함)입니다. 추가하지 않으면 감시 폴더를 사용합니다.",
+  "hub.dashbg.add_folder": "폴더 추가",
+  "hub.dashbg.shuffle": "지금 고르기"
 }

@@ -4199,5 +4199,10 @@
   "hub.welcome.add_placeholder": "Hola {name}, ¿listo para esta noche?",
   "hub.welcome.add": "Añadir",
   "hub.welcome.count": "{on} de {total} activados",
-  "hub.welcome.sample_name": "Nombre"
+  "hub.welcome.sample_name": "Nombre",
+  "hub.dashbg.landscape": "Solo imágenes horizontales",
+  "hub.dashbg.folders": "Carpetas de fondos",
+  "hub.dashbg.folders_desc": "De dónde sale el fondo aleatorio, subcarpetas incluidas. Si no añades ninguna, se usan tus carpetas vigiladas.",
+  "hub.dashbg.add_folder": "Añadir carpeta",
+  "hub.dashbg.shuffle": "Elegir uno ahora"
 }

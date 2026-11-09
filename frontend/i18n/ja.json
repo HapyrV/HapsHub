@@ -4199,5 +4199,10 @@
   "hub.welcome.add_placeholder": "やあ {name}、今夜の準備はいい？",
   "hub.welcome.add": "追加",
   "hub.welcome.count": "{total} 件中 {on} 件オン",
-  "hub.welcome.sample_name": "名前"
+  "hub.welcome.sample_name": "名前",
+  "hub.dashbg.landscape": "横長の画像のみ",
+  "hub.dashbg.folders": "背景フォルダー",
+  "hub.dashbg.folders_desc": "ランダム背景の取得元（サブフォルダーを含む）。未追加なら監視フォルダーを使います。",
+  "hub.dashbg.add_folder": "フォルダーを追加",
+  "hub.dashbg.shuffle": "今すぐ選ぶ"
 }
