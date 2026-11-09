@@ -8,7 +8,8 @@ namespace VRCNext.Services.Helpers;
 public static class ImageCacheHelper
 {
     private static string _baseDir = "";
-    private static HttpClient? _http;
+    // A provider, not a client: a fresh login disposes the API client and builds a new one.
+    private static Func<HttpClient>? _httpProvider;
     private static SqliteConnection? _db;
     private static readonly object _dbLock = new();
 
@@ -34,10 +35,10 @@ public static class ImageCacheHelper
 
     private static readonly SemaphoreSlim _downloadSem = new(6, 6);
 
-    public static void Initialize(HttpClient http)
+    public static void Initialize(Func<HttpClient> http)
     {
         _baseDir = HubPaths.Data("Caches", "ImageCache");
-        _http = http;
+        _httpProvider = http;
 
         Directory.CreateDirectory(Path.Combine(_baseDir, "Worlds"));
         Directory.CreateDirectory(Path.Combine(_baseDir, "Groups"));
@@ -482,7 +483,7 @@ public static class ImageCacheHelper
         {
             try
             {
-                if (_http == null) return;
+                if (_httpProvider == null) return;
                 var url = NormalizeTo512(imageUrl);
                 long remoteLen = -1;
                 await _downloadSem.WaitAsync();
@@ -490,7 +491,7 @@ public static class ImageCacheHelper
                 {
                     using var req = new HttpRequestMessage(HttpMethod.Get, url);
                     req.Headers.TryAddWithoutValidation(BackoffHandler.NoBackoffHeader, "1");
-                    using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
+                    using var resp = await _httpProvider().SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
                     if (!resp.IsSuccessStatusCode) return;
                     remoteLen = resp.Content.Headers.ContentLength ?? -1;
                 }
@@ -535,7 +536,7 @@ public static class ImageCacheHelper
     private static Task<string?> CacheAsync(string subdir, string? entityId, string? imageUrl, bool forceRefresh, bool normalize = true)
     {
         imageUrl = StripLocalhostUrl(imageUrl);
-        if (string.IsNullOrWhiteSpace(entityId) || string.IsNullOrWhiteSpace(imageUrl) || _http == null)
+        if (string.IsNullOrWhiteSpace(entityId) || string.IsNullOrWhiteSpace(imageUrl) || _httpProvider == null)
             return Task.FromResult<string?>(null);
         var permaKey = normalize ? NormalizeTo512(imageUrl) : imageUrl;
         if (PermafailHelper.IsPermafailed(permaKey, "Image"))
@@ -575,7 +576,7 @@ public static class ImageCacheHelper
             {
                 using var req = new HttpRequestMessage(HttpMethod.Get, fetchUrl);
                 req.Headers.TryAddWithoutValidation(BackoffHandler.NoBackoffHeader, "1");
-                using var resp = await _http!.SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
+                using var resp = await _httpProvider!().SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
                 var code = (int)resp.StatusCode;
                 if (!resp.IsSuccessStatusCode)
                 {

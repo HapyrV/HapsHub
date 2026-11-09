@@ -47,6 +47,11 @@ public class TimelineController
                 }
                 break;
 
+            case "importVrcxAuto":
+                _vrcxImportPath = VrcxHistoryModule.DefaultSource;
+                _ = Task.Run(() => PreviewAsync(_vrcxImportPath));
+                break;
+
             case "importVrcxStart":
                 if (!string.IsNullOrEmpty(_vrcxImportPath))
                     _ = Task.Run(() => ImportAsync(_vrcxImportPath));
@@ -1144,8 +1149,14 @@ public class TimelineController
 
     // VRCX Import
 
-    private void PreviewAsync(string vrcxPath)
+    private void PreviewAsync(string sourcePath)
     {
+        var (vrcxPath, copyError) = HubModules.VrcxHistory.MakeReadableCopy(sourcePath);
+        if (vrcxPath == null)
+        {
+            _core.SendToJS("vrcxImportError", new { error = copyError });
+            return;
+        }
         try
         {
             using var vrcx = new SqliteConnection($"Data Source={vrcxPath};Mode=ReadOnly");
@@ -1179,7 +1190,7 @@ public class TimelineController
 
             _core.SendToJS("vrcxPreview", new
             {
-                path        = Path.GetFileName(vrcxPath),
+                path        = sourcePath,
                 worlds,
                 locations,
                 friendTimes,
@@ -1193,10 +1204,26 @@ public class TimelineController
         {
             _core.SendToJS("vrcxImportError", new { error = ex.Message });
         }
+        finally
+        {
+            VrcxHistoryModule.DeleteReadableCopy(vrcxPath);
+        }
+    }
+
+    private void ImportAsync(string sourcePath)
+    {
+        var (copy, copyError) = HubModules.VrcxHistory.MakeReadableCopy(sourcePath);
+        if (copy == null)
+        {
+            _core.SendToJS("vrcxImportError", new { error = copyError });
+            return;
+        }
+        try { ImportFromCopy(copy); }
+        finally { VrcxHistoryModule.DeleteReadableCopy(copy); }
     }
 
     // Merges VRCX world/friend time, timeline joins, and friend events into VRCNext
-    private void ImportAsync(string vrcxPath)
+    private void ImportFromCopy(string vrcxPath)
     {
         try
         {
@@ -1220,7 +1247,7 @@ public class TimelineController
                 GROUP BY world_id";
             using (var r = cmd.ExecuteReader())
                 while (r.Read())
-                    worldMerge.Add((r.GetString(0), r.GetString(1), r.GetInt64(2), r.GetInt32(3), r.GetString(4)));
+                    worldMerge.Add((r.GetString(0), r.IsDBNull(1) ? "" : r.GetString(1), r.GetInt64(2), r.GetInt32(3), r.GetString(4)));
 
             _core.SendToJS("vrcxImportProgress", new { status = "Reading friend data...", percent = 25 });
 
@@ -1232,7 +1259,19 @@ public class TimelineController
                 GROUP BY user_id";
             using (var r = cmd.ExecuteReader())
                 while (r.Read())
-                    friendMerge.Add((r.GetString(0), r.GetString(1), r.GetInt64(2), r.GetString(3)));
+                    friendMerge.Add((r.GetString(0), r.IsDBNull(1) ? "" : r.GetString(1), r.GetInt64(2), r.GetString(3)));
+
+            // Friend time per year, for the yearly recap.
+            var friendYears = new List<(string id, long seconds)>();
+            cmd.CommandText = @"
+                SELECT user_id || '|' || strftime('%Y', created_at, 'localtime'), SUM(time)/1000
+                FROM gamelog_join_leave
+                WHERE type='OnPlayerLeft' AND user_id != '' AND time > 0
+                GROUP BY 1";
+            using (var r = cmd.ExecuteReader())
+                while (r.Read())
+                    if (!r.IsDBNull(0))
+                        friendYears.Add((r.GetString(0), r.GetInt64(1)));
 
             _core.SendToJS("vrcxImportProgress", new { status = "Reading timeline events...", percent = 40 });
 
@@ -1251,14 +1290,19 @@ public class TimelineController
                 }
 
             // 3b. Timeline: instance_join from gamelog_location
-            cmd.CommandText = "SELECT created_at, world_id, world_name, location FROM gamelog_location WHERE world_id != ''";
+            cmd.CommandText = "SELECT created_at, world_id, world_name, location, time FROM gamelog_location WHERE world_id != ''";
             using (var r = cmd.ExecuteReader())
                 while (r.Read())
                 {
                     var ts  = r.GetString(0);
                     var wid = r.GetString(1);
-                    var wn  = r.GetString(2);
+                    var wn  = r.IsDBNull(2) ? "" : r.GetString(2);
                     var loc = r.GetString(3);
+                    var ms  = r.IsDBNull(4) ? 0L : r.GetInt64(4);
+                    // VRCX knows how long each visit lasted, so the schedule needn't guess.
+                    var leftAt = ms > 0 && DateTimeHelper.TryParseUtc(ts, out var joinedAt)
+                        ? joinedAt.AddMilliseconds(ms).ToString("yyyy-MM-ddTHH:mm:ss.fffZ", System.Globalization.CultureInfo.InvariantCulture)
+                        : "";
                     tlEvents.Add(new TimelineService.TimelineEvent
                     {
                         Id        = "vrcx_loc_" + VrcxHash(ts + wid),
@@ -1267,6 +1311,7 @@ public class TimelineController
                         WorldId   = wid,
                         WorldName = wn,
                         Location  = loc,
+                        LeftAt    = leftAt,
                         Players   = locationPlayers.TryGetValue(loc, out var pl) ? pl : new(),
                     });
                 }
@@ -1375,8 +1420,9 @@ public class TimelineController
 
             // 5. First meet / Meet again from gamelog_join_leave
             var meetEvents   = new List<TimelineService.TimelineEvent>();
-            var knownIds     = _core.Timeline.GetKnownUserIds();
-            var importSeen   = new HashSet<string>();   // new users discovered during import
+            // HapsHub may have recorded the same sessions live while VRCX ran, so those aren't added twice.
+            var live         = _core.Timeline.ReadLiveEventsForImport();
+            var importSeen   = new HashSet<string>();   // users seen so far in this import
             var instanceSeen = new HashSet<string>();   // uid|loc pairs for meet_again dedup
 
             // location -> (worldId, worldName) built from gamelog_location rows already in worldMerge
@@ -1400,8 +1446,9 @@ public class TimelineController
                     var ts  = r.GetString(3);
                     var (wid, wn) = locWorldInfo.TryGetValue(loc, out var wi) ? wi : (ExtractWorldId(loc), "");
 
-                    var isKnown = knownIds.Contains(uid) || importSeen.Contains(uid);
-                    if (!isKnown)
+                    // Rows run oldest first, so the first one is the real first meeting, even for
+                    // someone HapsHub already knows, unless HapsHub saw them even earlier.
+                    if (importSeen.Add(uid) && !live.MetBefore(uid, ts))
                     {
                         meetEvents.Add(new TimelineService.TimelineEvent
                         {
@@ -1414,13 +1461,11 @@ public class TimelineController
                             WorldName = wn,
                             Location  = loc,
                         });
-                        importSeen.Add(uid);
-                        knownIds.Add(uid);
                     }
                     else
                     {
                         var key = uid + "|" + loc;
-                        if (!instanceSeen.Contains(key))
+                        if (!instanceSeen.Contains(key) && !live.HasMeet(uid, loc))
                         {
                             instanceSeen.Add(key);
                             meetEvents.Add(new TimelineService.TimelineEvent
@@ -1458,15 +1503,25 @@ public class TimelineController
             _core.TimeEngine.BulkMergeUsers(friendMerge
                 .Select(f => (f.userId, f.displayName, VrcxHistoryModule.Remaining(userSeconds, f.userId, f.seconds), f.lastSeen))
                 .Where(f => f.Item3 > 0));
-            if (!ledgerModule.SaveMergeLedger("world_seconds", worldMerge.Select(w => (w.worldId, w.seconds)))
+            var userYearSeconds = ledgerModule.ReadMergeLedger("user_year_seconds");
+            if (userYearSeconds == null)
+                throw new InvalidOperationException("The hub database isn't available, so importing could double your times. Nothing was merged.");
+            _core.Timeline.BulkAddYearSeconds(friendYears
+                .Select(y => (y.id, VrcxHistoryModule.Remaining(userYearSeconds, y.id, y.seconds)))
+                .Where(y => y.Item2 > 0));
+            if (!ledgerModule.SaveMergeLedger("user_year_seconds", friendYears)
+                || !ledgerModule.SaveMergeLedger("world_seconds", worldMerge.Select(w => (w.worldId, w.seconds)))
                 || !ledgerModule.SaveMergeLedger("world_visits", worldMerge.Select(w => (w.worldId, (long)w.visits)))
                 || !ledgerModule.SaveMergeLedger("user_seconds", friendMerge.Select(f => (f.userId, f.seconds))))
                 CrashHandler.WriteEntry("VrcxImport", new InvalidOperationException("The import ledger wasn't saved, so a repeat import would add these times again."));
             _core.SendToJS("vrcxImportProgress", new { status = "Saving timeline...", percent = 88 });
+            tlEvents.RemoveAll(e => live.HasJoin(e.Location, e.Timestamp));
+            friendEvents.RemoveAll(e => live.HasFriendEvent(e.FriendId, e.Type, e.Location, e.Timestamp));
             _core.Timeline.BulkImportEvents(tlEvents);
             _core.Timeline.BulkImportEvents(meetEvents);
             _core.Timeline.BulkImportFriendEvents(friendEvents);
             if (importSeen.Count > 0) _core.Timeline.SeedKnownUsers(importSeen);
+            _core.Timeline.ReconcileMeetsAfterImport();
 
             _core.SendToJS("vrcxImportDone", new
             {
@@ -1510,7 +1565,9 @@ public class TimelineController
     }
 
     private static string VrcxHash(object key)
-        => Math.Abs(key?.GetHashCode() ?? 0).ToString("x8");
+        // string.GetHashCode changes every launch, so it would make a repeat import add everything again.
+        => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+            System.Text.Encoding.UTF8.GetBytes(key?.ToString() ?? "")))[..16].ToLowerInvariant();
 
     // getTimelineForUser — mini-timeline in profile modal
 

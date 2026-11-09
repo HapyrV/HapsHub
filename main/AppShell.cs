@@ -359,7 +359,7 @@ public partial class AppShell
         if (!HubPaths.IsOverridden) DeepLinkService.RegisterProtocol();
         DeepLinkService.StartServer(OnDeepLinkReceived, _deepLinkCts.Token);
 
-        VRCNext.Services.Helpers.ImageCacheHelper.Initialize(_vrcApi.GetHttpClient());
+        VRCNext.Services.Helpers.ImageCacheHelper.Initialize(_vrcApi.GetHttpClient);
         VRCNext.Services.Helpers.PermafailHelper.Initialize();
         VRCNext.Services.Helpers.ImageCacheHelper.Port            = _httpPort;
         VRCNext.Services.Helpers.ImageCacheHelper.LimitGb         = _settings.ImgCacheLimitGb;

@@ -45,7 +45,7 @@ static class VRSubprocess
         http.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
         http.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", AppInfo.UserAgent);
 
-        ImageCacheHelper.Initialize(http);
+        ImageCacheHelper.Initialize(() => http);
 
         void Log(string s) => SendLine(new JObject { ["t"] = "log", ["text"] = s });
 

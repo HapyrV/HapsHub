@@ -866,7 +866,7 @@
 
                     <div class="vrcn-panel-card" id="vrcxImportCard" data-section="vrcx" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">download</span> <span data-i18n="settings.vrcx.title">Import data from VRCX</span></div>
-                        <div class="set-desc"><span data-i18n="settings.vrcx.desc_prefix">Imports your VRCX history into HapsHub: world time, friend time, instance joins, GPS events, online/offline, status and bio changes. Existing data is preserved and values are added on top. Select your</span> <code>VRCX.sqlite3</code> <span data-i18n="settings.vrcx.desc_suffix">file to begin.</span></div>
+                        <div class="set-desc"><span data-i18n="settings.vrcx.desc_prefix">Imports your VRCX history into HapsHub: world time, friend time, instance joins, GPS events, online/offline, status and bio changes. Existing data is preserved and values are added on top. Select your</span> <code>VRCX.sqlite3</code> <span data-i18n="settings.vrcx.desc_suffix">file to begin.</span> <span data-i18n="hub.vrcx.import_hint">Import from VRCX finds it for you. Close VRCX first. Sessions HapsHub already recorded aren't added twice, and repeating it only adds what's new.</span></div>
                         <div style="margin-top:10px;padding:12px 14px;background:rgba(var(--err-rgb,220,50,50),.10);border:1px solid rgba(var(--err-rgb,220,50,50),.30);border-radius:10px;line-height:1.7;">
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                                 <span class="msi" style="font-size:20px;color:var(--err);">warning</span>
@@ -876,6 +876,7 @@
                             <p style="margin:0 0 8px;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);" data-i18n="settings.vrcx.warning.line2">If your VRCX database is very important to you, it is recommended to continue using VRCX, as the data will not be fully merged with the VRCN database.</p>
                             <p style="margin:0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx1);" data-i18n="settings.vrcx.warning.line3">Full instance data will not be available and some elements may not display correctly.</p>
                         </div>
+                        <button class="vrcn-button vrcn-btn-join" style="margin-top:12px;" id="vrcxAutoBtn" onclick="vrcxImportAuto()"><span class="msi" style="font-size:16px;">download</span> <span data-i18n="hub.vrcx.import_auto">Import from VRCX</span></button>
                         <button class="vrcn-button" style="margin-top:12px;" id="vrcxSelectBtn" onclick="vrcxSelectFile()"><span class="msi" style="font-size:16px;">storage</span> <span data-i18n="settings.vrcx.select_db">Select VRCX Database</span></button>
                         <div id="vrcxPreviewBox" style="display:none;margin-top:14px;">
                             <div class="set-desc" style="margin-bottom:8px;opacity:.7;" id="vrcxFileName"></div>

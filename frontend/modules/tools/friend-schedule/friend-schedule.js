@@ -255,7 +255,7 @@ function fschRenderPlanner() {
     box.innerHTML = blocks.map(block => {
         const first = block.recurringIndexes?.[0] ?? '';
         return `<button class="fsch-meet" onclick="fschSelectCell(${first})"><strong>${esc(_FSCH_DAYS[block.dayIndex])} ${_fschTimeLabel(block.startMinutes)} to ${_fschTimeLabel(block.endMinutes)}</strong>
-            ${esc(t('hub.schedule.block_stats', 'about {average} online, {weeks} weeks of history').replace('{average}', _fschNumber(block.average)).replace('{weeks}', block.coveredWeeks))}</button>`;
+            ${esc((block.coveredWeeks === 1 ? t('hub.schedule.block_stats_one', 'about {average} online, 1 week of history') : t('hub.schedule.block_stats', 'about {average} online, {weeks} weeks of history')).replace('{average}', _fschNumber(block.average)).replace('{weeks}', block.coveredWeeks))}</button>`;
     }).join('');
 }
 

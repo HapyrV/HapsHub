@@ -171,6 +171,42 @@ public sealed class VrcxHistoryModule : IHubModule
         return results;
     }
 
+    /// <summary>
+    /// A temporary copy of a VRCX database to read, so VRCX's own files are never opened.
+    /// Refuses while VRCX runs, because the copy could be incomplete.
+    /// </summary>
+    public (string? Copy, string? Error) MakeReadableCopy(string sourcePath)
+    {
+        if (!File.Exists(sourcePath)) return (null, "VRCX's database wasn't found.");
+        if (_vrcxRunning()) return (null, "Close VRCX first, so the copy being read is complete.");
+        var work = Path.Combine(_workFolder ?? Path.GetDirectoryName(ArchivePath)!, $"vrcx-read-{Guid.NewGuid():N}");
+        try
+        {
+            Directory.CreateDirectory(work);
+            var copy = Path.Combine(work, "vrcx.db");
+            foreach (var suffix in new[] { "", "-wal", "-shm" })
+                if (File.Exists(sourcePath + suffix))
+                    CopyShared(sourcePath + suffix, copy + suffix);
+            return (copy, null);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            DeleteReadableCopy(Path.Combine(work, "vrcx.db"));
+            return (null, $"Could not copy VRCX's database: {ex.Message}");
+        }
+    }
+
+    public static void DeleteReadableCopy(string copy)
+    {
+        SqliteConnection.ClearAllPools();
+        try
+        {
+            var folder = Path.GetDirectoryName(copy);
+            if (folder != null && Directory.Exists(folder)) Directory.Delete(folder, recursive: true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { /* A leftover temp copy harms nothing. */ }
+    }
+
     public VrcxArchiveResult Run(string sourcePath, Action<string>? progress = null, CancellationToken cancellationToken = default)
     {
         if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)

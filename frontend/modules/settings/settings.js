@@ -1411,6 +1411,12 @@ function vrcxSelectFile() {
     sendToCS({ action: 'importVrcxSelect' });
 }
 
+function vrcxImportAuto() {
+    const btn = document.getElementById('vrcxAutoBtn');
+    if (btn) btn.disabled = true;
+    sendToCS({ action: 'importVrcxAuto' });
+}
+
 function vrcxReset() {
     _vrcxPreviewData = null;
     _vrcxLastProgress = null;
@@ -1426,7 +1432,10 @@ function vrcxReset() {
     btn.style.display = '';
     btn.disabled = false;
     btn.innerHTML = vrcxSelectBtnHtml(false);
+    const auto = document.getElementById('vrcxAutoBtn');
+    if (auto) { auto.style.display = ''; auto.disabled = false; }
     const start = document.getElementById('vrcxStartBtn');
+    start.style.display = '';
     start.disabled = false;
     start.innerHTML = vrcxStartBtnHtml(false);
 }
@@ -1437,6 +1446,8 @@ function vrcxShowPreview(p) {
     _vrcxLastDone = null;
     _vrcxLastError = null;
     document.getElementById('vrcxSelectBtn').style.display = 'none';
+    const auto = document.getElementById('vrcxAutoBtn');
+    if (auto) auto.style.display = 'none';
     document.getElementById('vrcxFileName').textContent = p.path || 'VRCX.sqlite3';
     renderVrcxPreviewRows(p);
     document.getElementById('vrcxProgressWrap').style.display = 'none';
@@ -1500,7 +1511,14 @@ function vrcxShowError(err) {
     renderVrcxError(err);
     document.getElementById('vrcxImportError').style.display = '';
     document.getElementById('vrcxActionBtns').style.display = 'flex';
+    // An error before any preview, like VRCX still being open: nothing to start, only try again.
+    document.getElementById('vrcxPreviewBox').style.display = '';
+    const auto = document.getElementById('vrcxAutoBtn');
+    if (auto) auto.disabled = false;
+    const select = document.getElementById('vrcxSelectBtn');
+    if (select) { select.disabled = false; select.innerHTML = vrcxSelectBtnHtml(false); }
     const start = document.getElementById('vrcxStartBtn');
+    start.style.display = _vrcxPreviewData ? '' : 'none';
     start.disabled = false;
     start.innerHTML = vrcxStartBtnHtml(true);
 }

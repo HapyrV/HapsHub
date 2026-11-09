@@ -619,6 +619,7 @@ public partial class AppShell
                     break;
 
                 case "importVrcxSelect":
+                case "importVrcxAuto":
                 case "importVrcxStart":
                     await _timelineCtrl.HandleMessage(action, msg);
                     break;

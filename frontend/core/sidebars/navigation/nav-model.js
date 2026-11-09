@@ -19,7 +19,7 @@ const NAV_ITEMS_DEF = {
     'activity-log':     { icon: 'article',         tab: 8,  i18n: 'nav.activity_log',       label: 'Activity Log'     },
     'mutual-network':   { icon: 'hub',             tab: 15, i18n: 'nav.mutual_network',     label: 'Mutual Network'   },
     'meet-network':     { icon: 'handshake',       tab: 29, i18n: 'nav.meet_network',       label: 'Meet Network'     },
-    'friend-schedule':  { icon: 'calendar_view_week', tab: 30, i18n: 'nav.friend_schedule', label: 'Friend Schedule' },
+    'friend-schedule':  { icon: 'date_range', tab: 30, i18n: 'nav.friend_schedule', label: 'Friend Schedule' },
     'time-spent':       { icon: 'schedule',        tab: 16, i18n: 'nav.time_spent',         label: 'Time Spent'       },
     'voice-fight':      { icon: 'mic',             tab: 18, i18n: 'nav.voice_fight',        label: 'Voice Fight',      windowsOnly: true },
     'discord-presence': { icon: 'sensors',         tab: 19, i18n: 'nav.discord_presence',   label: 'Discord Presence', windowsOnly: true },
