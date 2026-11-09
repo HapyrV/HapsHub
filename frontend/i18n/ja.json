@@ -4184,5 +4184,11 @@
   "people.sort.mutualgroups": "共通のグループが多い順",
   "people.sort.lastseen": "最近見かけた順",
   "people.sort.joined": "新しいアカウント順",
-  "people.sort.name": "名前順"
+  "people.sort.name": "名前順",
+  "inventory.bulk.select": "選択",
+  "inventory.bulk.delete": "削除",
+  "inventory.bulk.selected": "{count} 件選択中",
+  "inventory.bulk.n_prints": "プリント {count} 枚",
+  "inventory.bulk.deleting": "プリント {count} 枚を削除中...",
+  "inventory.bulk.done": "{total} 枚中 {ok} 枚を削除しました"
 }

@@ -4184,5 +4184,11 @@
   "people.sort.mutualgroups": "Most mutual groups",
   "people.sort.lastseen": "Seen most recently",
   "people.sort.joined": "Newest accounts",
-  "people.sort.name": "Name A to Z"
+  "people.sort.name": "Name A to Z",
+  "inventory.bulk.select": "Select",
+  "inventory.bulk.delete": "Delete",
+  "inventory.bulk.selected": "{count} selected",
+  "inventory.bulk.n_prints": "{count} prints",
+  "inventory.bulk.deleting": "Deleting {count} prints...",
+  "inventory.bulk.done": "Deleted {ok} of {total} prints"
 }

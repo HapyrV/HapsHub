@@ -4188,5 +4188,11 @@
   "people.sort.mutualgroups": "Больше общих групп",
   "people.sort.lastseen": "Недавно замеченные",
   "people.sort.joined": "Новые аккаунты",
-  "people.sort.name": "Имя от А до Я"
+  "people.sort.name": "Имя от А до Я",
+  "inventory.bulk.select": "Выбрать",
+  "inventory.bulk.delete": "Удалить",
+  "inventory.bulk.selected": "Выбрано: {count}",
+  "inventory.bulk.n_prints": "Отпечатков: {count}",
+  "inventory.bulk.deleting": "Удаление отпечатков: {count}...",
+  "inventory.bulk.done": "Удалено {ok} из {total}"
 }

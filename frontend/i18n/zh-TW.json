@@ -4184,5 +4184,11 @@
   "people.sort.mutualgroups": "共同群組最多",
   "people.sort.lastseen": "最近見過",
   "people.sort.joined": "最新帳號",
-  "people.sort.name": "名稱 A 到 Z"
+  "people.sort.name": "名稱 A 到 Z",
+  "inventory.bulk.select": "選擇",
+  "inventory.bulk.delete": "刪除",
+  "inventory.bulk.selected": "已選 {count} 個",
+  "inventory.bulk.n_prints": "{count} 張列印",
+  "inventory.bulk.deleting": "正在刪除 {count} 張列印...",
+  "inventory.bulk.done": "已刪除 {ok}/{total} 張列印"
 }

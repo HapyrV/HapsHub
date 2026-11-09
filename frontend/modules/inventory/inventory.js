@@ -122,6 +122,9 @@ function switchInvTab(tab) {
     const info = INV_TABS[tab];
     const uploadBtn = document.getElementById('invUploadBtn');
     if (uploadBtn) uploadBtn.style.display = info?.canUpload ? '' : 'none';
+    if (tab !== 'prints' && _invSelectMode) invToggleSelectMode();
+    const selectBtn = document.getElementById('invSelectBtn');
+    if (selectBtn) selectBtn.style.display = tab === 'prints' ? '' : 'none';
 
     const cached = tab === 'prints'
         ? invPrintsCache
@@ -286,9 +289,10 @@ function buildInvPrintCard(print) {
     if (worldName) metaParts.push(`<span>${worldName}</span>`);
     if (timeStr) metaParts.push(`<span>${timeStr}</span>`);
 
-    return `<div class="lib-card inv-card">
-        ${actions}
-        <div class="lib-thumb-wrap" onclick="${imgUrl ? `openLightbox('${imgJs}','image')` : ''}">
+    const selected = _invSelectMode && _invSelected.has(print.id);
+    return `<div class="lib-card inv-card${_invSelectMode ? ' inv-selecting' : ''}${selected ? ' inv-selected' : ''}" data-print-id="${esc(print.id || '')}"${_invSelectMode ? ` onclick="invToggleSelected('${printId}')"` : ''}>
+        ${_invSelectMode ? `<span class="inv-check msi">${selected ? 'check_circle' : 'radio_button_unchecked'}</span>` : actions}
+        <div class="lib-thumb-wrap" onclick="${_invSelectMode ? '' : imgUrl ? `openLightbox('${imgJs}','image')` : ''}">
             ${imgUrl
                 ? `<img class="lib-thumb" src="${imgAttr}" loading="lazy" onerror="this.outerHTML='${noPreviewHtml}'">`
                 : invNoPreviewMarkup()
@@ -430,6 +434,7 @@ function confirmInvDelete() {
     const { type, id } = _invPendingDelete;
     if (type === 'file') sendToCS({ action: 'invDeleteFile', fileId: id });
     if (type === 'print') sendToCS({ action: 'invDeletePrint', printId: id });
+    if (type === 'prints') _invRunBulkDelete();
     closeInvDeleteModal();
 }
 
@@ -458,10 +463,12 @@ function handleInvPrintDeleteResult(payload) {
 
         invPrintsCache = invPrintsCache.filter(print => print.id !== payload.printId);
         renderInvPrints(invPrintsCache);
+        if (_invBulkConsume(true)) return;
         showToast(true, t('inventory.toast.print_deleted', 'Print deleted'));
         return;
     }
 
+    if (_invBulkConsume(false)) return;
     showToast(false, t('inventory.toast.delete_failed', 'Delete failed'));
 }
 
@@ -513,4 +520,76 @@ function handleInvPrintUploadResult(payload) {
     }
     if (typeof iuHandleUploadDone === 'function') iuHandleUploadDone(false, null);
     showToast(false, payload.error || t('inventory.upload.print_failed', 'Print upload failed'));
+}
+
+// ---- Prints: select several and delete them together ----
+
+let _invSelectMode = false;
+const _invSelected = new Set();
+let _invBulk = null; // { total, done, ok }
+
+function invToggleSelectMode() {
+    _invSelectMode = !_invSelectMode;
+    _invSelected.clear();
+    const bar = document.getElementById('invSelectBar');
+    if (bar) bar.style.display = _invSelectMode ? 'inline-flex' : 'none';
+    const label = document.getElementById('invSelectBtnLabel');
+    if (label) label.textContent = _invSelectMode ? t('common.cancel', 'Cancel') : t('inventory.bulk.select', 'Select');
+    _invUpdateSelectBar();
+    if (activeInvTab === 'prints') renderInvPrints(invPrintsCache);
+}
+
+function invToggleSelected(printId) {
+    if (_invSelected.has(printId)) _invSelected.delete(printId); else _invSelected.add(printId);
+    const card = document.querySelector(`#invGrid .inv-card[data-print-id="${CSS.escape(printId)}"]`);
+    if (card) {
+        const on = _invSelected.has(printId);
+        card.classList.toggle('inv-selected', on);
+        const check = card.querySelector('.inv-check');
+        if (check) check.textContent = on ? 'check_circle' : 'radio_button_unchecked';
+    }
+    _invUpdateSelectBar();
+}
+
+function invSelectAllPrints() {
+    const all = invPrintsCache.length && invPrintsCache.every(p => _invSelected.has(p.id));
+    _invSelected.clear();
+    if (!all) invPrintsCache.forEach(p => _invSelected.add(p.id));
+    _invUpdateSelectBar();
+    renderInvPrints(invPrintsCache);
+}
+
+function _invUpdateSelectBar() {
+    const count = document.getElementById('invSelectCount');
+    if (count) count.textContent = tf('inventory.bulk.selected', { count: _invSelected.size }, '{count} selected');
+    const del = document.getElementById('invSelectDeleteBtn');
+    if (del) del.disabled = _invSelected.size === 0 || !!_invBulk;
+}
+
+function invConfirmBulkDeletePrints() {
+    if (!_invSelected.size || _invBulk) return;
+    showInvDeleteModal('prints', null, null, tf('inventory.bulk.n_prints', { count: _invSelected.size }, '{count} prints'));
+}
+
+// One request every 400 ms so VRChat's API isn't flooded.
+function _invRunBulkDelete() {
+    const ids = [..._invSelected];
+    if (!ids.length) return;
+    _invBulk = { total: ids.length, done: 0, ok: 0 };
+    _invUpdateSelectBar();
+    showToast(true, tf('inventory.bulk.deleting', { count: ids.length }, 'Deleting {count} prints...'));
+    ids.forEach((id, i) => setTimeout(() => sendToCS({ action: 'invDeletePrint', printId: id }), i * 400));
+}
+
+function _invBulkConsume(ok) {
+    if (!_invBulk) return false;
+    _invBulk.done++;
+    if (ok) _invBulk.ok++;
+    if (_invBulk.done >= _invBulk.total) {
+        const { ok: okCount, total } = _invBulk;
+        _invBulk = null;
+        showToast(okCount === total, tf('inventory.bulk.done', { ok: okCount, total }, 'Deleted {ok} of {total} prints'));
+        if (_invSelectMode) invToggleSelectMode();
+    }
+    return true;
 }
