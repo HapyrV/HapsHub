@@ -716,16 +716,9 @@
             return window.afBuildBlockContextMenu(el);
         }
 
-        if (el.id === 'netCanvas' && typeof _netGraph !== 'undefined' && _netGraph) {
-            const rect = el.getBoundingClientRect();
-            const wx = (e.clientX - rect.left - _netGraph.tx) / _netGraph.scale;
-            const wy = (e.clientY - rect.top - _netGraph.ty) / _netGraph.scale;
-            const hit = _netGraph._hitTest(wx, wy);
-            if (hit >= 0) {
-                const nd = _netGraph.nodes[hit];
-                if (nd?.id) return buildFriendItems(nd.id);
-            }
-            return null;
+        if (el.closest?.('#netCanvas') && typeof _netGraph !== 'undefined' && _netGraph) {
+            const id = _netGraph.nodeAtPointer();
+            return id ? buildFriendItems(id) : null;
         }
 
         if (el.id === 'mnetCanvas' && typeof _mnetGraph !== 'undefined' && _mnetGraph) {
