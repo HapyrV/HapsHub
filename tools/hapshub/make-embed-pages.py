@@ -1,4 +1,4 @@
-"""Writes the two embed pages from one template and adds their translations. Run again after changing either."""
+"""Writes the embed pages from one template and adds their translations. Run again after changing either."""
 import json
 import re
 from pathlib import Path
@@ -24,7 +24,9 @@ PAGE = """<div class="aemb-page">
     <div class="aemb-report"><div id="aemb-result-{app}"></div><div id="aemb-results-{app}"></div></div>
 </div>
 """
-for app, name, icon in [("oyasumi", "OyasumiVR", "bedtime"), ("eagle", "Eagle", "photo_library")]:
+APPS = [("oyasumi", "OyasumiVR", "bedtime"), ("eagle", "Eagle", "photo_library"), ("spacecal", "Space Calibrator", "gps_fixed"),
+        ("vrct", "VRCT", "translate"), ("ovrtoolkit", "OVR Toolkit", "view_in_ar")]
+for app, name, icon in APPS:
     target = ROOT / "frontend/modules/tools/app-embed" / f"{app}.html"
     target.write_text(PAGE.format(app=app, name=name, icon=icon, nav=f"nav.{app}"), encoding="utf-8", newline="\n")
 
@@ -63,7 +65,7 @@ for language, values in TEXT.items():
     path = ROOT / "frontend/i18n" / f"{language}.json"
     raw = path.read_bytes().decode("utf-8")
     newline = "\r\n" if "\r\n" in raw else "\n"
-    entries = {"nav.oyasumi": "OyasumiVR", "nav.eagle": "Eagle"}
+    entries = {f"nav.{app}": name for app, name, _ in APPS}
     entries.update({f"hub.embed.{key}": value for key, value in zip(KEYS, values)})
     existing = json.loads(raw.lstrip(chr(0xFEFF)))
     lines = [f"  {json.dumps(k, ensure_ascii=False)}: {json.dumps(v, ensure_ascii=False)}" for k, v in entries.items() if k not in existing]

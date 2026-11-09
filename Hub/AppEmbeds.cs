@@ -1,7 +1,16 @@
 namespace HapsHub.Core;
 
-public sealed record EmbedApp(string Id, string Name, string ProcessName, string PathKey, string ModeKey, string ResultKey,
-    string? KnownPath, string? SteamFolder, bool WebView2);
+/// <summary>An app HapsHub can hold in a page. Chromium says how it's told to keep drawing while held: WebView2, Electron or none.</summary>
+public sealed record EmbedApp(string Id, string Name, string ProcessName, string? KnownPath, string? SteamFolder, string Chromium)
+{
+    public const string WebView2 = "webview2", Electron = "electron", NoChromium = "none";
+
+    public string PathKey => Id + "_path";
+    public string ModeKey => Id + "_mode";
+    public string ResultKey => Id + "_result";
+    /// <summary>Set once it's been opened here, so the page opens it again by itself.</summary>
+    public string AutoKey => Id + "_auto";
+}
 
 public sealed record EmbedRect(int X, int Y, int Width, int Height)
 {
@@ -59,28 +68,27 @@ public sealed class AppEmbedsModule : IHubModule
     public const string ModeChild = "child";
     public const string ModeTracked = "tracked";
 
-    public static readonly EmbedApp Oyasumi = new("oyasumi", "OyasumiVR", "OyasumiVR",
-        "oyasumi_path", "oyasumi_mode", "oyasumi_result", null, "OyasumiVR", WebView2: true);
+    public static readonly EmbedApp Oyasumi = new("oyasumi", "OyasumiVR", "OyasumiVR", null, "OyasumiVR", EmbedApp.WebView2);
+    public static readonly EmbedApp Eagle = new("eagle", "Eagle", "Eagle", @"%ProgramFiles%\Eagle\Eagle.exe", null, EmbedApp.Electron);
+    public static readonly EmbedApp SpaceCalibrator = new("spacecal", "Space Calibrator", "OpenVR-SpaceCalibrator",
+        @"%ProgramFiles%\OpenVR-SpaceCalibrator\OpenVR-SpaceCalibrator.exe", null, EmbedApp.NoChromium);
+    public static readonly EmbedApp Vrct = new("vrct", "VRCT", "VRCT", @"%LOCALAPPDATA%\VRCT\VRCT.exe", null, EmbedApp.WebView2);
+    public static readonly EmbedApp OvrToolkit = new("ovrtoolkit", "OVR Toolkit", "OVR Toolkit", null, "OVR Toolkit", EmbedApp.NoChromium);
 
-    public static readonly EmbedApp Eagle = new("eagle", "Eagle", "Eagle",
-        "eagle_path", "eagle_mode", "eagle_result", @"C:\Program Files\Eagle\Eagle.exe", null, WebView2: false);
-
-    public static IReadOnlyList<EmbedApp> Apps { get; } = new[] { Oyasumi, Eagle };
+    public static IReadOnlyList<EmbedApp> Apps { get; } = new[] { Oyasumi, Eagle, SpaceCalibrator, Vrct, OvrToolkit };
 
     private HubModuleContext? _context;
 
     public string Id => ModuleId;
     public string DisplayName => "App embeds";
 
-    public IReadOnlyList<HubSettingDefinition> Settings { get; } = new[]
-    {
-        new HubSettingDefinition(Oyasumi.PathKey, "Path to OyasumiVR.exe. Empty looks in your Steam libraries", HubSettingKind.Text, ""),
-        new HubSettingDefinition(Eagle.PathKey, "Path to Eagle.exe. Empty looks in Program Files", HubSettingKind.Text, ""),
-        new HubSettingDefinition(Oyasumi.ModeKey, "OyasumiVR placement", HubSettingKind.Hidden, ModeChild),
-        new HubSettingDefinition(Eagle.ModeKey, "Eagle placement", HubSettingKind.Hidden, ModeChild),
-        new HubSettingDefinition(Oyasumi.ResultKey, "OyasumiVR test result", HubSettingKind.Hidden, ""),
-        new HubSettingDefinition(Eagle.ResultKey, "Eagle test result", HubSettingKind.Hidden, ""),
-    };
+    public IReadOnlyList<HubSettingDefinition> Settings { get; } = Apps
+        .Select(app => new HubSettingDefinition(app.PathKey,
+            $"Path to {app.ProcessName}.exe. Empty looks in {(app.SteamFolder != null ? "your Steam libraries" : "its usual place")}", HubSettingKind.Text, ""))
+        .Concat(Apps.Select(app => new HubSettingDefinition(app.ModeKey, $"{app.Name} placement", HubSettingKind.Hidden, ModeChild)))
+        .Concat(Apps.Select(app => new HubSettingDefinition(app.ResultKey, $"{app.Name} test result", HubSettingKind.Hidden, "")))
+        .Concat(Apps.Select(app => new HubSettingDefinition(app.AutoKey, $"Open {app.Name} with its page", HubSettingKind.Hidden, "")))
+        .ToArray();
 
     public Task StartAsync(HubModuleContext context, CancellationToken cancellationToken)
     {
@@ -100,6 +108,8 @@ public sealed class AppEmbedsModule : IHubModule
 
     public string Mode(EmbedApp app) => Setting(app.ModeKey) == ModeTracked ? ModeTracked : ModeChild;
 
+    public bool OpensWithPage(EmbedApp app) => Setting(app.AutoKey) == "1";
+
     public static EmbedApp? App(string? id) => Apps.FirstOrDefault(a => a.Id == id);
 
     public string? FindExe(EmbedApp app) =>
@@ -110,7 +120,8 @@ public sealed class AppEmbedsModule : IHubModule
     {
         var chosen = configured?.Trim().Trim('"') ?? "";
         if (chosen.Length > 0) return File.Exists(chosen) ? chosen : null;
-        if (app.KnownPath != null && File.Exists(app.KnownPath)) return app.KnownPath;
+        var known = app.KnownPath == null ? null : Environment.ExpandEnvironmentVariables(app.KnownPath);
+        if (known != null && File.Exists(known)) return known;
         if (app.SteamFolder == null) return null;
         return steamLibraries
             .Select(library => Path.Combine(library, "steamapps", "common", app.SteamFolder, app.ProcessName + ".exe"))

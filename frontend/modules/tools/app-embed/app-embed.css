@@ -1,13 +1,15 @@
-#tab33.active, #tab34.active { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; }
-.aemb-page { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+/* A held app fills the whole page under a slim toolbar. The page never scrolls, so the app never has to chase it. */
+#tab33.active, #tab34.active, #tab36.active, #tab37.active, #tab38.active { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; }
+.aemb-page { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; }
 .aemb-title { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .aemb-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
-.aemb-status { padding: 0 16px; min-height: 18px; font-size: 12px; color: var(--tx2); }
+.aemb-status { padding: 2px 16px 4px; font-size: 12px; color: var(--tx2); }
+.aemb-status:empty { display: none; }
 .aemb-status.aemb-problem { color: var(--err, #e5534b); }
-.aemb-pane { position: relative; flex: 1 1 auto; min-height: 120px; margin: 8px 16px 8px; border-radius: 8px; overflow: hidden;
-    background: var(--bg-card, rgba(127, 127, 127, 0.08)) center / 100% 100% no-repeat; }
+.aemb-pane { position: relative; flex: 1 1 auto; min-height: 120px; margin: 0; overflow: hidden; background: var(--bg-card, rgba(127, 127, 127, 0.08)); }
 .aemb-hint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; color: var(--tx2); }
 .aemb-hint[hidden] { display: none; }
-.aemb-report { padding: 0 16px 8px; font-size: 12px; color: var(--tx2); max-height: 96px; overflow-y: auto; }
+.aemb-report { padding: 4px 16px 8px; font-size: 12px; color: var(--tx2); max-height: 96px; overflow-y: auto; }
+.aemb-report:has(> div:empty + div:empty) { display: none; }
 .aemb-pass { color: var(--ok, #3fb950); }
 .aemb-fail { color: var(--err, #e5534b); }

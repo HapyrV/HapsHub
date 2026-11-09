@@ -346,8 +346,8 @@ try {
     check('every OVRAS icon exists in the icon font', wideOvrIcons.length === 0, wideOvrIcons.join(', '));
 
     // --- OyasumiVR and Eagle pages. Only draws state here; embed-live.mjs moves the real windows ---
-    check('a saved sidebar layout gets new tools in its Tools folder', await main.eval(`navSanitizeLayout([{ type: 'folder', id: 'folder-tools', name: 'Tools', items: [] }]).find(e => e.id === 'folder-tools').items.filter(k => ['youtube-tunnel', 'oyasumi', 'eagle', 'ovr-advanced'].includes(k)).length === 4`));
-    for (const [tab, app] of [[33, 'oyasumi'], [34, 'eagle']]) {
+    check('a saved sidebar layout gets new tools in its Tools folder', await main.eval(`navSanitizeLayout([{ type: 'folder', id: 'folder-tools', name: 'Tools', items: [] }]).find(e => e.id === 'folder-tools').items.filter(k => ['youtube-tunnel', 'oyasumi', 'eagle', 'ovr-advanced', 'spacecal', 'vrct', 'ovrtoolkit'].includes(k)).length === 7`));
+    for (const [tab, app] of [[33, 'oyasumi'], [34, 'eagle'], [36, 'spacecal'], [37, 'vrct'], [38, 'ovrtoolkit']]) {
         await main.eval(`showTab(${tab})`);
         await waitFor(`${app} page`, () => main.eval(`!!document.getElementById('aemb-pane-${app}')`));
         check(`the ${app} pane has room to hold a window`, await main.eval(`(() => { const r = document.getElementById('aemb-pane-${app}').getBoundingClientRect(); return r.width > 300 && r.height > 200; })()`));
@@ -359,7 +359,7 @@ try {
     }
     const wideEmbedIcons = JSON.parse(await main.eval(`(() => {
         const probe = document.createElement('div');
-        probe.innerHTML = ['bedtime', 'photo_library', 'open_in_new', 'close', 'bug_report'].map(name => '<span class="msi" style="position:absolute">' + name + '</span>').join('');
+        probe.innerHTML = ['bedtime', 'photo_library', 'gps_fixed', 'translate', 'view_in_ar', 'open_in_new', 'close', 'bug_report'].map(name => '<span class="msi" style="position:absolute">' + name + '</span>').join('');
         document.body.appendChild(probe);
         const wide = [...probe.children].filter(icon => icon.getBoundingClientRect().width > 24).map(icon => icon.textContent);
         probe.remove();

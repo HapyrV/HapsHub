@@ -4250,5 +4250,8 @@
   "hub.ovras.running": "OVR Advanced Settings está abierto. Ciérralo para cambiar esto; al cerrarse sobrescribiría los valores.",
   "hub.ovras.write_failed": "No se pudo guardar el archivo de OVR Advanced Settings.",
   "hub.ovras.not_found": "No se encontró el archivo de OVR Advanced Settings. Ábrelo una vez y vuelve.",
-  "hub.ovras.saved": "Guardado. OVR Advanced Settings lo usará la próxima vez que se inicie."
+  "hub.ovras.saved": "Guardado. OVR Advanced Settings lo usará la próxima vez que se inicie.",
+  "nav.spacecal": "Space Calibrator",
+  "nav.vrct": "VRCT",
+  "nav.ovrtoolkit": "OVR Toolkit"
 }

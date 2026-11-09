@@ -25,6 +25,9 @@ const NAV_ITEMS_DEF = {
     'oyasumi':          { icon: 'bedtime',         tab: 33, i18n: 'nav.oyasumi',            label: 'OyasumiVR',        defaultFolder: 'folder-tools', windowsOnly: true },
     'eagle':            { icon: 'photo_library',   tab: 34, i18n: 'nav.eagle',              label: 'Eagle',            defaultFolder: 'folder-tools', windowsOnly: true },
     'ovr-advanced':     { icon: 'open_with',       tab: 35, i18n: 'nav.ovr_advanced',       label: 'OVR Advanced Settings', defaultFolder: 'folder-tools', windowsOnly: true },
+    'spacecal':         { icon: 'gps_fixed',       tab: 36, i18n: 'nav.spacecal',           label: 'Space Calibrator', defaultFolder: 'folder-tools', windowsOnly: true },
+    'vrct':             { icon: 'translate',       tab: 37, i18n: 'nav.vrct',               label: 'VRCT',             defaultFolder: 'folder-tools', windowsOnly: true },
+    'ovrtoolkit':       { icon: 'view_in_ar',      tab: 38, i18n: 'nav.ovrtoolkit',         label: 'OVR Toolkit',      defaultFolder: 'folder-tools', windowsOnly: true },
     'time-spent':       { icon: 'schedule',        tab: 16, i18n: 'nav.time_spent',         label: 'Time Spent'       },
     'voice-fight':      { icon: 'mic',             tab: 18, i18n: 'nav.voice_fight',        label: 'Voice Fight',      windowsOnly: true },
     'discord-presence': { icon: 'sensors',         tab: 19, i18n: 'nav.discord_presence',   label: 'Discord Presence', windowsOnly: true },
@@ -97,7 +100,7 @@ const NAV_DEFAULT_LAYOUT = [
         type: 'folder', id: 'folder-tools', name: 'Tools', icon: 'adjust',
         items: [
             'chatbox','media-relay','frame-shot','osc-tool',
-            'activity-log','meet-network','friend-schedule','history','youtube-tunnel','oyasumi','eagle','ovr-advanced','voice-fight',
+            'activity-log','meet-network','friend-schedule','history','youtube-tunnel','oyasumi','eagle','ovr-advanced','spacecal','vrct','ovrtoolkit','voice-fight',
             'discord-presence','vr-overlay','permini','kikitan-xd','event-snipe','avatar-scaling','action-flow',
             'status-schedule',
         ],

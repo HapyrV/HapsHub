@@ -4,12 +4,14 @@ using VRCNext.Services;
 
 namespace VRCNext;
 
-// OyasumiVR and Eagle in a HapsHub page. Their windows are real windows, so the page only says where the pane is.
+// OyasumiVR, Eagle, Space Calibrator and others in a HapsHub page. Their windows are real windows, so the page only says where the pane is.
 public partial class AppShell
 {
 #if WINDOWS
     private AppEmbedHost? _embeds;
     private readonly object _embedsLock = new();
+    /// <summary>Apps opened by themselves this run because they were open here last time. Once per run, so closing one sticks.</summary>
+    private readonly HashSet<string> _embedsAutoOpened = new();
 
     private AppEmbedHost Embeds()
     {
@@ -46,28 +48,29 @@ public partial class AppShell
                     if (_embeds == null && !visible) return true;
                 }
                 Embeds().SetPane(app, rect, visible);
+                bool autoOpen;
+                lock (_embedsLock) autoOpen = visible && module.OpensWithPage(app) && _embedsAutoOpened.Add(app.Id);
+                if (autoOpen && Embeds().Status(app).State == "idle" && module.FindExe(app) is { } autoExe)
+                    Embeds().Start(app, autoExe, module.Mode(app));
                 return true;
 
             case "hubEmbedStart":
                 var exe = module.FindExe(app);
                 if (exe == null) { _ = Task.Run(() => SendEmbedState(app)); return true; }
+                SaveEmbedSetting(app.AutoKey, "1");
                 Embeds().Start(app, exe, module.Mode(app));
                 return true;
 
             case "hubEmbedRelease":
+                SaveEmbedSetting(app.AutoKey, "");
                 Embeds().Release(app);
                 return true;
 
-            case "hubEmbedFreeze":
-                _ = Task.Run(async () =>
-                {
-                    var image = await Embeds().FreezeAsync(app);
-                    SendToJS("hubEmbedFrozen", new { app = app.Id, image = image ?? "" });
-                });
-                return true;
-
-            case "hubEmbedUnfreeze":
-                Embeds().Unfreeze(app);
+            case "hubEmbedHoles":
+                var holes = (msg["holes"] as JArray ?? new JArray()).OfType<JObject>().Take(16)
+                    .Select(h => new EmbedRect(h["x"]?.Value<int>() ?? 0, h["y"]?.Value<int>() ?? 0, h["w"]?.Value<int>() ?? 0, h["h"]?.Value<int>() ?? 0))
+                    .ToArray();
+                Embeds().SetHoles(app, holes);
                 return true;
 
             case "hubEmbedMode":

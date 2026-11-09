@@ -4250,5 +4250,8 @@
   "hub.ovras.running": "OVR Advanced Settings が起動中です。変更するには閉じてください。閉じるときに値が上書きされます。",
   "hub.ovras.write_failed": "OVR Advanced Settings のファイルを保存できませんでした。",
   "hub.ovras.not_found": "OVR Advanced Settings のファイルが見つかりません。一度起動してから戻ってください。",
-  "hub.ovras.saved": "保存しました。OVR Advanced Settings の次回起動時に反映されます。"
+  "hub.ovras.saved": "保存しました。OVR Advanced Settings の次回起動時に反映されます。",
+  "nav.spacecal": "Space Calibrator",
+  "nav.vrct": "VRCT",
+  "nav.ovrtoolkit": "OVR Toolkit"
 }

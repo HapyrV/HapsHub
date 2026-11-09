@@ -38,7 +38,9 @@ public sealed class AppEmbedHost : IDisposable
         public WINDOWPLACEMENT SavedPlacement;
         public EmbedRect? Pane;
         public bool PaneVisible;
-        public bool Frozen;
+        /// <summary>Where hub menus cover the pane, in pane pixels. The window gets a hole there so the menu shows through.</summary>
+        public IReadOnlyList<EmbedRect> Holes = Array.Empty<EmbedRect>();
+        public string AppliedRegion = "";
         public DateTime? HungSince;
         public bool Testing;
         /// <summary>A copy that was already running was started without HapsHub's drawing fix.</summary>
@@ -85,8 +87,8 @@ public sealed class AppEmbedHost : IDisposable
             try
             {
                 var start = new ProcessStartInfo(exe) { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(exe) ?? "" };
-                if (app.WebView2) start.Environment["WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS"] = EmbedWindows.ChromiumArguments;
-                else start.Arguments = EmbedWindows.ChromiumArguments;
+                if (app.Chromium == EmbedApp.WebView2) start.Environment["WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS"] = EmbedWindows.ChromiumArguments;
+                else if (app.Chromium == EmbedApp.Electron) start.Arguments = EmbedWindows.ChromiumArguments;
                 using var started = Process.Start(start);
                 if (started != null) _launched.Add(started.Id);
             }
@@ -117,35 +119,11 @@ public sealed class AppEmbedHost : IDisposable
         Notify(slot);
     });
 
-    /// <summary>Takes a picture of the app and hides it, so a hub menu can open over the pane. Returns the picture.</summary>
-    public Task<string?> FreezeAsync(EmbedApp app) => Run(() =>
+    /// <summary>Cuts holes where hub menus cover the pane, so they show through the app's window. Empty closes them.</summary>
+    public void SetHoles(EmbedApp app, IReadOnlyList<EmbedRect> holes) => Post(() =>
     {
         var slot = _slots[app.Id];
-        if (!slot.Attached || slot.Frozen) return null;
-        string? image = null;
-        try
-        {
-            using var picture = Capture(slot);
-            if (picture != null)
-            {
-                using var stream = new MemoryStream();
-                picture.Save(stream, ImageFormat.Jpeg);
-                image = "data:image/jpeg;base64," + Convert.ToBase64String(stream.ToArray());
-            }
-        }
-        catch (Exception ex) when (ex is ArgumentException or ExternalException or InvalidOperationException)
-        {
-            CrashHandler.WriteEntry("hubEmbedFreeze", ex);
-        }
-        slot.Frozen = true;
-        Place(slot);
-        return image;
-    });
-
-    public void Unfreeze(EmbedApp app) => Post(() =>
-    {
-        var slot = _slots[app.Id];
-        slot.Frozen = false;
+        slot.Holes = holes;
         if (slot.Attached) Place(slot);
     });
 
@@ -156,7 +134,7 @@ public sealed class AppEmbedHost : IDisposable
         void Add(string name, bool passed, string detail = "") => checks.Add(new EmbedCheck(name, passed, detail));
 
         var slot = _slots[app.Id];
-        await Run(() => { slot.Testing = true; Detach(slot); slot.Frozen = false; slot.State = "idle"; return 0; });
+        await Run(() => { slot.Testing = true; Detach(slot); slot.Holes = Array.Empty<EmbedRect>(); slot.State = "idle"; return 0; });
         try
         {
             var paneShown = await Run(() => slot.PaneVisible && slot.Pane != null);
@@ -198,12 +176,13 @@ public sealed class AppEmbedHost : IDisposable
             SetPane(app, pane, true);
             await Task.Delay(700);
 
-            await FreezeAsync(app);
+            var hole = new EmbedRect(10, 10, Math.Max(1, pane.Width / 3), Math.Max(1, pane.Height / 3));
+            SetHoles(app, new[] { hole });
             await Task.Delay(400);
-            Add("It hides for hub menus", await Run(() => !IsWindowVisible(slot.Window)));
-            Unfreeze(app);
-            await Task.Delay(700);
-            Add("It comes back after a menu", await Run(() => IsWindowVisible(slot.Window)));
+            Add("It opens a hole for hub menus", await Run(() => RegionHas(slot.Window, pane.Width - 5, pane.Height - 5) && !RegionHas(slot.Window, hole.X + 5, hole.Y + 5)));
+            SetHoles(app, Array.Empty<EmbedRect>());
+            await Task.Delay(400);
+            Add("The hole closes after a menu", await Run(() => RegionHas(slot.Window, hole.X + 5, hole.Y + 5)));
 
             await Task.Delay(1000);
             var (drawn, colours, startedHere) = await Run(() =>
@@ -331,14 +310,18 @@ public sealed class AppEmbedHost : IDisposable
         if (IsIconic(window) || IsZoomed(window)) ShowWindow(window, SW_SHOWNOACTIVATE);
 
         var style = slot.SavedStyle & ~(nint)(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
+        // Edges drawn by Windows were the thin white outline around a held app.
+        var exStyle = slot.SavedExStyle & ~(nint)(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE);
         if (slot.Mode == AppEmbedsModule.ModeChild)
         {
             style = (style & ~unchecked((nint)WS_POPUP)) | (nint)WS_CHILD;
             SetWindowLongPtr(window, GWL_STYLE, style);
+            SetWindowLongPtr(window, GWL_EXSTYLE, exStyle);
             var error = SetParentChecked(window, _host);
             if (error != 0)
             {
                 SetWindowLongPtr(window, GWL_STYLE, slot.SavedStyle);
+                SetWindowLongPtr(window, GWL_EXSTYLE, slot.SavedExStyle);
                 Fail(slot, $"Windows wouldn't let HapsHub hold {slot.App.Name} (error {error}).");
                 return;
             }
@@ -347,12 +330,13 @@ public sealed class AppEmbedHost : IDisposable
         {
             SetWindowLongPtr(window, GWL_STYLE, style | unchecked((nint)WS_POPUP));
             // A tool window stays off the taskbar. It has no owner on purpose: an owner's end would destroy it.
-            SetWindowLongPtr(window, GWL_EXSTYLE, slot.SavedExStyle | (nint)WS_EX_TOOLWINDOW);
+            SetWindowLongPtr(window, GWL_EXSTYLE, exStyle | (nint)WS_EX_TOOLWINDOW);
         }
 
         slot.Attached = true;
         slot.State = "open";
-        slot.Message = slot.StartedHere ? "" : $"{slot.App.Name} was already running, so it may stay blank here. Close it and press Open here to let HapsHub start it.";
+        slot.AppliedRegion = "";
+        slot.Message = slot.StartedHere || slot.App.Chromium == EmbedApp.NoChromium ? "" : $"{slot.App.Name} was already running, so it may stay blank here. Close it and press Open here to let HapsHub start it.";
         slot.HungSince = null;
         SetWindowPos(window, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
         Place(slot);
@@ -398,7 +382,7 @@ public sealed class AppEmbedHost : IDisposable
     {
         if (!slot.Attached || !IsWindow(slot.Window)) return;
         var hostShown = IsWindowVisible(_host) && !IsIconic(_host);
-        if (!slot.PaneVisible || slot.Frozen || slot.Pane == null || !hostShown)
+        if (!slot.PaneVisible || slot.Pane == null || !hostShown)
         {
             if (IsWindowVisible(slot.Window)) ShowWindowAsync(slot.Window, SW_HIDE);
             return;
@@ -409,6 +393,7 @@ public sealed class AppEmbedHost : IDisposable
         // Its own window sits directly above HapsHub: on top of the page, and never in front of whatever is above HapsHub.
         var above = child ? 0 : GetWindow(_host, GW_HWNDPREV);
         var stacked = child || above == slot.Window;
+        ApplyRegion(slot, pane);
         var inPlace = IsWindowVisible(slot.Window) && WindowIn(slot).Matches(pane, 0);
         if (inPlace && stacked) return;
 
@@ -429,6 +414,39 @@ public sealed class AppEmbedHost : IDisposable
         SetWindowPos(slot.Window, after, x, y, pane.Width, pane.Height, flags);
     }
 
+    /// <summary>
+    /// The window's shape: the whole pane minus the holes. Set only when it changes, since Windows redraws the window each time.
+    /// The frame is gone, so the window's own coordinates are the pane's.
+    /// </summary>
+    private static void ApplyRegion(Slot slot, EmbedRect pane)
+    {
+        var holes = slot.Holes.Where(h => h.Width > 0 && h.Height > 0).ToList();
+        var key = holes.Count == 0 ? "" : $"{pane.Width}x{pane.Height}:" + string.Join(";", holes);
+        if (key == slot.AppliedRegion) return;
+        nint region = 0;
+        if (holes.Count > 0)
+        {
+            region = CreateRectRgn(0, 0, pane.Width, pane.Height);
+            foreach (var hole in holes)
+            {
+                var cut = CreateRectRgn(hole.X, hole.Y, hole.X + hole.Width, hole.Y + hole.Height);
+                CombineRgn(region, region, cut, RGN_DIFF);
+                DeleteObject(cut);
+            }
+        }
+        // Windows owns the region once it's set, so it's only deleted when setting it failed.
+        if (SetWindowRgn(slot.Window, region, true) == 0 && region != 0) DeleteObject(region);
+        slot.AppliedRegion = key;
+    }
+
+    /// <summary>Whether a point of the window is part of its shape. A window without a region has all of it.</summary>
+    private static bool RegionHas(nint window, int x, int y)
+    {
+        var region = CreateRectRgn(0, 0, 0, 0);
+        try { return GetWindowRgn(window, region) == ERROR_REGION || PtInRegion(region, x, y); }
+        finally { DeleteObject(region); }
+    }
+
     /// <summary>Where the window is, in the host's client coordinates, to compare with the pane.</summary>
     private EmbedRect WindowIn(Slot slot)
     {
@@ -444,9 +462,10 @@ public sealed class AppEmbedHost : IDisposable
         slot.Attached = false;
         var window = slot.Window;
         slot.Window = 0;
-        slot.Frozen = false;
+        slot.AppliedRegion = "";
         if (!IsWindow(window)) return;
 
+        SetWindowRgn(window, 0, false);
         if (slot.Mode == AppEmbedsModule.ModeChild) SetParent(window, 0);
         SetWindowLongPtr(window, GWL_STYLE, slot.SavedStyle);
         SetWindowLongPtr(window, GWL_EXSTYLE, slot.SavedExStyle);
@@ -548,7 +567,9 @@ public sealed class AppEmbedHost : IDisposable
     private const int GWL_STYLE = -16, GWL_EXSTYLE = -20, GW_OWNER = 4, GW_HWNDPREV = 3, GA_ROOT = 2;
     private const int SW_HIDE = 0, SW_SHOWMINIMIZED = 2, SW_SHOWNOACTIVATE = 4, SW_SHOWMINNOACTIVE = 7;
     private const long WS_CHILD = 0x40000000, WS_POPUP = 0x80000000, WS_CAPTION = 0x00C00000, WS_THICKFRAME = 0x00040000,
-        WS_MINIMIZEBOX = 0x00020000, WS_MAXIMIZEBOX = 0x00010000, WS_SYSMENU = 0x00080000, WS_EX_TOOLWINDOW = 0x00000080, WS_EX_TOPMOST = 0x00000008;
+        WS_MINIMIZEBOX = 0x00020000, WS_MAXIMIZEBOX = 0x00010000, WS_SYSMENU = 0x00080000, WS_EX_TOOLWINDOW = 0x00000080, WS_EX_TOPMOST = 0x00000008,
+        WS_EX_DLGMODALFRAME = 0x00000001, WS_EX_WINDOWEDGE = 0x00000100, WS_EX_CLIENTEDGE = 0x00000200, WS_EX_STATICEDGE = 0x00020000;
+    private const int RGN_DIFF = 4, ERROR_REGION = 0;
     private const uint SWP_NOSIZE = 0x1, SWP_NOMOVE = 0x2, SWP_NOZORDER = 0x4, SWP_NOACTIVATE = 0x10, SWP_FRAMECHANGED = 0x20,
         SWP_SHOWWINDOW = 0x40, SWP_ASYNCWINDOWPOS = 0x4000;
     private const nint HWND_TOP = 0;
@@ -586,6 +607,12 @@ public sealed class AppEmbedHost : IDisposable
     [DllImport("user32.dll")] private static extern nint GetForegroundWindow();
     [DllImport("user32.dll")] private static extern nint GetAncestor(nint window, uint flags);
     [DllImport("user32.dll")] private static extern bool PrintWindow(nint window, nint dc, uint flags);
+    [DllImport("gdi32.dll")] private static extern nint CreateRectRgn(int left, int top, int right, int bottom);
+    [DllImport("gdi32.dll")] private static extern int CombineRgn(nint destination, nint first, nint second, int mode);
+    [DllImport("gdi32.dll")] private static extern bool DeleteObject(nint handle);
+    [DllImport("gdi32.dll")] private static extern bool PtInRegion(nint region, int x, int y);
+    [DllImport("user32.dll")] private static extern int SetWindowRgn(nint window, nint region, bool redraw);
+    [DllImport("user32.dll")] private static extern int GetWindowRgn(nint window, nint region);
     [DllImport("kernel32.dll", SetLastError = true)] private static extern nint OpenProcess(uint access, bool inherit, int pid);
     [DllImport("kernel32.dll")] private static extern bool CloseHandle(nint handle);
     [DllImport("advapi32.dll", SetLastError = true)] private static extern bool OpenProcessToken(nint process, uint access, out nint token);

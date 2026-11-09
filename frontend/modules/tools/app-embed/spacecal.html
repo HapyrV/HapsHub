@@ -1,0 +1,19 @@
+<div class="aemb-page">
+    <div class="tab-toolbar">
+        <div class="aemb-title"><span class="msi">gps_fixed</span> <span data-i18n="nav.spacecal">Space Calibrator</span></div>
+        <div class="aemb-actions">
+            <select id="aemb-mode-spacecal" class="vrcn-dropdown" onchange="aembMode('spacecal')">
+                <option value="child" data-i18n="hub.embed.mode_child">Inside this page</option>
+                <option value="tracked" data-i18n="hub.embed.mode_tracked">Its own window over this page</option>
+            </select>
+            <button id="aemb-start-spacecal" class="vrcn-button-round vrcn-btn-join" onclick="aembStart('spacecal')"><span class="msi">open_in_new</span> <span data-i18n="hub.embed.open">Open here</span></button>
+            <button id="aemb-release-spacecal" class="vrcn-button-round" onclick="aembRelease('spacecal')" disabled><span class="msi">close</span> <span data-i18n="hub.embed.release">Put it back</span></button>
+            <button id="aemb-test-spacecal" class="vrcn-button-round" onclick="aembTest('spacecal')"><span class="msi">bug_report</span> <span data-i18n="hub.embed.test">Test</span></button>
+        </div>
+    </div>
+    <div id="aemb-status-spacecal" class="aemb-status" role="status"></div>
+    <div id="aemb-pane-spacecal" class="aemb-pane">
+        <div id="aemb-hint-spacecal" class="aemb-hint" data-i18n="hub.embed.hint">Open here shows the app in this space. Put it back returns it to its own window.</div>
+    </div>
+    <div class="aemb-report"><div id="aemb-result-spacecal"></div><div id="aemb-results-spacecal"></div></div>
+</div>

@@ -1,13 +1,14 @@
-// OyasumiVR and Eagle in a page. Their windows are real windows sitting over the pane, so this only
-// reports where the pane is, and swaps in a picture while a hub menu needs to open over it.
+// Other apps in a page. Their windows are real windows held in the pane, so this only reports where the pane is,
+// and where hub menus cover it: the app's window gets a hole there so the menu shows through.
 
-const _aemb = { sent: {}, frozen: {}, covered: {}, selectOpen: false };
-const _AEMB_APPS = ['oyasumi', 'eagle'];
+const _AEMB_TABS = { oyasumi: 'tab33', eagle: 'tab34', spacecal: 'tab36', vrct: 'tab37', ovrtoolkit: 'tab38' };
+const _AEMB_APPS = Object.keys(_AEMB_TABS);
+const _aemb = { sent: {}, holes: {}, selectOpen: false };
 
 function _aembEl(app, part) { return document.getElementById(`aemb-${part}-${app}`); }
 
 // A dropdown's list isn't part of the page, so it can't be found by looking. One counts as open from the click
-// that opens it until a choice, Escape, or focus leaving it.
+// that opens it until a choice, Escape, or focus leaving it, and the whole pane opens for it meanwhile.
 document.addEventListener('mousedown', event => { _aemb.selectOpen = event.target?.tagName === 'SELECT' && !_aemb.selectOpen; }, true);
 document.addEventListener('change', event => { if (event.target?.tagName === 'SELECT') _aemb.selectOpen = false; }, true);
 document.addEventListener('focusout', event => { if (event.target?.tagName === 'SELECT') _aemb.selectOpen = false; }, true);
@@ -17,23 +18,45 @@ document.addEventListener('keydown', event => {
     else if (event.key === ' ' || (event.altKey && event.key === 'ArrowDown') || event.key === 'F4') _aemb.selectOpen = true;
 }, true);
 
-function _aembCovered(pane, rect) {
-    if (_aemb.selectOpen) return true;
+/** The box of what covers the pane at this element: its outermost floating ancestor (a menu, popup or backdrop). */
+function _aembCover(element, pane) {
+    let cover = element;
+    for (let node = element; node && node !== document.body && !node.contains(pane); node = node.parentElement) {
+        const position = getComputedStyle(node).position;
+        if (position === 'fixed' || position === 'absolute') cover = node;
+    }
+    return cover.getBoundingClientRect();
+}
+
+/** Holes in pane pixels where something of the page lies over the pane. */
+function _aembHoles(pane, rect, scale) {
+    if (_aemb.selectOpen) return [{ x: 0, y: 0, w: Math.round(rect.width * scale), h: Math.round(rect.height * scale) }];
+    const points = [];
     // Menus drop in from above, so the top edge is checked closely as well as a grid over the rest.
-    for (let column = 0; column < 16; column++) {
-        const top = document.elementFromPoint(rect.left + (rect.width * (column + 0.5)) / 16, rect.top + 3);
-        if (top && !pane.contains(top)) return true;
+    for (let column = 0; column < 20; column++) points.push([rect.left + (rect.width * (column + 0.5)) / 20, rect.top + 3]);
+    const steps = 10;
+    for (let row = 0; row < steps; row++)
+        for (let column = 0; column < steps; column++)
+            points.push([rect.left + (rect.width * (column + 0.5)) / steps, rect.top + (rect.height * (row + 0.5)) / steps]);
+
+    const seen = new Set();
+    const holes = [];
+    for (const [x, y] of points) {
+        const top = document.elementFromPoint(x, y);
+        if (!top || pane.contains(top) || seen.has(top)) continue;
+        seen.add(top);
+        const box = _aembCover(top, pane);
+        const left = Math.max(box.left, rect.left), right = Math.min(box.right, rect.right);
+        const upper = Math.max(box.top, rect.top), lower = Math.min(box.bottom, rect.bottom);
+        if (right <= left || lower <= upper) continue;
+        const hole = {
+            x: Math.floor((left - rect.left) * scale), y: Math.floor((upper - rect.top) * scale),
+            w: Math.ceil((right - left) * scale), h: Math.ceil((lower - upper) * scale),
+        };
+        if (!holes.some(h => h.x === hole.x && h.y === hole.y && h.w === hole.w && h.h === hole.h)) holes.push(hole);
+        if (holes.length >= 16) break;
     }
-    const steps = 6;
-    for (let row = 0; row < steps; row++) {
-        for (let column = 0; column < steps; column++) {
-            const x = rect.left + (rect.width * (column + 0.5)) / steps;
-            const y = rect.top + (rect.height * (row + 0.5)) / steps;
-            const top = document.elementFromPoint(x, y);
-            if (top && !pane.contains(top)) return true;
-        }
-    }
-    return false;
+    return holes;
 }
 
 function _aembReport(app) {
@@ -52,20 +75,11 @@ function _aembReport(app) {
     }
     if (!visible) return;
 
-    const covered = _aembCovered(pane, rect);
-    if (covered !== !!_aemb.covered[app]) {
-        _aemb.covered[app] = covered;
-        if (covered) sendToCS({ action: 'hubEmbedFreeze', app });
-        else {
-            sendToCS({ action: 'hubEmbedUnfreeze', app });
-            pane.style.backgroundImage = '';
-        }
+    const holes = JSON.stringify(_aembHoles(pane, rect, scale));
+    if (holes !== (_aemb.holes[app] || '[]')) {
+        _aemb.holes[app] = holes;
+        sendToCS({ action: 'hubEmbedHoles', app, holes: JSON.parse(holes) });
     }
-}
-
-function onHubEmbedFrozen(payload) {
-    const pane = _aembEl(payload.app, 'pane');
-    if (pane && _aemb.covered[payload.app] && payload.image) pane.style.backgroundImage = `url("${payload.image}")`;
 }
 
 function onHubEmbedState(payload) {
@@ -94,7 +108,8 @@ function onHubEmbedState(payload) {
     status.textContent = text;
     status.classList.toggle('aemb-problem', payload.state === 'failed' || !payload.found);
     hint.hidden = open || busy;
-    _aembEl(app, 'result').textContent = payload.result || '';
+    // The test report only takes room from the app while it isn't open.
+    _aembEl(app, 'result').textContent = open ? '' : payload.result || '';
 
     if (payload.checks) {
         results.replaceChildren(...payload.checks.map(check => {
@@ -103,6 +118,8 @@ function onHubEmbedState(payload) {
             row.textContent = `${check.passed ? '✓' : '✗'} ${check.name}${!check.passed && check.detail ? ` (${check.detail})` : ''}`;
             return row;
         }));
+    } else if (open) {
+        results.replaceChildren();
     }
 }
 
@@ -116,11 +133,12 @@ function aembMode(app) { sendToCS({ action: 'hubEmbedMode', app, mode: _aembEl(a
 setInterval(() => _AEMB_APPS.forEach(_aembReport), 200);
 
 (function _aembWatchTabs() {
-    const tabs = { oyasumi: 'tab33', eagle: 'tab34' };
-    if (!document.getElementById(tabs.oyasumi)) { setTimeout(_aembWatchTabs, 1000); return; }
+    if (!document.getElementById(_AEMB_TABS.oyasumi)) { setTimeout(_aembWatchTabs, 1000); return; }
     for (const app of _AEMB_APPS) {
+        const tab = document.getElementById(_AEMB_TABS[app]);
+        if (!tab) continue;
         new IntersectionObserver(entries => {
             if (entries.some(entry => entry.isIntersecting)) sendToCS({ action: 'hubEmbedState', app });
-        }).observe(document.getElementById(tabs[app]));
+        }).observe(tab);
     }
 })();
