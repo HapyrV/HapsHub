@@ -4,7 +4,7 @@
 //   node tools/hapshub/embed-fake-test.mjs [--release]
 
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ROOT, checker, cleanUp, closeMain, freshData, killTree, openMain, processIds, sleep, waitFor } from './lib/harness.mjs';
@@ -14,6 +14,7 @@ const { check, state } = checker();
 const fakeDir = join(ROOT, 'tools', 'hapshub', 'fake-embed-app');
 const fakeExe = join(fakeDir, 'bin', 'Release', 'net10.0-windows', 'OVR Toolkit.exe');
 const statusFile = join(tmpdir(), `hapshub-fake-embed-${process.pid}.json`);
+const commandFile = join(tmpdir(), `hapshub-fake-embed-${process.pid}.cmd`);
 
 const status = () => {
     try { return JSON.parse(readFileSync(statusFile, 'utf8')); } catch { return null; }
@@ -35,7 +36,7 @@ async function run(exitAction) {
     rmSync(statusFile, { force: true });
     const dir = freshData('hapshub-embedfake-');
     dirs.push(dir);
-    const main = await openMain(dir, PORT, { FAKE_EMBED_STATUS: statusFile });
+    const main = await openMain(dir, PORT, { FAKE_EMBED_STATUS: statusFile, FAKE_EMBED_COMMAND: commandFile });
     const label = `[${exitAction}]`;
     try {
         await main.eval(`sendToCS({ action: 'hubSetSetting', module: 'hub.app-embeds', key: 'ovrtoolkit_path', value: ${JSON.stringify(fakeExe)} })`);
@@ -64,6 +65,12 @@ async function run(exitAction) {
         const pane = await main.json(`(() => { const r = document.getElementById('aemb-pane-ovrtoolkit').getBoundingClientRect(); const d = devicePixelRatio; return { w: Math.round(r.width * d), h: Math.round(r.height * d) }; })()`);
         const sized = await waitStatus('the stand-in to fill the pane', s => Math.abs(s.width - pane.w) <= 2 && Math.abs(s.height - pane.h) <= 2, 8000).catch(() => status());
         check(`${label} it fills the pane`, Math.abs(sized.width - pane.w) <= 2 && Math.abs(sized.height - pane.h) <= 2, `${sized.width}x${sized.height} in ${pane.w}x${pane.h}`);
+
+        // C2: the app maximizing itself (a double-click on its title bar) is put back to the pane's size.
+        writeFileSync(commandFile, 'maximize');
+        const maxed = await waitStatus('the stand-in to maximize', s => s.maximized, 3000).catch(() => null);
+        const back = await waitStatus('the stand-in to fit again', s => !s.maximized && Math.abs(s.width - pane.w) <= 2 && Math.abs(s.height - pane.h) <= 2, 8000).catch(() => status());
+        check(`${label} maximizing itself is undone and it fits the page again`, !!maxed && !back.maximized && Math.abs(back.width - pane.w) <= 2 && Math.abs(back.height - pane.h) <= 2, JSON.stringify(back));
 
         if (exitAction === 'minimize') {
             await main.eval(`showTab(0)`);

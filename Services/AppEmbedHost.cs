@@ -466,7 +466,11 @@ public sealed class AppEmbedHost : IDisposable
         var above = child ? 0 : GetWindow(_host, GW_HWNDPREV);
         var stacked = child || above == slot.Window;
         ApplyRegion(slot, pane);
-        var inPlace = IsWindowVisible(slot.Window) && WindowIn(slot).Matches(pane, 0);
+        // A double-click on the app's own title bar maximizes it; OyasumiVR does that itself, whatever its style says.
+        // In a page it must stay the page's size, so it's put back at once.
+        var zoomed = IsZoomed(slot.Window);
+        if (zoomed) ShowWindow(slot.Window, SW_SHOWNOACTIVATE);
+        var inPlace = !zoomed && IsWindowVisible(slot.Window) && WindowIn(slot).Matches(pane, 0);
         if (inPlace && stacked) return;
 
         var flags = SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW;

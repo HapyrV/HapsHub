@@ -1,5 +1,7 @@
 // A window that draws a few colours and writes what state it's in to the file named by FAKE_EMBED_STATUS,
 // so a test can see what HapsHub did to it: held in a pane, minimized, closed or left alone.
+// Writing "maximize" to the file named by FAKE_EMBED_COMMAND makes it maximize itself, the way OyasumiVR does on a
+// double-click on its title bar.
 
 using System.Drawing;
 using System.Runtime.InteropServices;
@@ -11,11 +13,14 @@ internal static class Program
     [DllImport("user32.dll")] private static extern nint GetParent(nint window);
     [DllImport("user32.dll")] private static extern bool IsWindowVisible(nint window);
     [DllImport("user32.dll")] private static extern bool IsIconic(nint window);
+    [DllImport("user32.dll")] private static extern bool IsZoomed(nint window);
+    [DllImport("user32.dll")] private static extern bool ShowWindow(nint window, int command);
 
     [STAThread]
     private static void Main()
     {
         var statusPath = Environment.GetEnvironmentVariable("FAKE_EMBED_STATUS");
+        var commandPath = Environment.GetEnvironmentVariable("FAKE_EMBED_COMMAND");
         Application.EnableVisualStyles();
         var form = new Form { Text = "OVR Toolkit (test stand-in)", Width = 900, Height = 600, StartPosition = FormStartPosition.Manual, Left = 60, Top = 60 };
         form.Paint += (_, e) =>
@@ -41,6 +46,7 @@ internal static class Program
                     held = !closed && GetParent(handle) != 0,
                     visible = !closed && IsWindowVisible(handle),
                     minimized = !closed && IsIconic(handle),
+                    maximized = !closed && IsZoomed(handle),
                     width = closed ? 0 : form.Width,
                     height = closed ? 0 : form.Height,
                     time = DateTime.UtcNow.ToString("O"),
@@ -54,7 +60,20 @@ internal static class Program
         }
 
         var timer = new System.Windows.Forms.Timer { Interval = 100 };
-        timer.Tick += (_, _) => Write(false);
+        timer.Tick += (_, _) =>
+        {
+            if (!string.IsNullOrEmpty(commandPath) && File.Exists(commandPath))
+            {
+                try
+                {
+                    var command = File.ReadAllText(commandPath).Trim();
+                    File.Delete(commandPath);
+                    if (command == "maximize") ShowWindow(form.Handle, 3); // SW_MAXIMIZE
+                }
+                catch (IOException) { }
+            }
+            Write(false);
+        };
         timer.Start();
         form.FormClosed += (_, _) => { timer.Stop(); Write(true); };
         Application.Run(form);
