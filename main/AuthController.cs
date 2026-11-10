@@ -589,53 +589,30 @@ public class AuthController
                 break;
 
             case "vrcRandomDashBg":
+                var notThis = msg["exclude"]?.ToString();
                 _ = Task.Run(() =>
                 {
                     try
                     {
-                        var imgExts = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                            { ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp" };
-                        var allImages = new List<string>();
-
                         var bgFolders = _core.Settings.DashBgFolders.Count > 0 ? _core.Settings.DashBgFolders : _core.Settings.WatchFolders;
-                        foreach (var folder in bgFolders.Where(Directory.Exists))
-                        {
-                            try
-                            {
-                                allImages.AddRange(
-                                    Directory.EnumerateFiles(folder, "*.*", SearchOption.AllDirectories)
-                                        .Where(f => imgExts.Contains(Path.GetExtension(f)))
-                                );
-                            }
-                            catch { }
-                        }
-
+                        var allImages = HapsHub.Core.DashBackground.Candidates(bgFolders);
                         if (allImages.Count == 0)
                         {
                             Invoke(() => _core.SendToJS("log", new { msg = "Random background: no images found in watch folders", color = "warn" }));
+                            Invoke(() => _core.SendToJS("dashBgRandomFailed", new { reason = "none" }));
                             return;
                         }
-
-                        var rng = new Random();
-                        var picked = allImages[rng.Next(allImages.Count)];
-                        if (_core.Settings.DashBgLandscapeOnly)
+                        // A different picture from the one showing, and only wide ones when that's asked for.
+                        var picked = HapsHub.Core.DashBackground.Pick(allImages, notThis ?? _core.Settings.DashBgPath, _core.Settings.DashBgLandscapeOnly);
+                        if (picked == null)
                         {
-                            // Portrait shots don't fit the wide dashboard. Try random picks, reading only each header.
-                            string? wide = null;
-                            for (int tries = 0; tries < 60 && wide == null; tries++)
-                            {
-                                var candidate = allImages[rng.Next(allImages.Count)];
-                                if (HapsHub.Core.ImageShape.IsLandscape(candidate)) wide = candidate;
-                            }
-                            if (wide == null)
-                            {
-                                Invoke(() => _core.SendToJS("log", new { msg = "Random background: no landscape image found", color = "warn" }));
-                                return;
-                            }
-                            picked = wide;
+                            Invoke(() => _core.SendToJS("log", new { msg = "Random background: no landscape image found", color = "warn" }));
+                            Invoke(() => _core.SendToJS("dashBgRandomFailed", new { reason = "landscape" }));
+                            return;
                         }
-                        var url = _core.DashBgUrl(picked);
-                        var sample = DashBgSample(picked);
+                        var shown = HapsHub.Core.DashBackground.Prepared(picked, Path.Combine(HapsHub.Core.HubPaths.Data("ThumbCache"), "dashbg"));
+                        var url = _core.DashBgUrl(shown);
+                        var sample = DashBgSample(shown);
                         Invoke(() =>
                         {
                             _core.SendToJS("dashBgSelected", new { path = picked, url, sample });

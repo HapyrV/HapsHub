@@ -12,6 +12,8 @@
   <ItemGroup>
     <Compile Include="..\..\..\Hub\**\*.cs" LinkBase="Hub" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.14" />
+    <PackageReference Include="SkiaSharp" Version="2.88.8" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="2.88.8" />
   </ItemGroup>
 
 </Project>

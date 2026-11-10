@@ -1733,6 +1733,40 @@ await Check("image shape: headers give width and height for each format", () =>
     return Task.CompletedTask;
 });
 
+await Check("dashboard picture: skips Eagle previews, never repeats, shrinks huge pictures", () =>
+{
+    Assert(DashBackground.IsCandidate(@"E:\lib\images\A.info\shot.png"), "a picture is a candidate");
+    Assert(!DashBackground.IsCandidate(@"E:\lib\images\A.info\shot_thumbnail.png"), "an Eagle preview is not");
+    Assert(!DashBackground.IsCandidate(@"E:\lib\images\A.info\metadata.json"), "other files are not");
+    var two = new[] { "a.png", "b.png" };
+    Assert(Enumerable.Range(0, 30).All(_ => DashBackground.Pick(two, "a.png", false) == "b.png"), "never the picture already shown");
+    Assert(DashBackground.Pick(new[] { "a.png" }, "a.png", false) == "a.png", "the only picture is still shown");
+    Assert(DashBackground.Pick(two, null, true, _ => false) == null, "no wide picture gives null");
+    Assert(DashBackground.Pick(two, null, true, p => p == "b.png") == "b.png", "a wide one is found");
+    var root = Path.Combine(Path.GetTempPath(), "hub-dashbg-" + Guid.NewGuid().ToString("N"));
+    Directory.CreateDirectory(root);
+    try
+    {
+        var big = Path.Combine(root, "big.png");
+        using (var bitmap = new SkiaSharp.SKBitmap(3000, 1500))
+        using (var image = SkiaSharp.SKImage.FromBitmap(bitmap))
+        using (var data = image.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100))
+        using (var file = File.Create(big)) data.SaveTo(file);
+        var cache = Path.Combine(root, "cache");
+        var shown = DashBackground.Prepared(big, cache);
+        Assert(shown.EndsWith(".jpg") && shown.StartsWith(cache), "a 3000 px picture is shown from a cached JPEG");
+        using (var codec = SkiaSharp.SKCodec.Create(shown)) Assert(codec.Info.Width == DashBackground.MaxWidth && codec.Info.Height == 1280, "it is 2560 wide and keeps its shape");
+        Assert(DashBackground.Prepared(big, cache) == shown, "the second time it is reused");
+        var small = Path.Combine(root, "small.png");
+        File.Copy(shown, small);
+        Assert(DashBackground.Prepared(small, cache) == small, "a picture that fits is shown as it is");
+        var all = DashBackground.Candidates(new[] { root, Path.Combine(root, "missing") });
+        Assert(all.Count == 3, "candidates come from every folder that exists, subfolders too");
+    }
+    finally { try { Directory.Delete(root, true); } catch { } }
+    return Task.CompletedTask;
+});
+
 await Check("launch addons: unknown kinds find nothing; running programs are skipped", () =>
 {
     Assert(LaunchAddons.Detect("nope").Count == 0, "unknown kind");

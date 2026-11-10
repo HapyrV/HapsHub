@@ -4334,5 +4334,8 @@
   "launch.addons.rename": "名前を変更",
   "launch.addons.remove": "このスイッチを削除",
   "launch.addons.add_switch": "スイッチを追加",
-  "launch.addons.new_switch": "新しいスイッチ"
+  "launch.addons.new_switch": "新しいスイッチ",
+  "hub.dash.shuffle": "別の画像を表示",
+  "hub.dash.shuffle_no_wide": "背景フォルダーに横長の画像が見つかりません。",
+  "hub.dash.shuffle_none": "画像がありません。設定 > 外観 > 背景 でフォルダーを追加してください。"
 }

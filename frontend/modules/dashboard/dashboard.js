@@ -2188,3 +2188,19 @@ function dashHeaderToggle(key, btn) {
     btn.setAttribute('aria-pressed', String(now));
     sendToCS({ action: 'hubSetSetting', module: 'hub.ui', key, value: now ? 'true' : 'false' });
 }
+
+
+// ---- The shuffle button: another random picture from the background folders ----
+function dashShuffleBg() {
+    const btn = document.getElementById('dashShuffleBtn');
+    if (btn) { btn.classList.add('spinning'); btn.disabled = true; setTimeout(() => { btn.classList.remove('spinning'); btn.disabled = false; }, 4000); }
+    sendToCS({ action: 'vrcRandomDashBg', exclude: dashBgPath || '' });
+}
+
+function onDashBgRandomFailed(payload) {
+    const btn = document.getElementById('dashShuffleBtn');
+    if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
+    if (typeof showToast === 'function') showToast(false, payload?.reason === 'landscape'
+        ? t('hub.dash.shuffle_no_wide', 'No wide picture found in your background folders.')
+        : t('hub.dash.shuffle_none', 'No pictures found. Add a folder under Settings > Appearance > Background.'));
+}

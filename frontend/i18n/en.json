@@ -4334,5 +4334,8 @@
   "launch.addons.rename": "Rename",
   "launch.addons.remove": "Remove this switch",
   "launch.addons.add_switch": "Add a switch",
-  "launch.addons.new_switch": "New switch"
+  "launch.addons.new_switch": "New switch",
+  "hub.dash.shuffle": "Show another picture",
+  "hub.dash.shuffle_no_wide": "No wide picture found in your background folders.",
+  "hub.dash.shuffle_none": "No pictures found. Add a folder under Settings > Appearance > Background."
 }

@@ -3,8 +3,10 @@
 // Uses a throwaway data folder, no login and no VRChat traffic. Stops only what it started.
 //   node tools/hapshub/round6-test.mjs [--release] [--only name]
 
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { writePng } from './lib/png.mjs';
 import { checker, cleanUp, closeMain, crashes, freshData, hubLog, openMain, sleep, waitFor } from './lib/harness.mjs';
 
 const PORT = 9341;
@@ -102,7 +104,30 @@ section('launch switches', async main => {
     main.switchId = id;
 });
 
-const dir = freshData('hapshub-round6-');
+section('dashboard', async main => {
+    await main.eval(`showTab(0)`);
+    const first = await waitFor('a random picture', () => main.eval(`dashBgPath || ''`), 15000).catch(() => '');
+    check('D1: a random picture is shown at start', /(red|green|blue)\.png$/.test(first) && !/_thumbnail/.test(first), first);
+    const where = await main.json(`(() => { const b = document.getElementById('dashShuffleBtn').getBoundingClientRect(), nav = document.getElementById('sidebarEl')?.getBoundingClientRect(); return { left: b.left, top: b.top, w: b.width, vw: innerWidth, vh: innerHeight, navRight: nav ? nav.right : 0 }; })()`);
+    check('D2: the shuffle button sits at the top-left of the picture', where.w > 0 && where.left >= where.navRight && where.left < where.vw / 3 && where.top < where.vh / 3, JSON.stringify(where));
+    let previous = first, ok = true, seen = [];
+    for (let i = 0; i < 5; i++) {
+        await main.eval(`document.getElementById('dashShuffleBtn').click()`);
+        const next = await waitFor('another picture', async () => { const p = await main.eval(`dashBgPath || ''`); return p !== previous ? p : null; }, 8000).catch(() => previous);
+        seen.push(next.split(/[\/]/).pop());
+        if (next === previous || /_thumbnail/.test(next)) ok = false;
+        previous = next;
+    }
+    check('D2: each click shows a different picture, never an Eagle preview', ok, seen.join(','));
+});
+
+// A picture folder for the dashboard: three wide pictures and an Eagle-style preview that must never be picked.
+const pics = mkdtempSync(join(tmpdir(), 'hapshub-pics-'));
+writePng(join(pics, 'red.png'), 64, 36, [200, 30, 30]);
+writePng(join(pics, 'green.png'), 64, 36, [30, 200, 30]);
+writePng(join(pics, 'blue.png'), 64, 36, [30, 30, 200]);
+writePng(join(pics, 'red_thumbnail.png'), 64, 36, [250, 250, 30]);
+const dir = freshData('hapshub-round6-', { RandomDashBg: true, DashBgFolders: [pics], DashBgLandscapeOnly: true });
 let main;
 try {
     main = await openMain(dir, PORT);
@@ -129,7 +154,7 @@ try {
 } catch (error) {
     check('the run finished', false, error.stack || error.message);
 } finally {
-    await cleanUp(dir);
+    await cleanUp(dir, pics);
 }
 console.log(state.failures ? `${state.failures} check(s) failed` : `all ${state.passed} checks passed`);
 process.exit(state.failures ? 1 : 0);

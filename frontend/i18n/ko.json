@@ -4334,5 +4334,8 @@
   "launch.addons.rename": "이름 변경",
   "launch.addons.remove": "이 스위치 삭제",
   "launch.addons.add_switch": "스위치 추가",
-  "launch.addons.new_switch": "새 스위치"
+  "launch.addons.new_switch": "새 스위치",
+  "hub.dash.shuffle": "다른 사진 보기",
+  "hub.dash.shuffle_no_wide": "배경 폴더에 가로 사진이 없습니다.",
+  "hub.dash.shuffle_none": "사진이 없습니다. 설정 > 모양 > 배경에서 폴더를 추가하세요."
 }

@@ -4334,5 +4334,8 @@
   "launch.addons.rename": "Renombrar",
   "launch.addons.remove": "Quitar este interruptor",
   "launch.addons.add_switch": "Añadir un interruptor",
-  "launch.addons.new_switch": "Nuevo interruptor"
+  "launch.addons.new_switch": "Nuevo interruptor",
+  "hub.dash.shuffle": "Mostrar otra imagen",
+  "hub.dash.shuffle_no_wide": "No se encontró ninguna imagen horizontal en tus carpetas de fondo.",
+  "hub.dash.shuffle_none": "No hay imágenes. Añade una carpeta en Ajustes > Apariencia > Fondo."
 }

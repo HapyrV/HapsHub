@@ -4334,5 +4334,8 @@
   "launch.addons.rename": "重新命名",
   "launch.addons.remove": "刪除此開關",
   "launch.addons.add_switch": "新增開關",
-  "launch.addons.new_switch": "新開關"
+  "launch.addons.new_switch": "新開關",
+  "hub.dash.shuffle": "換一張圖片",
+  "hub.dash.shuffle_no_wide": "背景資料夾中沒有橫向圖片。",
+  "hub.dash.shuffle_none": "沒有圖片。請在 設定 > 外觀 > 背景 中新增資料夾。"
 }

@@ -146,3 +146,12 @@ body.hub-resizing, body.hub-resizing * { cursor: col-resize !important; user-sel
 .launch-sw-name { cursor: text; min-width: 0; overflow-wrap: anywhere; }
 .launch-sw-rename { height: 26px; padding: 0 8px; width: 220px; max-width: 100%; }
 .launch-sw-add { margin: 12px 0 14px; }
+
+/* ---- Dashboard: shuffle the picture (top-left of what's visible of it) ---- */
+.dash-shuffle { position: absolute; z-index: 2; top: calc(var(--tb-h) + 52px); left: calc(var(--sidebar-w) + 26px); width: 30px; height: 30px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.18); background: rgba(0,0,0,.35); color: #fff;
+    cursor: pointer; opacity: .55; transition: opacity .15s ease, left .22s ease; backdrop-filter: blur(6px); }
+.dash-shuffle:hover, .dash-shuffle:focus-visible { opacity: 1; }
+.dash-shuffle .msi { font-size: 18px; }
+.dash-shuffle.spinning .msi { animation: hub-spin .8s linear infinite; }
+@keyframes hub-spin { to { transform: rotate(360deg); } }

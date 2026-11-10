@@ -1179,7 +1179,12 @@ case 'vrcNews':
             case 'worldInstancesDetail':
                 if (typeof handleWorldInstancesDetail === 'function') handleWorldInstancesDetail(payload);
                 break;
+            case 'dashBgRandomFailed':
+                if (typeof onDashBgRandomFailed === 'function') onDashBgRandomFailed(payload);
+                break;
             case 'dashBgSelected':
+                document.getElementById('dashShuffleBtn')?.classList.remove('spinning');
+                if (document.getElementById('dashShuffleBtn')) document.getElementById('dashShuffleBtn').disabled = false;
                 dashBgPath = payload.path || '';
                 dashBgDataUri = payload.url || '';
                 dashBgSample = payload.sample || '';
