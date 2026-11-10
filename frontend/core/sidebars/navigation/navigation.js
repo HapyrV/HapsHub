@@ -140,7 +140,8 @@ function navRender() {
                 const d = NAV_ITEMS_DEF[k];
                 return d && !hiddenSet.has(k) && !(d.windowsOnly && _navIsLinux);
             });
-            if (!visItems.length) continue;
+            // A new, empty group still shows, so pages can be dropped into it. One whose pages are all hidden doesn't.
+            if (!visItems.length && (entry.items || []).length) continue;
             navEl.appendChild(_navMakeFolderGroup(entry, visItems));
         }
     }

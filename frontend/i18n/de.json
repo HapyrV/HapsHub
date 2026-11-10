@@ -4300,5 +4300,18 @@
   "setup.pick.face": "Gesichtstracking",
   "setup.pick.music": "Musik ins VRChat-Mikrofon",
   "setup.pick.vrcx": "Ich habe VRCX benutzt",
-  "setup.pick.perf": "Leistungsmodus"
+  "setup.pick.perf": "Leistungsmodus",
+  "hub.tidy.more": "Mehr Infos",
+  "hub.tidy.show_all": "Alle Details zeigen",
+  "hub.nav.new_group": "Neue Gruppe",
+  "hub.nav.new_header": "Neue Überschrift",
+  "hub.nav.add_header": "Überschrift hinzufügen",
+  "hub.nav.move_out": "Aus der Gruppe nehmen",
+  "hub.nav.hide": "Diese Seite ausblenden",
+  "hub.nav.rename_group": "Gruppe umbenennen",
+  "hub.nav.remove_group": "Gruppe entfernen, Seiten behalten",
+  "hub.nav.rename_header": "Überschrift umbenennen",
+  "hub.nav.remove_header": "Überschrift entfernen",
+  "hub.nav.show_page": "{page} anzeigen",
+  "hub.nav.add_title": "Gruppe oder Überschrift hinzufügen oder eine ausgeblendete Seite zeigen"
 }

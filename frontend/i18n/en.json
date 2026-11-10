@@ -4300,5 +4300,18 @@
   "setup.pick.face": "Face tracking",
   "setup.pick.music": "Music into the VRChat mic",
   "setup.pick.vrcx": "I used VRCX",
-  "setup.pick.perf": "Performance mode"
+  "setup.pick.perf": "Performance mode",
+  "hub.tidy.more": "More info",
+  "hub.tidy.show_all": "Show all details",
+  "hub.nav.new_group": "New group",
+  "hub.nav.new_header": "New header",
+  "hub.nav.add_header": "Add header",
+  "hub.nav.move_out": "Take out of the group",
+  "hub.nav.hide": "Hide this page",
+  "hub.nav.rename_group": "Rename group",
+  "hub.nav.remove_group": "Remove group, keep its pages",
+  "hub.nav.rename_header": "Rename header",
+  "hub.nav.remove_header": "Remove header",
+  "hub.nav.show_page": "Show {page}",
+  "hub.nav.add_title": "Add a group or a header, or show a hidden page"
 }

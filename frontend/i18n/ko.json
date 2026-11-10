@@ -4300,5 +4300,18 @@
   "setup.pick.face": "페이스 트래킹",
   "setup.pick.music": "VRChat 마이크로 음악 틀기",
   "setup.pick.vrcx": "VRCX를 썼어요",
-  "setup.pick.perf": "성능 모드"
+  "setup.pick.perf": "성능 모드",
+  "hub.tidy.more": "자세히",
+  "hub.tidy.show_all": "모든 설명 보기",
+  "hub.nav.new_group": "새 그룹",
+  "hub.nav.new_header": "새 제목",
+  "hub.nav.add_header": "제목 추가",
+  "hub.nav.move_out": "그룹에서 빼기",
+  "hub.nav.hide": "이 페이지 숨기기",
+  "hub.nav.rename_group": "그룹 이름 바꾸기",
+  "hub.nav.remove_group": "그룹 삭제(페이지는 유지)",
+  "hub.nav.rename_header": "제목 이름 바꾸기",
+  "hub.nav.remove_header": "제목 삭제",
+  "hub.nav.show_page": "{page} 표시",
+  "hub.nav.add_title": "그룹이나 제목을 추가하거나 숨긴 페이지 표시"
 }

@@ -199,6 +199,86 @@ section('setup', async () => {
     }
 });
 
+section('tidy', async main => {
+    await main.eval(`showTab(9); switchSettingsSection('general', document.querySelector('.settings-nav-item'))`);
+    await waitFor('the info buttons', () => main.eval(`document.querySelectorAll('#tab9 .hub-more').length > 5`), 10000);
+    const state = await main.json(`(() => {
+        const buttons = [...document.querySelectorAll('#tab9 .hub-more')].filter(b => b.offsetParent);
+        const hidden = [...document.querySelectorAll('#tab9 .hub-desc-collapsed')].filter(d => d.closest('.vrcn-panel-card')?.style.display !== 'none');
+        return { buttons: buttons.length, hiddenShown: hidden.filter(d => getComputedStyle(d).display !== 'none').length, hidden: hidden.length };
+    })()`);
+    check('explanations under settings fold away behind an info button', state.buttons > 3 && state.hidden > 3 && state.hiddenShown === 0, JSON.stringify(state));
+    const opened = await main.eval(`(() => { const b = [...document.querySelectorAll('#tab9 .hub-more')].find(x => x.offsetParent); b.click();
+        const d = [...document.querySelectorAll('#tab9 .hub-desc-open')][0]; return !!d && getComputedStyle(d).display !== 'none' && b.getAttribute('aria-expanded') === 'true'; })()`);
+    check('the info button opens its explanation', opened);
+    await main.eval(`hubTidyShowAll(true)`);
+    check('"Show all details" opens every explanation', await main.eval(`[...document.querySelectorAll('#tab9 .hub-desc-collapsed')].every(d => getComputedStyle(d).display !== 'none' || d.closest('[style*="display: none"], [style*="display:none"]'))`));
+    await main.eval(`hubTidyShowAll(false); document.querySelectorAll('#tab9 .hub-desc-open').forEach(d => d.classList.remove('hub-desc-open'))`);
+    await main.eval(`(() => { const s = document.getElementById('settingsSearchInput'); s.value = 'tray'; s.dispatchEvent(new Event('input')); })()`);
+    check('searching shows the explanations too', await main.eval(`document.getElementById('tab9').classList.contains('hub-searching')`));
+    await main.eval(`(() => { const s = document.getElementById('settingsSearchInput'); s.value = ''; s.dispatchEvent(new Event('input')); clearSettingsSearch?.(); })()`);
+    const overflow = await main.json(`(() => { const c = document.querySelector('#tab9 .settings-content'); return c.scrollWidth - c.clientWidth; })()`);
+    check('nothing in Settings pokes out sideways', overflow <= 1, String(overflow));
+});
+
+section('nav', async main => {
+    const layout = () => main.json(`navLoadLayout()`);
+    await main.eval(`localStorage.removeItem('vrcnext_nav_layout_v1'); navRender(); showTab(0)`);
+    check('the sidebar ends with a + button', await main.eval(`!!document.querySelector('#navEl .hub-nav-add')`));
+
+    await main.eval(`hubNavAdd('folder', { key: 'dashboard' })`);
+    await waitFor('the name box', () => main.eval(`!!document.querySelector('#navEl .hub-nav-rename')`), 5000);
+    await main.eval(`(() => { const i = document.querySelector('#navEl .hub-nav-rename'); i.value = 'My group'; i.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); })()`);
+    const group = (await layout()).layout.find(e => e.type === 'folder' && e.name === 'My group');
+    check('a new group can be added and named in place', !!group && await main.eval(`!!document.querySelector('#navEl .nav-group[data-group-id="${group?.id}"]')`));
+
+    await main.eval(`document.getElementById('navEl').scrollTop = 0`);
+    const from = await main.center('#navEl .nav-btn[data-nav-key="worlds"]');
+    const to = await main.center(`#navEl .nav-group[data-group-id="${group?.id}"] .nav-group-btn`);
+    await main.drag(from, to);
+    await sleep(300);
+    const moved = (await layout()).layout.find(e => e.id === group?.id);
+    check('dragging a page onto a group puts it in the group', moved?.items?.includes('worlds') && !(await layout()).layout.some(e => e.type === 'item' && e.key === 'worlds'), JSON.stringify(moved));
+    check('the drag didn\'t open the page it moved', await main.eval(`document.getElementById('tab0').classList.contains('active')`));
+
+    const a = await main.center('#navEl .nav-btn[data-nav-key="groups"]');
+    const b = await main.json(`(() => { const r = document.querySelector('#navEl .nav-btn[data-nav-key="avatars"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.bottom - 3 }; })()`);
+    await main.drag(a, b);
+    await sleep(300);
+    const order = (await layout()).layout.filter(e => e.type === 'item').map(e => e.key);
+    check('dragging a page between two others places it there', order.indexOf('groups') === order.indexOf('avatars') + 1, order.join(','));
+
+    await main.eval(`document.getElementById('navEl').scrollTop = 0`);
+    const sep = await main.center('#navEl .nav-sep');
+    for (const clickCount of [1, 2]) {
+        await main.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: sep.x, y: sep.y, button: 'left', buttons: 1, clickCount });
+        await main.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: sep.x, y: sep.y, button: 'left', buttons: 0, clickCount });
+    }
+    await waitFor('the header name box', () => main.eval(`!!document.querySelector('#navEl .hub-nav-rename')`), 5000).catch(() => {});
+    await main.eval(`(() => { const i = document.querySelector('#navEl .hub-nav-rename'); if (!i) return; i.value = 'Mine'; i.blur(); })()`);
+    await sleep(200);
+    check('double-clicking a header renames it', (await layout()).layout.some(e => e.type === 'separator' && e.name === 'Mine'));
+
+    await main.eval(`document.getElementById('navEl').scrollTop = 0`);
+    const item = await main.center('#navEl .nav-btn[data-nav-key="people"]');
+    await main.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: item.x, y: item.y, button: 'right', buttons: 2, clickCount: 1 });
+    await main.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: item.x, y: item.y, button: 'right', buttons: 0, clickCount: 1 });
+    await sleep(400);
+    const menuText = await main.eval(`document.body.innerText`);
+    check('right-clicking a page offers hiding it and adding a group or header', /Hide this page/.test(menuText) && /New group/.test(menuText) && /Add header/.test(menuText));
+    await main.eval(`document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); hubNavHide('people', true)`);
+    check('a hidden page leaves the sidebar', await main.eval(`!document.querySelector('#navEl .nav-btn[data-nav-key="people"]')`));
+    await main.eval(`hubNavAddMenu(document.querySelector('#navEl .hub-nav-add'))`);
+    const addMenu = await main.eval(`document.getElementById('hubNavAddMenu')?.innerText || ''`);
+    check('the + menu can bring a hidden page back', /Show People/.test(addMenu), addMenu);
+    await main.eval(`[...document.querySelectorAll('#hubNavAddMenu button')].find(b => /Show People/.test(b.innerText)).click()`);
+    check('...and does', await main.eval(`!!document.querySelector('#navEl .nav-btn[data-nav-key="people"]')`));
+
+    await main.eval(`hubNavRemove(${JSON.stringify(group?.id)})`);
+    check('removing a group keeps its pages', (await layout()).layout.some(e => e.type === 'item' && e.key === 'worlds'));
+    await main.eval(`localStorage.removeItem('vrcnext_nav_layout_v1'); navRender()`);
+});
+
 const dir = freshData('hapshub-round5-');
 let main;
 try {

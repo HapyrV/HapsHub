@@ -4304,5 +4304,18 @@
   "setup.pick.face": "Трекинг лица",
   "setup.pick.music": "Музыка в микрофон VRChat",
   "setup.pick.vrcx": "Пользовался VRCX",
-  "setup.pick.perf": "Режим производительности"
+  "setup.pick.perf": "Режим производительности",
+  "hub.tidy.more": "Подробнее",
+  "hub.tidy.show_all": "Показывать все пояснения",
+  "hub.nav.new_group": "Новая группа",
+  "hub.nav.new_header": "Новый заголовок",
+  "hub.nav.add_header": "Добавить заголовок",
+  "hub.nav.move_out": "Убрать из группы",
+  "hub.nav.hide": "Скрыть эту страницу",
+  "hub.nav.rename_group": "Переименовать группу",
+  "hub.nav.remove_group": "Удалить группу, оставить страницы",
+  "hub.nav.rename_header": "Переименовать заголовок",
+  "hub.nav.remove_header": "Удалить заголовок",
+  "hub.nav.show_page": "Показать {page}",
+  "hub.nav.add_title": "Добавить группу или заголовок либо показать скрытую страницу"
 }

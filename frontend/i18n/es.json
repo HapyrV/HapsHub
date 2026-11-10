@@ -4300,5 +4300,18 @@
   "setup.pick.face": "Seguimiento facial",
   "setup.pick.music": "Música por el micro de VRChat",
   "setup.pick.vrcx": "Usaba VRCX",
-  "setup.pick.perf": "Modo rendimiento"
+  "setup.pick.perf": "Modo rendimiento",
+  "hub.tidy.more": "Más información",
+  "hub.tidy.show_all": "Mostrar todos los detalles",
+  "hub.nav.new_group": "Nuevo grupo",
+  "hub.nav.new_header": "Nuevo encabezado",
+  "hub.nav.add_header": "Añadir encabezado",
+  "hub.nav.move_out": "Sacar del grupo",
+  "hub.nav.hide": "Ocultar esta página",
+  "hub.nav.rename_group": "Renombrar grupo",
+  "hub.nav.remove_group": "Quitar grupo, conservar sus páginas",
+  "hub.nav.rename_header": "Renombrar encabezado",
+  "hub.nav.remove_header": "Quitar encabezado",
+  "hub.nav.show_page": "Mostrar {page}",
+  "hub.nav.add_title": "Añadir un grupo o un encabezado, o mostrar una página oculta"
 }

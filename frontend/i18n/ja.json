@@ -4300,5 +4300,18 @@
   "setup.pick.face": "フェイストラッキング",
   "setup.pick.music": "VRChat のマイクに音楽を流す",
   "setup.pick.vrcx": "VRCX を使っていた",
-  "setup.pick.perf": "パフォーマンスモード"
+  "setup.pick.perf": "パフォーマンスモード",
+  "hub.tidy.more": "詳しく",
+  "hub.tidy.show_all": "すべての説明を表示",
+  "hub.nav.new_group": "新しいグループ",
+  "hub.nav.new_header": "新しい見出し",
+  "hub.nav.add_header": "見出しを追加",
+  "hub.nav.move_out": "グループから出す",
+  "hub.nav.hide": "このページを隠す",
+  "hub.nav.rename_group": "グループ名を変更",
+  "hub.nav.remove_group": "グループを削除（ページは残す）",
+  "hub.nav.rename_header": "見出しの名前を変更",
+  "hub.nav.remove_header": "見出しを削除",
+  "hub.nav.show_page": "{page} を表示",
+  "hub.nav.add_title": "グループや見出しを追加、または隠したページを表示"
 }

@@ -4300,5 +4300,18 @@
   "setup.pick.face": "面部追踪",
   "setup.pick.music": "把音乐放进 VRChat 麦克风",
   "setup.pick.vrcx": "我用过 VRCX",
-  "setup.pick.perf": "性能模式"
+  "setup.pick.perf": "性能模式",
+  "hub.tidy.more": "更多信息",
+  "hub.tidy.show_all": "显示全部说明",
+  "hub.nav.new_group": "新建分组",
+  "hub.nav.new_header": "新标题",
+  "hub.nav.add_header": "添加标题",
+  "hub.nav.move_out": "移出分组",
+  "hub.nav.hide": "隐藏此页面",
+  "hub.nav.rename_group": "重命名分组",
+  "hub.nav.remove_group": "删除分组，保留页面",
+  "hub.nav.rename_header": "重命名标题",
+  "hub.nav.remove_header": "删除标题",
+  "hub.nav.show_page": "显示{page}",
+  "hub.nav.add_title": "添加分组或标题，或显示隐藏的页面"
 }

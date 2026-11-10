@@ -780,6 +780,7 @@
 
         if (el.closest('.nav-btn[data-nav="dashboard"]')) {
             const dashItems = [
+                ...(typeof hubNavMenuItems === 'function' ? hubNavMenuItems(el) : []), 
                 { icon: 'dashboard_customize', label: cm('dash_layout', 'Edit Dashboard'), action: () => openDashLayoutEditor() },
                 { icon: 'tune', label: cm('nav_edit', 'Edit Navigation'), action: () => openNavEditor() },
             ];
@@ -795,6 +796,7 @@
             const navPin = _navPinItem(navBtn);
             if (navPin) {
                 return [
+                    ...(typeof hubNavMenuItems === 'function' ? hubNavMenuItems(el) : []), 
                     { icon: 'tune', label: cm('nav_edit', 'Edit Navigation'), action: () => openNavEditor() },
                     'sep',
                     navPin,
@@ -979,7 +981,7 @@
         }
 
         if (el.closest('#sidebarEl')) {
-            return [{ icon: 'tune', label: cm('nav_edit', 'Edit Navigation'), action: () => openNavEditor() }];
+            return [...(typeof hubNavMenuItems === 'function' ? hubNavMenuItems(el) : []), { icon: 'tune', label: cm('nav_edit', 'Edit Navigation'), action: () => openNavEditor() }];
         }
 
         const navEl = el.closest('[onclick*="navOpenModal("]');

@@ -4300,5 +4300,18 @@
   "setup.pick.face": "臉部追蹤",
   "setup.pick.music": "把音樂放進 VRChat 麥克風",
   "setup.pick.vrcx": "我用過 VRCX",
-  "setup.pick.perf": "效能模式"
+  "setup.pick.perf": "效能模式",
+  "hub.tidy.more": "更多資訊",
+  "hub.tidy.show_all": "顯示全部說明",
+  "hub.nav.new_group": "新增群組",
+  "hub.nav.new_header": "新標題",
+  "hub.nav.add_header": "新增標題",
+  "hub.nav.move_out": "移出群組",
+  "hub.nav.hide": "隱藏此頁面",
+  "hub.nav.rename_group": "重新命名群組",
+  "hub.nav.remove_group": "刪除群組，保留頁面",
+  "hub.nav.rename_header": "重新命名標題",
+  "hub.nav.remove_header": "刪除標題",
+  "hub.nav.show_page": "顯示{page}",
+  "hub.nav.add_title": "新增群組或標題，或顯示隱藏的頁面"
 }
