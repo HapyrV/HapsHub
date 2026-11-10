@@ -1,0 +1,19 @@
+{
+  "hub.help.github": { "en": "HapsHub on GitHub", "de": "HapsHub auf GitHub", "es": "HapsHub en GitHub", "fr": "HapsHub sur GitHub", "ja": "GitHub の HapsHub", "ko": "GitHub의 HapsHub", "ru": "HapsHub на GitHub", "zh-CN": "GitHub 上的 HapsHub", "zh-TW": "GitHub 上的 HapsHub" },
+  "hub.help.wiki": { "en": "VRCNext wiki", "de": "VRCNext-Wiki", "es": "Wiki de VRCNext", "fr": "Wiki de VRCNext", "ja": "VRCNext Wiki", "ko": "VRCNext 위키", "ru": "Вики VRCNext", "zh-CN": "VRCNext 维基", "zh-TW": "VRCNext 維基" },
+  "hub.update.check_btn": { "en": "Check for updates", "de": "Nach Updates suchen", "es": "Buscar actualizaciones", "fr": "Rechercher des mises à jour", "ja": "アップデートを確認", "ko": "업데이트 확인", "ru": "Проверить обновления", "zh-CN": "检查更新", "zh-TW": "檢查更新" },
+  "hub.update.auto_check": { "en": "Check for new HapsHub releases on startup", "de": "Beim Start nach neuen HapsHub-Versionen suchen", "es": "Buscar nuevas versiones de HapsHub al iniciar", "fr": "Rechercher les nouvelles versions de HapsHub au démarrage", "ja": "起動時に HapsHub の新しいリリースを確認", "ko": "시작할 때 새 HapsHub 릴리스 확인", "ru": "Проверять новые версии HapsHub при запуске", "zh-CN": "启动时检查 HapsHub 新版本", "zh-TW": "啟動時檢查 HapsHub 新版本" },
+  "hub.update.auto_check_desc": {
+    "en": "Only tells you about a new release. Download it from GitHub when you want; nothing installs by itself.",
+    "de": "Sagt nur Bescheid. Lade die neue Version von GitHub, wann du willst; nichts installiert sich von selbst.",
+    "es": "Solo te avisa. Descárgala de GitHub cuando quieras; nada se instala solo.",
+    "fr": "Vous prévient seulement. Téléchargez-la depuis GitHub quand vous voulez ; rien ne s'installe tout seul.",
+    "ja": "お知らせするだけです。好きなときに GitHub からダウンロードしてください。自動ではインストールされません。",
+    "ko": "새 릴리스를 알려 주기만 합니다. 원할 때 GitHub에서 내려받으세요. 자동으로 설치되지 않습니다.",
+    "ru": "Только сообщает о новой версии. Скачайте её с GitHub, когда захотите; само ничего не устанавливается.",
+    "zh-CN": "只会提醒你有新版本。想更新时从 GitHub 下载，不会自动安装。",
+    "zh-TW": "只會提醒你有新版本。想更新時從 GitHub 下載，不會自動安裝。"
+  },
+  "update.download_install": { "en": "Open the download page", "de": "Downloadseite öffnen", "es": "Abrir la página de descarga", "fr": "Ouvrir la page de téléchargement", "ja": "ダウンロードページを開く", "ko": "다운로드 페이지 열기", "ru": "Открыть страницу загрузки", "zh-CN": "打开下载页面", "zh-TW": "開啟下載頁面" },
+  "update.ready_suffix": { "en": "is out.", "de": "ist erschienen.", "es": "ya está disponible.", "fr": "est sortie.", "ja": "が公開されました。", "ko": "이(가) 나왔습니다.", "ru": "уже вышла.", "zh-CN": "已发布。", "zh-TW": "已發布。" }
+}

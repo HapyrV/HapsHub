@@ -754,8 +754,8 @@
   "common.required": "필수",
   "update.available": "업데이트 사용 가능",
   "update.version_label": "버전",
-  "update.ready_suffix": "설치 준비가 완료되었습니다.",
-  "update.download_install": "다운로드 & 설치",
+  "update.ready_suffix": "이(가) 나왔습니다.",
+  "update.download_install": "다운로드 페이지 열기",
   "update.starting": "시작 중...",
   "update.downloading": "다운로드 중...",
   "update.downloading_progress": "다운로드 중... {percent}%",
@@ -4025,9 +4025,9 @@
   "hub.steam.running": "전환하는 중입니다. Steam이 닫혔다가 다시 열리며 1분 정도 걸릴 수 있습니다.",
   "hub.steam.title": "Steam의 Space Calibrator",
   "hub.steam.watch_off": "베타는 업데이트 확인에 포함되지 않습니다. Hub 모듈에서 켜세요.",
-  "hub.update.auto_check": "시작할 때 VRCNext 새 릴리스 확인",
-  "hub.update.auto_check_desc": "새 릴리스를 알려 주기만 합니다. HapsHub는 원본 프로젝트의 업데이트를 설치하지 않습니다.",
-  "hub.update.check_btn": "VRCNext, VRCX, Space Calibrator 확인",
+  "hub.update.auto_check": "시작할 때 새 HapsHub 릴리스 확인",
+  "hub.update.auto_check_desc": "새 릴리스를 알려 주기만 합니다. 원할 때 GitHub에서 내려받으세요. 자동으로 설치되지 않습니다.",
+  "hub.update.check_btn": "업데이트 확인",
   "hub.update.checking": "GitHub 확인 중...",
   "hub.update.mark_reviewed": "검토함으로 표시",
   "hub.update.new_commits": "{commit} 이후 새 커밋 {count}개",
@@ -4323,5 +4323,7 @@
   "hub.map.how_language": "언어",
   "hub.map.zoom_in": "확대",
   "hub.map.zoom_out": "축소",
-  "hub.map.reset": "보기 초기화"
+  "hub.map.reset": "보기 초기화",
+  "hub.help.github": "GitHub의 HapsHub",
+  "hub.help.wiki": "VRCNext 위키"
 }

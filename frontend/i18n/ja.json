@@ -742,8 +742,8 @@
   "common.required": "必須",
   "update.available": "アップデートがあります",
   "update.version_label": "バージョン",
-  "update.ready_suffix": "のインストール準備ができました。",
-  "update.download_install": "ダウンロード & インストール",
+  "update.ready_suffix": "が公開されました。",
+  "update.download_install": "ダウンロードページを開く",
   "update.starting": "開始中...",
   "update.downloading": "ダウンロード中...",
   "update.downloading_progress": "ダウンロード中... {percent}%",
@@ -4025,9 +4025,9 @@
   "hub.steam.running": "切り替えています。Steam が閉じて再度開くまで 1 分ほどかかることがあります。",
   "hub.steam.title": "Steam の Space Calibrator",
   "hub.steam.watch_off": "ベータは更新の確認対象ではありません。Hub モジュールでオンにしてください。",
-  "hub.update.auto_check": "起動時に VRCNext の新しいリリースを確認",
-  "hub.update.auto_check_desc": "新しいリリースを知らせるだけです。HapsHub が元のプロジェクトの更新をインストールすることはありません。",
-  "hub.update.check_btn": "VRCNext、VRCX、Space Calibrator を確認",
+  "hub.update.auto_check": "起動時に HapsHub の新しいリリースを確認",
+  "hub.update.auto_check_desc": "お知らせするだけです。好きなときに GitHub からダウンロードしてください。自動ではインストールされません。",
+  "hub.update.check_btn": "アップデートを確認",
   "hub.update.checking": "GitHub を確認しています...",
   "hub.update.mark_reviewed": "確認済みにする",
   "hub.update.new_commits": "{commit} 以降の新しいコミット {count} 件",
@@ -4323,5 +4323,7 @@
   "hub.map.how_language": "言語",
   "hub.map.zoom_in": "拡大",
   "hub.map.zoom_out": "縮小",
-  "hub.map.reset": "表示をリセット"
+  "hub.map.reset": "表示をリセット",
+  "hub.help.github": "GitHub の HapsHub",
+  "hub.help.wiki": "VRCNext Wiki"
 }

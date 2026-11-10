@@ -754,8 +754,8 @@
   "common.required": "required",
   "update.available": "Update available",
   "update.version_label": "Version",
-  "update.ready_suffix": "is ready to install.",
-  "update.download_install": "Download & Install",
+  "update.ready_suffix": "is out.",
+  "update.download_install": "Open the download page",
   "update.starting": "Starting...",
   "update.downloading": "Downloading...",
   "update.downloading_progress": "Downloading... {percent}%",
@@ -4025,9 +4025,9 @@
   "hub.steam.running": "Switching. Steam will close and reopen, which can take a minute.",
   "hub.steam.title": "Space Calibrator on Steam",
   "hub.steam.watch_off": "The beta is not part of update checks. Turn that on in Hub modules.",
-  "hub.update.auto_check": "Check for new VRCNext releases on startup",
-  "hub.update.auto_check_desc": "Only tells you about a new release. HapsHub never installs upstream updates.",
-  "hub.update.check_btn": "Check VRCNext, VRCX and Space Calibrator",
+  "hub.update.auto_check": "Check for new HapsHub releases on startup",
+  "hub.update.auto_check_desc": "Only tells you about a new release. Download it from GitHub when you want; nothing installs by itself.",
+  "hub.update.check_btn": "Check for updates",
   "hub.update.checking": "Checking GitHub...",
   "hub.update.mark_reviewed": "Mark as reviewed",
   "hub.update.new_commits": "{count} new commit(s) since {commit}",
@@ -4323,5 +4323,7 @@
   "hub.map.how_language": "language",
   "hub.map.zoom_in": "Zoom in",
   "hub.map.zoom_out": "Zoom out",
-  "hub.map.reset": "Reset view"
+  "hub.map.reset": "Reset view",
+  "hub.help.github": "HapsHub on GitHub",
+  "hub.help.wiki": "VRCNext wiki"
 }

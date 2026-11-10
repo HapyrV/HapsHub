@@ -743,8 +743,8 @@
   "common.required": "Обязательно",
   "update.available": "Доступно обновление",
   "update.version_label": "Версия",
-  "update.ready_suffix": "готова к установке",
-  "update.download_install": "Скачать и установить",
+  "update.ready_suffix": "уже вышла.",
+  "update.download_install": "Открыть страницу загрузки",
   "update.starting": "Запуск...",
   "update.downloading": "Загрузка...",
   "update.downloading_progress": "Загрузка",
@@ -4029,9 +4029,9 @@
   "hub.steam.running": "Переключение. Steam закроется и откроется снова, это может занять минуту.",
   "hub.steam.title": "Space Calibrator в Steam",
   "hub.steam.watch_off": "Бета не входит в проверку обновлений. Включите её в разделе Модули Hub.",
-  "hub.update.auto_check": "Проверять новые выпуски VRCNext при запуске",
-  "hub.update.auto_check_desc": "Только сообщает о новом выпуске. HapsHub никогда не устанавливает обновления исходного проекта.",
-  "hub.update.check_btn": "Проверить VRCNext, VRCX и Space Calibrator",
+  "hub.update.auto_check": "Проверять новые версии HapsHub при запуске",
+  "hub.update.auto_check_desc": "Только сообщает о новой версии. Скачайте её с GitHub, когда захотите; само ничего не устанавливается.",
+  "hub.update.check_btn": "Проверить обновления",
   "hub.update.checking": "Проверка GitHub...",
   "hub.update.mark_reviewed": "Отметить как проверенное",
   "hub.update.new_commits": "Новых коммитов с {commit}: {count}",
@@ -4327,5 +4327,7 @@
   "hub.map.how_language": "язык",
   "hub.map.zoom_in": "Приблизить",
   "hub.map.zoom_out": "Отдалить",
-  "hub.map.reset": "Сбросить вид"
+  "hub.map.reset": "Сбросить вид",
+  "hub.help.github": "HapsHub на GitHub",
+  "hub.help.wiki": "Вики VRCNext"
 }

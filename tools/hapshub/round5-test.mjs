@@ -365,6 +365,14 @@ section('map', async main => {
     await main.eval(`vrcFriendsData = window.__savedFriends`);
 });
 
+section('release', async main => {
+    const shown = await main.eval(`document.querySelector('.logo-sub').textContent`);
+    const version = readFileSync(join(ROOT, 'main', 'AppInfo.cs'), 'utf8').match(/Version = "([^"]+)"/)[1];
+    check('the sidebar shows the app version', shown === 'v' + version, `${shown} vs ${version}`);
+    const help = await main.eval(`[...document.querySelectorAll('#tbMenuHelp .tb-dd-item')].map(i => i.getAttribute('onclick') || '').join(' ')`);
+    check('bug reports and feature requests go to HapsHub, not VRCNext', help.includes('HapyrV/HapsHub/issues') && !help.includes('shinyflvre/VRCNext/issues') && !help.includes('discord.gg'), help);
+});
+
 const dir = freshData('hapshub-round5-');
 let main;
 try {

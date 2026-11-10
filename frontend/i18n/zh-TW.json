@@ -754,8 +754,8 @@
   "common.required": "必填",
   "update.available": "有可用更新",
   "update.version_label": "版本",
-  "update.ready_suffix": "已準備好安裝。",
-  "update.download_install": "下載並安裝",
+  "update.ready_suffix": "已發布。",
+  "update.download_install": "開啟下載頁面",
   "update.starting": "啟動中...",
   "update.downloading": "下載中...",
   "update.downloading_progress": "下載中... {percent}%",
@@ -4025,9 +4025,9 @@
   "hub.steam.running": "正在切換。Steam 會關閉並重新開啟,可能需要一分鐘。",
   "hub.steam.title": "Steam 上的 Space Calibrator",
   "hub.steam.watch_off": "測試版不在更新檢查範圍內。請在 Hub 模組中開啟。",
-  "hub.update.auto_check": "啟動時檢查 VRCNext 新版本",
-  "hub.update.auto_check_desc": "只會告訴你有新版本。HapsHub 絕不會安裝上游更新。",
-  "hub.update.check_btn": "檢查 VRCNext、VRCX 和 Space Calibrator",
+  "hub.update.auto_check": "啟動時檢查 HapsHub 新版本",
+  "hub.update.auto_check_desc": "只會提醒你有新版本。想更新時從 GitHub 下載，不會自動安裝。",
+  "hub.update.check_btn": "檢查更新",
   "hub.update.checking": "正在檢查 GitHub...",
   "hub.update.mark_reviewed": "標記為已檢查",
   "hub.update.new_commits": "自 {commit} 以來有 {count} 個新提交",
@@ -4323,5 +4323,7 @@
   "hub.map.how_language": "語言",
   "hub.map.zoom_in": "放大",
   "hub.map.zoom_out": "縮小",
-  "hub.map.reset": "重設檢視"
+  "hub.map.reset": "重設檢視",
+  "hub.help.github": "GitHub 上的 HapsHub",
+  "hub.help.wiki": "VRCNext 維基"
 }

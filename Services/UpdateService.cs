@@ -1,11 +1,11 @@
 namespace VRCNext.Services;
 
-// HapsHub only reports upstream VRCNext releases. It must never install them:
-// Velopack would replace this fork with the stock upstream build.
+// Checks HapsHub's own GitHub releases and opens the download page; it never installs anything by itself.
+// VRCNext's releases must never be installed: Velopack would replace this app with the stock upstream build.
 public class UpdateService
 {
-    private const string RepoUrl = "https://github.com/shinyflvre/VRCNext";
-    private const string ApiLatest = "https://api.github.com/repos/shinyflvre/VRCNext/releases/latest";
+    private const string RepoUrl = HapsHub.Core.HubRelease.RepoUrl;
+    private const string ApiLatest = HapsHub.Core.HubRelease.LatestApi;
 
     private string? _ghReleaseUrl;
 

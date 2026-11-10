@@ -137,7 +137,7 @@
     <div class="sidebar" id="sidebarEl">
         <div class="sidebar-resizer" id="sidebarResizer" data-side="left"></div>
         <div class="sidebar-sep"></div>
-        <div class="logo"><div class="logo-icon" id="logoIcon">H</div><div class="logo-txt"><div class="logo-text-row"><div class="logo-text">HapsHub</div></div><div class="logo-sub">v2026.62.3</div></div></div>
+        <div class="logo"><div class="logo-icon" id="logoIcon">H</div><div class="logo-txt"><div class="logo-text-row"><div class="logo-text">HapsHub</div></div><div class="logo-sub">v1.0.0</div></div></div>
         <div class="nav vrcn-scrollbar" id="navEl"></div>
         <div class="play-area"><button class="btn-play" onclick="playVRChat()" data-i18n-title="sidebar.play_vrchat" title="Play VRChat"><span class="play-icon-wrap"><span class="msi play-icon">play_arrow</span></span><span class="play-copy pl"><strong class="play-title" data-i18n="sidebar.play_vrchat">Play VRChat</strong><span class="play-sub" id="playSubText"></span></span><span class="msi play-arrow pl">chevron_right</span></button></div>
     </div>
@@ -265,15 +265,15 @@
                     </div>
                     <div class="tb-menu-item" id="tbMenuHelp"><span data-i18n="tb.help">Help</span>
                         <div class="tb-dropdown">
-                            <div class="tb-dd-item" onclick="sendToCS({action:'openUrl',url:'https://wiki.vrcnext.com'})"><span class="msi">article</span><span data-i18n="tb.help.wiki">Wiki</span></div>
+                            <div class="tb-dd-item" onclick="sendToCS({action:'openUrl',url:'https://wiki.vrcnext.com'})"><span class="msi">article</span><span data-i18n="hub.help.wiki">VRCNext wiki</span></div>
                             <div class="tb-dd-sep"></div>
                             <div class="tb-dd-item" data-keep-modal onclick="document.getElementById('modalKeybinds').style.display='flex'; if (typeof wmSyncKeybindHelp === 'function') wmSyncKeybindHelp();"><span class="msi">keyboard</span><span data-i18n="tb.help.show_keybinds">Show Keybinds</span></div>
                             <div class="tb-dd-item" onclick="toggleHelpPanel()"><span class="msi">info</span><span data-i18n="tb.help.explain_tab">Explain this Tab</span></div>
                             <div class="tb-dd-sep"></div>
-                            <div class="tb-dd-item" onclick="sendToCS({action:'openUrl',url:'https://discord.gg/dHsrWJzNS9'})"><span class="msi">forum</span><span data-i18n="tb.help.join_discord">Join Discord</span></div>
+                            <div class="tb-dd-item" onclick="sendToCS({action:'openUrl',url:'https://github.com/HapyrV/HapsHub'})"><span class="msi">code</span><span data-i18n="hub.help.github">HapsHub on GitHub</span></div>
                             <div class="tb-dd-sep"></div>
-                            <div class="tb-dd-item" onclick="sendToCS({action:'openUrl',url:'https://github.com/shinyflvre/VRCNext/issues/new?template=bug_report.yml'})"><span class="msi">bug_report</span><span data-i18n="tb.help.report_bug">Report Bug</span></div>
-                            <div class="tb-dd-item" onclick="sendToCS({action:'openUrl',url:'https://github.com/shinyflvre/VRCNext/issues/new?template=feature_request.yml'})"><span class="msi">lightbulb</span><span data-i18n="tb.help.feature_request">Feature Request</span></div>
+                            <div class="tb-dd-item" onclick="sendToCS({action:'openUrl',url:'https://github.com/HapyrV/HapsHub/issues/new?labels=bug'})"><span class="msi">bug_report</span><span data-i18n="tb.help.report_bug">Report Bug</span></div>
+                            <div class="tb-dd-item" onclick="sendToCS({action:'openUrl',url:'https://github.com/HapyrV/HapsHub/issues/new?labels=enhancement'})"><span class="msi">lightbulb</span><span data-i18n="tb.help.feature_request">Feature Request</span></div>
                             <div class="tb-dd-sep"></div>
                             <div class="tb-dd-item" onclick="sendToCS({action:'exportDebugKit'})"><span class="msi">folder_zip</span><span data-i18n="tb.help.export_debug_kit">Export Debug Kit</span></div>
                         </div>

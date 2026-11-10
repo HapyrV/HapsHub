@@ -10,7 +10,8 @@ import { fileURLToPath } from 'node:url';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 export const CONFIG = process.argv.includes('--release') ? 'Release' : 'Debug';
-export const EXE = join(ROOT, 'bin', CONFIG, 'net10.0-windows10.0.19041.0', 'HapsHub.exe');
+// HAPSHUB_TEST_EXE tests another build, such as the release zip's.
+export const EXE = process.env.HAPSHUB_TEST_EXE || join(ROOT, 'bin', CONFIG, 'net10.0-windows10.0.19041.0', 'HapsHub.exe');
 export const VERSION = readFileSync(join(ROOT, 'main', 'AppInfo.cs'), 'utf8').match(/Version = "([^"]+)"/)[1];
 
 export const sleep = ms => new Promise(done => setTimeout(done, ms));

@@ -187,7 +187,7 @@ try {
         `!document.getElementById('vrcndbConsentModal')`));
 
     await main.eval(`hubModulesRefresh()`);
-    await waitFor('module list',() => main.eval(`document.querySelectorAll('.hub-module-row').length === 13`));
+    await waitFor('module list',() => main.eval(`document.querySelectorAll('#hubModulesList .hub-module-row').length === 12`));
     if (process.env.HAPSHUB_SMOKE_FAIL) throw new Error('failure forced to test the cleanup');
     const toggles = `[...document.querySelectorAll('.hub-module-row[data-module="hub.forwarding"] input[type=checkbox]')]`;
     check('forwarding toggles start off', await main.eval(`${toggles}.length === 2 && ${toggles}.every(i => !i.checked)`));

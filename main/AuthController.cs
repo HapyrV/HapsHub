@@ -694,6 +694,8 @@ public class AuthController
             _ = Task.Run(async () =>
             {
                 await Task.Delay(4000);
+                // Nothing to show without release notes for this version.
+                if (string.IsNullOrWhiteSpace(await FetchReleaseNotesAsync())) return;
                 var payload = await BuildChangelogPayloadAsync(auto: true);
                 Invoke(() => _core.SendToJS("showChangelog", payload));
             });
@@ -739,9 +741,9 @@ public class AuthController
             client.DefaultVersionPolicy = System.Net.Http.HttpVersionPolicy.RequestVersionOrLower;
             client.Timeout = TimeSpan.FromSeconds(15);
             client.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", AppInfo.UserAgent);
-            var resp = await client.GetAsync($"https://api.github.com/repos/shinyflvre/VRCNext/releases/tags/v{AppInfo.Version}");
+            var resp = await client.GetAsync(HapsHub.Core.HubRelease.TagApi(AppInfo.Version));
             if (!resp.IsSuccessStatusCode)
-                resp = await client.GetAsync("https://api.github.com/repos/shinyflvre/VRCNext/releases/latest");
+                resp = await client.GetAsync(HapsHub.Core.HubRelease.LatestApi);
             if (!resp.IsSuccessStatusCode) return "";
             var body = await resp.Content.ReadAsStringAsync();
             var notes = JObject.Parse(body)["body"]?.ToString() ?? "";

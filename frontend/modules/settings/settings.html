@@ -40,13 +40,13 @@
                     <div class="vrcn-panel-card" data-section="general">
                         <div class="vrcn-panel-card-header"><span class="msi">system_update_alt</span> <span data-i18n="hub.update.title">Updates</span></div>
                         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                            <button class="vrcn-button-round" id="setUpdCheckBtn" onclick="settingsCheckUpdate(); hubUpstreamCheck()"><span class="msi" style="font-size:15px;">refresh</span> <span data-i18n="hub.update.check_btn">Check VRCNext, VRCX and Space Calibrator</span></button>
+                            <button class="vrcn-button-round" id="setUpdCheckBtn" onclick="settingsCheckUpdate(); if (typeof hubPluginOn !== 'function' || hubPluginOn('upstream-watch')) hubUpstreamCheck()"><span class="msi" style="font-size:15px;">refresh</span> <span data-i18n="hub.update.check_btn">Check for updates</span></button>
                             <span id="setUpdStatus" style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);"></span>
                         </div>
                         <div class="sf-toggle-row" style="margin-top:10px;">
                             <div>
-                                <div data-i18n="hub.update.auto_check">Check for new VRCNext releases on startup</div>
-                                <div class="sf-desc" data-i18n="hub.update.auto_check_desc">Only tells you about a new release. HapsHub never installs upstream updates.</div>
+                                <div data-i18n="hub.update.auto_check">Check for new HapsHub releases on startup</div>
+                                <div class="sf-desc" data-i18n="hub.update.auto_check_desc">Only tells you about a new release. Download it from GitHub when you want; nothing installs by itself.</div>
                             </div>
                             <label class="toggle">
                                 <input type="checkbox" id="setAutoUpdate" checked onchange="autoSave()">
