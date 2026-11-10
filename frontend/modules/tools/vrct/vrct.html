@@ -1,0 +1,50 @@
+<div class="vrct-page">
+    <div class="vrcn-panel-card">
+        <div class="vrcn-panel-card-header"><span class="msi">translate</span> <span data-i18n="nav.vrct">VRCT</span>
+            <span class="vrct-status" id="vrctStatus"></span>
+        </div>
+        <div class="set-desc" data-i18n="hub.vrct.desc">VRCT's translator, run by HapsHub without VRCT's own window. It uses VRCT's settings, so a change here shows in VRCT too.</div>
+        <div class="vrct-progress" id="vrctProgress" hidden><div class="vrct-progress-fill" id="vrctProgressFill"></div></div>
+        <div class="vrct-problem" id="vrctProblem" hidden></div>
+        <div class="vrct-actions">
+            <button class="vrcn-button-round vrcn-btn-join" id="vrctStart" onclick="vrctStart()"><span class="msi">play_arrow</span> <span data-i18n="hub.vrct.start">Start</span></button>
+            <button class="vrcn-button-round" id="vrctStop" onclick="vrctStop()" disabled><span class="msi">stop</span> <span data-i18n="hub.vrct.stop">Stop</span></button>
+            <label class="vrct-auto"><input type="checkbox" id="vrctAuto" onchange="vrctSetAuto(this.checked)"> <span data-i18n="hub.vrct.auto">Start with HapsHub</span></label>
+        </div>
+    </div>
+
+    <div class="vrct-grid">
+        <div class="vrcn-panel-card vrct-needs-engine">
+            <div class="vrcn-panel-card-header"><span class="msi">language</span> <span data-i18n="hub.vrct.languages">Languages</span></div>
+            <div class="vrct-pairs" id="vrctPairs"></div>
+            <div class="vrct-lang-row">
+                <label><span data-i18n="hub.vrct.you_speak">You speak</span><select class="vrcn-dropdown" id="vrctYour" onchange="vrctSetLanguage('your', this.value)"></select></label>
+                <button class="vrcn-icon-button" id="vrctSwap" onclick="vrctSend('/run/swap_your_language_and_target_language')" title="Swap" data-i18n-title="hub.vrct.swap"><span class="msi">swap_horiz</span></button>
+                <label><span data-i18n="hub.vrct.translate_to">Translate to</span><select class="vrcn-dropdown" id="vrctTarget" onchange="vrctSetLanguage('target', this.value)"></select></label>
+            </div>
+        </div>
+
+        <div class="vrcn-panel-card vrct-needs-engine">
+            <div class="vrcn-panel-card-header"><span class="msi">tune</span> <span data-i18n="hub.vrct.switches">Switches</span></div>
+            <div id="vrctSwitches"></div>
+        </div>
+
+        <div class="vrcn-panel-card vrct-needs-engine">
+            <div class="vrcn-panel-card-header"><span class="msi">settings</span> <span data-i18n="hub.vrct.engines">Engines and devices</span></div>
+            <label class="vrct-field"><span data-i18n="hub.vrct.translator">Translator</span><select class="vrcn-dropdown" id="vrctEngine" onchange="vrctSetEngine(this.value)"></select></label>
+            <div class="sf-desc" data-i18n="hub.vrct.engine_hint">Google handles Hebrew best. CTranslate2 runs on this PC and works offline.</div>
+            <label class="vrct-field"><span data-i18n="hub.vrct.speech">Speech recognition</span><select class="vrcn-dropdown" id="vrctSpeech" onchange="vrctSend('/set/data/selected_transcription_engine', this.value)"></select></label>
+            <label class="vrct-field"><span data-i18n="hub.vrct.mic">Microphone</span><select class="vrcn-dropdown" id="vrctMic" onchange="vrctSend('/set/data/selected_mic_device', this.value)"></select></label>
+            <label class="vrct-field"><span data-i18n="hub.vrct.speaker">What others say comes from</span><select class="vrcn-dropdown" id="vrctSpeaker" onchange="vrctSend('/set/data/selected_speaker_device', this.value)"></select></label>
+        </div>
+    </div>
+
+    <div class="vrcn-panel-card vrct-needs-engine vrct-chat">
+        <div class="vrcn-panel-card-header"><span class="msi">chat</span> <span data-i18n="hub.vrct.chat">Messages</span></div>
+        <div class="vrct-log" id="vrctLog"><div class="folder-empty" data-i18n="hub.vrct.log_empty">What you say and hear shows here, with its translation.</div></div>
+        <div class="vrct-send">
+            <input type="text" class="vrcn-input" id="vrctInput" maxlength="500" placeholder="Type a message to translate and send..." data-i18n-placeholder="hub.vrct.type" onkeydown="if(event.key==='Enter')vrctSendTyped()">
+            <button class="vrcn-button-round vrcn-btn-join" onclick="vrctSendTyped()"><span class="msi">send</span> <span data-i18n="hub.vrct.send">Send</span></button>
+        </div>
+    </div>
+</div>

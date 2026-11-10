@@ -1,0 +1,29 @@
+.vrct-page { display: flex; flex-direction: column; gap: 14px; padding: 18px 24px 28px; max-width: 1200px; }
+.vrct-status { margin-left: auto; font-size: calc(11px + var(--fs-off, 0px)); font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--tx2); }
+.vrct-status.is-ready { color: var(--ok, #4caf50); }
+.vrct-status.is-problem { color: var(--err); }
+.vrct-progress { height: 4px; border-radius: 2px; background: var(--bg-hover); overflow: hidden; margin: 10px 0 2px; }
+.vrct-progress-fill { height: 100%; width: 0; background: var(--accent); transition: width .3s ease; }
+.vrct-problem { margin-top: 8px; color: var(--err); font-size: calc(12px + var(--fs-off, 0px)); }
+.vrct-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+.vrct-auto { display: inline-flex; gap: 6px; align-items: center; margin-left: auto; color: var(--tx2); font-size: calc(12px + var(--fs-off, 0px)); cursor: pointer; }
+.vrct-auto input { accent-color: var(--accent); margin: 0; }
+.vrct-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.vrct-page.is-off .vrct-needs-engine { opacity: .5; pointer-events: none; }
+.vrct-pairs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.vrct-pair { border: 1px solid var(--brd); background: var(--bg-input); color: var(--tx1); border-radius: 14px; padding: 4px 11px; font: inherit; font-size: calc(12px + var(--fs-off, 0px)); cursor: pointer; }
+.vrct-pair:hover { border-color: var(--accent); }
+.vrct-pair.is-on { background: color-mix(in srgb, var(--accent) 22%, transparent); border-color: var(--accent); color: var(--tx0); }
+.vrct-lang-row { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; }
+.vrct-lang-row label, .vrct-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 140px; font-size: calc(11px + var(--fs-off, 0px)); color: var(--tx2); }
+.vrct-field { margin-top: 10px; }
+.vrct-field:first-of-type { margin-top: 0; }
+.vrct-lang-row select, .vrct-field select { width: 100%; }
+.vrct-log { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; padding-right: 4px; }
+.vrct-line { padding: 8px 10px; border-radius: 10px; background: var(--bg-input); max-width: 80%; }
+.vrct-line.is-mine { align-self: flex-end; background: color-mix(in srgb, var(--accent) 16%, var(--bg-input)); }
+.vrct-line-who { font-size: calc(10px + var(--fs-off, 0px)); color: var(--tx2); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 2px; }
+.vrct-line-original { color: var(--tx0); overflow-wrap: anywhere; unicode-bidi: plaintext; }
+.vrct-line-translation { color: var(--accent-lt, var(--accent)); margin-top: 2px; overflow-wrap: anywhere; unicode-bidi: plaintext; }
+.vrct-send { display: flex; gap: 8px; margin-top: 10px; }
+.vrct-send input { flex: 1; min-width: 0; unicode-bidi: plaintext; }

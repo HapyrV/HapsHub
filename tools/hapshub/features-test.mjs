@@ -351,7 +351,7 @@ try {
 
     // --- OyasumiVR and Eagle pages. Only draws state here; embed-live.mjs moves the real windows ---
     check('a saved sidebar layout gets new tools in its Tools folder', await main.eval(`navSanitizeLayout([{ type: 'folder', id: 'folder-tools', name: 'Tools', items: [] }]).find(e => e.id === 'folder-tools').items.filter(k => ['youtube-tunnel', 'oyasumi', 'eagle', 'ovr-advanced', 'spacecal', 'vrct', 'ovrtoolkit'].includes(k)).length === 7`));
-    for (const [tab, app] of [[33, 'oyasumi'], [34, 'eagle'], [36, 'spacecal'], [37, 'vrct'], [38, 'ovrtoolkit']]) {
+    for (const [tab, app] of [[33, 'oyasumi'], [34, 'eagle'], [36, 'spacecal'], [38, 'ovrtoolkit']]) {
         await main.eval(`showTab(${tab})`);
         await waitFor(`${app} page`, () => main.eval(`!!document.getElementById('aemb-pane-${app}')`));
         await sleep(1000); // lets the app's own answer to the page's state request land before the made-up state below

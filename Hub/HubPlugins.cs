@@ -30,7 +30,7 @@ public sealed class HubPluginsModule : IHubModule
         new("proxy", new[] { "hub.proxy" }),
         new("oyasumi", Array.Empty<string>()),
         new("eagle", Array.Empty<string>()),
-        new("vrct", Array.Empty<string>()),
+        new("vrct", new[] { "hub.vrct" }),
         new("ovrtoolkit", Array.Empty<string>()),
         new("ovr-advanced", Array.Empty<string>()),
         new("friend-schedule", Array.Empty<string>()),

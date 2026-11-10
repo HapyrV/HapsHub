@@ -25,7 +25,7 @@ PAGE = """<div class="aemb-page">
 </div>
 """
 APPS = [("oyasumi", "OyasumiVR", "bedtime"), ("eagle", "Eagle", "photo_library"), ("spacecal", "Space Calibrator", "gps_fixed"),
-        ("vrct", "VRCT", "translate"), ("ovrtoolkit", "OVR Toolkit", "view_in_ar")]
+        ("ovrtoolkit", "OVR Toolkit", "view_in_ar")]
 for app, name, icon in APPS:
     target = ROOT / "frontend/modules/tools/app-embed" / f"{app}.html"
     target.write_text(PAGE.format(app=app, name=name, icon=icon, nav=f"nav.{app}"), encoding="utf-8", newline="\n")

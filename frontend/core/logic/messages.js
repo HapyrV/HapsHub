@@ -1134,6 +1134,8 @@ case 'vrcNews':
             case 'hubUpstream':          onHubUpstream(payload); break;
             case 'hubModules':           onHubModules(payload); break;
             case 'hubPlugins':           if (typeof onHubPlugins === 'function') onHubPlugins(payload); break;
+            case 'hubVrct':              if (typeof onHubVrct === 'function') onHubVrct(payload); break;
+            case 'hubVrctState':         if (typeof onHubVrctState === 'function') onHubVrctState(payload); break;
             case 'hubUpstreamReviewed':  onHubUpstreamReviewed(payload); break;
             case 'hubSteamBranch':       onHubSteamBranch(payload); break;
             case 'hubVrcxArchive':       onHubVrcxArchive(payload); break;

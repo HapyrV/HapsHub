@@ -1,7 +1,8 @@
 // Other apps in a page. Their windows are real windows held in the pane, so this only reports where the pane is,
 // and where hub menus cover it: the app's window gets a hole there so the menu shows through.
 
-const _AEMB_TABS = { oyasumi: 'tab33', eagle: 'tab34', spacecal: 'tab36', vrct: 'tab37', ovrtoolkit: 'tab38' };
+// VRCT has its own page (modules/tools/vrct): HapsHub runs its engine instead of holding its window.
+const _AEMB_TABS = { oyasumi: 'tab33', eagle: 'tab34', spacecal: 'tab36', ovrtoolkit: 'tab38' };
 const _AEMB_APPS = Object.keys(_AEMB_TABS);
 const _aemb = { sent: {}, holes: {}, selectOpen: false };
 

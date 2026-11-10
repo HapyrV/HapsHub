@@ -3,11 +3,12 @@
 // Uses a throwaway data folder, no login and no VRChat traffic. Stops only what it started.
 //   node tools/hapshub/round5-test.mjs [--release] [--only name]
 
-import { mkdtempSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { Page, checker, cleanUp, closeMain, crashes, freshData, hubLog, killTree, openMain, sleep, startApp, waitFor } from './lib/harness.mjs';
+import { Page, ROOT, checker, cleanUp, closeMain, crashes, freshData, hubLog, killTree, openMain, sleep, startApp, waitFor } from './lib/harness.mjs';
 
 const PORT = 9340;
 const { check, state } = checker();
@@ -277,6 +278,54 @@ section('nav', async main => {
     await main.eval(`hubNavRemove(${JSON.stringify(group?.id)})`);
     check('removing a group keeps its pages', (await layout()).layout.some(e => e.type === 'item' && e.key === 'worlds'));
     await main.eval(`localStorage.removeItem('vrcnext_nav_layout_v1'); navRender()`);
+});
+
+section('vrct', async () => {
+    // The VRCT page with a stand-in engine: start it, pick a language pair, hear the microphone, send a message, stop.
+    const fake = join(ROOT, 'tools', 'hapshub', 'fake-vrct');
+    const exe = join(fake, 'bin', 'Release', 'net10.0', 'VRCT-sidecar.exe');
+    if (spawnSync('tasklist', ['/FI', 'IMAGENAME eq VRCT-sidecar.exe', '/NH'], { encoding: 'utf8' }).stdout.includes('VRCT-sidecar')) {
+        console.log('NOT CHECKED  the VRCT page: VRCT is running');
+        return;
+    }
+    const built = spawnSync('dotnet', ['build', fake, '-c', 'Release', '-v', 'quiet', '-nologo'], { encoding: 'utf8' });
+    if (!check('the stand-in VRCT engine builds', built.status === 0 && existsSync(exe), built.stdout)) return;
+    const dir2 = freshData('hapshub-vrct-');
+    const logFile = join(dir2, 'fake-vrct.log');
+    let copy;
+    try {
+        copy = await openMain(dir2, PORT + 22, { HAPSHUB_VRCT_SIDECAR: exe, FAKE_VRCT_LOG: logFile });
+        const asked = () => existsSync(logFile) ? readFileSync(logFile, 'utf8') : '';
+        await waitFor('splash', () => copy.eval(`!document.getElementById('vrcnSplash')`), 15000);
+        await copy.eval(`showTab(NAV_ITEMS_DEF.vrct.tab)`);
+        await waitFor('the VRCT page', () => copy.eval(`!!document.querySelector('.vrct-page') && document.getElementById('vrctStatus').textContent === 'Off'`), 10000);
+        check('the VRCT page is HapsHub\'s own, not a held window', await copy.eval(`!document.getElementById('aemb-pane-vrct') && document.querySelector('.vrct-page').classList.contains('is-off')`));
+        await copy.eval(`vrctStart()`);
+        await waitFor('the engine', () => copy.eval(`_vrct.state === 'ready'`), 20000);
+        check('Start runs VRCT\'s engine and fills in its languages and devices', await copy.eval(`document.getElementById('vrctYour').value === 'English|United States' && document.getElementById('vrctTarget').value === 'Japanese|Japan' && document.getElementById('vrctMic').value === 'Test Microphone'`));
+        check('the four language pairs are one click each', await copy.eval(`document.querySelectorAll('#vrctPairs .vrct-pair').length === 4 && document.querySelector('#vrctPairs .vrct-pair.is-on').textContent.includes('English → Japanese')`));
+        check('a language that comes in several countries says which', await copy.eval(`[...document.getElementById('vrctYour').options].some(o => o.textContent === 'English (United Kingdom)') && [...document.getElementById('vrctYour').options].some(o => o.textContent === 'Hebrew')`));
+        await copy.eval(`[...document.querySelectorAll('#vrctPairs .vrct-pair')].find(b => b.textContent.startsWith('Hebrew → English')).click()`);
+        await waitFor('the pair to be sent', () => asked().includes('"language":"Hebrew"') && asked().includes('selected_target_languages'), 5000).catch(() => {});
+        check('a pair sets both languages in the engine', /selected_your_languages .*"language":"Hebrew"/.test(asked()) && /selected_target_languages .*"1":\{"language":"English"/.test(asked()), asked().slice(-400));
+        await copy.eval(`document.querySelector('#vrctSwitches input[data-vrct="transcription_send"]').click()`);
+        await waitFor('the microphone line', () => copy.eval(`document.getElementById('vrctLog').innerText.includes('hello from the mic')`), 5000).catch(() => {});
+        check('what the microphone hears shows with its translation', await copy.eval(`document.getElementById('vrctLog').innerText.includes('[English] hello from the mic')`));
+        await copy.eval(`document.getElementById('vrctInput').value = 'שלום'; vrctSendTyped()`);
+        await waitFor('the typed line', () => copy.eval(`document.getElementById('vrctLog').innerText.includes('[English] שלום')`), 5000).catch(() => {});
+        check('a typed message is sent and its translation shown', await copy.eval(`document.getElementById('vrctLog').innerText.includes('[English] שלום')`));
+        await sleep(13000);
+        check('HapsHub keeps the engine alive past its watchdog', await copy.eval(`_vrct.state === 'ready'`));
+        await copy.eval(`vrctStop()`);
+        await waitFor('the engine to stop', () => copy.eval(`_vrct.state === 'off'`), 15000).catch(() => {});
+        check('Stop closes the engine', await copy.eval(`_vrct.state === 'off'`) && !spawnSync('tasklist', ['/FI', 'IMAGENAME eq VRCT-sidecar.exe', '/NH'], { encoding: 'utf8' }).stdout.includes('VRCT-sidecar'));
+        check('the VRCT page has no page errors', copy.errors.length === 0, copy.errors.join(' | '));
+    } finally {
+        if (copy) killTree(copy.app.pid);
+        spawnSync('taskkill', ['/IM', 'VRCT-sidecar.exe', '/F']);
+        await sleep(800);
+        try { rmSync(dir2, { recursive: true, force: true }); } catch { /* still closing */ }
+    }
 });
 
 const dir = freshData('hapshub-round5-');

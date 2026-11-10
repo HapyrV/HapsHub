@@ -15,6 +15,7 @@ public static class HubModules
     public static AppEmbedsModule AppEmbeds { get; } = new();
     public static HubPerformanceModule Performance { get; } = new();
     public static HubPluginsModule Plugins { get; } = new();
+    public static HubVrctModule Vrct { get; } = new();
 
     public static IReadOnlyList<IHubModule> All() => new IHubModule[]
     {
@@ -33,5 +34,6 @@ public static class HubModules
         AppEmbeds,
         Performance,
         Plugins,
+        Vrct,
     };
 }

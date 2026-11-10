@@ -29,6 +29,7 @@ const _HUB_MOVED_SETTINGS = {
     'hub.forwarding': { forward_avatar_data: 'hubForwardingSlot' },
     // Settings > Plugins and Settings > Performance draw these themselves.
     'hub.plugins': { enabled: 'hubOwnPage', picked: 'hubOwnPage' },
+    'hub.vrct': { auto_start: 'hubOwnPage' },
     'hub.performance': { mode: 'hubOwnPage', cut_blur: 'hubOwnPage', cut_animations: 'hubOwnPage', cut_pictures: 'hubOwnPage', cut_glass: 'hubOwnPage', cut_polling: 'hubOwnPage' },
     'hub.ui': {
         welcome_off: 'hubOwnPage', welcome_custom: 'hubOwnPage', letter_spacing: 'hubOwnPage', app_name: 'hubOwnPage',
@@ -90,4 +91,5 @@ function onHubModules(payload) {
     if (payload.system) window.hubSystemInfo = payload.system;
     if (payload.modules?.length) hubUiApply(payload.modules);
     if (typeof hubPluginsRenderOptions === 'function') hubPluginsRenderOptions();
+    if (payload.modules?.length && typeof vrctOnModules === 'function') vrctOnModules(payload.modules);
 }
