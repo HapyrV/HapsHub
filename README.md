@@ -48,13 +48,17 @@ It needs Windows 10 or 11 with Microsoft's WebView2 runtime, which Windows norma
 
 | | Minimum | Recommended |
 |---|---|---|
-| CPU | 4 threads (for example a 4-core Intel i5 from 2015) | 6 threads or more |
-| Memory | 8 GB | 16 GB |
-| Graphics | Any GPU with DirectX 11; Performance mode helps on weaker ones | Any current GPU |
-| Disk | 600 MB for the app, plus its image cache (5 GB at most, adjustable) | |
+| Windows | 10 or 11, 64-bit, with WebView2 | 11 |
+| CPU | 2 threads | 4 threads or more |
+| Memory | 4 GB free beside VRChat | 8 GB free beside VRChat |
+| Graphics | Optional: it also runs with the GPU off | Any GPU with DirectX 11 |
+| Disk | 600 MB, plus its image cache (5 GB at most, adjustable) | |
 
-On a PC with 4 threads or fewer, or under 8 GB of memory, Performance mode switches itself on the first time.
-VRCT's translator, when used, needs its own few gigabytes of memory for its speech and translation models.
+Measured with `tools/hapshub/min-spec.mjs` on 400 friends, pinned to fewer threads of a desktop CPU, with and without
+the GPU. Even on 1 thread with the GPU off it started in 5 s, switched pages in under 130 ms and scrolled at 60 fps, so
+any 4-core PC from the last ten years has plenty of room. On a PC with 4 threads or fewer, or under 8 GB of memory,
+Performance mode switches itself on the first time. VRCT's translator, when used, needs a few more gigabytes of memory
+for its speech and translation models.
 
 ## Privacy
 
