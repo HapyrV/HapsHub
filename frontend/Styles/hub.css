@@ -158,11 +158,11 @@ body.hub-resizing, body.hub-resizing * { cursor: col-resize !important; user-sel
 
 /* ---- Your own profile: clear buttons to change the banner and the picture ---- */
 #modalMyProfile .fd-left-banner { position: relative; }
-.myp-banner-change { position: absolute; left: 8px; bottom: 8px; z-index: 4; display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px;
+.myp-banner-change { position: absolute; left: 8px; top: 8px; z-index: 4; display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px;
     border: 1px solid rgba(255,255,255,.2); border-radius: 7px; background: rgba(0,0,0,.45); color: #fff; font: inherit;
-    font-size: calc(11px + var(--fs-off, 0px)); cursor: pointer; opacity: .0; transition: opacity .15s ease; backdrop-filter: blur(6px); }
+    font-size: calc(11px + var(--fs-off, 0px)); cursor: pointer; opacity: .6; transition: opacity .15s ease; backdrop-filter: blur(6px); }
 .myp-banner-change .msi { font-size: 15px; }
-#modalMyProfile .fd-left-banner:hover .myp-banner-change, .myp-banner-change:focus-visible { opacity: 1; }
+#modalMyProfile .fd-left-banner:hover .myp-banner-change, .myp-banner-change:hover, .myp-banner-change:focus-visible { opacity: 1; }
 .myp-avatar-change { position: absolute; inset: 0; z-index: 4; display: flex; align-items: center; justify-content: center; border: 0; border-radius: inherit;
     background: rgba(0,0,0,.5); color: #fff; cursor: pointer; opacity: 0; transition: opacity .15s ease; }
 .myp-avatar-wrap { border-radius: 50%; }

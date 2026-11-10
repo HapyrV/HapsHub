@@ -156,6 +156,10 @@ section('profile', async main => {
     const buttons = await main.json(`({ banner: !!document.querySelector('#modalMyProfile .myp-banner-change'), picture: !!document.querySelector('#modalMyProfile .myp-avatar-change'),
         edits: [...document.querySelectorAll('#modalMyProfile [onclick^="editMyField"]')].map(b => b.getAttribute('onclick').match(/'([a-z]+)'/)[1]) })`);
     check('D3: your profile has buttons to change the banner and the picture', buttons.banner && buttons.picture, JSON.stringify(buttons));
+    // Both buttons must be the topmost element at their centre, so nothing else in the profile covers them.
+    const hits = await main.json(`['.myp-banner-change', '.myp-avatar-change'].map(sel => { const b = document.querySelector('#modalMyProfile ' + sel); const r = b.getBoundingClientRect();
+        const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return { sel, clickable: !!top && (top === b || b.contains(top)), on: top ? (top.className || top.tagName) + '' : null }; })`);
+    check('D3: the banner and picture buttons are not covered by anything', hits.every(h => h.clickable), JSON.stringify(hits));
     check('D3: bio, pronouns, links and languages can be edited', ['bio', 'pronouns', 'links', 'languages'].every(f => buttons.edits.includes(f)), buttons.edits.join(','));
     await main.eval(`document.querySelector('#modalMyProfile .myp-avatar-change').click()`);
     await sleep(300);
