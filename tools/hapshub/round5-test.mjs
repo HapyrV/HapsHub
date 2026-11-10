@@ -150,10 +150,19 @@ section('plugins', async main => {
     check('module settings are no longer repeated under Hub modules', await main.eval(`(() => { const r = document.querySelector('#hubModulesList .hub-module-row[data-module="hub.youtube-tunnel"]'); return !r || getComputedStyle(r).display === 'none'; })()`));
 
     await main.eval(`hubOpenPlugins()`);
-    const more = await main.center('#hubPluginList [data-plugin="youtube-tunnel"] .hub-plugin-more');
+    // Opening the options scrolls them into view smoothly; click only once the button has stopped moving.
+    const moreSel = '#hubPluginList [data-plugin="youtube-tunnel"] .hub-plugin-more';
+    await main.eval(`document.querySelector('${moreSel}')?.scrollIntoView({ block: 'center', behavior: 'instant' })`);
+    let more = null;
+    await waitFor('the ⋮ button to stop moving', async () => {
+        const before = more;
+        more = await main.center(moreSel);
+        return before && more && before.x === more.x && before.y === more.y;
+    }, 5000);
     await main.click(more.x, more.y);
     const menu = await main.eval(`document.getElementById('hubPluginMenu')?.innerText || ''`);
-    check('the ⋮ menu offers its page, its options and turning it off', /page/i.test(menu) && /Options/.test(menu) && /Turn off/.test(menu), menu);
+    const hit = menu ? '' : await main.eval(`(() => { const e = document.elementFromPoint(${more.x}, ${more.y}); return 'no menu; at (${more.x},${more.y}): ' + (e ? e.tagName + '.' + e.className + ' in ' + (e.closest('[id]')?.id || '?') : 'nothing') + '; viewport ' + innerWidth + 'x' + innerHeight; })()`);
+    check('the ⋮ menu offers its page, its options and turning it off', /page/i.test(menu) && /Options/.test(menu) && /Turn off/.test(menu), menu || hit);
     // Clicking elsewhere closes it. Not near the window edge: a press there starts resizing the real window.
     const away = await main.center('#hubPluginsCard .vrcn-panel-card-header');
     await sleep(200);
@@ -398,7 +407,7 @@ try {
     check('no page errors', main.errors.length === 0, main.errors.join(' | '));
     check('no crash report', crashes(dir) === 0);
     const closed = await closeMain(main);
-    check('the app closes cleanly', closed, hubLog(dir).trim().split(/\r?\n/).slice(-6).join(' | '));
+    check('the app closes cleanly', closed, hubLog(dir).trim().split(/\r?\n/).slice(-12).map(l => l.replace(/^\S+ /, '')).join(' | '));
 } catch (error) {
     check('the run finished', false, error.stack || error.message);
 } finally {
