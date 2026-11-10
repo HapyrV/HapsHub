@@ -4325,5 +4325,14 @@
   "hub.map.zoom_out": "縮小",
   "hub.map.reset": "表示をリセット",
   "hub.help.github": "GitHub の HapsHub",
-  "hub.help.wiki": "VRCNext Wiki"
+  "hub.help.wiki": "VRCNext Wiki",
+  "hub.settings.resize_nav": "ドラッグで幅を変更",
+  "hub.plugins.no_options": "ここで設定できる項目はまだありません。",
+  "hub.plugins.open_settings": "設定を開く",
+  "settings.launch.start_app": "{name} を起動",
+  "launch.addons.rename_hint": "ダブルクリックで名前を変更",
+  "launch.addons.rename": "名前を変更",
+  "launch.addons.remove": "このスイッチを削除",
+  "launch.addons.add_switch": "スイッチを追加",
+  "launch.addons.new_switch": "新しいスイッチ"
 }

@@ -180,7 +180,13 @@ public class RelayController : IDisposable
                     case HapsHub.Core.LaunchAddons.Haptics: _core.Settings.LaunchWithHaptics = on; break;
                     case HapsHub.Core.LaunchAddons.FaceTracking: _core.Settings.LaunchWithFaceTracking = on; break;
                     case HapsHub.Core.LaunchAddons.Fbt: _core.Settings.LaunchWithFbt = on; break;
-                    default: return;
+                    default:
+                    {
+                        var custom = _core.Settings.LaunchCustomSwitches.FirstOrDefault(sw => sw.Id == msg["kind"]?.ToString());
+                        if (custom == null) return;
+                        custom.On = on;
+                        break;
+                    }
                 }
                 _core.Settings.Save();
                 break;
@@ -683,10 +689,10 @@ public class RelayController : IDisposable
         // The Launch window's switches. Full-body tracking only makes sense in VR.
         var addons = new List<string>();
         // The Launch switches plugin may be off: then its switches are gone, and so is what they start.
-        if (!HapsHub.Core.HubModules.Plugins.IsOn("launch-switches")) { }
-        else if (_core.Settings.LaunchWithHaptics) addons.AddRange(_core.Settings.LaunchHapticsApps);
-        if (_core.Settings.LaunchWithFaceTracking) addons.AddRange(_core.Settings.LaunchFaceTrackingApps);
-        if (vr && _core.Settings.LaunchWithFbt) addons.AddRange(_core.Settings.LaunchFbtApps);
+        if (HapsHub.Core.HubModules.Plugins.IsOn("launch-switches"))
+            addons.AddRange(HapsHub.Core.LaunchAddons.SwitchedOn(vr, _core.Settings.LaunchWithHaptics, _core.Settings.LaunchHapticsApps,
+                _core.Settings.LaunchWithFaceTracking, _core.Settings.LaunchFaceTrackingApps, _core.Settings.LaunchWithFbt, _core.Settings.LaunchFbtApps,
+                _core.Settings.LaunchCustomSwitches));
         apps.AddRange(HapsHub.Core.LaunchAddons.NotRunning(addons.Where(a => !apps.Contains(a, StringComparer.OrdinalIgnoreCase))));
 
         Invoke(() =>

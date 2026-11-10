@@ -61,9 +61,19 @@ const INSPECT = `(() => {
     if (content && content.scrollWidth > content.clientWidth + 1) out.push({ kind: 'wide', what: 'the page scrolls sideways by ' + (content.scrollWidth - content.clientWidth) + 'px' });
 
     const controls = [];
+    const texts = [];
+    const appFont = getComputedStyle(document.body).fontFamily.split(',')[0].trim();
     for (const el of scope) {
         if (!shown(el)) continue;
         const s = getComputedStyle(el);
+        // A Windows-looking control: a select that never got the themed dropdown, a plain white checkbox, or the
+        // system font instead of the app's.
+        if (el.tagName === 'SELECT' && !el._vnSelect && !el.hasAttribute('data-no-vn')) out.push({ kind: 'native', what: 'plain select ' + describe(el), where: where(el) });
+        if (el.tagName === 'INPUT' && el.type === 'checkbox' && s.appearance !== 'none') out.push({ kind: 'native', what: 'plain checkbox ' + describe(el), where: where(el) });
+        const hasText = [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
+        const field = (el.tagName === 'INPUT' && /^(text|search|number|password|email|url|)$/.test(el.type)) || el.tagName === 'TEXTAREA';
+        if ((field || (hasText && el.closest('button, select, .vn-select, label'))) && !el.closest('.msi') && !/mono|consol|courier/i.test(s.fontFamily) && s.fontFamily.split(',')[0].trim() !== appFont)
+            out.push({ kind: 'font', what: describe(el) + ' uses ' + s.fontFamily.split(',')[0], where: where(el) });
         // Text cut off with no "..." to show it.
         const ownText = [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
         const seen = visible(el);
@@ -79,6 +89,18 @@ const INSPECT = `(() => {
             out.push({ kind: 'icon', what: 'missing icon "' + el.textContent.trim() + '"', where: where(el) });
         // Inline links wrap across lines and their line boxes touch; only boxes are compared.
         if ((/^(BUTTON|INPUT|SELECT|TEXTAREA|A)$/.test(el.tagName) || el.classList.contains('toggle')) && s.display !== 'inline') controls.push([el, seen]);
+        if (ownText && !el.closest('button, a, select, label.toggle, .vn-select')) texts.push(el);
+    }
+    // Text running under a switch or button: compares the text's own line boxes, not its element's box.
+    for (const el of texts) {
+        const range = document.createRange();
+        const lines = [];
+        for (const n of el.childNodes) if (n.nodeType === 3 && n.textContent.trim()) { range.selectNodeContents(n); lines.push(...range.getClientRects()); }
+        for (const [c, rc] of controls) {
+            if (c.contains(el) || el.contains(c) || (c.tagName === 'INPUT' && el.classList.contains('msi'))) continue;
+            const hit = lines.find(r => Math.min(r.right, rc.right) - Math.max(r.left, rc.left) > 3 && Math.min(r.bottom, rc.bottom) - Math.max(r.top, rc.top) > 3);
+            if (hit) { out.push({ kind: 'overlap', what: 'text ' + describe(el) + ' under ' + describe(c), where: where(el) || where(c) }); break; }
+        }
     }
     // Controls on top of each other: more than a third of the smaller one covered, and neither inside the other.
     for (let i = 0; i < controls.length; i++) {
@@ -154,6 +176,8 @@ try {
             await visit(`settings ${section}`, `showTab(9); switchSettingsSection(${JSON.stringify(section)})`);
             if (setup === SETUPS[0]) sliderCount += (await main.json(SLIDERS)).length;
         }
+        // Every plugin's options, folded open in the Plugins list.
+        await visit('settings plugin options', `showTab(9); switchSettingsSection('plugins'); HUB_PLUGINS.forEach(p => _hubPluginHasOptions(p) && hubPluginToggleOptions(p.id, true))`);
         for (const error of main.errors.slice(errorsBefore)) note(setup.name, 'page', { kind: 'error', what: String(error).split('\n')[0].slice(0, 200) });
     }
     await main.send('Emulation.clearDeviceMetricsOverride');

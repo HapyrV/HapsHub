@@ -4329,5 +4329,14 @@
   "hub.map.zoom_out": "Отдалить",
   "hub.map.reset": "Сбросить вид",
   "hub.help.github": "HapsHub на GitHub",
-  "hub.help.wiki": "Вики VRCNext"
+  "hub.help.wiki": "Вики VRCNext",
+  "hub.settings.resize_nav": "Потяните, чтобы изменить ширину",
+  "hub.plugins.no_options": "Здесь пока нечего настраивать.",
+  "hub.plugins.open_settings": "Открыть настройки",
+  "settings.launch.start_app": "Запускать {name}",
+  "launch.addons.rename_hint": "Дважды щёлкните, чтобы переименовать",
+  "launch.addons.rename": "Переименовать",
+  "launch.addons.remove": "Удалить этот переключатель",
+  "launch.addons.add_switch": "Добавить переключатель",
+  "launch.addons.new_switch": "Новый переключатель"
 }

@@ -103,6 +103,8 @@ function saveSettings() {
             launchHapticsApps: settings.launchHapticsApps || [],
             launchFaceTrackingApps: settings.launchFaceTrackingApps || [],
             launchFbtApps: settings.launchFbtApps || [],
+            launchCustomSwitches: settings.launchCustomSwitches || [],
+            launchSwitchNames: settings.launchSwitchNames || {},
             closeWithVrc:       document.getElementById('setCloseWithVrc')?.checked       ?? false,
             startAlwaysWithVrc: document.getElementById('setStartAlwaysWithVrc')?.checked ?? true,
             extraExe: [], // clear legacy field so migration doesn't re-fire after user deletes apps
@@ -612,6 +614,9 @@ function loadSettingsToUI(s) {
     settings.launchFaceTrackingApps = s.LaunchFaceTrackingApps || [];
     settings.launchFbtApps          = s.LaunchFbtApps          || [];
     settings.launchWith = { haptics: !!s.LaunchWithHaptics, faceTracking: !!s.LaunchWithFaceTracking, fbt: !!s.LaunchWithFbt };
+    settings.launchCustomSwitches = (s.LaunchCustomSwitches || []).map(x => ({ id: x.Id || x.id, name: x.Name || x.name || '', icon: x.Icon || x.icon || 'rocket_launch',
+        on: !!(x.On ?? x.on), vrOnly: !!(x.VrOnly ?? x.vrOnly), apps: x.Apps || x.apps || [] })).filter(x => x.id);
+    settings.launchSwitchNames = s.LaunchSwitchNames || {};
     const _cwvEl = document.getElementById('setCloseWithVrc');
     if (_cwvEl) _cwvEl.checked = s.CloseWithVrc ?? s.closeWithVrc ?? false;
     const _sawvEl = document.getElementById('setStartAlwaysWithVrc');
@@ -2268,6 +2273,10 @@ document.documentElement.addEventListener('languagechange', () => {
 });
 
 function switchSettingsSection(id, btn) {
+    // Friends and Attribution are part of Sidebar and About now.
+    if (id === 'friends') id = 'sidebar';
+    let scrollTo = null;
+    if (id === 'attribution') { id = 'about'; scrollTo = 'settingsAttributionCard'; }
     if (btn && _settingsSearchActive) {
         const input = document.getElementById('settingsSearchInput');
         if (input) input.value = '';
@@ -2292,6 +2301,7 @@ function switchSettingsSection(id, btn) {
     }
     // Refresh the accounts list whenever the Accounts tab is opened to avoid startup race conditions.
     if (id === 'accounts' && typeof requestAccountsList === 'function') requestAccountsList();
+    if (scrollTo) setTimeout(() => document.getElementById(scrollTo)?.scrollIntoView({ block: 'start' }), 0);
 }
 
 function _fotUpdateFavOnly() {
@@ -2304,17 +2314,57 @@ function _fotUpdateFavOnly() {
 
 document.documentElement.addEventListener('languagechange', sndPopulateSelects);
 
-// ---- Apps started by the Launch window's switches (haptics, face tracking, full-body tracking) ----
+// ---- Launch window switches: the three built-in ones (haptics, face tracking, full-body tracking) and the user's own ----
+// Each switch starts its apps with VRChat. Any switch can be renamed; the user's own can be removed.
 
 const LAUNCH_ADDON_LISTS = { haptics: 'launchHapticsApps', faceTracking: 'launchFaceTrackingApps', fbt: 'launchFbtApps' };
+const LAUNCH_BUILTIN_SWITCHES = [
+    ['haptics', 'vibration', 'launch.addons.haptics', 'With haptics'],
+    ['faceTracking', 'face', 'launch.addons.face_tracking', 'With face tracking'],
+    ['fbt', 'accessibility_new', 'launch.addons.fbt', 'With FBT'],
+];
+
+/** Every Launch window switch, built-in ones first: { id, icon, label, apps, on, builtin }. */
+function launchSwitches() {
+    const s = (typeof settings !== 'undefined' && settings) || {};
+    const names = s.launchSwitchNames || {};
+    return [
+        ...LAUNCH_BUILTIN_SWITCHES.map(([id, icon, key, fallback]) => ({ id, icon, builtin: true, label: names[id] || t(key, fallback),
+            apps: s[LAUNCH_ADDON_LISTS[id]] || [], on: !!(s.launchWith && s.launchWith[id]) })),
+        ...(s.launchCustomSwitches || []).map(sw => ({ id: sw.id, icon: sw.icon || 'rocket_launch', builtin: false,
+            label: names[sw.id] || sw.name || t('launch.addons.new_switch', 'New switch'), apps: sw.apps || [], on: !!sw.on, vrOnly: !!sw.vrOnly })),
+    ];
+}
+
+function _launchSwitchApps(id) {
+    if (LAUNCH_ADDON_LISTS[id]) return (settings[LAUNCH_ADDON_LISTS[id]] = settings[LAUNCH_ADDON_LISTS[id]] || []);
+    const sw = (settings.launchCustomSwitches || []).find(x => x.id === id);
+    return sw ? (sw.apps = sw.apps || []) : null;
+}
 
 function renderLaunchAddonLists() {
-    for (const [kind, key] of Object.entries(LAUNCH_ADDON_LISTS))
-        _renderExeList('launchAddonList_' + kind, settings[key] || [], `removeLaunchAddonApp.bind(null,'${kind}')`);
+    const box = document.getElementById('launchSwitchEditor');
+    if (!box) return;
+    // Typing a new name must not be wiped by a redraw.
+    if (box.contains(document.activeElement) && document.activeElement.tagName === 'INPUT') return;
+    const list = launchSwitches();
+    box.innerHTML = list.map(sw => `
+        <div class="launch-sw" data-switch="${esc(sw.id)}">
+            <div class="launch-sw-head">
+                <span class="msi">${esc(sw.icon)}</span>
+                <span class="launch-sw-name" title="${esc(t('launch.addons.rename_hint', 'Double-click to rename'))}" ondblclick="launchSwitchRename('${jsq(sw.id)}')">${esc(sw.label)}</span>
+                <button class="vrcn-icon-button" title="${esc(t('launch.addons.rename', 'Rename'))}" onclick="launchSwitchRename('${jsq(sw.id)}')"><span class="msi">edit</span></button>
+                ${sw.builtin ? '' : `<button class="vrcn-icon-button" title="${esc(t('launch.addons.remove', 'Remove this switch'))}" onclick="launchSwitchRemove('${jsq(sw.id)}')"><span class="msi">delete</span></button>`}
+            </div>
+            <div class="exe-list" id="launchAddonList_${esc(sw.id)}"></div>
+            <div class="folder-btns" style="margin-top:6px;"><button class="vrcn-button" onclick="browseExe('addon-${jsq(sw.id)}')"><span class="msi" style="font-size:16px;">add</span> <span>${esc(t('settings.launch.add_app', 'Add App'))}</span></button></div>
+        </div>`).join('')
+        + `<button class="vrcn-button launch-sw-add" onclick="launchSwitchAdd()"><span class="msi" style="font-size:16px;">add</span> <span>${esc(t('launch.addons.add_switch', 'Add a switch'))}</span></button>`;
+    for (const sw of list) _renderExeList('launchAddonList_' + sw.id, sw.apps, `removeLaunchAddonApp.bind(null,'${jsq(sw.id)}')`);
 }
 
 function removeLaunchAddonApp(kind, i) {
-    const list = settings[LAUNCH_ADDON_LISTS[kind]];
+    const list = _launchSwitchApps(kind);
     if (!list) return;
     list.splice(i, 1);
     renderLaunchAddonLists();
@@ -2322,11 +2372,66 @@ function removeLaunchAddonApp(kind, i) {
 }
 
 function addLaunchAddonApp(kind, path) {
-    const key = LAUNCH_ADDON_LISTS[kind];
-    if (!key || !path) return;
-    settings[key] = settings[key] || [];
-    if (!settings[key].some(p => p.toLowerCase() === path.toLowerCase())) settings[key].push(path);
+    const list = _launchSwitchApps(kind);
+    if (!list || !path) return;
+    if (!list.some(p => p.toLowerCase() === path.toLowerCase())) list.push(path);
     renderLaunchAddonLists();
+    autoSave();
+}
+
+function _launchSwitchSetName(id, name) {
+    settings.launchSwitchNames = settings.launchSwitchNames || {};
+    const custom = (settings.launchCustomSwitches || []).find(x => x.id === id);
+    if (custom) {
+        if (name) custom.name = name.slice(0, 40);
+        delete settings.launchSwitchNames[id];
+    } else if (name && name !== launchSwitches().find(x => x.id === id && x.builtin && !settings.launchSwitchNames[id])?.label) {
+        settings.launchSwitchNames[id] = name.slice(0, 40);
+    } else if (!name) {
+        // An empty name puts a built-in switch's own name back.
+        delete settings.launchSwitchNames[id];
+    }
+    autoSave();
+}
+
+function launchSwitchRename(id) {
+    const span = document.querySelector(`.launch-sw[data-switch="${id}"] .launch-sw-name`);
+    if (!span || span.querySelector('input')) return;
+    const input = document.createElement('input');
+    input.className = 'vrcn-input launch-sw-rename';
+    input.value = launchSwitches().find(x => x.id === id)?.label || '';
+    input.maxLength = 40;
+    span.textContent = '';
+    span.appendChild(input);
+    input.focus();
+    input.select();
+    let done = false;
+    const finish = save => {
+        if (done) return;
+        done = true;
+        if (save) _launchSwitchSetName(id, input.value.trim());
+        input.blur();
+        span.textContent = launchSwitches().find(x => x.id === id)?.label || '';
+        renderLaunchAddonLists();
+    };
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') finish(true); else if (e.key === 'Escape') finish(false); });
+    input.addEventListener('blur', () => finish(true));
+}
+
+function launchSwitchAdd() {
+    settings.launchCustomSwitches = settings.launchCustomSwitches || [];
+    const id = 'sw' + Date.now().toString(36);
+    settings.launchCustomSwitches.push({ id, name: t('launch.addons.new_switch', 'New switch'), icon: 'rocket_launch', on: false, vrOnly: false, apps: [] });
+    renderLaunchAddonLists();
+    autoSave();
+    launchSwitchRename(id);
+}
+
+function launchSwitchRemove(id) {
+    settings.launchCustomSwitches = (settings.launchCustomSwitches || []).filter(x => x.id !== id);
+    if (settings.launchSwitchNames) delete settings.launchSwitchNames[id];
+    renderLaunchAddonLists();
+    autoSave();
 }
 
 // ---- Friend online toasts: which favorite groups get them ----
@@ -2417,13 +2522,13 @@ function renderKnownVrApps(apps) {
     if (!box) return;
     const list = (settings.extraExeVR || []).map(p => p.toLowerCase());
     box.innerHTML = _knownVrApps.map(a => {
-        const label = tf('settings.launch.start_app_with_vr', { name: a.name }, 'Start {name} with VR');
+        const label = tf('settings.launch.start_app', { name: a.name }, 'Start {name}');
         if (!a.path) {
-            return `<div class="sf-toggle-row disabled"><span>${esc(label)} <span class="set-desc" style="display:inline;">${esc(t('settings.launch.not_installed', 'Not installed'))}</span></span>
+            return `<div class="sf-toggle-row disabled" data-known-app="${esc(a.id)}"><span>${esc(label)} <span class="set-desc" style="display:inline;">${esc(t('settings.launch.not_installed', 'Not installed'))}</span></span>
                 <button class="vrcn-button" onclick="browseExe('extra-vr')" title="${esc(t('settings.launch.find_app', 'Point to it'))}"><span class="msi" style="font-size:16px;">folder_open</span></button></div>`;
         }
         const on = list.includes(a.path.toLowerCase());
-        return `<div class="sf-toggle-row" title="${esc(a.path)}"><span>${esc(label)}</span><label class="toggle"><input type="checkbox" ${on ? 'checked' : ''} onchange="setKnownVrApp('${jsq(a.id)}', this.checked)"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>`;
+        return `<div class="sf-toggle-row" data-known-app="${esc(a.id)}" title="${esc(a.path)}"><span>${esc(label)}</span><label class="toggle"><input type="checkbox" ${on ? 'checked' : ''} onchange="setKnownVrApp('${jsq(a.id)}', this.checked)"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>`;
     }).join('');
 }
 

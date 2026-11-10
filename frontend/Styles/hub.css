@@ -61,7 +61,7 @@
 .hub-perf-cuts.is-off { opacity: .5; }
 
 /* ---- Plugins (Settings > Plugins) ---- */
-.settings-nav { overflow-y: auto; }
+.settings-nav { overflow-y: auto; overflow-x: hidden; }
 .hub-plugin-tools { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
 .hub-plugin-group { margin: 14px 0 4px; font-size: calc(10px + var(--fs-off, 0px)); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--tx2); }
 .hub-plugin-row { display: flex; align-items: center; gap: 12px; padding: 10px 4px; border-top: 1px solid var(--brd); }
@@ -104,3 +104,45 @@ body.hub-nav-dragging, body.hub-nav-dragging * { cursor: grabbing !important; us
 #sidebarEl:hover .hub-nav-add, .hub-nav-add:focus-visible { opacity: 1; }
 .hub-nav-add:hover { color: var(--tx0); border-color: var(--accent); }
 .hub-nav-add .msi { font-size: 16px; }
+
+/* ---- Controls look the same everywhere: the app font, theme colours, never a white Windows box ---- */
+button, input, select, textarea, option { font-family: inherit; }
+input[type=checkbox]:not(.toggle input) {
+    appearance: none; -webkit-appearance: none; width: 16px; height: 16px; margin: 0; flex-shrink: 0; vertical-align: middle;
+    display: inline-grid; place-content: center; cursor: pointer;
+    border: 1.5px solid var(--brd-lt, var(--brd)); border-radius: 4px; background: var(--bg-input, var(--ui-input-bg));
+}
+input[type=checkbox]:not(.toggle input):checked { background: var(--accent); border-color: var(--accent); }
+input[type=checkbox]:not(.toggle input):checked::before { content: ''; width: 8px; height: 4px; border: solid #fff; border-width: 0 0 2px 2px; transform: translateY(-1px) rotate(-45deg); }
+input[type=checkbox]:not(.toggle input):focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* A switch row: the text takes the room that's left and wraps; the switch never sits on top of it. */
+.sf-toggle-row { gap: 12px; }
+.sf-toggle-row > :not(.toggle):not(.hub-more):not(button):first-child { flex: 1 1 auto; min-width: 0; }
+
+/* ---- Settings sidebar: resizable, never scrolls sideways ---- */
+#tab9 .settings-nav { width: var(--settings-nav-w, 190px); position: relative; }
+#tab9 .settings-nav-item > span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.settings-nav-resizer { position: absolute; top: 0; right: 0; width: 5px; height: 100%; cursor: col-resize; z-index: 5; }
+.settings-nav-resizer:hover, body.hub-resizing .settings-nav-resizer { background: color-mix(in srgb, var(--accent) 45%, transparent); }
+body.hub-resizing, body.hub-resizing * { cursor: col-resize !important; user-select: none !important; }
+
+/* ---- A plugin's options fold open under it in the Plugins list ---- */
+.hub-plugin-expand .msi { transition: transform .15s ease; }
+.hub-plugin-expand[aria-expanded="true"] .msi { transform: rotate(180deg); }
+.hub-plugin-opts { margin: 0 4px 10px 36px; padding: 2px 12px 10px; border-left: 2px solid color-mix(in srgb, var(--accent) 45%, var(--brd)); }
+.hub-plugin-opts[hidden] { display: none; }
+.hub-plugin-opts .hub-module-row:first-child { margin-top: 4px !important; }
+/* Inside a plugin's options the module name and "Running" add nothing; they show only when something's wrong. */
+.hub-plugin-opts .hub-module-row > div:first-child:not(:has([style*="--err"])) { display: none; }
+.hub-plugin-opts .hub-module-row { margin-top: 6px !important; }
+
+/* ---- Launch switches editor (Settings > VRChat) ---- */
+.launch-sw { margin-top: 10px; }
+.launch-sw-head { display: flex; align-items: center; gap: 6px; font-weight: 600; color: var(--tx1); font-size: calc(12px + var(--fs-off, 0px)); }
+.launch-sw-head > .msi { font-size: 16px; color: var(--tx2); }
+.launch-sw-head .vrcn-icon-button { width: 24px; height: 24px; min-width: 24px; opacity: .55; }
+.launch-sw-head .vrcn-icon-button .msi { font-size: 15px; }
+.launch-sw-head .vrcn-icon-button:hover { opacity: 1; }
+.launch-sw-name { cursor: text; min-width: 0; overflow-wrap: anywhere; }
+.launch-sw-rename { height: 26px; padding: 0 8px; width: 220px; max-width: 100%; }
+.launch-sw-add { margin: 12px 0 14px; }

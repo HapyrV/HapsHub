@@ -4325,5 +4325,14 @@
   "hub.map.zoom_out": "Zoom arrière",
   "hub.map.reset": "Réinitialiser la vue",
   "hub.help.github": "HapsHub sur GitHub",
-  "hub.help.wiki": "Wiki de VRCNext"
+  "hub.help.wiki": "Wiki de VRCNext",
+  "hub.settings.resize_nav": "Faites glisser pour redimensionner",
+  "hub.plugins.no_options": "Rien à régler ici pour l'instant.",
+  "hub.plugins.open_settings": "Ouvrir ses réglages",
+  "settings.launch.start_app": "Lancer {name}",
+  "launch.addons.rename_hint": "Double-cliquez pour renommer",
+  "launch.addons.rename": "Renommer",
+  "launch.addons.remove": "Supprimer cet interrupteur",
+  "launch.addons.add_switch": "Ajouter un interrupteur",
+  "launch.addons.new_switch": "Nouvel interrupteur"
 }

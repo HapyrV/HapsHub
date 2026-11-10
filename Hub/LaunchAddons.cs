@@ -46,6 +46,20 @@ public static class LaunchAddons
         return found;
     }
 
+    /// <summary>The apps the Launch window's switches that are on start with VRChat. Full-body tracking and
+    /// VR-only switches start only in VR.</summary>
+    public static List<string> SwitchedOn(bool vr, bool haptics, IEnumerable<string> hapticsApps, bool face, IEnumerable<string> faceApps,
+        bool fbt, IEnumerable<string> fbtApps, IEnumerable<CustomLaunchSwitch> custom)
+    {
+        var apps = new List<string>();
+        if (haptics) apps.AddRange(hapticsApps);
+        if (face) apps.AddRange(faceApps);
+        if (vr && fbt) apps.AddRange(fbtApps);
+        foreach (var sw in custom ?? Enumerable.Empty<CustomLaunchSwitch>())
+            if (sw.On && (vr || !sw.VrOnly)) apps.AddRange(sw.Apps ?? new List<string>());
+        return apps.Where(a => !string.IsNullOrWhiteSpace(a)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
     /// <summary>A VR app Settings offers as its own "Start with VR" switch. Path is null when it isn't installed.</summary>
     public sealed record KnownApp(string Id, string Name, string? Path);
 
@@ -93,4 +107,15 @@ public static class LaunchAddons
         }
         return result;
     }
+}
+
+/// <summary>A Launch window switch the user added. When it's on, its apps start with VRChat.</summary>
+public sealed class CustomLaunchSwitch
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string Icon { get; set; } = "rocket_launch";
+    public bool On { get; set; }
+    public bool VrOnly { get; set; }
+    public List<string> Apps { get; set; } = new();
 }

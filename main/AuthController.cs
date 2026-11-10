@@ -2171,6 +2171,16 @@ public class AuthController
             if (addonFace != null) _core.Settings.LaunchFaceTrackingApps = FilterStartupAppsLogged(addonFace);
             var addonFbt = data["launchFbtApps"]?.ToObject<List<string>>();
             if (addonFbt != null) _core.Settings.LaunchFbtApps = FilterStartupAppsLogged(addonFbt);
+            var customSwitches = data["launchCustomSwitches"]?.ToObject<List<HapsHub.Core.CustomLaunchSwitch>>();
+            if (customSwitches != null)
+            {
+                foreach (var sw in customSwitches) sw.Apps = FilterStartupAppsLogged(sw.Apps ?? new List<string>());
+                _core.Settings.LaunchCustomSwitches = customSwitches.Where(sw => !string.IsNullOrWhiteSpace(sw.Id)).ToList();
+            }
+            var switchNames = data["launchSwitchNames"]?.ToObject<Dictionary<string, string>>();
+            if (switchNames != null)
+                _core.Settings.LaunchSwitchNames = switchNames.Where(kv => !string.IsNullOrWhiteSpace(kv.Value))
+                    .ToDictionary(kv => kv.Key, kv => kv.Value.Trim().Length > 40 ? kv.Value.Trim()[..40] : kv.Value.Trim());
 
             _core.Settings.CloseWithVrc = data["closeWithVrc"]?.Value<bool>() ?? false;
             _core.Settings.StartAlwaysWithVrc = data["startAlwaysWithVrc"]?.Value<bool>() ?? true;

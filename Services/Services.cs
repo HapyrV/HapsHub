@@ -292,6 +292,9 @@ public class AppSettings
     public List<string> LaunchFaceTrackingApps { get; set; } = new();
     public List<string> LaunchFbtApps { get; set; } = new();
     public bool LaunchAddonsDetected { get; set; }
+    // Switches the user added to the Launch window, and new names for any switch (key: the switch's id).
+    public List<HapsHub.Core.CustomLaunchSwitch> LaunchCustomSwitches { get; set; } = new();
+    public Dictionary<string, string> LaunchSwitchNames { get; set; } = new();
     public bool AutoStart { get; set; }
     public bool StartWithWindows { get; set; }
     public bool PostAll { get; set; }

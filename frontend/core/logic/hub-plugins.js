@@ -5,14 +5,14 @@
 
 const HUB_PLUGINS = [
     // --- Added by HapsHub ---
-    { id: 'oyasumi', name: 'OyasumiVR', by: 'HapsHub', icon: 'bedtime', nav: ['oyasumi'], settings: [{ module: 'hub.app-embeds', keys: ['oyasumi_path', 'on_exit'] }],
+    { id: 'oyasumi', name: 'OyasumiVR', by: 'HapsHub', icon: 'bedtime', nav: ['oyasumi'], hide: ['[data-known-app="oyasumi"]'], settings: [{ module: 'hub.app-embeds', keys: ['oyasumi_path', 'on_exit'] }],
       desc: 'Shows OyasumiVR, the sleep helper for VR, inside a HapsHub page.' },
     { id: 'eagle', name: 'Eagle', by: 'HapsHub', icon: 'photo_library', nav: ['eagle'], settings: [{ module: 'hub.app-embeds', keys: ['eagle_path', 'on_exit'] }],
       desc: 'Shows the Eagle picture organizer inside a HapsHub page.' },
-    { id: 'spacecal', name: 'Space Calibrator', by: 'HapsHub', icon: 'gps_fixed', nav: ['spacecal'], hide: ['#hubSteamBranch'],
+    { id: 'spacecal', name: 'Space Calibrator', by: 'HapsHub', icon: 'gps_fixed', nav: ['spacecal'], hide: ['#hubSteamBranch'], slots: ['hubSteamBranch'],
       settings: [{ module: 'hub.app-embeds', keys: ['spacecal_path', 'on_exit'] }, { module: 'hub.steam-branch' }],
       desc: 'Space Calibrator in a page, and a switch between its Steam public and beta versions.' },
-    { id: 'vrct', name: 'VRCT', by: 'HapsHub', icon: 'translate', nav: ['vrct'], settings: [{ module: 'hub.vrct', keys: ['auto_start'] }, { module: 'hub.app-embeds', keys: ['vrct_path'] }],
+    { id: 'vrct', name: 'VRCT', by: 'HapsHub', icon: 'translate', nav: ['vrct'], hide: ['[data-known-app="vrct"]'], settings: [{ module: 'hub.vrct', keys: ['auto_start'] }, { module: 'hub.app-embeds', keys: ['vrct_path'] }],
       desc: 'The VRCT voice translator, run by HapsHub with its own page: speech to chatbox, translation both ways.' },
     { id: 'ovrtoolkit', name: 'OVR Toolkit', by: 'HapsHub', icon: 'view_in_ar', nav: ['ovrtoolkit'], settings: [{ module: 'hub.app-embeds', keys: ['ovrtoolkit_path', 'on_exit'] }],
       desc: 'OVR Toolkit\'s desktop window inside a HapsHub page.' },
@@ -26,7 +26,7 @@ const HUB_PLUGINS = [
       desc: 'Shows when your friends are usually online, to find a good time to meet.' },
     { id: 'world-map', name: 'World Map', by: 'HapsHub', icon: 'public', nav: ['world-map'],
       desc: 'A globe with your friends placed by the languages and countries on their profiles.' },
-    { id: 'launch-switches', name: 'Launch switches', by: 'HapsHub', icon: 'rocket_launch', hide: ['.launch-addon', '#launchAddonsBlock'],
+    { id: 'launch-switches', name: 'Launch switches', by: 'HapsHub', icon: 'rocket_launch', hide: ['.launch-addons', '#launchAddonsBlock'],
       desc: 'Haptics, face tracking and full-body tracking switches in the Launch window, each starting its apps with VRChat.' },
     { id: 'vr-autostart', name: 'Start with VR', by: 'HapsHub', icon: 'play_circle', hide: ['#knownVrAppToggles'],
       desc: 'One switch each to start OyasumiVR, Standable and VRCT when VRChat starts in VR.' },
@@ -36,8 +36,7 @@ const HUB_PLUGINS = [
       desc: 'Extra events for the VR overlay, such as friends joining your instance.' },
     { id: 'photo-metadata', name: 'Screenshot details', by: 'HapsHub', icon: 'photo_camera', settings: [{ module: 'hub.photo-metadata' }],
       desc: 'Writes the world and the people with you into each new VRChat screenshot.' },
-    { id: 'vrcx', name: 'VRCX import and archive', by: 'HapsHub', icon: 'download', hide: ['.settings-nav-item[onclick*="\'vrcx\'"]', '#tab9 [data-section="vrcx"]'],
-      settings: [{ module: 'hub.vrcx-history' }],
+    { id: 'vrcx', name: 'VRCX import and archive', by: 'HapsHub', icon: 'download', hide: ['.settings-nav-item[onclick*="\'vrcx\'"]', '#tab9 [data-section="vrcx"]'], section: 'vrcx',
       desc: 'Brings your VRCX history into HapsHub and keeps a full copy of it.' },
     { id: 'proxy', name: 'Proxy', by: 'HapsHub', icon: 'vpn_key', settings: [{ module: 'hub.proxy' }],
       desc: 'Sends HapsHub\'s web requests through a proxy you choose.' },
@@ -170,9 +169,10 @@ function hubPluginsRender() {
                         <div class="hub-plugin-name">${esc(_hubPluginText(p, 'name'))} <span class="hub-plugin-meta">${esc(tf('hub.plugins.by', { version: '1.0.0', author: p.by }, 'v{version} by {author}'))}</span></div>
                         <div class="hub-plugin-desc">${esc(_hubPluginText(p, 'desc'))}</div>
                     </div>
+                    ${_hubPluginHasOptions(p) && on ? `<button class="vrcn-icon-button hub-plugin-expand" title="${esc(t('hub.plugins.options', 'Options'))}" aria-expanded="${_hubPluginOpen.has(p.id)}" onclick="hubPluginToggleOptions('${p.id}')"><span class="msi">expand_more</span></button>` : ''}
                     <button class="vrcn-icon-button hub-plugin-more" title="${esc(t('hub.plugins.more', 'More'))}" onclick="hubPluginMenu(event, '${p.id}')"><span class="msi">more_horiz</span></button>
                     <label class="toggle"><input type="checkbox" ${on ? 'checked' : ''} onchange="hubPluginSet('${p.id}', this.checked)"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
-                </div>`;
+                </div>${_hubPluginHasOptions(p) ? `<div class="hub-plugin-opts" data-plugin-opts="${p.id}" hidden></div>` : ''}`;
             }).join('');
         };
         list.innerHTML = (group('HapsHub') + group('VRCNext')) || `<div class="folder-empty">${esc(t('hub.plugins.none_found', 'No plugins match.'))}</div>`;
@@ -200,7 +200,8 @@ function hubPluginMenu(event, id) {
     const page = (plugin.nav || []).map(k => typeof NAV_ITEMS_DEF !== 'undefined' ? NAV_ITEMS_DEF[k] : null).find(Boolean);
     const items = [];
     if (page && hubPluginOn(id)) items.push(['open_in_new', t('hub.plugins.open_page', 'Open its page'), `showTab(${page.tab})`]);
-    if ((plugin.settings || []).length && hubPluginOn(id)) items.push(['settings', t('hub.plugins.options', 'Options'), `hubPluginOptions('${id}')`]);
+    if (_hubPluginHasOptions(plugin) && hubPluginOn(id)) items.push(['settings', t('hub.plugins.options', 'Options'), `hubPluginToggleOptions('${id}', true)`]);
+    if (plugin.section && hubPluginOn(id)) items.push(['settings', t('hub.plugins.open_settings', 'Open its settings'), `hubPluginSection('${id}')`]);
     items.push([hubPluginOn(id) ? 'close' : 'toggle_on', hubPluginOn(id) ? t('hub.plugins.turn_off', 'Turn off') : t('hub.plugins.turn_on', 'Turn on'), `hubPluginSet('${id}', ${!hubPluginOn(id)})`]);
     const menu = document.createElement('div');
     menu.id = 'hubPluginMenu';
@@ -222,46 +223,85 @@ function hubOpenPlugins() {
     if (typeof switchSettingsSection === 'function') switchSettingsSection('plugins', document.querySelector('.settings-nav-item[data-section-id="plugins"]'));
 }
 
-// ---- Options: each plugin that's on and has settings gets its own entry in the settings sidebar ----
+// ---- Options: a plugin's settings fold open under it in the Plugins list (no tab per plugin) ----
 
+const _hubPluginOpen = new Set();
+
+function _hubPluginHasOptions(p) { return (p.settings || []).length > 0 || (p.slots || []).length > 0; }
+
+// Settings > Plugins used to get one sidebar entry per plugin. They live in the list now; this clears any old ones.
 function _hubPluginNavRender() {
     const box = document.getElementById('hubPluginNavItems');
-    if (!box) return;
-    const withOptions = HUB_PLUGINS.filter(p => hubPluginOn(p.id) && (p.settings || []).length);
-    const current = document.querySelector('.settings-nav-item.active')?.dataset.sectionId;
-    box.innerHTML = withOptions.length
-        ? `<div class="hub-plugin-nav-label">${esc(t('hub.plugins.options_title', 'Plugin options'))}</div>` + withOptions.map(p =>
-            `<button class="settings-nav-item hub-plugin-nav${current === 'plugin-' + p.id ? ' active' : ''}" data-section-id="plugin-${p.id}" onclick="hubPluginOptions('${p.id}', this)"><span class="msi">${esc(p.icon)}</span><span>${esc(_hubPluginText(p, 'name'))}</span></button>`).join('')
-        : '';
+    if (box) box.innerHTML = '';
 }
 
-function hubPluginOptions(id, button) {
-    if (typeof showTab === 'function' && !document.getElementById('tab9')?.classList.contains('active')) showTab(9);
+function hubPluginToggleOptions(id, open) {
+    const show = open ?? !_hubPluginOpen.has(id);
+    if (show) _hubPluginOpen.add(id); else _hubPluginOpen.delete(id);
+    const panel = document.querySelector(`.hub-plugin-opts[data-plugin-opts="${id}"]`);
+    const button = document.querySelector(`.hub-plugin-row[data-plugin="${id}"] .hub-plugin-expand`);
+    if (panel) panel.hidden = !show;
+    if (button) button.setAttribute('aria-expanded', String(show));
     hubPluginsRenderOptions();
-    switchSettingsSection('plugin-' + id, button || document.querySelector(`.settings-nav-item[data-section-id="plugin-${id}"]`));
+}
+
+/** Opens Settings > Plugins with this plugin's options folded open. */
+function hubPluginOptions(id) {
+    hubOpenPlugins();
+    const search = document.getElementById('hubPluginSearch');
+    if (search && search.value) { search.value = ''; hubPluginsSearch(''); }
+    hubPluginToggleOptions(id, true);
+    document.querySelector(`.hub-plugin-row[data-plugin="${id}"]`)?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+}
+
+/** Opens the Settings tab a plugin keeps its controls on (VRCX). */
+function hubPluginSection(id) {
+    const section = hubPluginById(id)?.section;
+    if (!section) return;
+    if (typeof showTab === 'function') showTab(9);
+    switchSettingsSection(section);
+}
+
+function _hubPluginPark() {
+    let park = document.getElementById('hubPluginPark');
+    if (!park) {
+        park = document.createElement('div');
+        park.id = 'hubPluginPark';
+        park.hidden = true;
+        document.body.appendChild(park);
+    }
+    return park;
 }
 
 function hubPluginsRenderOptions() {
-    const host = document.getElementById('hubPluginOptions');
-    if (!host || typeof _hubUiSettings === 'undefined' || !_hubUiSettings) return;
-    const shownSection = document.querySelector('#tab9 .settings-nav-item.active')?.dataset.sectionId || '';
-    const cards = HUB_PLUGINS.filter(p => (p.settings || []).length).map(p => {
-        const rows = p.settings.map(s => {
-            const module = _hubUiSettings.find(m => m.id === s.module);
+    if (typeof _hubUiSettings === 'undefined') return;
+    // Panels drawn by other code (Space Calibrator's Steam branch) are moved, not redrawn, so they keep their state.
+    const park = _hubPluginPark();
+    for (const p of HUB_PLUGINS) for (const id of p.slots || []) {
+        const el = document.getElementById(id);
+        if (el && !park.contains(el)) park.appendChild(el);
+    }
+    for (const p of HUB_PLUGINS.filter(_hubPluginHasOptions)) {
+        const panel = document.querySelector(`.hub-plugin-opts[data-plugin-opts="${p.id}"]`);
+        if (!panel) continue;
+        const open = _hubPluginOpen.has(p.id) && hubPluginOn(p.id);
+        panel.hidden = !open;
+        if (!open) continue;
+        // Typing in a box here must not be wiped by a redraw.
+        if (panel.contains(document.activeElement) && document.activeElement.tagName === 'INPUT') continue;
+        const rows = (p.settings || []).map(s => {
+            const module = (_hubUiSettings || []).find(m => m.id === s.module);
             if (!module) return '';
             return s.keys ? s.keys.map(key => _hubModuleRow(module, key)).join('') : _hubModuleRow(module);
         }).join('');
-        const page = (p.nav || []).map(k => typeof NAV_ITEMS_DEF !== 'undefined' ? NAV_ITEMS_DEF[k] : null).find(Boolean);
-        return `<div class="vrcn-panel-card" data-section="plugin-${p.id}" style="${shownSection === 'plugin-' + p.id && hubPluginOn(p.id) ? '' : 'display:none;'}">
-            <div class="vrcn-panel-card-header"><span class="msi">${esc(p.icon)}</span> ${esc(_hubPluginText(p, 'name'))}</div>
-            <div class="set-desc">${esc(_hubPluginText(p, 'desc'))}</div>
-            ${rows}
-            ${page ? `<button class="vrcn-button" style="margin-top:12px;" onclick="showTab(${page.tab})"><span class="msi" style="font-size:15px;">open_in_new</span> ${esc(t('hub.plugins.open_page', 'Open its page'))}</button>` : ''}
-        </div>`;
-    }).join('');
-    // Typing in a box here must not be wiped by a redraw.
-    if (host.contains(document.activeElement) && document.activeElement.tagName === 'INPUT') return;
-    host.innerHTML = cards;
+        panel.innerHTML = rows + (p.slots || []).map(id => `<div data-slot-for="${id}"></div>`).join('')
+            + (rows || (p.slots || []).length ? '' : `<div class="set-desc">${esc(t('hub.plugins.no_options', 'Nothing to set here yet.'))}</div>`);
+        for (const id of p.slots || []) {
+            const el = document.getElementById(id);
+            const slot = panel.querySelector(`[data-slot-for="${id}"]`);
+            if (el && slot) slot.appendChild(el);
+        }
+    }
 }
 
 // ---- Start: the last known states apply at once, the hub's answer follows ----

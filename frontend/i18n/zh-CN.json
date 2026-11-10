@@ -4325,5 +4325,14 @@
   "hub.map.zoom_out": "缩小",
   "hub.map.reset": "重置视图",
   "hub.help.github": "GitHub 上的 HapsHub",
-  "hub.help.wiki": "VRCNext 维基"
+  "hub.help.wiki": "VRCNext 维基",
+  "hub.settings.resize_nav": "拖动以调整宽度",
+  "hub.plugins.no_options": "这里暂时没有可设置的内容。",
+  "hub.plugins.open_settings": "打开设置",
+  "settings.launch.start_app": "启动 {name}",
+  "launch.addons.rename_hint": "双击重命名",
+  "launch.addons.rename": "重命名",
+  "launch.addons.remove": "删除此开关",
+  "launch.addons.add_switch": "添加开关",
+  "launch.addons.new_switch": "新开关"
 }

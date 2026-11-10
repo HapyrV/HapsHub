@@ -386,8 +386,9 @@ function showLaunchModal(location, steamVrOpen) {
     el.querySelectorAll('.launch-addon').forEach(b => b.addEventListener('click', () => {
         const kind = b.dataset.kind;
         settings.launchWith = settings.launchWith || {};
-        const now = !settings.launchWith[kind];
-        settings.launchWith[kind] = now;
+        const custom = (settings.launchCustomSwitches || []).find(x => x.id === kind);
+        const now = custom ? !custom.on : !settings.launchWith[kind];
+        if (custom) custom.on = now; else settings.launchWith[kind] = now;
         b.classList.toggle('on', now);
         b.setAttribute('aria-pressed', String(now));
         sendToCS({ action: 'setLaunchAddon', kind, on: now });
@@ -609,17 +610,10 @@ function renderCurrentInstance(data) {
 
 // Launch window switches: each starts its apps with VRChat (lists live in Settings > VRChat).
 function _launchAddonButtons() {
-    const lists = { haptics: 'launchHapticsApps', faceTracking: 'launchFaceTrackingApps', fbt: 'launchFbtApps' };
-    const defs = [
-        ['haptics', 'vibration', t('launch.addons.haptics', 'With haptics')],
-        ['faceTracking', 'face', t('launch.addons.face_tracking', 'With face tracking')],
-        ['fbt', 'accessibility_new', t('launch.addons.fbt', 'With FBT')],
-    ];
-    const s = (typeof settings !== 'undefined' && settings) || {};
-    return defs.map(([kind, icon, label]) => {
-        const on = !!(s.launchWith && s.launchWith[kind]);
-        const apps = (s[lists[kind]] || []).map(p => p.split(/[\\/]/).pop());
+    const list = typeof launchSwitches === 'function' ? launchSwitches() : [];
+    return list.map(sw => {
+        const apps = sw.apps.map(p => p.split(/[\\/]/).pop());
         const tip = apps.length ? apps.join(', ') : t('launch.addons.none', 'No apps set. Add them in Settings > VRChat.');
-        return `<button class="launch-addon${on ? ' on' : ''}" data-kind="${kind}" title="${esc(tip)}" aria-pressed="${on}"><span class="msi">${icon}</span>${esc(label)}</button>`;
+        return `<button class="launch-addon${sw.on ? ' on' : ''}" data-kind="${esc(sw.id)}" title="${esc(tip)}" aria-pressed="${sw.on}"><span class="msi">${esc(sw.icon)}</span>${esc(sw.label)}</button>`;
     }).join('');
 }

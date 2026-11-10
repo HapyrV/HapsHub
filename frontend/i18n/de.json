@@ -4325,5 +4325,14 @@
   "hub.map.zoom_out": "Verkleinern",
   "hub.map.reset": "Ansicht zurücksetzen",
   "hub.help.github": "HapsHub auf GitHub",
-  "hub.help.wiki": "VRCNext-Wiki"
+  "hub.help.wiki": "VRCNext-Wiki",
+  "hub.settings.resize_nav": "Ziehen, um die Breite zu ändern",
+  "hub.plugins.no_options": "Hier gibt es noch nichts einzustellen.",
+  "hub.plugins.open_settings": "Einstellungen öffnen",
+  "settings.launch.start_app": "{name} starten",
+  "launch.addons.rename_hint": "Doppelklicken zum Umbenennen",
+  "launch.addons.rename": "Umbenennen",
+  "launch.addons.remove": "Diesen Schalter entfernen",
+  "launch.addons.add_switch": "Schalter hinzufügen",
+  "launch.addons.new_switch": "Neuer Schalter"
 }

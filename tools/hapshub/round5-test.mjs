@@ -141,11 +141,12 @@ section('plugins', async main => {
     await waitFor('the History module to stop', async () => (await main.json(`(_hubUiSettings || []).find(m => m.id === 'hub.history')?.status`)) === 'Disabled', 15000).catch(() => {});
     check('a plugin that\'s off stops its background module', await main.json(`(_hubUiSettings || []).find(m => m.id === 'hub.history')?.status`) === 'Disabled');
 
-    const options = await main.eval(`hubOpenPlugins(); [...document.querySelectorAll('#hubPluginNavItems .settings-nav-item')].map(b => b.dataset.sectionId).join(',')`);
-    check('plugins with options get a settings entry, and ones that are off don\'t', options.includes('plugin-youtube-tunnel') && !options.includes('plugin-eagle') && !options.includes('plugin-history'), options);
+    // Round 6: options fold open under the plugin in the list instead of getting a Settings entry each.
+    const options = await main.eval(`hubOpenPlugins(); [...document.querySelectorAll('.hub-plugin-expand')].map(b => b.closest('.hub-plugin-row').dataset.plugin).join(',')`);
+    check("plugins with options can fold them open, and ones that are off can't", options.includes('youtube-tunnel') && !options.includes('eagle') && !options.includes('history'), options);
     await main.eval(`hubPluginOptions('youtube-tunnel')`);
-    await waitFor('the plugin options', () => visible(main, '[data-section="plugin-youtube-tunnel"]'), 5000);
-    check('a plugin\'s options page shows its settings', await main.eval(`!!document.querySelector('[data-section="plugin-youtube-tunnel"] .hub-module-row')`));
+    await waitFor('the plugin options', () => visible(main, '.hub-plugin-opts[data-plugin-opts="youtube-tunnel"]'), 5000);
+    check("a plugin's options show its settings", await main.eval(`!!document.querySelector('.hub-plugin-opts[data-plugin-opts="youtube-tunnel"] .hub-module-row')`));
     check('module settings are no longer repeated under Hub modules', await main.eval(`(() => { const r = document.querySelector('#hubModulesList .hub-module-row[data-module="hub.youtube-tunnel"]'); return !r || getComputedStyle(r).display === 'none'; })()`));
 
     await main.eval(`hubOpenPlugins()`);
