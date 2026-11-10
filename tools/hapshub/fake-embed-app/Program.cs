@@ -33,6 +33,7 @@ internal static class Program
         };
         form.Resize += (_, _) => form.Invalidate();
 
+        var maximizedOnce = false;
         void Write(bool closed)
         {
             if (string.IsNullOrEmpty(statusPath)) return;
@@ -47,6 +48,8 @@ internal static class Program
                     visible = !closed && IsWindowVisible(handle),
                     minimized = !closed && IsIconic(handle),
                     maximized = !closed && IsZoomed(handle),
+                    // Sticky: HapsHub may undo the maximize before the next status write.
+                    wasMaximized = maximizedOnce,
                     width = closed ? 0 : form.Width,
                     height = closed ? 0 : form.Height,
                     time = DateTime.UtcNow.ToString("O"),
@@ -68,7 +71,7 @@ internal static class Program
                 {
                     var command = File.ReadAllText(commandPath).Trim();
                     File.Delete(commandPath);
-                    if (command == "maximize") ShowWindow(form.Handle, 3); // SW_MAXIMIZE
+                    if (command == "maximize") { ShowWindow(form.Handle, 3); maximizedOnce = IsZoomed(form.Handle); } // SW_MAXIMIZE
                 }
                 catch (IOException) { }
             }

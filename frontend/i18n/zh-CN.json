@@ -4348,5 +4348,6 @@
   "page.help.37": "由 HapsHub 运行的 VRCT：你说的话会变成聊天框消息，别人说的话会翻译显示，你也可以输入文字发送。选择 VRCT 支持的语言和翻译引擎。",
   "page.help.38": "在 HapsHub 中显示 OVR Toolkit 的桌面窗口，无需切换窗口即可设置它的覆盖层和手腕菜单。",
   "page.help.39": "一个标出好友位置的地球，依据他们资料中的国旗、自述来自哪里或语言来放置。可以搜索好友，也可以自己设定好友的国家；你的设定始终优先。",
-  "hub.profile.needs_vrcplus": "VRChat 仅允许 VRC+ 用户更换头像和横幅。"
+  "hub.profile.needs_vrcplus": "VRChat 仅允许 VRC+ 用户更换头像和横幅。",
+  "hub.vrct.pairs_empty": "你使用过的语言对会显示在这里，一键即可选择。"
 }

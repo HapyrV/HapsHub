@@ -168,3 +168,10 @@ body.hub-resizing, body.hub-resizing * { cursor: col-resize !important; user-sel
 .myp-avatar-wrap { border-radius: 50%; }
 .myp-avatar-wrap:hover .myp-avatar-change, .myp-avatar-change:focus-visible { opacity: 1; }
 .myp-avatar-change .msi { font-size: 20px; }
+
+/* ---- Top bar: when its menus don't fit (long languages, narrow windows) it gives up space step by step ---- */
+#taskbar.tb-fit-1 #tb-left > .tb-brand, #taskbar.tb-fit-1 #tb-left > .tb-brand + .tb-sep { display: none; }
+/* A flex box can't show "...", so a shortened title becomes a plain block. */
+#taskbar.tb-fit-2 #pageTitle { max-width: 110px; display: block; align-self: center; text-overflow: ellipsis; }
+#taskbar.tb-fit-3 .tb-menu-item { padding: 0 6px; }
+#taskbar.tb-fit-4 #pageTitle { max-width: 64px; }

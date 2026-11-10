@@ -37,6 +37,7 @@ public sealed class HubPluginsModule : IHubModule
         new("launch-switches", Array.Empty<string>()),
         new("vr-autostart", Array.Empty<string>()),
         new("world-map", Array.Empty<string>()),
+        new("rose-db", Array.Empty<string>()),
         new("space-flight", Array.Empty<string>()),
         new("space-turn", Array.Empty<string>()),
         new("youtube-fix", Array.Empty<string>()),

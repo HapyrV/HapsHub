@@ -12,9 +12,10 @@ const _VRCT_SWITCHES = [
     ['overlay_small_log', 'hub.vrct.sw_overlay', 'Show messages in VR'],
 ];
 
-// The four pairs asked for, one click each.
-const _VRCT_PAIRS = [['Hebrew', 'English'], ['English', 'Hebrew'], ['English', 'Japanese'], ['Hebrew', 'Japanese']];
-const _VRCT_PREFERRED_COUNTRY = { English: 'United States', Hebrew: 'Israel', Japanese: 'Japan' };
+// Quick pairs are the pairs you used last, newest first. Nothing is built in: the languages are VRCT's own.
+const _VRCT_RECENT_KEY = 'hapshub.vrct.recentPairs';
+const _VRCT_RECENT_MAX = 4;
+let _vrctRememberTimer = null;
 
 function _vrctEl(id) { return document.getElementById(id); }
 
@@ -45,17 +46,34 @@ function _vrctTab() { return String(_vrct.data.selected_tab_no || '1'); }
 
 function _vrctLanguages() { return Array.isArray(_vrct.data.selectable_language_list) ? _vrct.data.selectable_language_list : []; }
 
-function _vrctFind(language) {
-    const list = _vrctLanguages();
-    return list.find(l => l.language === language && l.country === _VRCT_PREFERRED_COUNTRY[language]) || list.find(l => l.language === language);
+function _vrctId(l) { return `${l.language}|${l.country}`; }
+
+function _vrctHas(value) { return _vrctLanguages().some(l => _vrctId(l) === value); }
+
+function _vrctRecent() {
+    try { const list = JSON.parse(localStorage.getItem(_VRCT_RECENT_KEY) || '[]'); return Array.isArray(list) ? list.filter(p => Array.isArray(p) && p.length === 2) : []; } catch { return []; }
 }
+
+/** Puts the pair now set at the front of the quick pairs. */
+function _vrctRemember() {
+    clearTimeout(_vrctRememberTimer);
+    const your = _vrctCurrent('your'), target = _vrctCurrent('target');
+    if (!your || !target) return;
+    const pair = [_vrctId(your), _vrctId(target)];
+    if (pair[0] === pair[1]) return;
+    const list = [pair, ..._vrctRecent().filter(([a, b]) => a !== pair[0] || b !== pair[1])].slice(0, _VRCT_RECENT_MAX);
+    try { localStorage.setItem(_VRCT_RECENT_KEY, JSON.stringify(list)); } catch { /* full or blocked */ }
+}
+
+// Picking both languages takes two changes; the pair counts once it has stayed put for a few seconds.
+function _vrctRememberSoon() { clearTimeout(_vrctRememberTimer); _vrctRememberTimer = setTimeout(() => { _vrctRemember(); _vrctDraw(); }, 4000); }
 
 function _vrctCurrent(kind) {
     const all = _vrct.data[kind === 'your' ? 'selected_your_languages' : 'selected_target_languages'];
     return all?.[_vrctTab()]?.['1'] || null;
 }
 
-function vrctSetLanguage(kind, value) {
+function vrctSetLanguage(kind, value, fromPair) {
     const [language, country] = String(value).split('|');
     const key = kind === 'your' ? 'selected_your_languages' : 'selected_target_languages';
     const all = JSON.parse(JSON.stringify(_vrct.data[key] || {}));
@@ -66,14 +84,15 @@ function vrctSetLanguage(kind, value) {
     if (kind === 'target') for (const slot of ['2', '3']) if (all[tab][slot]) all[tab][slot].enable = false;
     _vrct.data[key] = all;
     vrctSend('/set/data/' + key, all);
+    if (!fromPair) _vrctRememberSoon();
     _vrctDraw();
 }
 
 function vrctPair(from, to) {
-    const a = _vrctFind(from), b = _vrctFind(to);
-    if (!a || !b) return;
-    vrctSetLanguage('your', `${a.language}|${a.country}`);
-    vrctSetLanguage('target', `${b.language}|${b.country}`);
+    if (!_vrctHas(from) || !_vrctHas(to)) return;
+    vrctSetLanguage('your', from, true);
+    vrctSetLanguage('target', to, true);
+    _vrctRemember();
     // Picking a pair means wanting it translated.
     if (!_vrct.on.translation) vrctToggle('translation', true);
 }
@@ -83,6 +102,8 @@ function vrctSetEngine(engine) {
     all[_vrctTab()] = engine;
     _vrct.data.selected_translation_engines = all;
     vrctSend('/set/data/selected_translation_engines', all);
+    // Each translator knows its own languages: ask VRCT again for the list that goes with this one.
+    vrctSend('/get/data/selectable_language_list');
 }
 
 // ---- Switches and messages ----
@@ -105,6 +126,8 @@ function _vrctLog(kind, result) {
     const original = result?.original?.message ?? (typeof result?.message === 'string' ? result.message : '');
     if (!original) return;
     const translations = (result?.translations || []).map(t => t?.message).filter(Boolean);
+    // A pair that translated something is one you use.
+    if (translations.length) _vrctRemember();
     _vrct.log.push({ kind, original, translations, at: Date.now() });
     if (_vrct.log.length > 200) _vrct.log.shift();
     _vrctDrawLog();
@@ -168,8 +191,12 @@ function _vrctDraw() {
     _vrctOptions(_vrctEl('vrctYour'), values, your ? `${your.language}|${your.country}` : '', label);
     _vrctOptions(_vrctEl('vrctTarget'), values, target ? `${target.language}|${target.country}` : '', label);
 
-    _vrctEl('vrctPairs').innerHTML = _VRCT_PAIRS.filter(([a, b]) => _vrctFind(a) && _vrctFind(b)).map(([a, b]) =>
-        `<button class="vrct-pair${your?.language === a && target?.language === b ? ' is-on' : ''}" onclick="vrctPair('${a}', '${b}')">${esc(a)} → ${esc(b)}</button>`).join('');
+    const yourId = your ? _vrctId(your) : '', targetId = target ? _vrctId(target) : '';
+    const pairs = _vrctRecent().filter(([a, b]) => _vrctHas(a) && _vrctHas(b));
+    const pairBox = _vrctEl('vrctPairs');
+    pairBox.innerHTML = pairs.map(([a, b]) =>
+        `<button class="vrct-pair${yourId === a && targetId === b ? ' is-on' : ''}" data-from="${esc(a)}" data-to="${esc(b)}" onclick="vrctPair(this.dataset.from, this.dataset.to)">${esc(label(a))} → ${esc(label(b))}</button>`).join('')
+        || `<span class="vrct-pairs-empty">${esc(t('hub.vrct.pairs_empty', 'Pairs you use show up here, one click each.'))}</span>`;
 
     const engines = Array.isArray(_vrct.data.translation_engines) ? _vrct.data.translation_engines : (_vrct.data.selectable_translation_engines || []);
     _vrctOptions(_vrctEl('vrctEngine'), engines, _vrct.data.selected_translation_engines?.[_vrctTab()] || '');

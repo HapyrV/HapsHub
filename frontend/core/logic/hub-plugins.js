@@ -43,6 +43,9 @@ const HUB_PLUGINS = [
     { id: 'upstream-watch', name: 'Upstream watch', by: 'HapsHub', icon: 'merge', hide: ['#hubUpstreamList'], settings: [{ module: 'hub.upstream-watch' }],
       desc: 'For whoever maintains HapsHub: what changed in VRCNext, VRCX and Space Calibrator since the last review.' },
     // --- From VRCNext ---
+    { id: 'rose-db', name: 'Rose Database', by: 'VRCNext', icon: 'local_florist', hide: ['#avatarFilterRose', '#avatarRoseArea'],
+      onOff: () => { if (typeof avatarFilter !== 'undefined' && avatarFilter === 'rose' && typeof setAvatarFilter === 'function') setAvatarFilter('own'); },
+      desc: 'A shared list of public avatars, as a filter on the Avatars page.' },
     { id: 'space-flight', name: 'Space Flight', by: 'VRCNext', icon: 'rocket_launch', nav: ['space-flight'], hide: ['#badgeSpace'], autostart: ['setSfAutoStartVR'],
       desc: 'Fly through your play space in VR with your controllers.' },
     { id: 'space-turn', name: 'Space Turn', by: 'VRCNext', icon: 'rotate_right', nav: ['space-turn'], hide: ['#badgeSpaceTurn'], autostart: ['setStAutoStartVR'],
@@ -119,7 +122,10 @@ function _hubPluginsApply() {
         style.id = 'hubPluginHide';
         document.head.appendChild(style);
     }
-    const off = HUB_PLUGINS.filter(p => !hubPluginOn(p.id)).flatMap(_hubPluginSelectors);
+    const offPlugins = HUB_PLUGINS.filter(p => !hubPluginOn(p.id));
+    // A plugin that's off may still be showing something (a filter, a panel); it puts the page back first.
+    for (const p of offPlugins) { try { p.onOff?.(); } catch { /* the page isn't loaded yet */ } }
+    const off = offPlugins.flatMap(_hubPluginSelectors);
     // Modules that belong to a plugin are set on its own options page, not in the general Hub modules list.
     const owned = HUB_PLUGINS.flatMap(p => (p.settings || []).map(s => s.module));
     const ownedRules = [...new Set(owned)].map(m => `#hubModulesList .hub-module-row[data-module="${m}"]`);

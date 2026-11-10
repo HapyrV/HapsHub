@@ -432,3 +432,37 @@ function tbToggleTools() {
         });
     }
 }());
+
+// The top bar's menus must all stay reachable and leave room for the credit to VRCNext. When they don't fit,
+// it hides the brand, then shortens the page title, then tightens the menus, one step at a time.
+(function () {
+    const STEPS = ['tb-fit-1', 'tb-fit-2', 'tb-fit-3', 'tb-fit-4'];
+    const CREDIT_ROOM = 44;
+    function tight() {
+        const left = document.getElementById('tb-left');
+        const drag = document.getElementById('tb-drag');
+        const items = left ? [...left.querySelectorAll('.tb-menu-item')].filter(e => e.offsetParent) : [];
+        if (!left || !items.length) return false;
+        return items[items.length - 1].getBoundingClientRect().right > left.getBoundingClientRect().right + 0.5 || (drag && drag.clientWidth < CREDIT_ROOM);
+    }
+    let queued = false;
+    function fit() {
+        queued = false;
+        const bar = document.getElementById('taskbar');
+        if (!bar) return;
+        bar.classList.remove(...STEPS);
+        for (const step of STEPS) {
+            if (!tight()) break;
+            bar.classList.add(step);
+        }
+    }
+    window.tbFit = fit;
+    const soon = () => { if (!queued) { queued = true; requestAnimationFrame(fit); } };
+    window.addEventListener('resize', soon);
+    document.documentElement.addEventListener('languagechange', () => setTimeout(fit, 50));
+    // The page title changes with every page.
+    const title = document.getElementById('pageTitle');
+    if (title) new MutationObserver(soon).observe(title, { childList: true, characterData: true, subtree: true });
+    if (document.fonts?.ready) document.fonts.ready.then(fit);
+    setTimeout(fit, 0);
+})();

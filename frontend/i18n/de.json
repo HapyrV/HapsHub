@@ -4348,5 +4348,6 @@
   "page.help.37": "VRCT, von HapsHub gesteuert: Deine Sprache wird zu Chatbox-Nachrichten, was andere sagen, wird übersetzt angezeigt, und du kannst Nachrichten tippen. Wähle die Sprachen, die VRCT anbietet, und den Übersetzer.",
   "page.help.38": "Das Desktop-Fenster von OVR Toolkit in HapsHub, um Overlays und Handgelenkmenü einzurichten, ohne das Fenster zu wechseln.",
   "page.help.39": "Ein Globus deiner Freunde, platziert nach dem, was ihre Profile zeigen: eine Flagge, woher sie laut Profil kommen, oder eine Sprache. Suche einen Freund oder lege sein Land selbst fest; deine Angabe gilt immer.",
-  "hub.profile.needs_vrcplus": "VRChat erlaubt das Ändern von Bild und Banner nur mit VRC+."
+  "hub.profile.needs_vrcplus": "VRChat erlaubt das Ändern von Bild und Banner nur mit VRC+.",
+  "hub.vrct.pairs_empty": "Sprachpaare, die du nutzt, erscheinen hier – jeweils mit einem Klick."
 }

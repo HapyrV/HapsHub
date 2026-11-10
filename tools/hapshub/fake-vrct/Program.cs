@@ -69,7 +69,14 @@ while ((request = input.ReadLine()) != null)
 
     if (endpoint == "/run/feed_watchdog") { lastFeed = DateTime.UtcNow; Emit(200, endpoint, true); }
     else if (endpoint == "/run/shutdown") { Emit(200, endpoint, true); Environment.Exit(0); }
-    else if (endpoint.StartsWith("/set/data/")) { data[endpoint[10..]] = payload?.DeepClone(); Emit(200, endpoint, payload); }
+    else if (endpoint.StartsWith("/set/data/"))
+    {
+        data[endpoint[10..]] = payload?.DeepClone();
+        // Like VRCT, each translator has its own languages: this one has Korean and no Hebrew.
+        if (endpoint == "/set/data/selected_translation_engines" && payload?["1"]?.GetValue<string>() == "DeepL")
+            data["selectable_language_list"] = new JsonArray(Lang("English", "United States"), Lang("Japanese", "Japan"), Lang("Korean", "South Korea"));
+        Emit(200, endpoint, payload);
+    }
     else if (endpoint.StartsWith("/get/data/")) Emit(200, endpoint, data.GetValueOrDefault(endpoint[10..])?.DeepClone());
     else if (endpoint.StartsWith("/set/enable/"))
     {

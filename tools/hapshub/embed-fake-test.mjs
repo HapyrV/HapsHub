@@ -68,7 +68,7 @@ async function run(exitAction) {
 
         // C2: the app maximizing itself (a double-click on its title bar) is put back to the pane's size.
         writeFileSync(commandFile, 'maximize');
-        const maxed = await waitStatus('the stand-in to maximize', s => s.maximized, 3000).catch(() => null);
+        const maxed = await waitStatus('the stand-in to maximize', s => s.maximized || s.wasMaximized, 3000).catch(() => null);
         const back = await waitStatus('the stand-in to fit again', s => !s.maximized && Math.abs(s.width - pane.w) <= 2 && Math.abs(s.height - pane.h) <= 2, 8000).catch(() => status());
         check(`${label} maximizing itself is undone and it fits the page again`, !!maxed && !back.maximized && Math.abs(back.width - pane.w) <= 2 && Math.abs(back.height - pane.h) <= 2, JSON.stringify(back));
 

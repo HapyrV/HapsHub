@@ -78,6 +78,23 @@ section('plugin options', async main => {
     check('A1: "Show all details" is a themed checkbox', box === 'none', box);
 });
 
+section('rose', async main => {
+    // Rose Database is a plugin: off hides its Avatars filter and moves off it; on brings it back.
+    await main.eval(`showTab(NAV_ITEMS_DEF.avatars.tab); setAvatarFilter('rose')`);
+    await sleep(300);
+    await main.eval(`hubPluginSet('rose-db', false)`);
+    await sleep(300);
+    const off = await main.json(`({ shown: getComputedStyle(document.getElementById('avatarFilterRose')).display !== 'none', area: getComputedStyle(document.getElementById('avatarRoseArea')).display !== 'none', filter: avatarFilter })`);
+    check('B4: with Rose Database off, its Avatars filter is hidden and the page moves to your avatars', !off.shown && !off.area && off.filter === 'own', JSON.stringify(off));
+    await main.eval(`setAvatarFilter('rose')`);
+    check('B4: with it off, the Rose filter can\'t be picked', await main.eval(`avatarFilter === 'own'`));
+    await main.eval(`hubPluginSet('rose-db', true)`);
+    await sleep(300);
+    check('B4: turned back on, the filter is back', await main.eval(`getComputedStyle(document.getElementById('avatarFilterRose')).display !== 'none'`));
+    check('B4: Rose Database is listed in Plugins', await main.eval(`hubPluginsRender(), !!hubPluginById('rose-db')`));
+    await main.eval(`showTab(0)`);
+});
+
 section('launch switches', async main => {
     await main.eval(`showTab(9); switchSettingsSection('vrchat')`);
     const builtins = await main.json(`launchSwitches().map(s => s.id)`);

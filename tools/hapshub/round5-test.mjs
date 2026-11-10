@@ -284,11 +284,7 @@ section('nav', async main => {
 section('vrct', async () => {
     // The VRCT page with a stand-in engine: start it, pick a language pair, hear the microphone, send a message, stop.
     const fake = join(ROOT, 'tools', 'hapshub', 'fake-vrct');
-    const exe = join(fake, 'bin', 'Release', 'net10.0', 'VRCT-sidecar.exe');
-    if (spawnSync('tasklist', ['/FI', 'IMAGENAME eq VRCT-sidecar.exe', '/NH'], { encoding: 'utf8' }).stdout.includes('VRCT-sidecar')) {
-        console.log('NOT CHECKED  the VRCT page: VRCT is running');
-        return;
-    }
+    const exe = join(fake, 'bin', 'Release', 'net10.0', 'FakeVrct-sidecar.exe');
     const built = spawnSync('dotnet', ['build', fake, '-c', 'Release', '-v', 'quiet', '-nologo'], { encoding: 'utf8' });
     if (!check('the stand-in VRCT engine builds', built.status === 0 && existsSync(exe), built.stdout)) return;
     const dir2 = freshData('hapshub-vrct-');
@@ -304,26 +300,39 @@ section('vrct', async () => {
         await copy.eval(`vrctStart()`);
         await waitFor('the engine', () => copy.eval(`_vrct.state === 'ready'`), 20000);
         check('Start runs VRCT\'s engine and fills in its languages and devices', await copy.eval(`document.getElementById('vrctYour').value === 'English|United States' && document.getElementById('vrctTarget').value === 'Japanese|Japan' && document.getElementById('vrctMic').value === 'Test Microphone'`));
-        check('the four language pairs are one click each', await copy.eval(`document.querySelectorAll('#vrctPairs .vrct-pair').length === 4 && document.querySelector('#vrctPairs .vrct-pair.is-on').textContent.includes('English → Japanese')`));
+        // F1: the languages are VRCT's own list, and quick pairs are only the ones you used.
+        const listed = await copy.json(`({ your: [...document.getElementById('vrctYour').options].map(o => o.value), engine: _vrct.data.selectable_language_list.map(l => l.language + '|' + l.country) })`);
+        check('F1: the language lists are exactly the ones VRCT reports', JSON.stringify(listed.your) === JSON.stringify(listed.engine), JSON.stringify(listed));
+        check('F1: no language pairs are built in', await copy.eval(`document.querySelectorAll('#vrctPairs .vrct-pair').length === 0 && !!document.querySelector('#vrctPairs .vrct-pairs-empty')`));
         check('a language that comes in several countries says which', await copy.eval(`[...document.getElementById('vrctYour').options].some(o => o.textContent === 'English (United Kingdom)') && [...document.getElementById('vrctYour').options].some(o => o.textContent === 'Hebrew')`));
-        await copy.eval(`[...document.querySelectorAll('#vrctPairs .vrct-pair')].find(b => b.textContent.startsWith('Hebrew → English')).click()`);
+        // Picking two languages, as the dropdowns do.
+        await copy.eval(`vrctSetLanguage('your', 'Hebrew|Israel'); vrctSetLanguage('target', 'English|United States')`);
         await waitFor('the pair to be sent', () => asked().includes('"language":"Hebrew"') && asked().includes('selected_target_languages'), 5000).catch(() => {});
-        check('a pair sets both languages in the engine', /selected_your_languages .*"language":"Hebrew"/.test(asked()) && /selected_target_languages .*"1":\{"language":"English"/.test(asked()), asked().slice(-400));
+        check('picking languages sets them in the engine', /selected_your_languages .*"language":"Hebrew"/.test(asked()) && /selected_target_languages .*"1":\{"language":"English"/.test(asked()), asked().slice(-400));
+        await waitFor('the pair to be remembered', () => copy.eval(`document.querySelectorAll('#vrctPairs .vrct-pair').length === 1`), 7000).catch(() => {});
+        const pair = await copy.eval(`document.querySelector('#vrctPairs .vrct-pair.is-on')?.textContent || ''`);
+        check('F1: a pair you used becomes a quick pair', pair === 'Hebrew → English (United States)', pair);
         await copy.eval(`document.querySelector('#vrctSwitches input[data-vrct="transcription_send"]').click()`);
         await waitFor('the microphone line', () => copy.eval(`document.getElementById('vrctLog').innerText.includes('hello from the mic')`), 5000).catch(() => {});
         check('what the microphone hears shows with its translation', await copy.eval(`document.getElementById('vrctLog').innerText.includes('[English] hello from the mic')`));
         await copy.eval(`document.getElementById('vrctInput').value = 'שלום'; vrctSendTyped()`);
         await waitFor('the typed line', () => copy.eval(`document.getElementById('vrctLog').innerText.includes('[English] שלום')`), 5000).catch(() => {});
         check('a typed message is sent and its translation shown', await copy.eval(`document.getElementById('vrctLog').innerText.includes('[English] שלום')`));
-        await sleep(13000);
+        // Each translator has its own languages: the stand-in's DeepL has Korean and no Hebrew.
+        await copy.eval(`vrctSetEngine('DeepL')`);
+        await waitFor('the DeepL languages', () => copy.eval(`[...document.getElementById('vrctYour').options].some(o => o.value === 'Korean|South Korea')`), 5000).catch(() => {});
+        const deepl = await copy.json(`({ your: [...document.getElementById('vrctYour').options].map(o => o.value), target: [...document.getElementById('vrctTarget').options].map(o => o.value), pairs: document.querySelectorAll('#vrctPairs .vrct-pair').length })`);
+        check('F1: switching translator shows the languages of that translator', JSON.stringify(deepl.your) === JSON.stringify(['English|United States', 'Japanese|Japan', 'Korean|South Korea']) && JSON.stringify(deepl.target) === JSON.stringify(deepl.your), JSON.stringify(deepl));
+        check('F1: a quick pair the translator cannot do is hidden', deepl.pairs === 0, JSON.stringify(deepl));
+        await sleep(9000);
         check('HapsHub keeps the engine alive past its watchdog', await copy.eval(`_vrct.state === 'ready'`));
         await copy.eval(`vrctStop()`);
         await waitFor('the engine to stop', () => copy.eval(`_vrct.state === 'off'`), 15000).catch(() => {});
-        check('Stop closes the engine', await copy.eval(`_vrct.state === 'off'`) && !spawnSync('tasklist', ['/FI', 'IMAGENAME eq VRCT-sidecar.exe', '/NH'], { encoding: 'utf8' }).stdout.includes('VRCT-sidecar'));
+        check('Stop closes the engine', await copy.eval(`_vrct.state === 'off'`) && !spawnSync('tasklist', ['/FI', 'IMAGENAME eq FakeVrct-sidecar.exe', '/NH'], { encoding: 'utf8' }).stdout.includes('FakeVrct-sidecar'));
         check('the VRCT page has no page errors', copy.errors.length === 0, copy.errors.join(' | '));
     } finally {
         if (copy) killTree(copy.app.pid);
-        spawnSync('taskkill', ['/IM', 'VRCT-sidecar.exe', '/F']);
+        spawnSync('taskkill', ['/IM', 'FakeVrct-sidecar.exe', '/F']);
         await sleep(800);
         try { rmSync(dir2, { recursive: true, force: true }); } catch { /* still closing */ }
     }

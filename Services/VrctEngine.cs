@@ -44,12 +44,14 @@ public sealed class VrctEngine : IDisposable
         return sidecar != null && File.Exists(sidecar) ? sidecar : null;
     }
 
-    /// <summary>True when VRCT's engine is running outside HapsHub, such as with VRCT's own window.</summary>
-    public bool OtherCopyRunning()
+    /// <summary>True when this engine is running outside HapsHub, such as with VRCT's own window.
+    /// Looks for the file about to start, so a test's stand-in engine doesn't mistake the real VRCT for itself.</summary>
+    public bool OtherCopyRunning(string? sidecar = null)
     {
         int? own;
         lock (_lock) own = _process is { HasExited: false } ? _process.Id : null;
-        var others = Process.GetProcessesByName(ProcessName);
+        var name = string.IsNullOrEmpty(sidecar) ? ProcessName : Path.GetFileNameWithoutExtension(sidecar);
+        var others = Process.GetProcessesByName(name);
         try { return others.Any(p => p.Id != own); }
         finally { foreach (var p in others) p.Dispose(); }
     }
@@ -75,7 +77,7 @@ public sealed class VrctEngine : IDisposable
 
     private bool StartProcess(string sidecar)
     {
-        if (OtherCopyRunning())
+        if (OtherCopyRunning(sidecar))
         {
             SetState("failed", "VRCT is already running on its own. Close it first: two copies would fight over the microphone.");
             return false;

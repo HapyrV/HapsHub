@@ -123,6 +123,8 @@ function refreshFavAvatars() {
 }
 
 function setAvatarFilter(filter) {
+    // The Rose Database filter belongs to its plugin; with the plugin off it can't be picked.
+    if (filter === 'rose' && typeof hubPluginOn === 'function' && !hubPluginOn('rose-db')) filter = 'own';
     if (_avEditMode) exitAvEditMode();
     avatarFilter = filter;
     document.querySelectorAll('#avatarFilterBtns .sub-tab-btn').forEach(b => b.classList.remove('active'));

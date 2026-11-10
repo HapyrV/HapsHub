@@ -27,3 +27,4 @@
 .vrct-line-translation { color: var(--accent-lt, var(--accent)); margin-top: 2px; overflow-wrap: anywhere; unicode-bidi: plaintext; }
 .vrct-send { display: flex; gap: 8px; margin-top: 10px; }
 .vrct-send input { flex: 1; min-width: 0; unicode-bidi: plaintext; }
+.vrct-pairs-empty { color: var(--tx3); font-size: calc(12px + var(--fs-off, 0px)); }
