@@ -155,3 +155,16 @@ body.hub-resizing, body.hub-resizing * { cursor: col-resize !important; user-sel
 .dash-shuffle .msi { font-size: 18px; }
 .dash-shuffle.spinning .msi { animation: hub-spin .8s linear infinite; }
 @keyframes hub-spin { to { transform: rotate(360deg); } }
+
+/* ---- Your own profile: clear buttons to change the banner and the picture ---- */
+#modalMyProfile .fd-left-banner { position: relative; }
+.myp-banner-change { position: absolute; left: 8px; bottom: 8px; z-index: 4; display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px;
+    border: 1px solid rgba(255,255,255,.2); border-radius: 7px; background: rgba(0,0,0,.45); color: #fff; font: inherit;
+    font-size: calc(11px + var(--fs-off, 0px)); cursor: pointer; opacity: .0; transition: opacity .15s ease; backdrop-filter: blur(6px); }
+.myp-banner-change .msi { font-size: 15px; }
+#modalMyProfile .fd-left-banner:hover .myp-banner-change, .myp-banner-change:focus-visible { opacity: 1; }
+.myp-avatar-change { position: absolute; inset: 0; z-index: 4; display: flex; align-items: center; justify-content: center; border: 0; border-radius: inherit;
+    background: rgba(0,0,0,.5); color: #fff; cursor: pointer; opacity: 0; transition: opacity .15s ease; }
+.myp-avatar-wrap { border-radius: 50%; }
+.myp-avatar-wrap:hover .myp-avatar-change, .myp-avatar-change:focus-visible { opacity: 1; }
+.myp-avatar-change .msi { font-size: 20px; }

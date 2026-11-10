@@ -4347,5 +4347,6 @@
   "page.help.36": "Space Calibrator inside HapsHub, for lining up trackers from another tracking system with your headset. Its options also switch between Space Calibrator's Steam public and beta versions.",
   "page.help.37": "VRCT run by HapsHub: your speech becomes chatbox messages, what others say is shown translated, and you can type a message to send. Pick the languages VRCT offers and the translator to use.",
   "page.help.38": "OVR Toolkit's desktop window inside HapsHub, to set up its overlays and wrist menu without switching windows.",
-  "page.help.39": "A globe of your friends, placed by what their profiles show: a flag, where they say they're from, or a language. Search for a friend, or set a friend's country yourself; yours always wins."
+  "page.help.39": "A globe of your friends, placed by what their profiles show: a flag, where they say they're from, or a language. Search for a friend, or set a friend's country yourself; yours always wins.",
+  "hub.profile.needs_vrcplus": "VRChat lets you change your picture and banner with VRC+."
 }

@@ -183,6 +183,8 @@ function fdSaveMemo() {
 }
 
 function openFriendDetail(userId) {
+    // Your own profile opens where you can edit it: banner, picture, status, bio and the rest.
+    if (typeof _decoIsSelf === 'function' && _decoIsSelf(userId) && typeof openMyProfileModal === 'function') { openMyProfileModal(); return; }
     if (typeof navSetCurrent === 'function') navSetCurrent('friend', userId);
     const m = document.getElementById('modalFriendDetail');
     const c = document.getElementById('friendDetailContent');

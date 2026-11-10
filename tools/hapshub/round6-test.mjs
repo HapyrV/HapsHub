@@ -146,6 +146,28 @@ section('help', async main => {
     await main.eval(`showTab(0)`);
 });
 
+section('profile', async main => {
+    // A signed-in user without VRC+ first, then with it. Nothing is sent to VRChat: the picker is checked, not used.
+    await main.eval(`currentVrcUser = { id: 'usr_me', displayName: 'Me', tags: ['system_trust_known'], status: 'active', bio: 'hi', bioLinks: [], pronouns: '' }`);
+    await main.eval(`openFriendDetail('usr_me')`);
+    await sleep(500);
+    const opened = await main.json(`({ mine: getComputedStyle(document.getElementById('modalMyProfile')).display !== 'none', other: getComputedStyle(document.getElementById('modalFriendDetail')).display !== 'none' })`);
+    check('D3: clicking yourself opens your own, editable profile', opened.mine && !opened.other, JSON.stringify(opened));
+    const buttons = await main.json(`({ banner: !!document.querySelector('#modalMyProfile .myp-banner-change'), picture: !!document.querySelector('#modalMyProfile .myp-avatar-change'),
+        edits: [...document.querySelectorAll('#modalMyProfile [onclick^="editMyField"]')].map(b => b.getAttribute('onclick').match(/'([a-z]+)'/)[1]) })`);
+    check('D3: your profile has buttons to change the banner and the picture', buttons.banner && buttons.picture, JSON.stringify(buttons));
+    check('D3: bio, pronouns, links and languages can be edited', ['bio', 'pronouns', 'links', 'languages'].every(f => buttons.edits.includes(f)), buttons.edits.join(','));
+    await main.eval(`document.querySelector('#modalMyProfile .myp-avatar-change').click()`);
+    await sleep(300);
+    const without = await main.json(`({ picker: getComputedStyle(document.getElementById('imagePickerOverlay') || document.body).display !== 'none' && !!document.getElementById('imagePickerOverlay'), tip: document.querySelector('#modalMyProfile .myp-avatar-change').title })`);
+    check('D3: without VRC+ it explains instead of opening an empty picker', !without.picker && /VRC\+/.test(without.tip), JSON.stringify(without));
+    await main.eval(`currentVrcUser.tags.push('system_supporter'); renderMyProfileContent(); document.querySelector('#modalMyProfile .myp-avatar-change').click()`);
+    await sleep(400);
+    const withPlus = await main.eval(`!!document.getElementById('imagePickerOverlay') && getComputedStyle(document.getElementById('imagePickerOverlay')).display !== 'none'`);
+    check('D3: with VRC+ the picture button opens the picker', withPlus);
+    await main.eval(`typeof closeImagePicker === 'function' && closeImagePicker(); closeMyProfile(); currentVrcUser = null`);
+});
+
 // A picture folder for the dashboard: three wide pictures and an Eagle-style preview that must never be picked.
 const pics = mkdtempSync(join(tmpdir(), 'hapshub-pics-'));
 writePng(join(pics, 'red.png'), 64, 36, [200, 30, 30]);

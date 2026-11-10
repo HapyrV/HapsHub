@@ -384,9 +384,9 @@ function renderMyProfileContent() {
     const bannerSrc = _mypBannerSrc(u);
     const _mypBannerBg = _mypBannerColor(u);
     const _mypEffect = (typeof profileEffectHtml === 'function') ? profileEffectHtml(u.profileEffectUrl) : '';
-    const bannerCompactHtml = `<div class="fd-left-banner" id="myp-banner-slot"${_mypBannerBg ? ` style="background:${_mypBannerBg};"` : ''}>${(bannerSrc || _mypBannerBg) ? `<div class="fd-banner-fade"></div>` : ''}${_mypEffect}<span class="vrcn-keybind" style="position:absolute;top:8px;right:8px;z-index:3;border-radius:5px;">CTRL P</span></div>`;
+    const bannerCompactHtml = `<div class="fd-left-banner" id="myp-banner-slot"${_mypBannerBg ? ` style="background:${_mypBannerBg};"` : ''}><button class="myp-banner-change" onclick="mypChangeImage('profile-banner')" title="${esc(_mypImageTip(u, changeBannerTitle))}"><span class="msi">wallpaper</span><span>${esc(changeBannerTitle)}</span></button>${(bannerSrc || _mypBannerBg) ? `<div class="fd-banner-fade"></div>` : ''}${_mypEffect}<span class="vrcn-keybind" style="position:absolute;top:8px;right:8px;z-index:3;border-radius:5px;">CTRL P</span></div>`;
     const mypHeaderActions = renderModalActions([
-        { icon: 'edit', title: changeBannerTitle, onclick: `openImagePicker('profile-banner')` },
+        { icon: 'edit', title: changeBannerTitle, onclick: `mypChangeImage('profile-banner')` },
         { icon: 'filter_frames', title: t('profiles.deco.title', 'Customize Profile'), onclick: `openProfileDecoPicker()` },
         modalShareAction('friend', u.id || ''),
         { icon: 'close', title: t('common.close', 'Close'), onclick: `closeMyProfile()` },
@@ -398,7 +398,7 @@ function renderMyProfileContent() {
         : `<div class="fd-avatar" style="display:flex;align-items:center;justify-content:center;font-size:calc(20px + var(--fs-off, 0px));font-weight:700;color:var(--tx0)">${esc((u.displayName||'?')[0])}</div>`;
     const _mypFrame = (typeof iconFrameHtml === 'function') ? iconFrameHtml(u.iconFrameUrl, true) : '';
     const _editBtnPos = 'bottom:-4px;right:-4px;';
-    const imgTag = `<div style="position:relative;display:inline-block;flex-shrink:0;line-height:0;">${avatarImg}${_mypFrame}<button class="myp-edit-btn" style="position:absolute;${_editBtnPos}z-index:5;padding:2px;min-width:0;width:18px;height:18px;display:flex;align-items:center;justify-content:center;" onclick="openImagePicker('profile-icon')" title="${esc(changeIconTitle)}"><span class="msi" style="font-size:11px;">edit</span></button></div>`;
+    const imgTag = `<div class="myp-avatar-wrap" style="position:relative;display:inline-block;flex-shrink:0;line-height:0;">${avatarImg}${_mypFrame}<button class="myp-avatar-change" onclick="mypChangeImage('profile-icon')" title="${esc(_mypImageTip(u, changeIconTitle))}"><span class="msi">photo_camera</span></button><button class="myp-edit-btn" style="position:absolute;${_editBtnPos}z-index:5;padding:2px;min-width:0;width:18px;height:18px;display:flex;align-items:center;justify-content:center;" onclick="mypChangeImage('profile-icon')" title="${esc(changeIconTitle)}"><span class="msi" style="font-size:11px;">edit</span></button></div>`;
 
     // Trust rank & badges row
     const rank = getTrustRank(u.tags || []);
@@ -1664,4 +1664,20 @@ function _mypWmState(s) {
     _mypOwnGroupsPage    = s.ownGroupsPage    ?? 0;
     window._mypGroups    = s.groups           ?? null;
     window._mypOwnGroups = s.ownGroups        ?? null;
+}
+
+
+// ---- Changing your picture and banner: VRChat allows both with VRC+ only ----
+function _mypHasVrcPlus(u) { return ((u && u.tags) || (currentVrcUser && currentVrcUser.tags) || []).includes('system_supporter'); }
+
+function _mypImageTip(u, title) {
+    return _mypHasVrcPlus(u) ? title : t('hub.profile.needs_vrcplus', 'VRChat lets you change your picture and banner with VRC+.');
+}
+
+function mypChangeImage(type) {
+    if (!_mypHasVrcPlus(currentVrcUser)) {
+        if (typeof showToast === 'function') showToast(false, t('hub.profile.needs_vrcplus', 'VRChat lets you change your picture and banner with VRC+.'));
+        return;
+    }
+    openImagePicker(type);
 }
