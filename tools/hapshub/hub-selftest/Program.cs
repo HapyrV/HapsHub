@@ -1184,6 +1184,9 @@ await Check("embeds: apps are minimized when HapsHub closes unless another choic
     registry.Register(module);
     await registry.StartAllAsync();
     Assert(module.ExitAction == AppEmbedsModule.ExitMinimize, "the default isn't minimize");
+    Assert(module.Mode(AppEmbedsModule.Eagle) == AppEmbedsModule.ModeTracked && module.Mode(AppEmbedsModule.Vrct) == AppEmbedsModule.ModeTracked,
+        "Eagle and VRCT don't start as their own window over the page, where they draw");
+    Assert(module.Mode(AppEmbedsModule.Oyasumi) == AppEmbedsModule.ModeChild, "OyasumiVR isn't held inside the page");
     var setting = Info(registry, AppEmbedsModule.ModuleId).Settings.Single(s => s.Definition.Key == AppEmbedsModule.ExitKey);
     Assert(setting.Definition.Kind == HubSettingKind.Choice && setting.Definition.Options.Count == 3, "the choice lost its options");
     registry.SetSetting(AppEmbedsModule.ModuleId, AppEmbedsModule.ExitKey, AppEmbedsModule.ExitClose);

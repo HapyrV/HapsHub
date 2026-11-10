@@ -3,10 +3,17 @@ namespace HapsHub.Core;
 /// <summary>An app HapsHub can hold in a page. Chromium says how it's told to keep drawing while held: WebView2, Electron or none.</summary>
 public sealed record EmbedApp(string Id, string Name, string ProcessName, string? KnownPath, string? SteamFolder, string Chromium)
 {
+    /// <summary>
+    /// Where the app goes by default. Eagle and VRCT draw nothing while held inside the page (their GPU drawing
+    /// doesn't reach a window held by another app), so they sit over the page as their own window instead.
+    /// </summary>
+    public string DefaultMode { get; init; } = AppEmbedsModule.ModeChild;
+
     public const string WebView2 = "webview2", Electron = "electron", NoChromium = "none";
 
     public string PathKey => Id + "_path";
-    public string ModeKey => Id + "_mode";
+    /// <summary>A new key for apps that changed their default, so a placement saved before doesn't keep them blank.</summary>
+    public string ModeKey => Id + (DefaultMode == AppEmbedsModule.ModeTracked ? "_placement" : "_mode");
     public string ResultKey => Id + "_result";
     /// <summary>Set once it's been opened here, so the page opens it again by itself.</summary>
     public string AutoKey => Id + "_auto";
@@ -75,10 +82,10 @@ public sealed class AppEmbedsModule : IHubModule
     public const string ExitLeave = "leave";
 
     public static readonly EmbedApp Oyasumi = new("oyasumi", "OyasumiVR", "OyasumiVR", null, "OyasumiVR", EmbedApp.WebView2);
-    public static readonly EmbedApp Eagle = new("eagle", "Eagle", "Eagle", @"%ProgramFiles%\Eagle\Eagle.exe", null, EmbedApp.Electron);
+    public static readonly EmbedApp Eagle = new("eagle", "Eagle", "Eagle", @"%ProgramFiles%\Eagle\Eagle.exe", null, EmbedApp.Electron) { DefaultMode = ModeTracked };
     public static readonly EmbedApp SpaceCalibrator = new("spacecal", "Space Calibrator", "OpenVR-SpaceCalibrator",
         @"%ProgramFiles%\OpenVR-SpaceCalibrator\OpenVR-SpaceCalibrator.exe", null, EmbedApp.NoChromium);
-    public static readonly EmbedApp Vrct = new("vrct", "VRCT", "VRCT", @"%LOCALAPPDATA%\VRCT\VRCT.exe", null, EmbedApp.WebView2);
+    public static readonly EmbedApp Vrct = new("vrct", "VRCT", "VRCT", @"%LOCALAPPDATA%\VRCT\VRCT.exe", null, EmbedApp.WebView2) { DefaultMode = ModeTracked };
     public static readonly EmbedApp OvrToolkit = new("ovrtoolkit", "OVR Toolkit", "OVR Toolkit", null, "OVR Toolkit", EmbedApp.NoChromium);
 
     public static IReadOnlyList<EmbedApp> Apps { get; } = new[] { Oyasumi, Eagle, SpaceCalibrator, Vrct, OvrToolkit };
@@ -91,7 +98,7 @@ public sealed class AppEmbedsModule : IHubModule
     public IReadOnlyList<HubSettingDefinition> Settings { get; } = Apps
         .Select(app => new HubSettingDefinition(app.PathKey,
             $"Path to {app.ProcessName}.exe. Empty looks in {(app.SteamFolder != null ? "your Steam libraries" : "its usual place")}", HubSettingKind.Text, ""))
-        .Concat(Apps.Select(app => new HubSettingDefinition(app.ModeKey, $"{app.Name} placement", HubSettingKind.Hidden, ModeChild)))
+        .Concat(Apps.Select(app => new HubSettingDefinition(app.ModeKey, $"{app.Name} placement", HubSettingKind.Hidden, app.DefaultMode)))
         .Concat(Apps.Select(app => new HubSettingDefinition(app.ResultKey, $"{app.Name} test result", HubSettingKind.Hidden, "")))
         .Concat(Apps.Select(app => new HubSettingDefinition(app.AutoKey, $"Open {app.Name} with its page", HubSettingKind.Hidden, "")))
         .Prepend(new HubSettingDefinition(ExitKey, "When HapsHub closes, apps open in its pages", HubSettingKind.Choice, ExitMinimize)
