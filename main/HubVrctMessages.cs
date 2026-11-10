@@ -10,6 +10,9 @@ public partial class AppShell
 {
     private VrctEngine? _vrct;
     private readonly object _vrctLock = new();
+    // Requests to VRCT go out one after another, in the order the page sent them
+    // (a translator change must reach VRCT before the request for that translator's languages).
+    private Task _vrctSendQueue = Task.CompletedTask;
 
     /// <summary>What the page may ask the engine. Keys, updates, file browsing and shutdown aren't passed on.</summary>
     private static readonly Regex VrctAllowed = new(@"^/(get|set|run)/[a-z0-9_/]+$", RegexOptions.Compiled);
@@ -57,7 +60,7 @@ public partial class AppShell
                 var endpoint = msg["endpoint"]?.ToString() ?? "";
                 if (!VrctAllowed.IsMatch(endpoint) || VrctBlocked.IsMatch(endpoint)) return true;
                 var data = msg["data"];
-                _ = Task.Run(() => _vrct?.Send(endpoint, data));
+                lock (_vrctLock) _vrctSendQueue = _vrctSendQueue.ContinueWith(_ => _vrct?.Send(endpoint, data), TaskScheduler.Default);
                 return true;
         }
         return false;
