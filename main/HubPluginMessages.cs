@@ -18,7 +18,9 @@ public partial class AppShell
             case "hubPluginSet":
                 var id = msg["id"]?.ToString() ?? "";
                 var on = msg["on"]?.Value<bool>() == true;
-                _ = Task.Run(() => SetPlugin(id, on));
+                // Switches run one after another in the order the page sent them: on separate tasks a quick
+                // off-then-on could be applied as on-then-off and leave the plugin off.
+                lock (_pluginQueueLock) _pluginQueue = _pluginQueue.ContinueWith(_ => SetPlugin(id, on), TaskScheduler.Default).Unwrap();
                 return true;
 
             case "hubPluginsDetect":
@@ -43,11 +45,13 @@ public partial class AppShell
         SendToJS("hubPlugins", new { states = plugins.States(), picked = plugins.Picked });
     }
 
+    private readonly object _pluginQueueLock = new();
+    private Task _pluginQueue = Task.CompletedTask;
     private readonly SemaphoreSlim _pluginSwitch = new(1, 1);
 
     private async Task SetPlugin(string id, bool on)
     {
-        // One switch at a time, so modules start and stop in the order they were asked.
+        // The queue above already runs one switch at a time; this also keeps each switch whole.
         await _pluginSwitch.WaitAsync();
         try
         {

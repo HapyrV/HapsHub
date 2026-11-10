@@ -13,8 +13,13 @@ try {
     await main.eval(`requestTranslation(${JSON.stringify(language)})`);
     await sleep(1500);
     const tabs = await main.json(`[...document.querySelectorAll('.content > .tab')].map(t => Number(t.id.replace('tab', ''))).filter(n => !isNaN(n))`);
-    for (const tab of tabs) {
-        await main.eval(`showTab(${tab})`);
+    // The same pages the QA pass visits: every tab, every Settings section, and the plugins with their options open.
+    const sections = await main.json(`[...new Set([...document.querySelectorAll('#tab9 .settings-nav-item[onclick*="switchSettingsSection"]')].map(b => (b.getAttribute('onclick').match(/switchSettingsSection\\('([^']+)'/) || [])[1]).filter(Boolean))]`);
+    const pages = [...tabs.filter(t => t !== 9).map(t => [`tab ${t}`, `showTab(${t})`]),
+        ...sections.map(s => [`settings ${s}`, `showTab(9); switchSettingsSection(${JSON.stringify(s)})`]),
+        ['plugin options', `showTab(9); switchSettingsSection('plugins'); HUB_PLUGINS.forEach(p => _hubPluginHasOptions(p) && hubPluginToggleOptions(p.id, true))`]];
+    for (const [tab, open] of pages) {
+        await main.eval(open);
         await sleep(400);
         const m = await main.json(`(() => {
             const r = id => document.getElementById(id)?.getBoundingClientRect();
@@ -25,7 +30,7 @@ try {
             const rightKids = [...document.getElementById('tb-right').children].filter(e => e.offsetParent).map(e => (e.id || e.className.split(' ')[0]) + ':' + Math.round(e.getBoundingClientRect().width));
             return { cut: Math.round(last.right - left.right), steps: document.getElementById('taskbar').className, left: Math.round(left.width), drag: Math.round(drag.width), right: Math.round(right.width), kids, rightKids, title: document.getElementById('pageTitle').textContent };
         })()`);
-        if (m.cut > 0 || m.drag < 44) console.log(`tab ${tab}`, JSON.stringify(m));
+        if (m.cut > 0 || m.drag < 44) console.log(tab, JSON.stringify(m));
     }
     console.log('done');
     await closeMain(main);

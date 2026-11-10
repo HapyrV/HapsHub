@@ -1,8 +1,8 @@
 // QA pass: opens every page and every Settings section in a throwaway copy, at several window sizes, display scalings,
 // languages and text sizes, and reports what looks broken: page errors, things poking out sideways, text cut off without
 // "...", controls on top of each other, missing icons, pages without a title. Every slider is pushed to both ends.
-//   node tools/hapshub/qa-pass.mjs [--quick] [--shots dir]
-// --quick runs one setup only. --shots saves a picture of each page that had a problem.
+//   node tools/hapshub/qa-pass.mjs [--quick] [--setup Russian] [--shots dir]
+// --quick runs one setup only; --setup runs the setups whose name matches the given pattern ("150%|Russian"). --shots saves a picture of each page that had a problem.
 
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -10,6 +10,7 @@ import { cleanUp, freshData, openMain, sleep, waitFor } from './lib/harness.mjs'
 
 const PORT = 9356;
 const quick = process.argv.includes('--quick');
+const setupFilter = process.argv.includes('--setup') ? process.argv[process.argv.indexOf('--setup') + 1] : null;
 const shots = process.argv.includes('--shots') ? process.argv[process.argv.indexOf('--shots') + 1] : null;
 if (shots) mkdirSync(shots, { recursive: true });
 
@@ -156,7 +157,7 @@ try {
     })()`);
     const tabs = await main.json(`[...document.querySelectorAll('.content > .tab')].map(t => Number(t.id.replace('tab', ''))).filter(n => !isNaN(n))`);
     const sections = await main.json(`[...new Set([...document.querySelectorAll('#tab9 .settings-nav-item[onclick*="switchSettingsSection"]')].map(b => (b.getAttribute('onclick').match(/switchSettingsSection\\('([^']+)'/) || [])[1]).filter(Boolean))]`);
-    for (const setup of quick ? SETUPS.slice(0, 1) : SETUPS) {
+    for (const setup of quick ? SETUPS.slice(0, 1) : SETUPS.filter(x => !setupFilter || new RegExp(setupFilter).test(x.name))) {
         await main.send('Emulation.setDeviceMetricsOverride', { width: setup.width, height: setup.height, deviceScaleFactor: setup.scale, mobile: false });
         await main.eval(`(() => { if (typeof setLanguage === 'function') setLanguage(${JSON.stringify(setup.language)}); else if (typeof requestTranslation === 'function') requestTranslation(${JSON.stringify(setup.language)}); document.documentElement.style.setProperty('--fs-off', '${setup.font}px'); })()`);
         await sleep(1500);

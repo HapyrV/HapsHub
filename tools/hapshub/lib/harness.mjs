@@ -48,7 +48,7 @@ export class Page {
         socket.addEventListener('message', event => {
             const message = JSON.parse(event.data);
             if (message.id && this.pending.has(message.id)) {
-                this.pending.get(message.id)(message);
+                this.pending.get(message.id).done(message);
                 this.pending.delete(message.id);
             } else if (message.method === 'Runtime.exceptionThrown') {
                 const details = message.params.exceptionDetails;
@@ -56,6 +56,12 @@ export class Page {
             } else if (message.method && this.listeners.has(message.method)) {
                 for (const listener of this.listeners.get(message.method)) listener(message.params);
             }
+        });
+        // If the page goes away (the app quit or crashed), fail what's waiting instead of leaving Node to exit silently.
+        socket.addEventListener('close', () => {
+            this.closed = true;
+            for (const { fail } of this.pending.values()) fail(new Error('the page connection closed (did the app quit or crash?)'));
+            this.pending.clear();
         });
     }
 
@@ -83,8 +89,9 @@ export class Page {
 
     send(method, params = {}) {
         const id = this.nextId++;
-        return new Promise(done => {
-            this.pending.set(id, done);
+        if (this.closed) return Promise.reject(new Error('the page connection closed (did the app quit or crash?)'));
+        return new Promise((done, fail) => {
+            this.pending.set(id, { done, fail });
             this.socket.send(JSON.stringify({ id, method, params }));
         });
     }

@@ -285,7 +285,11 @@ section('plugins off', async main => {
         return JSON.stringify({ found: [...new Set(found)], visits, plugins: HUB_PLUGINS.length });
     })()`));
     check('B3: with a plugin off, none of its settings appear anywhere in Settings', result.found.length === 0 && result.visits > result.plugins * 5, JSON.stringify(result).slice(0, 600));
-    check('B3: every plugin is back on afterwards', await main.eval(`HUB_PLUGINS.every(p => hubPluginOn(p.id))`));
+    // The app answers every switch with the full list, so wait for the last answer before reading it.
+    const stillOff = () => main.json(`HUB_PLUGINS.filter(p => !hubPluginOn(p.id)).map(p => p.id)`);
+    await waitFor('every plugin back on', async () => (await stillOff()).length === 0, 15000).catch(() => {});
+    const off = await stillOff();
+    check('B3: every plugin is back on afterwards', off.length === 0, 'still off: ' + off.join(', '));
     await main.eval(`showTab(0)`);
 });
 
@@ -304,7 +308,11 @@ try {
     for (const { name, run } of sections) {
         if (only && only !== name) continue;
         try { await run(main); }
-        catch (error) { check(`${name}: the section finished`, false, error.message); }
+        catch (error) {
+            const log = main.closed ? ' | app log: ' + hubLog(dir).trim().split(/\r?\n/).slice(-10).join(' | ') : '';
+            check(`${name}: the section finished`, false, error.message + log);
+            if (main.closed) break;
+        }
     }
     check('no page errors', main.errors.length === 0, main.errors.join(' | '));
     const switchId = main.switchId;
