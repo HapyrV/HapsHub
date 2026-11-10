@@ -1,8 +1,9 @@
 // World Map: a globe with your friends placed by what their own profile says. Friends only, and never by IP address.
-// Where someone is comes from, in this order: a flag in their bio or status, "from <country>" or "in <country>" in
-// their bio, or a language tag for a language spoken mainly in one country. No clue means no pin.
+// Where someone is comes from, in this order: a country you set for them yourself, a flag in their bio or status,
+// an explicit "from <country>" in their bio, or their languages when all of them (English aside) point at one country.
+// No clue means no pin, and every pin says why it is there.
 
-const _wmap = { lon: 15, lat: 25, zoom: 1, places: new Map(), unplaced: 0, selected: null, drag: null, idleSince: 0, frame: 0, hover: null, dirty: true };
+const _wmap = { lon: 15, lat: 25, zoom: 1, places: new Map(), unplaced: 0, selected: null, editing: null, drag: null, idleSince: 0, frame: 0, hover: null, dirty: true };
 
 // Languages spoken mainly in one country. English, Spanish, Portuguese, Arabic, French and Chinese are left out:
 // they say little about where someone lives.
@@ -38,40 +39,92 @@ function _wmapFlag(code) {
     return code && /^[A-Z]{2}$/.test(code) ? String.fromCodePoint(...[...code].map(ch => 0x1F1E6 + ch.charCodeAt(0) - 65)) : '';
 }
 
-/** Where a friend is, from their profile alone: { code, how } or null. */
-function hubWorldPlace(friend) {
+// ---- Your own pins: a country you set for a friend wins over anything guessed, and survives restarts ----
+
+const _WMAP_PINS_KEY = 'hapshub.map.pins';
+
+function _wmapPins() {
+    try {
+        const pins = JSON.parse(localStorage.getItem(_WMAP_PINS_KEY) || '{}');
+        return pins && typeof pins === 'object' && !Array.isArray(pins) ? pins : {};
+    } catch { return {}; }
+}
+
+function _wmapFriends() { return typeof vrcFriendsData !== 'undefined' && Array.isArray(vrcFriendsData) ? vrcFriendsData : []; }
+
+/** Sets a friend's country yourself, or with null clears it so the profile decides again. */
+function wmapSetPin(friendId, code) {
+    if (!friendId) return;
+    const pins = _wmapPins();
+    if (code && _wmapCountry(code)) pins[friendId] = code; else delete pins[friendId];
+    try { localStorage.setItem(_WMAP_PINS_KEY, JSON.stringify(pins)); } catch { /* full or blocked */ }
+    _wmap.editing = null;
+    hubWorldRefresh();
+    const place = hubWorldPlace(_wmapFriends().find(f => f.id === friendId), pins);
+    if (place) wmapSelect(place.code, true);
+}
+
+/** Where a friend is: { code, how, detail } or null. Your own pin first, then only what their profile says. */
+function hubWorldPlace(friend, pins = _wmapPins()) {
+    const pinned = friend?.id ? pins[friend.id] : null;
+    if (pinned && _wmapCountry(pinned)) return { code: pinned, how: 'manual' };
     const text = `${friend?.bio || ''}\n${friend?.statusDescription || ''}`;
     // 1. A flag: two regional indicator letters. Rainbow and other flags aren't letters, so they don't count.
     const flag = text.match(/[\u{1F1E6}-\u{1F1FF}]{2}/u);
     if (flag) {
         const code = [...flag[0]].map(ch => String.fromCharCode(ch.codePointAt(0) - 0x1F1E6 + 65)).join('');
-        if (_wmapCountry(code)) return { code, how: 'flag' };
+        if (_wmapCountry(code)) return { code, how: 'flag', detail: flag[0] };
     }
-    // 2. "from Germany", "living in Japan": the longest country name after the words.
+    // 2. An explicit "from Germany", "based in Japan", "living in the Netherlands": the longest country name after
+    //    the words. A bare "in" says too little ("in love with Georgia").
     const names = _wmapNameMap();
-    const phrase = /\b(?:from|in|based in|living in|live in|lives in)\s+((?:the\s+)?[A-Za-z.'-]+(?:\s+[A-Za-z.'-]+){0,3})/gi;
+    const phrase = /\b(from|based in|living in|live in|lives in)\s+((?:the\s+)?[A-Za-z.'-]+(?:\s+[A-Za-z.'-]+){0,3})/gi;
     for (const match of text.matchAll(phrase)) {
-        const words = match[1].toLowerCase().replace(/[.,!]+$/, '').split(/\s+/);
+        const words = match[2].replace(/[.,!]+$/, '').split(/\s+/);
         for (let length = words.length; length > 0; length--) {
-            const code = names.get(words.slice(0, length).join(' '));
-            if (code && _wmapCountry(code)) return { code, how: 'bio' };
+            const name = words.slice(0, length).join(' ');
+            const code = names.get(name.toLowerCase());
+            if (code && _wmapCountry(code)) return { code, how: 'bio', detail: `${match[1]} ${name}` };
         }
     }
-    // 3. A language spoken mainly in one country. Two such languages that disagree say nothing.
-    const fromLanguage = [...new Set((friend?.tags || []).map(tag => /^language_([a-z]{3})$/.exec(tag)?.[1]).filter(Boolean).map(l => _WMAP_LANGUAGE_COUNTRY[l]).filter(Boolean))];
-    if (fromLanguage.length === 1 && _wmapCountry(fromLanguage[0])) return { code: fromLanguage[0], how: 'language' };
+    // 3. Languages. English is left out when others are listed; the rest must all point at one country:
+    //    [eng, jpn] -> Japan, [fil, tgl] -> the Philippines, [jpn, kor] or [spa, jpn] -> nobody.
+    const spoken = [...new Set((friend?.tags || []).map(tag => /^language_([a-z]{3})$/.exec(tag)?.[1]).filter(l => l && l !== 'eng'))];
+    const countries = new Set(spoken.map(l => _WMAP_LANGUAGE_COUNTRY[l] || '?' + l));
+    if (countries.size === 1) {
+        const [code] = countries;
+        if (_wmapCountry(code)) return { code, how: 'language', detail: spoken[0] };
+    }
     return null;
 }
 
+function _wmapLanguageName(code) {
+    try {
+        const locale = typeof getLanguageLocale === 'function' ? getLanguageLocale() : 'en';
+        const name = new Intl.DisplayNames([locale], { type: 'language' }).of(code);
+        if (name && name.toLowerCase() !== code) return name;
+    } catch { /* unknown code or old engine */ }
+    return (typeof LANG_MAP !== 'undefined' && LANG_MAP['language_' + code]) || String(code || '').toUpperCase();
+}
+
+/** Why a friend is where they are, in words: "flag 🇩🇪 in profile", "language: Japanese", "set by you". */
+function _wmapWhy(place) {
+    if (!place) return t('hub.map.not_placed', 'Not on the map');
+    if (place.how === 'manual') return t('hub.map.why_manual', 'set by you');
+    if (place.how === 'flag') return tf('hub.map.why_flag', { flag: place.detail || _wmapFlag(place.code) }, 'flag {flag} in profile');
+    if (place.how === 'bio') return tf('hub.map.why_bio', { phrase: place.detail || '' }, 'profile says "{phrase}"');
+    return tf('hub.map.why_language', { language: _wmapLanguageName(place.detail) }, 'language: {language}');
+}
+
 function hubWorldRefresh() {
-    const friends = typeof vrcFriendsData !== 'undefined' && Array.isArray(vrcFriendsData) ? vrcFriendsData : [];
+    const pins = _wmapPins();
     const places = new Map();
     let unplaced = 0;
-    for (const friend of friends) {
-        const place = hubWorldPlace(friend);
+    for (const friend of _wmapFriends()) {
+        const place = hubWorldPlace(friend, pins);
         if (!place) { unplaced++; continue; }
         if (!places.has(place.code)) places.set(place.code, []);
-        places.get(place.code).push({ friend, how: place.how });
+        places.get(place.code).push({ friend, ...place });
     }
     _wmap.places = places;
     _wmap.unplaced = unplaced;
@@ -171,7 +224,8 @@ function _wmapRender() {
         const point = _wmapProject(country.p[0], country.p[1], view);
         if (!point.front) continue;
         const radius = (7 + Math.sqrt(list.length) * 3) * ratio;
-        _wmap.pins.push({ code, x: point.x, y: point.y, r: radius });
+        const manual = list.some(p => p.how === 'manual');
+        _wmap.pins.push({ code, x: point.x, y: point.y, r: radius, manual });
         ctx.beginPath();
         ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
         ctx.fillStyle = _wmap.selected === code ? '#fff' : accent;
@@ -181,6 +235,16 @@ function _wmapRender() {
         ctx.shadowBlur = 0;
         ctx.fillStyle = _wmap.selected === code ? accent : '#fff';
         ctx.fillText(String(list.length), point.x, point.y + 0.5);
+        // A pin with someone you placed yourself gets a dashed ring.
+        if (manual) {
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, radius + 3.5 * ratio, 0, Math.PI * 2);
+            ctx.setLineDash([3 * ratio, 2.5 * ratio]);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1.5 * ratio;
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
     }
     // A soft rim.
     ctx.beginPath();
@@ -243,15 +307,70 @@ function wmapReset() {
     _wmapDrawSide();
 }
 
-/** Turns the globe to a country and opens its list. */
-function wmapSelect(code) {
+/** Turns the globe to a country and opens its list. Choosing it again closes it, unless keep is set. */
+function wmapSelect(code, keep) {
     const country = _wmapCountry(code);
     if (!country) return;
-    _wmap.selected = _wmap.selected === code ? null : code;
+    _wmap.selected = _wmap.selected === code && !keep ? null : code;
     if (_wmap.selected) { _wmap.lon = country.p[0]; _wmap.lat = Math.max(-60, Math.min(60, country.p[1])); }
     _wmap.idleSince = Date.now();
     _wmap.dirty = true;
+    _wmapWake();
     _wmapDrawSide();
+    if (_wmap.selected) document.querySelector('.wmap-country.is-on')?.scrollIntoView({ block: 'nearest' });
+}
+
+// ---- Search: find a friend by name, then go to their pin or set one ----
+
+function wmapSearch() {
+    _wmap.editing = null;
+    _wmapDrawResults();
+}
+
+/** A search result was chosen: turn the globe to them, or offer to set a country when they have none. */
+function wmapGoTo(friendId) {
+    const place = hubWorldPlace(_wmapFriends().find(f => f.id === friendId));
+    if (place) wmapSelect(place.code, true);
+    else wmapPinEdit(friendId);
+}
+
+function wmapPinEdit(friendId) {
+    _wmap.editing = _wmap.editing === friendId ? null : friendId;
+    _wmapDrawResults();
+    document.getElementById('wmapPinSelect')?.focus();
+}
+
+function _wmapCountryChoices(selected) {
+    let display = null;
+    try { display = new Intl.DisplayNames([typeof getLanguageLocale === 'function' ? getLanguageLocale() : 'en'], { type: 'region' }); } catch { /* old engine */ }
+    return HUB_WORLD_COUNTRIES.filter(c => c.c)
+        .map(c => ({ code: c.c, name: display?.of(c.c) || c.n }))
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(c => `<option value="${c.code}"${c.code === selected ? ' selected' : ''}>${esc(c.name)}</option>`).join('');
+}
+
+function _wmapDrawResults() {
+    const box = document.getElementById('wmapResults');
+    if (!box) return;
+    const query = (document.getElementById('wmapSearch')?.value || '').trim().toLowerCase();
+    box.hidden = !query;
+    if (!query) { box.innerHTML = ''; return; }
+    const pins = _wmapPins();
+    const found = _wmapFriends().filter(f => (f.displayName || '').toLowerCase().includes(query)).slice(0, 8);
+    box.innerHTML = found.map(friend => {
+        const id = esc(friend.id);
+        const place = hubWorldPlace(friend, pins);
+        const flag = place ? _wmapFlag(place.code) + ' ' : '';
+        const label = place ? t('hub.map.change_pin', 'Change country') : t('hub.map.set_pin', 'Set country');
+        const row = `<div class="wmap-result${place ? '' : ' is-off'}">
+            <button class="wmap-friend" onclick="wmapGoTo('${id}')"><img src="${esc(friend.image || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span>${esc(friend.displayName || friend.id)}</span><small>${esc(flag + _wmapWhy(place))}</small></button>
+            ${place ? `<button class="vrcn-icon-button wmap-pin-btn" title="${esc(label)}" onclick="wmapPinEdit('${id}')"><span class="msi">edit</span></button>`
+                    : `<button class="vrcn-button wmap-set-btn" onclick="wmapPinEdit('${id}')">${esc(label)}</button>`}</div>`;
+        if (_wmap.editing !== friend.id) return row;
+        return row + `<div class="wmap-pin-edit">
+            <select class="vrcn-dropdown" id="wmapPinSelect" onchange="wmapSetPin('${id}', this.value || null)"><option value="">${esc(t('hub.map.pick_country', 'Choose a country…'))}</option>${_wmapCountryChoices(pins[friend.id])}</select>
+            ${pins[friend.id] ? `<button class="vrcn-button wmap-clear-btn" onclick="wmapSetPin('${id}', null)">${esc(t('hub.map.clear_pin', 'Clear'))}</button>` : ''}</div>`;
+    }).join('') || `<div class="wmap-none">${esc(t('hub.map.no_results', 'No friend with that name.'))}</div>`;
 }
 
 function _wmapDrawSide() {
@@ -261,15 +380,15 @@ function _wmapDrawSide() {
     const placed = [..._wmap.places.values()].reduce((sum, l) => sum + l.length, 0);
     summary.textContent = tf('hub.map.summary', { placed, countries: _wmap.places.size, unplaced: _wmap.unplaced },
         '{placed} friends in {countries} countries. {unplaced} more don\'t say where they are.');
-    const how = { flag: t('hub.map.how_flag', 'flag'), bio: t('hub.map.how_bio', 'bio'), language: t('hub.map.how_language', 'language') };
     const rows = [..._wmap.places.entries()].sort((a, b) => b[1].length - a[1].length).map(([code, friends]) => {
         const country = _wmapCountry(code);
         const open = _wmap.selected === code;
-        const people = open ? `<div class="wmap-friends">${friends.map(({ friend, how: by }) => `<button class="wmap-friend" onclick="openFriendDetail('${esc(friend.id)}')">
-            <img src="${esc(friend.image || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span>${esc(friend.displayName || friend.id)}</span><small>${esc(how[by])}</small></button>`).join('')}</div>` : '';
+        const people = open ? `<div class="wmap-friends">${friends.map(place => `<button class="wmap-friend${place.how === 'manual' ? ' is-manual' : ''}" onclick="openFriendDetail('${esc(place.friend.id)}')">
+            <img src="${esc(place.friend.image || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span>${esc(place.friend.displayName || place.friend.id)}</span><small>${esc(_wmapWhy(place))}</small></button>`).join('')}</div>` : '';
         return `<button class="wmap-country${open ? ' is-on' : ''}" onclick="wmapSelect('${code}')"><span class="wmap-flag">${code}</span><span class="wmap-name">${esc(country?.n || code)}</span><span class="wmap-count">${friends.length}</span></button>${people}`;
     });
     list.innerHTML = rows.join('') || `<div class="folder-empty">${esc(t('hub.map.empty', 'None of your friends say where they are yet.'))}</div>`;
+    _wmapDrawResults();
 }
 
 (function () {
@@ -326,7 +445,7 @@ function _wmapDrawSide() {
         new IntersectionObserver(entries => { if (entries.some(e => e.isIntersecting)) { hubWorldRefresh(); _wmapWake(); } }).observe(canvas);
         document.addEventListener('visibilitychange', () => { if (!document.hidden) _wmapWake(); });
         document.documentElement.addEventListener('themechange', () => { _wmap.dirty = true; });
-        document.documentElement.addEventListener('languagechange', () => { _wmapNames = null; _wmapDrawSide(); });
+        document.documentElement.addEventListener('languagechange', () => { _wmapNames = null; _wmap.editing = null; _wmapDrawSide(); });
         _wmapWake();
     };
     start();

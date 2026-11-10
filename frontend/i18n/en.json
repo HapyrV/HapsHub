@@ -4316,7 +4316,7 @@
   "hub.nav.add_title": "Add a group or a header, or show a hidden page",
   "nav.world_map": "World Map",
   "hub.map.summary": "{placed} friends in {countries} countries. {unplaced} more don't say where they are.",
-  "hub.map.note": "Friends are placed only from what their profile shows: a flag, \"from\" a country, or a language spoken mainly in one country. Never from IP addresses.",
+  "hub.map.note": "Pins are guessed from profiles: flags, 'from …' and languages. Never from IP addresses.",
   "hub.map.empty": "None of your friends say where they are yet.",
   "hub.map.how_flag": "flag",
   "hub.map.how_bio": "bio",
@@ -4349,5 +4349,16 @@
   "page.help.38": "OVR Toolkit's desktop window inside HapsHub, to set up its overlays and wrist menu without switching windows.",
   "page.help.39": "A globe of your friends, placed by what their profiles show: a flag, where they say they're from, or a language. Search for a friend, or set a friend's country yourself; yours always wins.",
   "hub.profile.needs_vrcplus": "VRChat lets you change your picture and banner with VRC+.",
-  "hub.vrct.pairs_empty": "Pairs you use show up here, one click each."
+  "hub.vrct.pairs_empty": "Pairs you use show up here, one click each.",
+  "hub.map.search": "Find a friend…",
+  "hub.map.not_placed": "Not on the map",
+  "hub.map.set_pin": "Set country",
+  "hub.map.change_pin": "Change country",
+  "hub.map.pick_country": "Choose a country…",
+  "hub.map.clear_pin": "Clear",
+  "hub.map.no_results": "No friend with that name.",
+  "hub.map.why_flag": "flag {flag} in profile",
+  "hub.map.why_bio": "profile says \"{phrase}\"",
+  "hub.map.why_language": "language: {language}",
+  "hub.map.why_manual": "set by you"
 }

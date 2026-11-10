@@ -28,3 +28,18 @@
 /* After the "font: inherit" above, which would otherwise reset the size. */
 .wmap-country { font-size: calc(13px + var(--fs-off, 0px)); }
 .wmap-friend { font-size: calc(12px + var(--fs-off, 0px)); }
+/* Search, reasons and your own pins. */
+.wmap-search { margin-bottom: 8px; }
+.wmap-results { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; max-height: 45%; overflow-y: auto; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--brd); }
+.wmap-results[hidden] { display: none; }
+.wmap-result { display: flex; align-items: center; gap: 4px; }
+.wmap-result .wmap-friend { flex: 1; min-width: 0; }
+.wmap-friend span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wmap-friend small { min-width: 0; flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 6px; }
+.wmap-friend.is-manual small, .wmap-result .wmap-friend small { color: var(--accent-lt, var(--accent)); }
+.wmap-result.is-off .wmap-friend small { color: var(--tx2); font-style: italic; }
+.wmap-set-btn, .wmap-clear-btn { flex-shrink: 0; padding: 3px 9px; font-size: calc(11px + var(--fs-off, 0px)); }
+.wmap-pin-btn { flex-shrink: 0; }
+.wmap-pin-edit { display: flex; align-items: center; gap: 6px; margin: 2px 0 6px 34px; }
+.wmap-pin-edit select { flex: 1; min-width: 0; }
+.wmap-none { padding: 4px 6px; font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx2); }

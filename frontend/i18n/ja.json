@@ -4316,7 +4316,7 @@
   "hub.nav.add_title": "グループや見出しを追加、または隠したページを表示",
   "nav.world_map": "世界地図",
   "hub.map.summary": "{countries} か国に {placed} 人のフレンド。ほかの {unplaced} 人は場所を書いていません。",
-  "hub.map.note": "フレンドはプロフィールの内容だけで配置されます：国旗、「〇〇出身」、主に一つの国で話される言語。IP アドレスは使いません。",
+  "hub.map.note": "ピンはプロフィールから推測します：国旗、「〇〇出身」、言語。IP アドレスは使いません。",
   "hub.map.empty": "まだ場所を書いているフレンドはいません。",
   "hub.map.how_flag": "国旗",
   "hub.map.how_bio": "自己紹介",
@@ -4349,5 +4349,16 @@
   "page.help.38": "OVR Toolkit のデスクトップ画面を HapsHub の中に表示し、ウィンドウを切り替えずにオーバーレイや手首メニューを設定できます。",
   "page.help.39": "プロフィールの情報（国旗、出身地の記載、言語）からフレンドを配置した地球儀です。フレンドを検索したり、国を自分で設定したりできます。自分で設定した国が常に優先されます。",
   "hub.profile.needs_vrcplus": "画像とバナーの変更は VRC+ でのみ可能です。",
-  "hub.vrct.pairs_empty": "使った言語の組み合わせがここに表示され、ワンクリックで選べます。"
+  "hub.vrct.pairs_empty": "使った言語の組み合わせがここに表示され、ワンクリックで選べます。",
+  "hub.map.search": "フレンドを検索…",
+  "hub.map.not_placed": "地図にいません",
+  "hub.map.set_pin": "国を設定",
+  "hub.map.change_pin": "国を変更",
+  "hub.map.pick_country": "国を選択…",
+  "hub.map.clear_pin": "解除",
+  "hub.map.no_results": "その名前のフレンドはいません。",
+  "hub.map.why_flag": "プロフィールに国旗 {flag}",
+  "hub.map.why_bio": "プロフィール：「{phrase}」",
+  "hub.map.why_language": "言語：{language}",
+  "hub.map.why_manual": "自分で設定"
 }

@@ -4316,7 +4316,7 @@
   "hub.nav.add_title": "Ajouter un groupe ou un titre, ou afficher une page masquée",
   "nav.world_map": "Carte du monde",
   "hub.map.summary": "{placed} amis dans {countries} pays. {unplaced} autres ne disent pas où ils sont.",
-  "hub.map.note": "Les amis sont placés uniquement d'après leur profil : un drapeau, « de » un pays, ou une langue parlée surtout dans un pays. Jamais d'après l'adresse IP.",
+  "hub.map.note": "Les épingles sont devinées d'après les profils : drapeaux, « de … » et langues. Jamais d'après l'adresse IP.",
   "hub.map.empty": "Aucun de vos amis n'indique encore où il est.",
   "hub.map.how_flag": "drapeau",
   "hub.map.how_bio": "bio",
@@ -4349,5 +4349,16 @@
   "page.help.38": "La fenêtre de bureau d'OVR Toolkit dans HapsHub, pour régler ses overlays et son menu de poignet sans changer de fenêtre.",
   "page.help.39": "Un globe de vos amis, placés selon leurs profils : un drapeau, d'où ils disent venir ou une langue. Cherchez un ami ou indiquez vous-même son pays ; votre choix l'emporte toujours.",
   "hub.profile.needs_vrcplus": "VRChat ne permet de changer l'image et la bannière qu'avec VRC+.",
-  "hub.vrct.pairs_empty": "Les paires que vous utilisez apparaissent ici, en un clic."
+  "hub.vrct.pairs_empty": "Les paires que vous utilisez apparaissent ici, en un clic.",
+  "hub.map.search": "Chercher un ami…",
+  "hub.map.not_placed": "Pas sur la carte",
+  "hub.map.set_pin": "Choisir le pays",
+  "hub.map.change_pin": "Changer de pays",
+  "hub.map.pick_country": "Choisir un pays…",
+  "hub.map.clear_pin": "Effacer",
+  "hub.map.no_results": "Aucun ami avec ce nom.",
+  "hub.map.why_flag": "drapeau {flag} dans le profil",
+  "hub.map.why_bio": "le profil dit « {phrase} »",
+  "hub.map.why_language": "langue : {language}",
+  "hub.map.why_manual": "placé par vous"
 }

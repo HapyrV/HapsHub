@@ -189,6 +189,72 @@ section('profile', async main => {
     await main.eval(`typeof closeImagePicker === 'function' && closeImagePicker(); closeMyProfile(); currentVrcUser = null`);
 });
 
+section('map', async main => {
+    // E1: who gets a pin. Asked of hubWorldPlace with no pins of your own, so only the profile counts.
+    await main.eval(`(() => {
+        const friend = (id, displayName, extra) => ({ id, displayName, status: 'active', image: '', tags: [], bio: '', statusDescription: '', ...extra });
+        window.__savedFriends = vrcFriendsData;
+        vrcFriendsData = [
+            friend('mapflag', 'Flaggy', { bio: 'hi 🇩🇪 here' }),
+            friend('mapfrom', 'Fromage', { bio: 'Hello, I am from Japan!' }),
+            friend('mapin', 'Inny', { bio: 'chilling in Japan rn, in love with Georgia' }),
+            friend('mapengjpn', 'Kenji', { tags: ['language_eng', 'language_jpn'] }),
+            friend('mapjk', 'Jinwoo', { tags: ['language_jpn', 'language_kor'] }),
+            friend('mapph', 'Pinoy', { tags: ['language_fil', 'language_tgl'] }),
+            friend('mapspa', 'Sakura', { tags: ['language_spa', 'language_jpn'] }),
+            friend('mapeng', 'Engla', { tags: ['language_eng'] }),
+        ];
+    })()`);
+    const placed = await main.json(`Object.fromEntries(vrcFriendsData.map(f => { const p = hubWorldPlace(f, {}); return [f.id, p ? p.code + ':' + p.how : null]; }))`);
+    check('E1: a flag places a friend', placed.mapflag === 'DE:flag', JSON.stringify(placed));
+    check('E1: an explicit "from Japan" places a friend', placed.mapfrom === 'JP:bio', JSON.stringify(placed));
+    check('E1: a bare "in Japan" places nobody', placed.mapin === null, JSON.stringify(placed));
+    check('E1: [eng, jpn] -> Japan (English is ignored)', placed.mapengjpn === 'JP:language', JSON.stringify(placed));
+    check('E1: [jpn, kor] -> unplaced', placed.mapjk === null, JSON.stringify(placed));
+    check('E1: [fil, tgl] -> the Philippines (two languages, one country)', placed.mapph === 'PH:language', JSON.stringify(placed));
+    check('E1: [spa, jpn] -> unplaced', placed.mapspa === null, JSON.stringify(placed));
+    check('E1: English alone -> unplaced', placed.mapeng === null, JSON.stringify(placed));
+    const why = await main.json(`(() => { const of = id => _wmapWhy(hubWorldPlace(vrcFriendsData.find(f => f.id === id), {})); return { flag: of('mapflag'), bio: of('mapfrom'), language: of('mapengjpn'), none: of('mapjk') }; })()`);
+    check('each pin says why it is there', why.flag === 'flag 🇩🇪 in profile' && why.bio === 'profile says "from Japan"' && why.language === 'language: Japanese' && why.none === 'Not on the map', JSON.stringify(why));
+    await main.eval(`showTab(NAV_ITEMS_DEF['world-map'].tab)`);
+    await waitFor('the globe', () => main.eval(`_wmap.frame > 0 && _wmap.places.size > 0`), 10000);
+    check('E4: the note is the short one', (await main.eval(`document.querySelector('#tab39 .wmap-note').textContent`)) === "Pins are guessed from profiles: flags, 'from …' and languages. Never from IP addresses.");
+    const rowWhy = await main.eval(`wmapSelect('JP', true), [...document.querySelectorAll('.wmap-friends .wmap-friend small')].map(s => s.textContent).sort().join(' / ')`);
+    check('the country list shows each reason', rowWhy === 'language: Japanese / profile says "from Japan"', rowWhy);
+
+    // E2: search by name.
+    const search = async text => main.json(`(() => { const box = document.getElementById('wmapSearch'); box.value = ${JSON.stringify(text)}; box.dispatchEvent(new Event('input')); return [...document.querySelectorAll('#wmapResults .wmap-result')].map(r => ({ name: r.querySelector('span').textContent, why: r.querySelector('small').textContent, off: r.classList.contains('is-off'), set: !!r.querySelector('.wmap-set-btn') })); })()`);
+    const many = await search('n');
+    check('E2: search lists matching friends, up to 8', many.length >= 4 && many.length <= 8, JSON.stringify(many));
+    await main.eval(`wmapSelect('JP'); wmapReset()`);
+    const kenji = await search('ken');
+    await main.eval(`document.querySelector('#wmapResults .wmap-result .wmap-friend').click()`);
+    check('E2: choosing a placed friend turns the globe to their pin', kenji.length === 1 && await main.eval(`_wmap.selected === 'JP' && Math.abs(_wmap.lon - _wmapCountry('JP').p[0]) < 1`), JSON.stringify(kenji));
+    const jinwoo = await search('jinwoo');
+    check('E2: an unplaced friend says so and offers to set a country', jinwoo.length === 1 && jinwoo[0].off && jinwoo[0].set && jinwoo[0].why === 'Not on the map', JSON.stringify(jinwoo));
+    await main.eval(`document.querySelector('#wmapResults .wmap-set-btn').click()`);
+    check('E3: the country picker opens', await main.eval(`!!document.querySelector('#wmapResults #wmapPinSelect') && document.querySelectorAll('#wmapPinSelect option').length > 150`));
+    await search('i');
+    await main.eval(`wmapPinEdit('mapjk')`);
+    const side = await main.json(`(() => { const r = document.querySelector('#tab39 .wmap-side').getBoundingClientRect(); return { x: r.left, y: r.top, width: r.width, height: r.height }; })()`);
+    await main.screenshot(join(tmpdir(), 'hapshub-round6-map.png'), side);
+    await search('jinwoo');
+    await main.eval(`wmapPinEdit('mapjk')`);
+    await main.eval(`(() => { const s = document.getElementById('wmapPinSelect'); s.value = 'KR'; s.dispatchEvent(new Event('change')); })()`);
+    await sleep(400);
+    const afterSet = await main.json(`({ place: hubWorldPlace(vrcFriendsData.find(f => f.id === 'mapjk')), selected: _wmap.selected, row: document.querySelector('#wmapResults .wmap-result small')?.textContent, saved: JSON.parse(localStorage.getItem('hapshub.map.pins') || '{}').mapjk })`);
+    check('E3: setting a country places the friend, says "set by you" and turns the globe there', afterSet.place?.code === 'KR' && afterSet.place?.how === 'manual' && afterSet.selected === 'KR' && afterSet.row?.endsWith('set by you') && afterSet.saved === 'KR', JSON.stringify(afterSet));
+    await waitFor('the pin drawn', () => main.eval(`(_wmap.pins || []).some(p => p.code === 'KR')`), 5000).catch(() => {});
+    check('E3: a pin you set looks different on the globe', await main.eval(`(_wmap.pins || []).some(p => p.code === 'KR' && p.manual) && !(_wmap.pins || []).some(p => p.code !== 'KR' && p.manual)`));
+    await main.eval(`wmapSetPin('mapflag', 'FR')`);
+    check('E3: your pin wins over a flag in the profile', await main.eval(`hubWorldPlace(vrcFriendsData.find(f => f.id === 'mapflag')).code === 'FR'`));
+    await main.eval(`wmapSetPin('mapflag', null)`);
+    check('E3: clearing it goes back to the profile', await main.eval(`hubWorldPlace(vrcFriendsData.find(f => f.id === 'mapflag')).code === 'DE' && !('mapflag' in JSON.parse(localStorage.getItem('hapshub.map.pins')))`));
+    await search('');
+    check('E2: an empty search hides the results', await main.eval(`document.getElementById('wmapResults').hidden`));
+    await main.eval(`vrcFriendsData = window.__savedFriends; showTab(0)`);
+});
+
 // A picture folder for the dashboard: three wide pictures and an Eagle-style preview that must never be picked.
 const pics = mkdtempSync(join(tmpdir(), 'hapshub-pics-'));
 writePng(join(pics, 'red.png'), 64, 36, [200, 30, 30]);
@@ -210,12 +276,21 @@ try {
     const switchId = main.switchId;
     const closed = await closeMain(main);
     check('the app closes cleanly', closed, hubLog(dir).trim().split(/\r?\n/).slice(-6).join(' | '));
-    if (switchId && (!only || only === 'launch switches')) {
-        // After a restart the switch and the names are still there.
+    const switches = switchId && (!only || only === 'launch switches');
+    const pins = !only || only === 'map';
+    if (switches || pins) {
         main = await openMain(dir, PORT);
-        await waitFor('settings loaded', () => main.eval(`typeof launchSwitches === 'function' && launchSwitches().length > 3`), 20000).catch(() => {});
-        const after = await main.json(`launchSwitches().map(s => s.label)`);
-        check('A7: after a restart the new switch and the new name are still there', after.includes('With lights') && after.includes('With trackers'), after.join(','));
+        if (switches) {
+            // After a restart the switch and the names are still there.
+            await waitFor('settings loaded', () => main.eval(`typeof launchSwitches === 'function' && launchSwitches().length > 3`), 20000).catch(() => {});
+            const after = await main.json(`launchSwitches().map(s => s.label)`);
+            check('A7: after a restart the new switch and the new name are still there', after.includes('With lights') && after.includes('With trackers'), after.join(','));
+        }
+        if (pins) {
+            await waitFor('the map code', () => main.eval(`typeof hubWorldPlace === 'function'`), 20000).catch(() => {});
+            const pin = await main.json(`({ saved: JSON.parse(localStorage.getItem('hapshub.map.pins') || '{}').mapjk, place: hubWorldPlace({ id: 'mapjk', tags: ['language_jpn', 'language_kor'] }) })`);
+            check('E3: after a restart the country you set is still there and still wins', pin.saved === 'KR' && pin.place?.code === 'KR' && pin.place?.how === 'manual', JSON.stringify(pin));
+        }
         await closeMain(main);
     }
     check('no crash report', crashes(dir) === 0);

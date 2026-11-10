@@ -4316,7 +4316,7 @@
   "hub.nav.add_title": "Añadir un grupo o un encabezado, o mostrar una página oculta",
   "nav.world_map": "Mapa mundial",
   "hub.map.summary": "{placed} amigos en {countries} países. Otros {unplaced} no dicen dónde están.",
-  "hub.map.note": "Los amigos se ubican solo por lo que muestra su perfil: una bandera, \"de\" un país o un idioma hablado sobre todo en un país. Nunca por la dirección IP.",
+  "hub.map.note": "Los pines se deducen de los perfiles: banderas, «de …» e idiomas. Nunca de la dirección IP.",
   "hub.map.empty": "Ninguno de tus amigos dice todavía dónde está.",
   "hub.map.how_flag": "bandera",
   "hub.map.how_bio": "bio",
@@ -4349,5 +4349,16 @@
   "page.help.38": "La ventana de escritorio de OVR Toolkit dentro de HapsHub, para configurar sus overlays y el menú de muñeca sin cambiar de ventana.",
   "page.help.39": "Un globo con tus amigos, situados según lo que muestran sus perfiles: una bandera, de dónde dicen ser o un idioma. Busca a un amigo o indica tú su país; lo tuyo siempre manda.",
   "hub.profile.needs_vrcplus": "VRChat solo deja cambiar la imagen y el banner con VRC+.",
-  "hub.vrct.pairs_empty": "Los pares que uses aparecen aquí, a un clic."
+  "hub.vrct.pairs_empty": "Los pares que uses aparecen aquí, a un clic.",
+  "hub.map.search": "Buscar un amigo…",
+  "hub.map.not_placed": "No está en el mapa",
+  "hub.map.set_pin": "Elegir país",
+  "hub.map.change_pin": "Cambiar país",
+  "hub.map.pick_country": "Elige un país…",
+  "hub.map.clear_pin": "Quitar",
+  "hub.map.no_results": "Ningún amigo con ese nombre.",
+  "hub.map.why_flag": "bandera {flag} en el perfil",
+  "hub.map.why_bio": "el perfil dice «{phrase}»",
+  "hub.map.why_language": "idioma: {language}",
+  "hub.map.why_manual": "puesto por ti"
 }

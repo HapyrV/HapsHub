@@ -4316,7 +4316,7 @@
   "hub.nav.add_title": "添加分组或标题，或显示隐藏的页面",
   "nav.world_map": "世界地图",
   "hub.map.summary": "{countries} 个国家中有 {placed} 位好友。另有 {unplaced} 位没有写明所在地。",
-  "hub.map.note": "好友位置只根据其个人资料：国旗、“来自”某国，或主要在一个国家使用的语言。绝不使用 IP 地址。",
+  "hub.map.note": "图钉根据个人资料推测：国旗、“来自……”和语言。绝不使用 IP 地址。",
   "hub.map.empty": "还没有好友写明所在地。",
   "hub.map.how_flag": "国旗",
   "hub.map.how_bio": "简介",
@@ -4349,5 +4349,16 @@
   "page.help.38": "在 HapsHub 中显示 OVR Toolkit 的桌面窗口，无需切换窗口即可设置它的覆盖层和手腕菜单。",
   "page.help.39": "一个标出好友位置的地球，依据他们资料中的国旗、自述来自哪里或语言来放置。可以搜索好友，也可以自己设定好友的国家；你的设定始终优先。",
   "hub.profile.needs_vrcplus": "VRChat 仅允许 VRC+ 用户更换头像和横幅。",
-  "hub.vrct.pairs_empty": "你使用过的语言对会显示在这里，一键即可选择。"
+  "hub.vrct.pairs_empty": "你使用过的语言对会显示在这里，一键即可选择。",
+  "hub.map.search": "查找好友…",
+  "hub.map.not_placed": "不在地图上",
+  "hub.map.set_pin": "设置国家",
+  "hub.map.change_pin": "更改国家",
+  "hub.map.pick_country": "选择国家…",
+  "hub.map.clear_pin": "清除",
+  "hub.map.no_results": "没有这个名字的好友。",
+  "hub.map.why_flag": "资料中的国旗 {flag}",
+  "hub.map.why_bio": "资料写着“{phrase}”",
+  "hub.map.why_language": "语言：{language}",
+  "hub.map.why_manual": "由你设置"
 }

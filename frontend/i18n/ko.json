@@ -4316,7 +4316,7 @@
   "hub.nav.add_title": "그룹이나 제목을 추가하거나 숨긴 페이지 표시",
   "nav.world_map": "세계 지도",
   "hub.map.summary": "{countries}개국에 친구 {placed}명. {unplaced}명은 위치를 밝히지 않았습니다.",
-  "hub.map.note": "친구 위치는 프로필 내용으로만 정합니다: 국기, \"~에서 왔어요\", 주로 한 나라에서 쓰는 언어. IP 주소는 절대 쓰지 않습니다.",
+  "hub.map.note": "핀은 프로필에서 추측합니다: 국기, \"~에서 왔어요\", 언어. IP 주소는 절대 쓰지 않습니다.",
   "hub.map.empty": "아직 위치를 밝힌 친구가 없습니다.",
   "hub.map.how_flag": "국기",
   "hub.map.how_bio": "소개",
@@ -4349,5 +4349,16 @@
   "page.help.38": "OVR Toolkit의 데스크톱 창을 HapsHub 안에서 보여 줘서, 창을 바꾸지 않고 오버레이와 손목 메뉴를 설정할 수 있습니다.",
   "page.help.39": "프로필에 나온 정보(국기, 출신지, 언어)로 친구를 배치한 지구본입니다. 친구를 검색하거나 직접 나라를 지정할 수 있으며, 직접 지정한 나라가 항상 우선합니다.",
   "hub.profile.needs_vrcplus": "사진과 배너 변경은 VRC+에서만 가능합니다.",
-  "hub.vrct.pairs_empty": "사용한 언어 쌍이 여기에 표시되며 한 번에 선택할 수 있습니다."
+  "hub.vrct.pairs_empty": "사용한 언어 쌍이 여기에 표시되며 한 번에 선택할 수 있습니다.",
+  "hub.map.search": "친구 찾기…",
+  "hub.map.not_placed": "지도에 없음",
+  "hub.map.set_pin": "국가 설정",
+  "hub.map.change_pin": "국가 변경",
+  "hub.map.pick_country": "국가 선택…",
+  "hub.map.clear_pin": "지우기",
+  "hub.map.no_results": "그 이름의 친구가 없습니다.",
+  "hub.map.why_flag": "프로필에 국기 {flag}",
+  "hub.map.why_bio": "프로필: \"{phrase}\"",
+  "hub.map.why_language": "언어: {language}",
+  "hub.map.why_manual": "직접 설정함"
 }
