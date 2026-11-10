@@ -450,7 +450,7 @@ class MutualGraph {
                 fullName: nd.displayName || nd.id,
                 size: 4 + (most ? (degree[i] / most) * 18 : 0),
                 type: 'border',
-                image: nd.image || '',
+                image: document.documentElement.classList.contains('hub-perf-pictures') ? '' : (nd.image || ''),
                 mutuals: degree[i],
                 nonFriend: !!nd.isNonFriend,
                 borderColor: nd.isNonFriend ? NET_NF_RGB.raw : '#f2f2f2',

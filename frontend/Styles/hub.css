@@ -50,3 +50,12 @@
     margin: 0 0 12px;
 }
 .credit-panel-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ---- Scrolling: a scroll area on its own layer scrolls on the GPU instead of being redrawn every frame.
+   Settings dropped half its frames without this. hub-perf.js does the same for any other area that scrolls. ---- */
+.settings-content, .content, #vrcFriendsList, .nav { will-change: scroll-position; }
+
+/* ---- Performance mode ---- */
+.hub-perf-cuts { margin-top: 10px; padding-left: 12px; border-left: 2px solid var(--brd); }
+.hub-perf-cuts .sf-toggle-row { margin-top: 6px; }
+.hub-perf-cuts.is-off { opacity: .5; }

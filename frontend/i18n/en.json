@@ -4266,5 +4266,15 @@
   "hub.credit.patreon": "Support them on Patreon",
   "hub.brand.title": "App name",
   "hub.brand.desc": "Shown in the title bar, the sidebar and the tray. Leave it empty to use the original name. The credit to VRCNext stays whatever you call it.",
-  "hub.brand.reset": "Use the original name"
+  "hub.brand.reset": "Use the original name",
+  "hub.perf.title": "Performance mode",
+  "hub.perf.mode": "Performance mode",
+  "hub.perf.mode_desc": "For slower PCs. Turns off the effects below so scrolling and changing pages stay smooth.",
+  "hub.perf.cut_blur": "No blur behind menus and cards",
+  "hub.perf.cut_animations": "No animations",
+  "hub.perf.cut_pictures": "No profile pictures in the Mutual Network",
+  "hub.perf.cut_glass": "No fade effect while scrolling the dashboard",
+  "hub.perf.cut_polling": "Check app pages less often",
+  "hub.perf.system_weak": "This PC: {threads} threads, {memory} GB of memory. Performance mode is recommended.",
+  "hub.perf.system_ok": "This PC: {threads} threads, {memory} GB of memory. It shouldn't need Performance mode."
 }

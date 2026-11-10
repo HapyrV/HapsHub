@@ -5,7 +5,7 @@
 
 import { checker, cleanUp, closeMain, crashes, freshData, openMain, sleep, waitFor } from './lib/harness.mjs';
 
-const PORT = 9338;
+const PORT = 9340;
 const { check, state } = checker();
 const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : null;
 const sections = [];
@@ -84,6 +84,27 @@ section('name', async main => {
     await main.eval(`hubBrandReset()`);
     await waitFor('the original name', () => main.eval(`document.querySelector('.tb-brand').textContent === 'HapsHub' && document.title === 'HapsHub'`), 8000);
     check('the original name comes back', await setting(main, 'hub.ui', 'app_name') === '' && await main.eval(`document.getElementById('hubAppNameInput').value === ''`));
+});
+
+section('performance', async main => {
+    const cls = () => main.json(`[...document.documentElement.classList]`);
+    await main.eval(`showTab(9); switchSettingsSection('performance', document.querySelector('.settings-nav-item[onclick*="performance"]'))`);
+    await waitFor('the Performance mode card', () => visible(main, '#hubPerfCard'));
+    const system = await main.eval(`document.getElementById('hubPerfSystem').textContent`);
+    check('the card says what kind of PC this is', /\d+ threads/.test(system), system);
+    check('Performance mode starts off on a fast PC, with its options greyed out', await main.eval(`!document.getElementById('hubPerfMode').checked && document.querySelectorAll('#hubPerfCuts input[disabled]').length === 5`));
+    const blurBefore = (await cls()).includes('no-blur');
+    await main.eval(`(() => { const i = document.getElementById('hubPerfMode'); i.checked = true; i.dispatchEvent(new Event('change')); })()`);
+    await waitFor('the mode to apply', async () => (await cls()).includes('hub-perf'), 8000);
+    const on = await cls();
+    check('turning it on cuts blur, animations, pictures, the fade and polling', ['no-blur', 'no-animations', 'hub-perf-pictures', 'hub-perf-glass', 'hub-perf-polling'].every(c => on.includes(c)), on.join(' '));
+    await main.eval(`(() => { const i = document.querySelector('#hubPerfCuts input[data-cut="blur"]'); i.checked = false; i.dispatchEvent(new Event('change')); })()`);
+    await waitFor('blur to come back', async () => !(await cls()).includes('no-blur'), 8000);
+    check('one effect can be kept while the mode is on', (await cls()).includes('no-animations'));
+    await main.eval(`hubPerfSet('cut_blur', true); hubPerfSet('mode', false)`);
+    await waitFor('the mode to go off', async () => !(await cls()).includes('hub-perf'), 8000);
+    const off = await cls();
+    check('turning it off brings back what the Blur and Animations switches say', off.includes('no-blur') === blurBefore && !off.includes('no-animations') && !off.includes('hub-perf-glass'), off.join(' '));
 });
 
 const dir = freshData('hapshub-round5-');

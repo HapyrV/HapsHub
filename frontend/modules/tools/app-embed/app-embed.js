@@ -130,7 +130,15 @@ function aembMode(app) { sendToCS({ action: 'hubEmbedMode', app, mode: _aembEl(a
 
 /* --- Polls because the pane has many reasons to move or vanish: tabs, the sidebar, window size, unloaded pages --- */
 
-setInterval(() => _AEMB_APPS.forEach(_aembReport), 200);
+// Only the open page, and a page that was just left (so its app hears it's hidden), is checked. Performance mode checks less often.
+function _aembTick() {
+    const active = document.querySelector('.tab.active')?.id;
+    for (const app of _AEMB_APPS) {
+        if (_AEMB_TABS[app] === active || (_aemb.sent[app] || '').includes('"visible":true')) _aembReport(app);
+    }
+    setTimeout(_aembTick, document.documentElement.classList.contains('hub-perf-polling') ? 600 : 200);
+}
+setTimeout(_aembTick, 200);
 
 (function _aembWatchTabs() {
     if (!document.getElementById(_AEMB_TABS.oyasumi)) { setTimeout(_aembWatchTabs, 1000); return; }

@@ -1,0 +1,42 @@
+{
+  "hub.perf.title": { "en": "Performance mode", "de": "Leistungsmodus", "es": "Modo rendimiento", "fr": "Mode performance", "ja": "パフォーマンスモード", "ko": "성능 모드", "ru": "Режим производительности", "zh-CN": "性能模式", "zh-TW": "效能模式" },
+  "hub.perf.mode": { "en": "Performance mode", "de": "Leistungsmodus", "es": "Modo rendimiento", "fr": "Mode performance", "ja": "パフォーマンスモード", "ko": "성능 모드", "ru": "Режим производительности", "zh-CN": "性能模式", "zh-TW": "效能模式" },
+  "hub.perf.mode_desc": {
+    "en": "For slower PCs. Turns off the effects below so scrolling and changing pages stay smooth.",
+    "de": "Für langsamere PCs. Schaltet die Effekte unten ab, damit Scrollen und Seitenwechsel flüssig bleiben.",
+    "es": "Para PC más lentos. Desactiva los efectos de abajo para que el desplazamiento y el cambio de página sigan fluidos.",
+    "fr": "Pour les PC plus lents. Désactive les effets ci-dessous pour que le défilement et le changement de page restent fluides.",
+    "ja": "性能の低い PC 向けです。下の効果をオフにして、スクロールやページ切り替えを滑らかに保ちます。",
+    "ko": "느린 PC용입니다. 아래 효과를 꺼서 스크롤과 페이지 전환을 부드럽게 유지합니다.",
+    "ru": "Для медленных ПК. Отключает эффекты ниже, чтобы прокрутка и смена страниц оставались плавными.",
+    "zh-CN": "适用于较慢的电脑。关闭下面的效果，让滚动和切换页面保持流畅。",
+    "zh-TW": "適用於較慢的電腦。關閉下面的效果，讓捲動和切換頁面保持流暢。"
+  },
+  "hub.perf.cut_blur": { "en": "No blur behind menus and cards", "de": "Keine Unschärfe hinter Menüs und Karten", "es": "Sin desenfoque detrás de menús y tarjetas", "fr": "Pas de flou derrière les menus et les cartes", "ja": "メニューやカードの背景をぼかさない", "ko": "메뉴와 카드 뒤 흐림 없음", "ru": "Без размытия за меню и карточками", "zh-CN": "菜单和卡片后不模糊", "zh-TW": "選單和卡片後不模糊" },
+  "hub.perf.cut_animations": { "en": "No animations", "de": "Keine Animationen", "es": "Sin animaciones", "fr": "Pas d'animations", "ja": "アニメーションなし", "ko": "애니메이션 없음", "ru": "Без анимаций", "zh-CN": "无动画", "zh-TW": "無動畫" },
+  "hub.perf.cut_pictures": { "en": "No profile pictures in the Mutual Network", "de": "Keine Profilbilder im Mutual Network", "es": "Sin fotos de perfil en la red de amigos en común", "fr": "Pas de photos de profil dans le réseau d'amis communs", "ja": "相互ネットワークにプロフィール画像を表示しない", "ko": "상호 네트워크에 프로필 사진 없음", "ru": "Без аватарок в сети общих друзей", "zh-CN": "共同好友网络中不显示头像", "zh-TW": "共同好友網路中不顯示頭像" },
+  "hub.perf.cut_glass": { "en": "No fade effect while scrolling the dashboard", "de": "Kein Überblendeffekt beim Scrollen des Dashboards", "es": "Sin efecto de fundido al desplazar el panel", "fr": "Pas de fondu en faisant défiler le tableau de bord", "ja": "ダッシュボードのスクロール時にフェードしない", "ko": "대시보드 스크롤 시 페이드 효과 없음", "ru": "Без эффекта затухания при прокрутке панели", "zh-CN": "滚动仪表板时没有渐变效果", "zh-TW": "捲動儀表板時沒有漸變效果" },
+  "hub.perf.cut_polling": { "en": "Check app pages less often", "de": "App-Seiten seltener prüfen", "es": "Revisar las páginas de apps con menos frecuencia", "fr": "Vérifier moins souvent les pages d'applis", "ja": "アプリページの確認頻度を下げる", "ko": "앱 페이지 확인 빈도 줄이기", "ru": "Реже проверять страницы приложений", "zh-CN": "降低应用页面的检查频率", "zh-TW": "降低應用程式頁面的檢查頻率" },
+  "hub.perf.system_weak": {
+    "en": "This PC: {threads} threads, {memory} GB of memory. Performance mode is recommended.",
+    "de": "Dieser PC: {threads} Threads, {memory} GB Arbeitsspeicher. Der Leistungsmodus wird empfohlen.",
+    "es": "Este PC: {threads} hilos, {memory} GB de memoria. Se recomienda el modo rendimiento.",
+    "fr": "Ce PC : {threads} threads, {memory} Go de mémoire. Le mode performance est recommandé.",
+    "ja": "この PC：{threads} スレッド、メモリ {memory} GB。パフォーマンスモードをおすすめします。",
+    "ko": "이 PC: 스레드 {threads}개, 메모리 {memory}GB. 성능 모드를 권장합니다.",
+    "ru": "Этот ПК: {threads} потоков, {memory} ГБ памяти. Рекомендуется режим производительности.",
+    "zh-CN": "此电脑：{threads} 个线程，{memory} GB 内存。建议开启性能模式。",
+    "zh-TW": "此電腦：{threads} 個執行緒，{memory} GB 記憶體。建議開啟效能模式。"
+  },
+  "hub.perf.system_ok": {
+    "en": "This PC: {threads} threads, {memory} GB of memory. It shouldn't need Performance mode.",
+    "de": "Dieser PC: {threads} Threads, {memory} GB Arbeitsspeicher. Er sollte den Leistungsmodus nicht brauchen.",
+    "es": "Este PC: {threads} hilos, {memory} GB de memoria. No debería necesitar el modo rendimiento.",
+    "fr": "Ce PC : {threads} threads, {memory} Go de mémoire. Il ne devrait pas avoir besoin du mode performance.",
+    "ja": "この PC：{threads} スレッド、メモリ {memory} GB。パフォーマンスモードは不要なはずです。",
+    "ko": "이 PC: 스레드 {threads}개, 메모리 {memory}GB. 성능 모드가 필요하지 않을 것입니다.",
+    "ru": "Этот ПК: {threads} потоков, {memory} ГБ памяти. Режим производительности ему не нужен.",
+    "zh-CN": "此电脑：{threads} 个线程，{memory} GB 内存。应该不需要性能模式。",
+    "zh-TW": "此電腦：{threads} 個執行緒，{memory} GB 記憶體。應該不需要效能模式。"
+  }
+}

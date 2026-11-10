@@ -133,6 +133,7 @@ public partial class AppShell
         var modules = _hub?.Modules.GetModules() ?? Array.Empty<HubModuleInfo>();
         SendToJS("hubModules", new
         {
+            system = new { threads = HubPerformanceModule.Threads, memoryGb = HubPerformanceModule.MemoryGb, weak = HubPerformanceModule.WeakMachine },
             modules = modules.Select(m => new
             {
                 id = m.Id,

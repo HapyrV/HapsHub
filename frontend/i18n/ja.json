@@ -4266,5 +4266,15 @@
   "hub.credit.patreon": "Patreon で支援する",
   "hub.brand.title": "アプリ名",
   "hub.brand.desc": "タイトルバー、サイドバー、トレイに表示されます。空にすると元の名前になります。どんな名前にしても VRCNext のクレジットは残ります。",
-  "hub.brand.reset": "元の名前に戻す"
+  "hub.brand.reset": "元の名前に戻す",
+  "hub.perf.title": "パフォーマンスモード",
+  "hub.perf.mode": "パフォーマンスモード",
+  "hub.perf.mode_desc": "性能の低い PC 向けです。下の効果をオフにして、スクロールやページ切り替えを滑らかに保ちます。",
+  "hub.perf.cut_blur": "メニューやカードの背景をぼかさない",
+  "hub.perf.cut_animations": "アニメーションなし",
+  "hub.perf.cut_pictures": "相互ネットワークにプロフィール画像を表示しない",
+  "hub.perf.cut_glass": "ダッシュボードのスクロール時にフェードしない",
+  "hub.perf.cut_polling": "アプリページの確認頻度を下げる",
+  "hub.perf.system_weak": "この PC：{threads} スレッド、メモリ {memory} GB。パフォーマンスモードをおすすめします。",
+  "hub.perf.system_ok": "この PC：{threads} スレッド、メモリ {memory} GB。パフォーマンスモードは不要なはずです。"
 }

@@ -4266,5 +4266,15 @@
   "hub.credit.patreon": "Apoyarlos en Patreon",
   "hub.brand.title": "Nombre de la app",
   "hub.brand.desc": "Se muestra en la barra de título, la barra lateral y la bandeja. Déjalo vacío para usar el nombre original. El crédito a VRCNext se mantiene sea cual sea el nombre.",
-  "hub.brand.reset": "Usar el nombre original"
+  "hub.brand.reset": "Usar el nombre original",
+  "hub.perf.title": "Modo rendimiento",
+  "hub.perf.mode": "Modo rendimiento",
+  "hub.perf.mode_desc": "Para PC más lentos. Desactiva los efectos de abajo para que el desplazamiento y el cambio de página sigan fluidos.",
+  "hub.perf.cut_blur": "Sin desenfoque detrás de menús y tarjetas",
+  "hub.perf.cut_animations": "Sin animaciones",
+  "hub.perf.cut_pictures": "Sin fotos de perfil en la red de amigos en común",
+  "hub.perf.cut_glass": "Sin efecto de fundido al desplazar el panel",
+  "hub.perf.cut_polling": "Revisar las páginas de apps con menos frecuencia",
+  "hub.perf.system_weak": "Este PC: {threads} hilos, {memory} GB de memoria. Se recomienda el modo rendimiento.",
+  "hub.perf.system_ok": "Este PC: {threads} hilos, {memory} GB de memoria. No debería necesitar el modo rendimiento."
 }

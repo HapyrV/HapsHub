@@ -13,6 +13,7 @@ public static class HubModules
     public static PhotoMetadataModule PhotoMetadata { get; } = new();
     public static YoutubeTunnelModule YoutubeTunnel { get; } = new();
     public static AppEmbedsModule AppEmbeds { get; } = new();
+    public static HubPerformanceModule Performance { get; } = new();
 
     public static IReadOnlyList<IHubModule> All() => new IHubModule[]
     {
@@ -29,5 +30,6 @@ public static class HubModules
         PhotoMetadata,
         YoutubeTunnel,
         AppEmbeds,
+        Performance,
     };
 }

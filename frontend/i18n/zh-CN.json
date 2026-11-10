@@ -4266,5 +4266,15 @@
   "hub.credit.patreon": "在 Patreon 上支持他们",
   "hub.brand.title": "应用名称",
   "hub.brand.desc": "显示在标题栏、侧边栏和托盘中。留空则使用原名。无论叫什么，对 VRCNext 的致谢都会保留。",
-  "hub.brand.reset": "使用原名"
+  "hub.brand.reset": "使用原名",
+  "hub.perf.title": "性能模式",
+  "hub.perf.mode": "性能模式",
+  "hub.perf.mode_desc": "适用于较慢的电脑。关闭下面的效果，让滚动和切换页面保持流畅。",
+  "hub.perf.cut_blur": "菜单和卡片后不模糊",
+  "hub.perf.cut_animations": "无动画",
+  "hub.perf.cut_pictures": "共同好友网络中不显示头像",
+  "hub.perf.cut_glass": "滚动仪表板时没有渐变效果",
+  "hub.perf.cut_polling": "降低应用页面的检查频率",
+  "hub.perf.system_weak": "此电脑：{threads} 个线程，{memory} GB 内存。建议开启性能模式。",
+  "hub.perf.system_ok": "此电脑：{threads} 个线程，{memory} GB 内存。应该不需要性能模式。"
 }

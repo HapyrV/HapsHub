@@ -20,6 +20,7 @@ function hubUiApply(modules) {
     _hubApplyDashboard();
     _hubApplyLetterSpacing();
     if (typeof hubBrandApply === 'function') hubBrandApply(_hubSetting(modules, 'hub.ui', 'app_name'));
+    if (typeof hubPerfApply === 'function') hubPerfApply(modules);
     hubWelcomeRender();
     _hubApplyForwardingNote(_hubSetting(modules, 'hub.forwarding', 'forward_avatar_data') === 'true');
 }

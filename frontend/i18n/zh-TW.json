@@ -4266,5 +4266,15 @@
   "hub.credit.patreon": "在 Patreon 上支持他們",
   "hub.brand.title": "應用程式名稱",
   "hub.brand.desc": "顯示在標題列、側邊欄和系統匣中。留空則使用原名。無論叫什麼，對 VRCNext 的致謝都會保留。",
-  "hub.brand.reset": "使用原名"
+  "hub.brand.reset": "使用原名",
+  "hub.perf.title": "效能模式",
+  "hub.perf.mode": "效能模式",
+  "hub.perf.mode_desc": "適用於較慢的電腦。關閉下面的效果，讓捲動和切換頁面保持流暢。",
+  "hub.perf.cut_blur": "選單和卡片後不模糊",
+  "hub.perf.cut_animations": "無動畫",
+  "hub.perf.cut_pictures": "共同好友網路中不顯示頭像",
+  "hub.perf.cut_glass": "捲動儀表板時沒有漸變效果",
+  "hub.perf.cut_polling": "降低應用程式頁面的檢查頻率",
+  "hub.perf.system_weak": "此電腦：{threads} 個執行緒，{memory} GB 記憶體。建議開啟效能模式。",
+  "hub.perf.system_ok": "此電腦：{threads} 個執行緒，{memory} GB 記憶體。應該不需要效能模式。"
 }

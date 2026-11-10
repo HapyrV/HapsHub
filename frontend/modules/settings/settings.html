@@ -74,6 +74,20 @@
                     </div>
 
                     <!-- PERFORMANCE -->
+                    <!-- PERFORMANCE MODE -->
+                    <div class="vrcn-panel-card" id="hubPerfCard" data-section="performance" style="display:none;">
+                        <div class="vrcn-panel-card-header"><span class="msi">bolt</span> <span data-i18n="hub.perf.title">Performance mode</span></div>
+                        <div class="sf-toggle-row">
+                            <div>
+                                <div data-i18n="hub.perf.mode">Performance mode</div>
+                                <div class="sf-desc" data-i18n="hub.perf.mode_desc">For slower PCs. Turns off the effects below so scrolling and changing pages stay smooth.</div>
+                            </div>
+                            <label class="toggle"><input type="checkbox" id="hubPerfMode" onchange="hubPerfSet('mode', this.checked)"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
+                        </div>
+                        <div class="sf-desc" id="hubPerfSystem" style="margin-top:6px;"></div>
+                        <div id="hubPerfCuts" class="hub-perf-cuts"></div>
+                    </div>
+
                     <div class="vrcn-panel-card" data-section="performance" style="display:none;">
                         <div class="vrcn-panel-card-header"><span class="msi">speed</span> <span data-i18n="settings.perf.title">Performance</span></div>
                         <div data-windows-only>

@@ -76,6 +76,9 @@ public sealed class HubModuleContext
 
     public string GetSetting(string key) => _registry.GetSetting(ModuleId, key);
 
+    /// <summary>Saves one of this module's own settings. False if it couldn't be saved.</summary>
+    public bool SetSetting(string key, string value) => _registry.SetSetting(ModuleId, key, value);
+
     /// <summary>Runs long work so that an exception fails only this module instead of going unnoticed.</summary>
     public void RunBackground(string name, Func<CancellationToken, Task> work)
     {

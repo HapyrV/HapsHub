@@ -4266,5 +4266,15 @@
   "hub.credit.patreon": "Auf Patreon unterstützen",
   "hub.brand.title": "App-Name",
   "hub.brand.desc": "Wird in der Titelleiste, der Seitenleiste und im Infobereich angezeigt. Leer lassen für den ursprünglichen Namen. Der Hinweis auf VRCNext bleibt, egal wie du es nennst.",
-  "hub.brand.reset": "Ursprünglichen Namen verwenden"
+  "hub.brand.reset": "Ursprünglichen Namen verwenden",
+  "hub.perf.title": "Leistungsmodus",
+  "hub.perf.mode": "Leistungsmodus",
+  "hub.perf.mode_desc": "Für langsamere PCs. Schaltet die Effekte unten ab, damit Scrollen und Seitenwechsel flüssig bleiben.",
+  "hub.perf.cut_blur": "Keine Unschärfe hinter Menüs und Karten",
+  "hub.perf.cut_animations": "Keine Animationen",
+  "hub.perf.cut_pictures": "Keine Profilbilder im Mutual Network",
+  "hub.perf.cut_glass": "Kein Überblendeffekt beim Scrollen des Dashboards",
+  "hub.perf.cut_polling": "App-Seiten seltener prüfen",
+  "hub.perf.system_weak": "Dieser PC: {threads} Threads, {memory} GB Arbeitsspeicher. Der Leistungsmodus wird empfohlen.",
+  "hub.perf.system_ok": "Dieser PC: {threads} Threads, {memory} GB Arbeitsspeicher. Er sollte den Leistungsmodus nicht brauchen."
 }

@@ -4266,5 +4266,15 @@
   "hub.credit.patreon": "Patreon에서 후원하기",
   "hub.brand.title": "앱 이름",
   "hub.brand.desc": "제목 표시줄, 사이드바, 트레이에 표시됩니다. 비워 두면 원래 이름을 씁니다. 어떤 이름을 쓰든 VRCNext 크레딧은 그대로 남습니다.",
-  "hub.brand.reset": "원래 이름 사용"
+  "hub.brand.reset": "원래 이름 사용",
+  "hub.perf.title": "성능 모드",
+  "hub.perf.mode": "성능 모드",
+  "hub.perf.mode_desc": "느린 PC용입니다. 아래 효과를 꺼서 스크롤과 페이지 전환을 부드럽게 유지합니다.",
+  "hub.perf.cut_blur": "메뉴와 카드 뒤 흐림 없음",
+  "hub.perf.cut_animations": "애니메이션 없음",
+  "hub.perf.cut_pictures": "상호 네트워크에 프로필 사진 없음",
+  "hub.perf.cut_glass": "대시보드 스크롤 시 페이드 효과 없음",
+  "hub.perf.cut_polling": "앱 페이지 확인 빈도 줄이기",
+  "hub.perf.system_weak": "이 PC: 스레드 {threads}개, 메모리 {memory}GB. 성능 모드를 권장합니다.",
+  "hub.perf.system_ok": "이 PC: 스레드 {threads}개, 메모리 {memory}GB. 성능 모드가 필요하지 않을 것입니다."
 }

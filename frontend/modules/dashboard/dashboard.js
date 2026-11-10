@@ -1982,7 +1982,9 @@ document.documentElement.addEventListener('languagechange', rerenderDashTranslat
 
     function applyGlass() {
         const onDash = tab0 && tab0.classList.contains('active');
-        const t = onDash ? Math.min((content?.scrollTop || 0) / FADE_PX, 1) : 1;
+        // Performance mode skips the fade: it restyles both sidebars on every frame of the first scroll.
+        const steady = document.documentElement.classList.contains('hub-perf-glass');
+        const t = onDash && !steady ? Math.min((content?.scrollTop || 0) / FADE_PX, 1) : 1;
         const target = 1 - t;
         const sig = t.toFixed(3);
         if (onDash === _wasDash && sig === _glassLast) return;

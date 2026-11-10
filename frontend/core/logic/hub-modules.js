@@ -27,6 +27,8 @@ function hubSettingChanged(input) {
 // A slot id that doesn't exist hides the setting; its own page edits it.
 const _HUB_MOVED_SETTINGS = {
     'hub.forwarding': { forward_avatar_data: 'hubForwardingSlot' },
+    // Settings > Performance draws these itself.
+    'hub.performance': { mode: 'hubOwnPage', cut_blur: 'hubOwnPage', cut_animations: 'hubOwnPage', cut_pictures: 'hubOwnPage', cut_glass: 'hubOwnPage', cut_polling: 'hubOwnPage' },
     'hub.ui': {
         welcome_off: 'hubOwnPage', welcome_custom: 'hubOwnPage', letter_spacing: 'hubOwnPage', app_name: 'hubOwnPage',
         dash_welcome: 'hubOwnPage', dash_online: 'hubOwnPage', dash_status: 'hubOwnPage', dash_friends: 'hubOwnPage', dash_web: 'hubOwnPage',
@@ -84,5 +86,6 @@ function onHubModules(payload) {
             if (slot) slot.innerHTML = _hubModuleRow(module, key);
         }
     }
+    if (payload.system) window.hubSystemInfo = payload.system;
     if (payload.modules?.length) hubUiApply(payload.modules);
 }

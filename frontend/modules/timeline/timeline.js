@@ -1823,7 +1823,15 @@ function renderFtAvatarBody(ev) {
     }
     document.addEventListener('scroll', e => { if (e.target instanceof Element && e.target.matches(FADE_SEL)) updateFade(e.target); }, true);
     window.addEventListener('resize', updateAllFades);
-    new MutationObserver(updateAllFades).observe(document.documentElement, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class', 'style', 'hidden'] });
+    // Only changes in or around a fading row matter. Anything else (the clock, the sidebars, the dashboard's scroll
+    // effect) used to measure every row on the page again.
+    const touchesRow = record => {
+        const node = record.target.nodeType === 1 ? record.target : record.target.parentElement;
+        if (!node) return false;
+        if (node.closest(FADE_SEL)) return true;
+        return record.type === 'childList' && [...record.addedNodes].some(added => added.nodeType === 1 && (added.matches(FADE_SEL) || added.querySelector(FADE_SEL)));
+    };
+    new MutationObserver(records => { if (records.some(touchesRow)) updateAllFades(); }).observe(document.documentElement, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class', 'style', 'hidden'] });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(updateAllFades);
     updateAllFades();
 })();
