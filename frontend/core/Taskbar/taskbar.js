@@ -464,5 +464,11 @@ function tbToggleTools() {
     const title = document.getElementById('pageTitle');
     if (title) new MutationObserver(soon).observe(title, { childList: true, characterData: true, subtree: true });
     if (document.fonts?.ready) document.fonts.ready.then(fit);
+    // The app controls on the right fill in after a page opens, and the menus change with the language:
+    // either side changing size can leave the menus cut off, so the bar fits itself again.
+    if (window.ResizeObserver) {
+        const sides = new ResizeObserver(soon);
+        for (const id of ['tb-right', 'tbNormalLeft']) { const el = document.getElementById(id); if (el) sides.observe(el); }
+    }
     setTimeout(fit, 0);
 })();

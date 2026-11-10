@@ -261,7 +261,6 @@ section('plugins off', async main => {
     await main.eval(`hubOpenPlugins()`);
     await waitFor('plugin rows', () => main.eval(`document.querySelectorAll('.hub-plugin-row').length > 20`), 5000);
     const result = JSON.parse(await main.eval(`(async () => {
-        const wait = ms => new Promise(r => setTimeout(r, ms));
         const visible = el => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
         const navs = [...document.querySelectorAll('#tab9 .settings-nav-item')];
         const found = [];
@@ -275,7 +274,7 @@ section('plugins off', async main => {
             for (const nav of navs.filter(visible)) {
                 nav.click();
                 visits++;
-                await wait(25);
+                await null; // no timers: a test window left in the background gets them throttled to one a minute
                 for (const selector of selectors)
                     for (const el of document.querySelectorAll(selector))
                         if (el.closest('#tab9') && visible(el)) found.push(p.id + ': ' + selector + ' in ' + nav.textContent.trim());
