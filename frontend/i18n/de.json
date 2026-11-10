@@ -4337,5 +4337,15 @@
   "launch.addons.new_switch": "Neuer Schalter",
   "hub.dash.shuffle": "Anderes Bild zeigen",
   "hub.dash.shuffle_no_wide": "In deinen Hintergrundordnern wurde kein breites Bild gefunden.",
-  "hub.dash.shuffle_none": "Keine Bilder gefunden. Füge unter Einstellungen > Darstellung > Hintergrund einen Ordner hinzu."
+  "hub.dash.shuffle_none": "Keine Bilder gefunden. Füge unter Einstellungen > Darstellung > Hintergrund einen Ordner hinzu.",
+  "page.help.30": "Sieh, wann deine Freunde meistens online sind, Stunde für Stunde, um eine gute Zeit für ein Treffen zu finden. Wähle Freunde zum Vergleichen aus, dann fallen die gemeinsamen Stunden auf.",
+  "page.help.31": "Alles, was HapsHub aufgezeichnet hat: Namens- und Vertrauensänderungen, Benachrichtigungen, abgespielte Videos, getragene Avatare und besuchte Orte. Durchsuche es, filtere nach Art oder öffne eine Person oder Welt.",
+  "page.help.32": "Spielt einen YouTube-Song über ein virtuelles Audiokabel in dein VRChat-Mikrofon, damit alle in der Nähe ihn hören. Link einfügen, abspielen und die Lautstärke für sie und dich einstellen.",
+  "page.help.33": "OyasumiVR, der Schlafhelfer für VR, direkt in HapsHub. Öffne ihn hier, um Schlafmodus, Helligkeit und Automatisierungen zu ändern, ohne HapsHub zu verlassen.",
+  "page.help.34": "Deine Eagle-Bildersammlung in HapsHub. Durchsuche Ordner und Bilder aus Eagle, während es läuft, und öffne jedes Bild in Eagle selbst.",
+  "page.help.35": "Ändere hier die Bewegungsoptionen von OVR Advanced Settings: Spielbereich ziehen, Schwerkraft und Snap Turn. Änderungen gehen direkt an OVR Advanced Settings, solange SteamVR läuft.",
+  "page.help.36": "Space Calibrator in HapsHub, um Tracker aus einem anderen Tracking-System an dein Headset anzugleichen. In den Optionen wechselst du außerdem zwischen der öffentlichen und der Beta-Version auf Steam.",
+  "page.help.37": "VRCT, von HapsHub gesteuert: Deine Sprache wird zu Chatbox-Nachrichten, was andere sagen, wird übersetzt angezeigt, und du kannst Nachrichten tippen. Wähle die Sprachen, die VRCT anbietet, und den Übersetzer.",
+  "page.help.38": "Das Desktop-Fenster von OVR Toolkit in HapsHub, um Overlays und Handgelenkmenü einzurichten, ohne das Fenster zu wechseln.",
+  "page.help.39": "Ein Globus deiner Freunde, platziert nach dem, was ihre Profile zeigen: eine Flagge, woher sie laut Profil kommen, oder eine Sprache. Suche einen Freund oder lege sein Land selbst fest; deine Angabe gilt immer."
 }

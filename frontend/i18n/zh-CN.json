@@ -4337,5 +4337,15 @@
   "launch.addons.new_switch": "新开关",
   "hub.dash.shuffle": "换一张图片",
   "hub.dash.shuffle_no_wide": "背景文件夹中没有横向图片。",
-  "hub.dash.shuffle_none": "没有图片。请在 设置 > 外观 > 背景 中添加文件夹。"
+  "hub.dash.shuffle_none": "没有图片。请在 设置 > 外观 > 背景 中添加文件夹。",
+  "page.help.30": "按小时显示好友通常在线的时间，帮你找到适合见面的时段。选择要比较的好友，共同在线的时段会被突出显示。",
+  "page.help.31": "HapsHub 记录的一切：改名和信任等级变化、通知、播放的视频、穿过的模型和去过的地方。可搜索、按类型筛选，或从任一条目打开对应的人或世界。",
+  "page.help.32": "通过虚拟音频线把 YouTube 歌曲播放到你的 VRChat 麦克风，让附近的人都能听到。粘贴链接、播放，并分别调节他们和你听到的音量。",
+  "page.help.33": "在 HapsHub 中显示 VR 睡眠助手 OyasumiVR。在这里打开它，无需离开 HapsHub 就能调整睡眠模式、亮度和自动化。",
+  "page.help.34": "在 HapsHub 中浏览你的 Eagle 图片库。Eagle 运行时可浏览文件夹和图片，并可在 Eagle 中打开任意图片。",
+  "page.help.35": "在这里修改 OVR Advanced Settings 的移动选项：拖动游玩空间、重力和分段转向。SteamVR 运行时，修改会立即生效。",
+  "page.help.36": "在 HapsHub 中显示 Space Calibrator，用于把其他追踪系统的追踪器与头显对齐。它的选项还能在 Steam 正式版和测试版之间切换。",
+  "page.help.37": "由 HapsHub 运行的 VRCT：你说的话会变成聊天框消息，别人说的话会翻译显示，你也可以输入文字发送。选择 VRCT 支持的语言和翻译引擎。",
+  "page.help.38": "在 HapsHub 中显示 OVR Toolkit 的桌面窗口，无需切换窗口即可设置它的覆盖层和手腕菜单。",
+  "page.help.39": "一个标出好友位置的地球，依据他们资料中的国旗、自述来自哪里或语言来放置。可以搜索好友，也可以自己设定好友的国家；你的设定始终优先。"
 }

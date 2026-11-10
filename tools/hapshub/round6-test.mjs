@@ -121,6 +121,31 @@ section('dashboard', async main => {
     check('D2: each click shows a different picture, never an Eagle preview', ok, seen.join(','));
 });
 
+section('help', async main => {
+    const read = () => main.json(`(() => {
+        const out = {};
+        const tabs = [...new Set(Object.values(NAV_ITEMS_DEF).map(d => d.tab))];
+        for (const tab of tabs) {
+            showTab(tab);
+            toggleHelpPanel();
+            out[tab] = document.getElementById('helpPanelText').textContent.trim();
+            toggleHelpPanel();
+        }
+        return out;
+    })()`);
+    const en = await read();
+    const short = Object.entries(en).filter(([, text]) => text.length < 20).map(([tab]) => tab);
+    check('H1: every page in the sidebar has an info box', short.length === 0, 'empty: ' + short.join(','));
+    await main.eval(`typeof setLanguage === 'function' ? setLanguage('ja') : requestTranslation('ja')`);
+    await sleep(2000);
+    const ja = await read();
+    const same = [30, 31, 37, 39].filter(tab => !ja[tab] || ja[tab] === en[tab]);
+    check('H1: the new info boxes are translated', same.length === 0, 'not translated: ' + same.join(','));
+    await main.eval(`typeof setLanguage === 'function' ? setLanguage('en') : requestTranslation('en')`);
+    await sleep(1500);
+    await main.eval(`showTab(0)`);
+});
+
 // A picture folder for the dashboard: three wide pictures and an Eagle-style preview that must never be picked.
 const pics = mkdtempSync(join(tmpdir(), 'hapshub-pics-'));
 writePng(join(pics, 'red.png'), 64, 36, [200, 30, 30]);

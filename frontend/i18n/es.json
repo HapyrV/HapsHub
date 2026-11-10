@@ -4337,5 +4337,15 @@
   "launch.addons.new_switch": "Nuevo interruptor",
   "hub.dash.shuffle": "Mostrar otra imagen",
   "hub.dash.shuffle_no_wide": "No se encontró ninguna imagen horizontal en tus carpetas de fondo.",
-  "hub.dash.shuffle_none": "No hay imágenes. Añade una carpeta en Ajustes > Apariencia > Fondo."
+  "hub.dash.shuffle_none": "No hay imágenes. Añade una carpeta en Ajustes > Apariencia > Fondo.",
+  "page.help.30": "Mira a qué horas suelen estar conectados tus amigos para encontrar un buen momento para quedar. Elige amigos para comparar y verás las horas que compartís.",
+  "page.help.31": "Todo lo que HapsHub ha registrado: cambios de nombre y de confianza, notificaciones, vídeos, avatares usados y lugares visitados. Busca, filtra por tipo o abre una persona o un mundo desde cualquier entrada.",
+  "page.help.32": "Reproduce una canción de YouTube en tu micrófono de VRChat mediante un cable de audio virtual, para que todos los cercanos la oigan. Pega un enlace, dale a reproducir y ajusta el volumen.",
+  "page.help.33": "OyasumiVR, el asistente para dormir en VR, dentro de HapsHub. Ábrelo aquí para cambiar su modo sueño, el brillo y sus automatizaciones sin salir de HapsHub.",
+  "page.help.34": "Tu biblioteca de imágenes de Eagle dentro de HapsHub. Explora carpetas e imágenes de Eagle mientras está abierto y abre cualquier imagen en Eagle.",
+  "page.help.35": "Cambia aquí las opciones de movimiento de OVR Advanced Settings: arrastrar el espacio de juego, gravedad y giro por pasos. Los cambios se aplican al momento mientras SteamVR esté abierto.",
+  "page.help.36": "Space Calibrator dentro de HapsHub, para alinear trackers de otro sistema de seguimiento con tu visor. En sus opciones también cambias entre la versión pública y la beta de Steam.",
+  "page.help.37": "VRCT gestionado por HapsHub: lo que dices se convierte en mensajes del chatbox, lo que dicen otros aparece traducido y puedes escribir mensajes. Elige los idiomas que ofrece VRCT y el traductor.",
+  "page.help.38": "La ventana de escritorio de OVR Toolkit dentro de HapsHub, para configurar sus overlays y el menú de muñeca sin cambiar de ventana.",
+  "page.help.39": "Un globo con tus amigos, situados según lo que muestran sus perfiles: una bandera, de dónde dicen ser o un idioma. Busca a un amigo o indica tú su país; lo tuyo siempre manda."
 }

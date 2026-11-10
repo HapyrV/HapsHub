@@ -4337,5 +4337,15 @@
   "launch.addons.new_switch": "Nouvel interrupteur",
   "hub.dash.shuffle": "Afficher une autre image",
   "hub.dash.shuffle_no_wide": "Aucune image en paysage dans vos dossiers de fond.",
-  "hub.dash.shuffle_none": "Aucune image. Ajoutez un dossier dans Réglages > Apparence > Fond."
+  "hub.dash.shuffle_none": "Aucune image. Ajoutez un dossier dans Réglages > Apparence > Fond.",
+  "page.help.30": "Voyez quand vos amis sont en ligne d'habitude, heure par heure, pour trouver un bon moment. Choisissez des amis à comparer et les heures communes ressortent.",
+  "page.help.31": "Tout ce que HapsHub a enregistré : changements de nom et de confiance, notifications, vidéos, avatars portés et lieux visités. Cherchez, filtrez par type ou ouvrez une personne ou un monde depuis une entrée.",
+  "page.help.32": "Joue une chanson YouTube dans votre micro VRChat via un câble audio virtuel, pour que tout le monde l'entende. Collez un lien, lancez la lecture et réglez le volume pour eux et pour vous.",
+  "page.help.33": "OyasumiVR, l'assistant de sommeil pour la VR, affiché dans HapsHub. Ouvrez-le ici pour régler son mode sommeil, la luminosité et ses automatisations.",
+  "page.help.34": "Votre bibliothèque d'images Eagle dans HapsHub. Parcourez dossiers et images d'Eagle pendant qu'il tourne, et ouvrez n'importe quelle image dans Eagle.",
+  "page.help.35": "Modifiez ici les options de mouvement d'OVR Advanced Settings : déplacement de l'espace de jeu, gravité et rotation par paliers. Les changements s'appliquent tant que SteamVR tourne.",
+  "page.help.36": "Space Calibrator dans HapsHub, pour aligner des trackers d'un autre système avec votre casque. Ses options basculent aussi entre les versions publique et bêta sur Steam.",
+  "page.help.37": "VRCT piloté par HapsHub : votre voix devient des messages de chatbox, ce que disent les autres s'affiche traduit, et vous pouvez taper un message. Choisissez les langues proposées par VRCT et le traducteur.",
+  "page.help.38": "La fenêtre de bureau d'OVR Toolkit dans HapsHub, pour régler ses overlays et son menu de poignet sans changer de fenêtre.",
+  "page.help.39": "Un globe de vos amis, placés selon leurs profils : un drapeau, d'où ils disent venir ou une langue. Cherchez un ami ou indiquez vous-même son pays ; votre choix l'emporte toujours."
 }

@@ -1,0 +1,112 @@
+{
+  "page.help.30": {
+    "en": "See when your friends are usually online, hour by hour, to find a good time to meet. Pick friends to compare and the busiest shared hours stand out.",
+    "de": "Sieh, wann deine Freunde meistens online sind, Stunde für Stunde, um eine gute Zeit für ein Treffen zu finden. Wähle Freunde zum Vergleichen aus, dann fallen die gemeinsamen Stunden auf.",
+    "es": "Mira a qué horas suelen estar conectados tus amigos para encontrar un buen momento para quedar. Elige amigos para comparar y verás las horas que compartís.",
+    "fr": "Voyez quand vos amis sont en ligne d'habitude, heure par heure, pour trouver un bon moment. Choisissez des amis à comparer et les heures communes ressortent.",
+    "ja": "フレンドがよくオンラインになる時間帯を1時間ごとに表示し、会いやすい時間を探せます。比較するフレンドを選ぶと、重なる時間が目立ちます。",
+    "ko": "친구들이 주로 접속하는 시간을 시간대별로 보여 줘서 만나기 좋은 시간을 찾을 수 있습니다. 비교할 친구를 고르면 겹치는 시간이 눈에 띕니다.",
+    "ru": "Показывает, когда друзья обычно в сети, по часам, чтобы найти удобное время для встречи. Выберите друзей для сравнения — общие часы будут выделены.",
+    "zh-CN": "按小时显示好友通常在线的时间，帮你找到适合见面的时段。选择要比较的好友，共同在线的时段会被突出显示。",
+    "zh-TW": "按小時顯示好友通常在線的時間，幫你找到適合見面的時段。選擇要比較的好友，共同在線的時段會被凸顯。"
+  },
+  "page.help.31": {
+    "en": "Everything HapsHub has recorded: name and trust changes, notifications, videos played, avatars worn and places visited. Search it, filter by kind, or open a person or world from any entry.",
+    "de": "Alles, was HapsHub aufgezeichnet hat: Namens- und Vertrauensänderungen, Benachrichtigungen, abgespielte Videos, getragene Avatare und besuchte Orte. Durchsuche es, filtere nach Art oder öffne eine Person oder Welt.",
+    "es": "Todo lo que HapsHub ha registrado: cambios de nombre y de confianza, notificaciones, vídeos, avatares usados y lugares visitados. Busca, filtra por tipo o abre una persona o un mundo desde cualquier entrada.",
+    "fr": "Tout ce que HapsHub a enregistré : changements de nom et de confiance, notifications, vidéos, avatars portés et lieux visités. Cherchez, filtrez par type ou ouvrez une personne ou un monde depuis une entrée.",
+    "ja": "HapsHub が記録したすべて：名前や信頼ランクの変化、通知、再生した動画、着たアバター、訪れた場所。検索や種類での絞り込み、各項目から人やワールドを開くことができます。",
+    "ko": "HapsHub가 기록한 모든 것: 이름과 신뢰 등급 변경, 알림, 재생한 동영상, 착용한 아바타, 방문한 장소. 검색하고 종류별로 거르거나 항목에서 사람이나 월드를 열 수 있습니다.",
+    "ru": "Всё, что записал HapsHub: смены имён и уровня доверия, уведомления, видео, аватары и посещённые места. Ищите, фильтруйте по типу или открывайте человека или мир из любой записи.",
+    "zh-CN": "HapsHub 记录的一切：改名和信任等级变化、通知、播放的视频、穿过的模型和去过的地方。可搜索、按类型筛选，或从任一条目打开对应的人或世界。",
+    "zh-TW": "HapsHub 記錄的一切：改名與信任等級變化、通知、播放的影片、穿過的模型和去過的地方。可搜尋、依類型篩選，或從任一項目開啟對應的人或世界。"
+  },
+  "page.help.32": {
+    "en": "Play a YouTube song into your VRChat microphone through a virtual audio cable, so everyone nearby hears it. Paste a link, press play, and set the volume for them and for you.",
+    "de": "Spielt einen YouTube-Song über ein virtuelles Audiokabel in dein VRChat-Mikrofon, damit alle in der Nähe ihn hören. Link einfügen, abspielen und die Lautstärke für sie und dich einstellen.",
+    "es": "Reproduce una canción de YouTube en tu micrófono de VRChat mediante un cable de audio virtual, para que todos los cercanos la oigan. Pega un enlace, dale a reproducir y ajusta el volumen.",
+    "fr": "Joue une chanson YouTube dans votre micro VRChat via un câble audio virtuel, pour que tout le monde l'entende. Collez un lien, lancez la lecture et réglez le volume pour eux et pour vous.",
+    "ja": "仮想オーディオケーブルを通して YouTube の曲を VRChat のマイクに流し、近くの人に聞かせます。リンクを貼って再生し、相手と自分の音量を調整できます。",
+    "ko": "가상 오디오 케이블로 YouTube 노래를 VRChat 마이크에 흘려보내 주변 사람들이 들을 수 있게 합니다. 링크를 붙여 넣고 재생한 뒤 상대와 내 볼륨을 조절하세요.",
+    "ru": "Проигрывает песню с YouTube в микрофон VRChat через виртуальный аудиокабель, чтобы её слышали все рядом. Вставьте ссылку, нажмите воспроизведение и настройте громкость.",
+    "zh-CN": "通过虚拟音频线把 YouTube 歌曲播放到你的 VRChat 麦克风，让附近的人都能听到。粘贴链接、播放，并分别调节他们和你听到的音量。",
+    "zh-TW": "透過虛擬音訊線把 YouTube 歌曲播放到你的 VRChat 麥克風，讓附近的人都能聽到。貼上連結、播放，並分別調整他們和你聽到的音量。"
+  },
+  "page.help.33": {
+    "en": "OyasumiVR, the sleep helper for VR, shown inside HapsHub. Open it here to change its sleep mode, brightness and automations without leaving HapsHub.",
+    "de": "OyasumiVR, der Schlafhelfer für VR, direkt in HapsHub. Öffne ihn hier, um Schlafmodus, Helligkeit und Automatisierungen zu ändern, ohne HapsHub zu verlassen.",
+    "es": "OyasumiVR, el asistente para dormir en VR, dentro de HapsHub. Ábrelo aquí para cambiar su modo sueño, el brillo y sus automatizaciones sin salir de HapsHub.",
+    "fr": "OyasumiVR, l'assistant de sommeil pour la VR, affiché dans HapsHub. Ouvrez-le ici pour régler son mode sommeil, la luminosité et ses automatisations.",
+    "ja": "VR 用のスリープ補助アプリ OyasumiVR を HapsHub の中に表示します。ここで開けば、HapsHub から離れずにスリープモードや明るさ、自動化を変更できます。",
+    "ko": "VR 수면 도우미 OyasumiVR를 HapsHub 안에서 보여 줍니다. 여기서 열면 HapsHub를 떠나지 않고 수면 모드, 밝기, 자동화를 바꿀 수 있습니다.",
+    "ru": "OyasumiVR, помощник для сна в VR, прямо в HapsHub. Откройте его здесь, чтобы менять режим сна, яркость и автоматизации, не выходя из HapsHub.",
+    "zh-CN": "在 HapsHub 中显示 VR 睡眠助手 OyasumiVR。在这里打开它，无需离开 HapsHub 就能调整睡眠模式、亮度和自动化。",
+    "zh-TW": "在 HapsHub 中顯示 VR 睡眠助手 OyasumiVR。在這裡開啟它，不必離開 HapsHub 就能調整睡眠模式、亮度與自動化。"
+  },
+  "page.help.34": {
+    "en": "Your Eagle picture library inside HapsHub. Browse folders and pictures from Eagle while it runs, and open any picture in Eagle itself.",
+    "de": "Deine Eagle-Bildersammlung in HapsHub. Durchsuche Ordner und Bilder aus Eagle, während es läuft, und öffne jedes Bild in Eagle selbst.",
+    "es": "Tu biblioteca de imágenes de Eagle dentro de HapsHub. Explora carpetas e imágenes de Eagle mientras está abierto y abre cualquier imagen en Eagle.",
+    "fr": "Votre bibliothèque d'images Eagle dans HapsHub. Parcourez dossiers et images d'Eagle pendant qu'il tourne, et ouvrez n'importe quelle image dans Eagle.",
+    "ja": "Eagle の画像ライブラリを HapsHub の中で表示します。Eagle の起動中にフォルダーや画像を閲覧でき、どの画像も Eagle で開けます。",
+    "ko": "HapsHub 안에서 Eagle 사진 라이브러리를 봅니다. Eagle이 실행 중일 때 폴더와 사진을 둘러보고, 어떤 사진이든 Eagle에서 열 수 있습니다.",
+    "ru": "Ваша библиотека картинок Eagle внутри HapsHub. Просматривайте папки и картинки Eagle, пока он запущен, и открывайте любую картинку в самом Eagle.",
+    "zh-CN": "在 HapsHub 中浏览你的 Eagle 图片库。Eagle 运行时可浏览文件夹和图片，并可在 Eagle 中打开任意图片。",
+    "zh-TW": "在 HapsHub 中瀏覽你的 Eagle 圖片庫。Eagle 執行時可瀏覽資料夾與圖片，並可在 Eagle 中開啟任何圖片。"
+  },
+  "page.help.35": {
+    "en": "Change OVR Advanced Settings' movement options from here: dragging your play space, gravity and snap turn. Changes go straight to OVR Advanced Settings while SteamVR runs.",
+    "de": "Ändere hier die Bewegungsoptionen von OVR Advanced Settings: Spielbereich ziehen, Schwerkraft und Snap Turn. Änderungen gehen direkt an OVR Advanced Settings, solange SteamVR läuft.",
+    "es": "Cambia aquí las opciones de movimiento de OVR Advanced Settings: arrastrar el espacio de juego, gravedad y giro por pasos. Los cambios se aplican al momento mientras SteamVR esté abierto.",
+    "fr": "Modifiez ici les options de mouvement d'OVR Advanced Settings : déplacement de l'espace de jeu, gravité et rotation par paliers. Les changements s'appliquent tant que SteamVR tourne.",
+    "ja": "OVR Advanced Settings の移動オプション（プレイスペースのドラッグ、重力、スナップターン）をここで変更できます。SteamVR の起動中は変更がすぐに反映されます。",
+    "ko": "OVR Advanced Settings의 이동 옵션(플레이 공간 끌기, 중력, 스냅 회전)을 여기서 바꿉니다. SteamVR 실행 중에는 바로 적용됩니다.",
+    "ru": "Меняйте здесь параметры движения OVR Advanced Settings: перетаскивание игровой зоны, гравитацию и поворот рывками. Пока SteamVR запущен, изменения применяются сразу.",
+    "zh-CN": "在这里修改 OVR Advanced Settings 的移动选项：拖动游玩空间、重力和分段转向。SteamVR 运行时，修改会立即生效。",
+    "zh-TW": "在這裡修改 OVR Advanced Settings 的移動選項：拖曳遊玩空間、重力與分段轉向。SteamVR 執行時，修改會立即生效。"
+  },
+  "page.help.36": {
+    "en": "Space Calibrator inside HapsHub, for lining up trackers from another tracking system with your headset. Its options also switch between Space Calibrator's Steam public and beta versions.",
+    "de": "Space Calibrator in HapsHub, um Tracker aus einem anderen Tracking-System an dein Headset anzugleichen. In den Optionen wechselst du außerdem zwischen der öffentlichen und der Beta-Version auf Steam.",
+    "es": "Space Calibrator dentro de HapsHub, para alinear trackers de otro sistema de seguimiento con tu visor. En sus opciones también cambias entre la versión pública y la beta de Steam.",
+    "fr": "Space Calibrator dans HapsHub, pour aligner des trackers d'un autre système avec votre casque. Ses options basculent aussi entre les versions publique et bêta sur Steam.",
+    "ja": "別のトラッキング方式のトラッカーをヘッドセットに合わせる Space Calibrator を HapsHub の中に表示します。オプションでは Steam の公開版とベータ版を切り替えられます。",
+    "ko": "다른 트래킹 시스템의 트래커를 헤드셋에 맞추는 Space Calibrator를 HapsHub 안에서 보여 줍니다. 옵션에서 Steam 공개 버전과 베타 버전도 전환할 수 있습니다.",
+    "ru": "Space Calibrator внутри HapsHub — чтобы совместить трекеры другой системы отслеживания с гарнитурой. В его настройках также можно переключаться между обычной и бета-версией в Steam.",
+    "zh-CN": "在 HapsHub 中显示 Space Calibrator，用于把其他追踪系统的追踪器与头显对齐。它的选项还能在 Steam 正式版和测试版之间切换。",
+    "zh-TW": "在 HapsHub 中顯示 Space Calibrator，用來把其他追蹤系統的追蹤器與頭顯對齊。它的選項也能在 Steam 正式版與測試版之間切換。"
+  },
+  "page.help.37": {
+    "en": "VRCT run by HapsHub: your speech becomes chatbox messages, what others say is shown translated, and you can type a message to send. Pick the languages VRCT offers and the translator to use.",
+    "de": "VRCT, von HapsHub gesteuert: Deine Sprache wird zu Chatbox-Nachrichten, was andere sagen, wird übersetzt angezeigt, und du kannst Nachrichten tippen. Wähle die Sprachen, die VRCT anbietet, und den Übersetzer.",
+    "es": "VRCT gestionado por HapsHub: lo que dices se convierte en mensajes del chatbox, lo que dicen otros aparece traducido y puedes escribir mensajes. Elige los idiomas que ofrece VRCT y el traductor.",
+    "fr": "VRCT piloté par HapsHub : votre voix devient des messages de chatbox, ce que disent les autres s'affiche traduit, et vous pouvez taper un message. Choisissez les langues proposées par VRCT et le traducteur.",
+    "ja": "HapsHub が動かす VRCT：あなたの声がチャットボックスのメッセージになり、他の人の発言は翻訳して表示され、文字で送信もできます。VRCT が対応する言語と翻訳エンジンを選べます。",
+    "ko": "HapsHub가 실행하는 VRCT: 말한 내용이 채팅박스 메시지가 되고, 다른 사람의 말은 번역되어 보이며, 직접 입력해 보낼 수도 있습니다. VRCT가 지원하는 언어와 번역기를 고르세요.",
+    "ru": "VRCT под управлением HapsHub: ваша речь превращается в сообщения чатбокса, речь других показывается в переводе, можно и напечатать сообщение. Выберите языки, которые поддерживает VRCT, и переводчик.",
+    "zh-CN": "由 HapsHub 运行的 VRCT：你说的话会变成聊天框消息，别人说的话会翻译显示，你也可以输入文字发送。选择 VRCT 支持的语言和翻译引擎。",
+    "zh-TW": "由 HapsHub 執行的 VRCT：你說的話會變成聊天框訊息，別人說的話會翻譯後顯示，你也可以輸入文字傳送。選擇 VRCT 支援的語言與翻譯引擎。"
+  },
+  "page.help.38": {
+    "en": "OVR Toolkit's desktop window inside HapsHub, to set up its overlays and wrist menu without switching windows.",
+    "de": "Das Desktop-Fenster von OVR Toolkit in HapsHub, um Overlays und Handgelenkmenü einzurichten, ohne das Fenster zu wechseln.",
+    "es": "La ventana de escritorio de OVR Toolkit dentro de HapsHub, para configurar sus overlays y el menú de muñeca sin cambiar de ventana.",
+    "fr": "La fenêtre de bureau d'OVR Toolkit dans HapsHub, pour régler ses overlays et son menu de poignet sans changer de fenêtre.",
+    "ja": "OVR Toolkit のデスクトップ画面を HapsHub の中に表示し、ウィンドウを切り替えずにオーバーレイや手首メニューを設定できます。",
+    "ko": "OVR Toolkit의 데스크톱 창을 HapsHub 안에서 보여 줘서, 창을 바꾸지 않고 오버레이와 손목 메뉴를 설정할 수 있습니다.",
+    "ru": "Окно OVR Toolkit внутри HapsHub — настраивайте его оверлеи и меню на запястье, не переключая окна.",
+    "zh-CN": "在 HapsHub 中显示 OVR Toolkit 的桌面窗口，无需切换窗口即可设置它的覆盖层和手腕菜单。",
+    "zh-TW": "在 HapsHub 中顯示 OVR Toolkit 的桌面視窗，不必切換視窗就能設定它的覆蓋層與手腕選單。"
+  },
+  "page.help.39": {
+    "en": "A globe of your friends, placed by what their profiles show: a flag, where they say they're from, or a language. Search for a friend, or set a friend's country yourself; yours always wins.",
+    "de": "Ein Globus deiner Freunde, platziert nach dem, was ihre Profile zeigen: eine Flagge, woher sie laut Profil kommen, oder eine Sprache. Suche einen Freund oder lege sein Land selbst fest; deine Angabe gilt immer.",
+    "es": "Un globo con tus amigos, situados según lo que muestran sus perfiles: una bandera, de dónde dicen ser o un idioma. Busca a un amigo o indica tú su país; lo tuyo siempre manda.",
+    "fr": "Un globe de vos amis, placés selon leurs profils : un drapeau, d'où ils disent venir ou une langue. Cherchez un ami ou indiquez vous-même son pays ; votre choix l'emporte toujours.",
+    "ja": "プロフィールの情報（国旗、出身地の記載、言語）からフレンドを配置した地球儀です。フレンドを検索したり、国を自分で設定したりできます。自分で設定した国が常に優先されます。",
+    "ko": "프로필에 나온 정보(국기, 출신지, 언어)로 친구를 배치한 지구본입니다. 친구를 검색하거나 직접 나라를 지정할 수 있으며, 직접 지정한 나라가 항상 우선합니다.",
+    "ru": "Глобус с друзьями, расставленными по данным профилей: флаг, откуда они, или язык. Найдите друга или укажите его страну сами — ваш выбор всегда важнее.",
+    "zh-CN": "一个标出好友位置的地球，依据他们资料中的国旗、自述来自哪里或语言来放置。可以搜索好友，也可以自己设定好友的国家；你的设定始终优先。",
+    "zh-TW": "一個標出好友位置的地球，依據他們個人資料中的國旗、自述來自哪裡或語言來放置。可以搜尋好友，也可以自己設定好友的國家；你的設定永遠優先。"
+  }
+}

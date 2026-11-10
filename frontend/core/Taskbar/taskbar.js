@@ -273,7 +273,13 @@ function toggleHelpPanel() {
         var activeTab = document.querySelector('.tab.active');
         var tabIndex = activeTab ? (parseInt(activeTab.id.replace('tab', '')) || 0) : 0;
         document.getElementById('helpPanelTitle').textContent = titleEl ? titleEl.textContent : '';
-        document.getElementById('helpPanelText').textContent = t('page.help.' + tabIndex, '');
+        // A page without its own help text (a plugin's page) shows the plugin's description.
+        var helpText = t('page.help.' + tabIndex, '');
+        if (!helpText && typeof hubPluginForTab === 'function') {
+            var owner = hubPluginForTab(tabIndex);
+            if (owner) helpText = _hubPluginText(owner, 'desc');
+        }
+        document.getElementById('helpPanelText').textContent = helpText;
         panel.style.display = '';
         requestAnimationFrame(function() { panel.classList.add('panel-open'); });
         setTimeout(function() {
