@@ -378,3 +378,9 @@ body.maximized .tb-icon-restore { display: block; }
 
 .modal-overlay::after { box-shadow: 0 24px 64px rgba(0,0,0,.5); }
 .modal-box { border-radius: 0; clip-path: inset(0 round 14px); border-color: transparent; }
+
+/* What do you use? */
+.setup-picks { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; margin-top: 14px; text-align: left; }
+.setup-picks .startup-toggle-card { margin: 0 !important; cursor: pointer; }
+.setup-picks .startup-toggle-sub { font-size: 11px; }
+.setup-found { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--accent); margin-left: 4px; }

@@ -1,7 +1,7 @@
 /* VRCNext Setup Wizard */
 
 var currentPage = 0;
-var totalPages = 10;
+var totalPages = 11;
 var isLoggedIn = false;
 var loggedInName = '';
 var vrc2faType = 'totp';
@@ -11,6 +11,55 @@ var _setupTr = {};
 var PAGE_VRCPLUS   = 6;
 var PAGE_SIDEBAR   = 7;
 var PAGE_PREVIEW   = 8;
+var PAGE_PLUGINS   = 9;
+
+// What do you use? Each pick switches on the plugins listed with it; anything not listed keeps its usual state.
+var SETUP_PICKS = [
+    ['vr', 'vrpano', 'setup.pick.vr', 'I play in VR', 'setup.pick.vr_desc', 'Space Flight, Space Turn, FrameShot, the wrist overlay, avatar scaling, OVR Advanced Settings', ['space-flight', 'space-turn', 'frame-shot', 'vr-overlay', 'avatar-scaling', 'ovr-advanced']],
+    ['fbt', 'accessibility_new', 'setup.pick.fbt', 'Full-body tracking', 'setup.pick.fbt_desc', 'Space Calibrator and the FBT launch switch', ['spacecal', 'launch-switches']],
+    ['face', 'face', 'setup.pick.face', 'Face tracking', 'setup.pick.face_desc', 'The face tracking launch switch', ['launch-switches']],
+    ['haptics', 'vibration', 'setup.pick.haptics', 'Haptics (bHaptics)', 'setup.pick.haptics_desc', 'The haptics launch switch', ['launch-switches']],
+    ['oyasumi', 'bedtime', 'setup.pick.oyasumi', 'OyasumiVR', 'setup.pick.oyasumi_desc', 'Its page, and starting it with VR', ['oyasumi', 'vr-autostart']],
+    ['standable', 'accessibility_new', 'setup.pick.standable', 'Standable', 'setup.pick.standable_desc', 'Starting it with VR', ['vr-autostart']],
+    ['vrct', 'translate', 'setup.pick.vrct', 'VRCT', 'setup.pick.vrct_desc', 'Its page, and starting it with VR', ['vrct', 'vr-autostart']],
+    ['ovrtoolkit', 'view_in_ar', 'setup.pick.ovrtoolkit', 'OVR Toolkit', 'setup.pick.ovrtoolkit_desc', 'Its page', ['ovrtoolkit']],
+    ['eagle', 'photo_library', 'setup.pick.eagle', 'Eagle', 'setup.pick.eagle_desc', 'Its page, for your pictures', ['eagle']],
+    ['music', 'music_note', 'setup.pick.music', 'Music into the VRChat mic', 'setup.pick.music_desc', 'YouTube Tunnel', ['youtube-tunnel']],
+    ['vrcx', 'download', 'setup.pick.vrcx', 'I used VRCX', 'setup.pick.vrcx_desc', 'Bring your VRCX history over', ['vrcx']],
+    ['perf', 'bolt', 'setup.pick.perf', 'Performance mode', 'setup.pick.perf_desc', 'For slower PCs: fewer effects, smoother scrolling', []]
+];
+var _setupDetected = null;
+
+function renderSetupPicks() {
+    var box = document.getElementById('setupPicks');
+    if (!box) return;
+    var detected = (_setupDetected && _setupDetected.detected) || {};
+    var weak = !!(_setupDetected && _setupDetected.weak);
+    var html = '';
+    for (var i = 0; i < SETUP_PICKS.length; i++) {
+        var p = SETUP_PICKS[i];
+        var checked = p[0] === 'perf' ? weak : p[0] === 'vr' ? (detected.vr || detected.ovrAdvanced) : !!detected[p[0]];
+        var found = p[0] !== 'perf' && checked;
+        html += '<label class="startup-toggle-card setup-pick"><div class="startup-toggle-label"><span class="msi">' + p[1] + '</span><div>'
+            + '<div class="startup-toggle-title">' + esc(t(p[2], p[3])) + (found ? ' <span class="setup-found">' + esc(t('setup.pick.found', 'found')) + '</span>' : '') + '</div>'
+            + '<div class="startup-toggle-sub">' + esc(t(p[4], p[5])) + '</div></div></div>'
+            + '<span class="sw-toggle"><input type="checkbox" data-pick="' + p[0] + '"' + (checked ? ' checked' : '') + '><span class="sw-track"><span class="sw-knob"></span></span></span></label>';
+    }
+    box.innerHTML = html;
+    box.onchange = function () { box.setAttribute('data-touched', '1'); };
+}
+
+function saveSetupPicks() {
+    var picked = {};
+    var boxes = document.querySelectorAll('#setupPicks input[data-pick]');
+    for (var i = 0; i < boxes.length; i++) picked[boxes[i].getAttribute('data-pick')] = boxes[i].checked;
+    var plugins = {};
+    for (var j = 0; j < SETUP_PICKS.length; j++) {
+        var ids = SETUP_PICKS[j][6];
+        for (var k = 0; k < ids.length; k++) plugins[ids[k]] = !!plugins[ids[k]] || !!picked[SETUP_PICKS[j][0]];
+    }
+    sendToCS({ action: 'hubPluginsSetup', picks: plugins, performance: !!picked.perf });
+}
 
 function t(key, fallback) {
     return _setupTr[key] || fallback || '';
@@ -146,6 +195,10 @@ function showPage(idx) {
         skipBtn.style.display = '';
     }
     if (idx === 2 && isLoggedIn) renderLoginSuccess();
+    if (idx === PAGE_PLUGINS) {
+        if (!document.querySelector('#setupPicks input')) renderSetupPicks();
+        if (!_setupDetected) sendToCS({ action: 'hubPluginsDetect' });
+    }
     applySetupTranslations();
 }
 
@@ -174,6 +227,7 @@ function nextPage() {
             friendsSidebarPreviewCollapsed: document.getElementById('setupSidebarPreviewCollapsed').checked,
         });
     }
+    if (currentPage === PAGE_PLUGINS) saveSetupPicks();
     if (currentPage >= totalPages - 1) {
         var startWithWin = document.getElementById('setupStartWithWindows').checked;
         sendToCS({ action: 'setupSaveStartWithWindows', enabled: startWithWin });
@@ -265,6 +319,12 @@ function onBackendMessage(e) {
             document.body.classList.toggle('maximized', !!p);
             break;
 
+        case 'hubPluginsDetected':
+            // Ticks what was found, unless the page was already changed by hand.
+            var touched = document.getElementById('setupPicks') && document.getElementById('setupPicks').getAttribute('data-touched');
+            _setupDetected = p || {};
+            if (!touched) renderSetupPicks();
+            break;
         case 'setupState':
             if (p && p.vrcPath) document.getElementById('vrcPathInput').value = p.vrcPath;
             if (p && p.photoDir) document.getElementById('photoDirInput').value = p.photoDir;

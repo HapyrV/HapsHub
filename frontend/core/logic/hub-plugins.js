@@ -1,0 +1,286 @@
+// Plugins: optional features that can be switched off, like Obsidian's plugin list.
+// A plugin that's off loses its page, its buttons, its settings and its auto-start; the hub stops any background
+// module it owns. Everything is on until switched off, so nothing changes for anyone who never opens this.
+// Stage 1 lists what ships with HapsHub. Downloading more (stage 2) comes later.
+
+const HUB_PLUGINS = [
+    // --- Added by HapsHub ---
+    { id: 'oyasumi', name: 'OyasumiVR', by: 'HapsHub', icon: 'bedtime', nav: ['oyasumi'], settings: [{ module: 'hub.app-embeds', keys: ['oyasumi_path', 'on_exit'] }],
+      desc: 'Shows OyasumiVR, the sleep helper for VR, inside a HapsHub page.' },
+    { id: 'eagle', name: 'Eagle', by: 'HapsHub', icon: 'photo_library', nav: ['eagle'], settings: [{ module: 'hub.app-embeds', keys: ['eagle_path', 'on_exit'] }],
+      desc: 'Shows the Eagle picture organizer inside a HapsHub page.' },
+    { id: 'spacecal', name: 'Space Calibrator', by: 'HapsHub', icon: 'gps_fixed', nav: ['spacecal'], hide: ['#hubSteamBranch'],
+      settings: [{ module: 'hub.app-embeds', keys: ['spacecal_path', 'on_exit'] }, { module: 'hub.steam-branch' }],
+      desc: 'Space Calibrator in a page, and a switch between its Steam public and beta versions.' },
+    { id: 'vrct', name: 'VRCT', by: 'HapsHub', icon: 'translate', nav: ['vrct'], settings: [{ module: 'hub.app-embeds', keys: ['vrct_path', 'on_exit'] }],
+      desc: 'The VRCT voice translator inside a HapsHub page.' },
+    { id: 'ovrtoolkit', name: 'OVR Toolkit', by: 'HapsHub', icon: 'view_in_ar', nav: ['ovrtoolkit'], settings: [{ module: 'hub.app-embeds', keys: ['ovrtoolkit_path', 'on_exit'] }],
+      desc: 'OVR Toolkit\'s desktop window inside a HapsHub page.' },
+    { id: 'ovr-advanced', name: 'OVR Advanced Settings', by: 'HapsHub', icon: 'open_with', nav: ['ovr-advanced'],
+      desc: 'Edit OVR Advanced Settings\' movement options: dragging, gravity, snap turn.' },
+    { id: 'youtube-tunnel', name: 'YouTube Tunnel', by: 'HapsHub', icon: 'music_note', nav: ['youtube-tunnel'], settings: [{ module: 'hub.youtube-tunnel' }],
+      desc: 'Plays a YouTube song into your VRChat microphone through a virtual cable.' },
+    { id: 'history', name: 'History', by: 'HapsHub', icon: 'history', nav: ['history'], settings: [{ module: 'hub.history' }],
+      desc: 'Records name and trust changes, notifications, videos, avatars and visits for the History page.' },
+    { id: 'friend-schedule', name: 'Friend Schedule', by: 'HapsHub', icon: 'date_range', nav: ['friend-schedule'],
+      desc: 'Shows when your friends are usually online, to find a good time to meet.' },
+    { id: 'world-map', name: 'World Map', by: 'HapsHub', icon: 'public', nav: ['world-map'],
+      desc: 'A globe with your friends placed by the languages and countries on their profiles.' },
+    { id: 'launch-switches', name: 'Launch switches', by: 'HapsHub', icon: 'rocket_launch', hide: ['.launch-addon', '#launchAddonsBlock'],
+      desc: 'Haptics, face tracking and full-body tracking switches in the Launch window, each starting its apps with VRChat.' },
+    { id: 'vr-autostart', name: 'Start with VR', by: 'HapsHub', icon: 'play_circle', hide: ['#knownVrAppToggles'],
+      desc: 'One switch each to start OyasumiVR, Standable and VRCT when VRChat starts in VR.' },
+    { id: 'crash-rejoin', name: 'Crash rejoin', by: 'HapsHub', icon: 'refresh', settings: [{ module: 'hub.crash-rejoin' }],
+      desc: 'Brings you back to the instance you were in when VRChat crashes.' },
+    { id: 'overlay-events', name: 'Overlay events', by: 'HapsHub', icon: 'notifications_active', settings: [{ module: 'hub.overlay-events' }],
+      desc: 'Extra events for the VR overlay, such as friends joining your instance.' },
+    { id: 'photo-metadata', name: 'Screenshot details', by: 'HapsHub', icon: 'photo_camera', settings: [{ module: 'hub.photo-metadata' }],
+      desc: 'Writes the world and the people with you into each new VRChat screenshot.' },
+    { id: 'vrcx', name: 'VRCX import and archive', by: 'HapsHub', icon: 'download', hide: ['.settings-nav-item[onclick*="\'vrcx\'"]', '#tab9 [data-section="vrcx"]'],
+      settings: [{ module: 'hub.vrcx-history' }],
+      desc: 'Brings your VRCX history into HapsHub and keeps a full copy of it.' },
+    { id: 'proxy', name: 'Proxy', by: 'HapsHub', icon: 'vpn_key', settings: [{ module: 'hub.proxy' }],
+      desc: 'Sends HapsHub\'s web requests through a proxy you choose.' },
+    { id: 'upstream-watch', name: 'Upstream watch', by: 'HapsHub', icon: 'merge', hide: ['#hubUpstreamList'], settings: [{ module: 'hub.upstream-watch' }],
+      desc: 'For whoever maintains HapsHub: what changed in VRCNext, VRCX and Space Calibrator since the last review.' },
+    // --- From VRCNext ---
+    { id: 'space-flight', name: 'Space Flight', by: 'VRCNext', icon: 'rocket_launch', nav: ['space-flight'], hide: ['#badgeSpace'], autostart: ['setSfAutoStartVR'],
+      desc: 'Fly through your play space in VR with your controllers.' },
+    { id: 'space-turn', name: 'Space Turn', by: 'VRCNext', icon: 'rotate_right', nav: ['space-turn'], hide: ['#badgeSpaceTurn'], autostart: ['setStAutoStartVR'],
+      desc: 'Turn your play space in VR with your controllers.' },
+    { id: 'youtube-fix', name: 'YouTube Fix', by: 'VRCNext', icon: 'smart_display', nav: ['youtube-fix'], hide: ['#badgeYt'], autostart: ['setYtAutoStartVR', 'setYtAutoStartDesktop'],
+      desc: 'Makes YouTube videos play in VRChat worlds through VRCVideoCacher.' },
+    { id: 'frame-shot', name: 'FrameShot', by: 'VRCNext', icon: 'photo_camera', nav: ['frame-shot'], hide: ['#badgeFrameShot'], autostart: ['setFsAutoStartVR'],
+      desc: 'Take pictures and clips of what you see in VR.' },
+    { id: 'osc-tool', name: 'OSC Tool', by: 'VRCNext', icon: 'tune', nav: ['osc-tool'],
+      desc: 'Read and change your avatar\'s OSC parameters.' },
+    { id: 'voice-fight', name: 'Voice Fight', by: 'VRCNext', icon: 'mic', nav: ['voice-fight'], hide: ['#badgeVoice'], autostart: ['setVfAutoStartVR', 'setVfAutoStartDesktop'],
+      desc: 'Voice-to-chatbox with blocked words and sound effects.' },
+    { id: 'discord-presence', name: 'Discord Presence', by: 'VRCNext', icon: 'sensors', nav: ['discord-presence'], hide: ['#badgeDp'], autostart: ['setDpAutoStartVR', 'setDpAutoStartDesktop'],
+      desc: 'Shows the world you\'re in on your Discord profile.' },
+    { id: 'vr-overlay', name: 'VR Overlay', by: 'VRCNext', icon: 'watch', nav: ['vr-overlay'], hide: ['#badgeVroTop'], autostart: ['setVroAutoStartVR'],
+      desc: 'A wrist overlay in VR with friends, notifications and the time.' },
+    { id: 'permini', name: 'Permini', by: 'VRCNext', icon: 'lock', nav: ['permini'],
+      desc: 'Decides who may join your instances.' },
+    { id: 'kikitan-xd', name: 'Kikitan XD', by: 'VRCNext', icon: 'translate', nav: ['kikitan-xd'], hide: ['#badgeKxd'],
+      desc: 'Speech to text and translation into your chatbox.' },
+    { id: 'event-snipe', name: 'Event Snipe', by: 'VRCNext', icon: 'gps_fixed', nav: ['event-snipe'],
+      desc: 'Joins a group event\'s instance the moment it opens.' },
+    { id: 'avatar-scaling', name: 'Avatar Scaling', by: 'VRCNext', icon: 'height', nav: ['avatar-scaling'], autostart: ['setAsAutoStartVR', 'setAsAutoStartDesktop'],
+      desc: 'Change your avatar\'s height with your controllers.' },
+    { id: 'action-flow', name: 'Action Flow', by: 'VRCNext', icon: 'auto_awesome', nav: ['action-flow'],
+      desc: 'Build your own automations: when something happens, do something.' },
+    { id: 'status-schedule', name: 'Status Schedule', by: 'VRCNext', icon: 'event_available', nav: ['status-schedule'],
+      desc: 'Changes your status and status text on a schedule.' },
+    { id: 'media-relay', name: 'Media Relay', by: 'VRCNext', icon: 'cell_tower', nav: ['media-relay'], hide: ['#badgeRelay'], autostart: ['setAutoStartVR', 'setAutoStartDesktop'],
+      desc: 'Sends your new screenshots to Discord.' },
+    { id: 'chatbox', name: 'Custom Chatbox', by: 'VRCNext', icon: 'chat', nav: ['chatbox'], hide: ['#badgeChatbox'], autostart: ['setCbAutoStartVR', 'setCbAutoStartDesktop'],
+      desc: 'Shows the time, music and stats in your VRChat chatbox.' },
+];
+
+const _HUB_PLUGINS_CACHE = 'hapshub.plugins.states';
+let _hubPluginStates = (() => { try { return JSON.parse(localStorage.getItem(_HUB_PLUGINS_CACHE) || '{}'); } catch { return {}; } })();
+let _hubPluginQuery = '';
+
+function hubPluginOn(id) { return _hubPluginStates[id] !== false; }
+
+function hubPluginById(id) { return HUB_PLUGINS.find(p => p.id === id); }
+
+/** The plugin a page belongs to, by its tab number. */
+function hubPluginForTab(tab) {
+    return HUB_PLUGINS.find(p => (p.nav || []).some(key => typeof NAV_ITEMS_DEF !== 'undefined' && NAV_ITEMS_DEF[key]?.tab === Number(tab)));
+}
+
+/** Sidebar entries that belong to plugins that are off. */
+function hubPluginHiddenNav() {
+    return HUB_PLUGINS.filter(p => !hubPluginOn(p.id)).flatMap(p => p.nav || []);
+}
+
+/** True when an auto-start switch belongs to a plugin that's off, so its tool doesn't start with VRChat. */
+function hubPluginBlocks(checkboxId) {
+    return HUB_PLUGINS.some(p => !hubPluginOn(p.id) && (p.autostart || []).includes(checkboxId));
+}
+
+function _hubPluginSelectors(plugin) {
+    const selectors = [...(plugin.hide || [])];
+    for (const key of plugin.nav || []) {
+        const def = typeof NAV_ITEMS_DEF !== 'undefined' ? NAV_ITEMS_DEF[key] : null;
+        if (!def) continue;
+        selectors.push(`[onclick="showTab(${def.tab})"]`, `.nav-folder-cell[data-nav-key="${key}"]`, `.settings-nav-item[data-plugin="${plugin.id}"]`);
+    }
+    return selectors;
+}
+
+function _hubPluginsApply() {
+    try { localStorage.setItem(_HUB_PLUGINS_CACHE, JSON.stringify(_hubPluginStates)); } catch { /* full or blocked */ }
+    // One style sheet hides everything that belongs to plugins that are off, so redrawn lists stay hidden too.
+    let style = document.getElementById('hubPluginHide');
+    if (!style) {
+        style = document.createElement('style');
+        style.id = 'hubPluginHide';
+        document.head.appendChild(style);
+    }
+    const off = HUB_PLUGINS.filter(p => !hubPluginOn(p.id)).flatMap(_hubPluginSelectors);
+    // Modules that belong to a plugin are set on its own options page, not in the general Hub modules list.
+    const owned = HUB_PLUGINS.flatMap(p => (p.settings || []).map(s => s.module));
+    const ownedRules = [...new Set(owned)].map(m => `#hubModulesList .hub-module-row[data-module="${m}"]`);
+    style.textContent = [...(off.length ? [`${off.join(',\n')} { display: none !important; }`] : []),
+        `${ownedRules.join(',\n')} { display: none !important; }`].join('\n');
+    if (typeof navRender === 'function') navRender();
+    // The open page may have just been switched off.
+    const active = document.querySelector('.tab.active')?.id;
+    const plugin = active ? hubPluginForTab(active.replace('tab', '')) : null;
+    if (plugin && !hubPluginOn(plugin.id) && typeof showTab === 'function') showTab(0);
+    hubPluginsRender();
+}
+
+function onHubPlugins(payload) {
+    window.__hubPluginsAnswered = true;
+    _hubPluginStates = payload?.states || {};
+    _hubPluginsApply();
+}
+
+function hubPluginSet(id, on) {
+    _hubPluginStates[id] = !!on;
+    _hubPluginsApply();
+    sendToCS({ action: 'hubPluginSet', id, on: !!on });
+}
+
+// ---- The Plugins page (Settings > Plugins) ----
+
+function _hubPluginText(plugin, field) {
+    return t(`hub.plugin.${plugin.id}.${field}`, field === 'name' ? plugin.name : plugin.desc);
+}
+
+function hubPluginsRender() {
+    const list = document.getElementById('hubPluginList');
+    if (list) {
+        const query = _hubPluginQuery.trim().toLowerCase();
+        const shown = HUB_PLUGINS.filter(p => !query || `${_hubPluginText(p, 'name')} ${_hubPluginText(p, 'desc')} ${p.by}`.toLowerCase().includes(query));
+        const group = by => {
+            const rows = shown.filter(p => p.by === by);
+            if (!rows.length) return '';
+            const title = by === 'HapsHub' ? t('hub.plugins.from_hub', 'Added by {name}').replace('{name}', typeof hubBrandName === 'function' ? hubBrandName() : 'HapsHub')
+                : t('hub.plugins.from_vrcnext', 'From VRCNext');
+            return `<div class="hub-plugin-group">${esc(title)}</div>` + rows.map(p => {
+                const on = hubPluginOn(p.id);
+                return `<div class="hub-plugin-row${on ? '' : ' is-off'}" data-plugin="${p.id}">
+                    <span class="msi hub-plugin-icon">${esc(p.icon)}</span>
+                    <div class="hub-plugin-main">
+                        <div class="hub-plugin-name">${esc(_hubPluginText(p, 'name'))} <span class="hub-plugin-meta">${esc(tf('hub.plugins.by', { version: '1.0.0', author: p.by }, 'v{version} by {author}'))}</span></div>
+                        <div class="hub-plugin-desc">${esc(_hubPluginText(p, 'desc'))}</div>
+                    </div>
+                    <button class="vrcn-icon-button hub-plugin-more" title="${esc(t('hub.plugins.more', 'More'))}" onclick="hubPluginMenu(event, '${p.id}')"><span class="msi">more_horiz</span></button>
+                    <label class="toggle"><input type="checkbox" ${on ? 'checked' : ''} onchange="hubPluginSet('${p.id}', this.checked)"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
+                </div>`;
+            }).join('');
+        };
+        list.innerHTML = (group('HapsHub') + group('VRCNext')) || `<div class="folder-empty">${esc(t('hub.plugins.none_found', 'No plugins match.'))}</div>`;
+    }
+    const count = document.getElementById('hubPluginCount');
+    if (count) count.textContent = tf('hub.plugins.count', { on: HUB_PLUGINS.filter(p => hubPluginOn(p.id)).length, total: HUB_PLUGINS.length }, '{on} of {total} on');
+    _hubPluginNavRender();
+    hubPluginsRenderOptions();
+}
+
+function hubPluginsSearch(value) {
+    _hubPluginQuery = value || '';
+    hubPluginsRender();
+}
+
+function hubPluginsAll(on) {
+    for (const p of HUB_PLUGINS) if (hubPluginOn(p.id) !== on) hubPluginSet(p.id, on);
+}
+
+function hubPluginMenu(event, id) {
+    event.stopPropagation();
+    document.getElementById('hubPluginMenu')?.remove();
+    const plugin = hubPluginById(id);
+    if (!plugin) return;
+    const page = (plugin.nav || []).map(k => typeof NAV_ITEMS_DEF !== 'undefined' ? NAV_ITEMS_DEF[k] : null).find(Boolean);
+    const items = [];
+    if (page && hubPluginOn(id)) items.push(['open_in_new', t('hub.plugins.open_page', 'Open its page'), `showTab(${page.tab})`]);
+    if ((plugin.settings || []).length && hubPluginOn(id)) items.push(['settings', t('hub.plugins.options', 'Options'), `hubPluginOptions('${id}')`]);
+    items.push([hubPluginOn(id) ? 'close' : 'toggle_on', hubPluginOn(id) ? t('hub.plugins.turn_off', 'Turn off') : t('hub.plugins.turn_on', 'Turn on'), `hubPluginSet('${id}', ${!hubPluginOn(id)})`]);
+    const menu = document.createElement('div');
+    menu.id = 'hubPluginMenu';
+    menu.className = 'hub-plugin-menu';
+    menu.innerHTML = items.map(([icon, label, run]) => `<button class="tb-dd-item" onclick="document.getElementById('hubPluginMenu')?.remove(); ${run}"><span class="msi">${icon}</span><span>${esc(label)}</span></button>`).join('');
+    document.body.appendChild(menu);
+    const box = event.currentTarget.getBoundingClientRect();
+    menu.style.top = Math.min(box.bottom + 4, innerHeight - menu.offsetHeight - 8) + 'px';
+    menu.style.left = Math.max(8, Math.min(box.right - menu.offsetWidth, innerWidth - menu.offsetWidth - 8)) + 'px';
+    setTimeout(() => document.addEventListener('mousedown', function close(e) {
+        if (menu.contains(e.target)) return;
+        menu.remove();
+        document.removeEventListener('mousedown', close);
+    }), 0);
+}
+
+function hubOpenPlugins() {
+    if (typeof showTab === 'function') showTab(9);
+    if (typeof switchSettingsSection === 'function') switchSettingsSection('plugins', document.querySelector('.settings-nav-item[data-section-id="plugins"]'));
+}
+
+// ---- Options: each plugin that's on and has settings gets its own entry in the settings sidebar ----
+
+function _hubPluginNavRender() {
+    const box = document.getElementById('hubPluginNavItems');
+    if (!box) return;
+    const withOptions = HUB_PLUGINS.filter(p => hubPluginOn(p.id) && (p.settings || []).length);
+    const current = document.querySelector('.settings-nav-item.active')?.dataset.sectionId;
+    box.innerHTML = withOptions.length
+        ? `<div class="hub-plugin-nav-label">${esc(t('hub.plugins.options_title', 'Plugin options'))}</div>` + withOptions.map(p =>
+            `<button class="settings-nav-item hub-plugin-nav${current === 'plugin-' + p.id ? ' active' : ''}" data-section-id="plugin-${p.id}" onclick="hubPluginOptions('${p.id}', this)"><span class="msi">${esc(p.icon)}</span><span>${esc(_hubPluginText(p, 'name'))}</span></button>`).join('')
+        : '';
+}
+
+function hubPluginOptions(id, button) {
+    if (typeof showTab === 'function' && !document.getElementById('tab9')?.classList.contains('active')) showTab(9);
+    hubPluginsRenderOptions();
+    switchSettingsSection('plugin-' + id, button || document.querySelector(`.settings-nav-item[data-section-id="plugin-${id}"]`));
+}
+
+function hubPluginsRenderOptions() {
+    const host = document.getElementById('hubPluginOptions');
+    if (!host || typeof _hubUiSettings === 'undefined' || !_hubUiSettings) return;
+    const shownSection = document.querySelector('#tab9 .settings-nav-item.active')?.dataset.sectionId || '';
+    const cards = HUB_PLUGINS.filter(p => (p.settings || []).length).map(p => {
+        const rows = p.settings.map(s => {
+            const module = _hubUiSettings.find(m => m.id === s.module);
+            if (!module) return '';
+            return s.keys ? s.keys.map(key => _hubModuleRow(module, key)).join('') : _hubModuleRow(module);
+        }).join('');
+        const page = (p.nav || []).map(k => typeof NAV_ITEMS_DEF !== 'undefined' ? NAV_ITEMS_DEF[k] : null).find(Boolean);
+        return `<div class="vrcn-panel-card" data-section="plugin-${p.id}" style="${shownSection === 'plugin-' + p.id && hubPluginOn(p.id) ? '' : 'display:none;'}">
+            <div class="vrcn-panel-card-header"><span class="msi">${esc(p.icon)}</span> ${esc(_hubPluginText(p, 'name'))}</div>
+            <div class="set-desc">${esc(_hubPluginText(p, 'desc'))}</div>
+            ${rows}
+            ${page ? `<button class="vrcn-button" style="margin-top:12px;" onclick="showTab(${page.tab})"><span class="msi" style="font-size:15px;">open_in_new</span> ${esc(t('hub.plugins.open_page', 'Open its page'))}</button>` : ''}
+        </div>`;
+    }).join('');
+    // Typing in a box here must not be wiped by a redraw.
+    if (host.contains(document.activeElement) && document.activeElement.tagName === 'INPUT') return;
+    host.innerHTML = cards;
+}
+
+// ---- Start: the last known states apply at once, the hub's answer follows ----
+
+(function () {
+    if (typeof showTab === 'function') {
+        const show = showTab;
+        showTab = function (tab, ...rest) {
+            const plugin = hubPluginForTab(tab);
+            return show.call(this, plugin && !hubPluginOn(plugin.id) ? 0 : tab, ...rest);
+        };
+    }
+    _hubPluginsApply();
+    let attempts = 0;
+    const ask = () => {
+        if (window.__hubPluginsAnswered || ++attempts > 30) return;
+        if (typeof sendToCS === 'function') sendToCS({ action: 'hubPlugins' });
+        setTimeout(ask, 2000);
+    };
+    setTimeout(ask, 800);
+    document.documentElement.addEventListener('languagechange', hubPluginsRender);
+})();

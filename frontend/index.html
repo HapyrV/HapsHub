@@ -161,6 +161,7 @@
                             </div>
                             <div class="tb-dd-sep"></div>
                             <div class="tb-dd-item" onclick="showTab(9)"><span class="msi">settings</span><span data-i18n="nav.settings">Settings</span></div>
+                            <div class="tb-dd-item" onclick="hubOpenPlugins()"><span class="msi">extension</span><span data-i18n="hub.plugins.title">Plugins</span></div>
                             <div class="tb-dd-sep"></div>
                             <div class="tb-dd-item" onclick="sendToCS({action:'restartApp'})"><span class="msi">refresh</span><span data-i18n="tb.app.restart">Restart</span></div>
                             <div class="tb-dd-item" onclick="sendToCS({action:'windowClose'})"><span class="msi">power_settings_new</span><span data-i18n="tb.app.exit">Exit</span></div>
@@ -869,6 +870,7 @@
             'core/logic/hub-ui.js',
             'core/logic/hub-fuzzy.js',
             'core/logic/hub-perf.js',
+            'core/logic/hub-plugins.js',
             'modules/tools/friend-schedule/engine.js',
             'modules/tools/friend-schedule/friend-schedule.js',
             'modules/tools/history/history.js',

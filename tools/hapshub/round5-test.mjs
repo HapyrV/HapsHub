@@ -3,7 +3,11 @@
 // Uses a throwaway data folder, no login and no VRChat traffic. Stops only what it started.
 //   node tools/hapshub/round5-test.mjs [--release] [--only name]
 
-import { checker, cleanUp, closeMain, crashes, freshData, openMain, sleep, waitFor } from './lib/harness.mjs';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
+import { Page, checker, cleanUp, closeMain, crashes, freshData, hubLog, killTree, openMain, sleep, startApp, waitFor } from './lib/harness.mjs';
 
 const PORT = 9340;
 const { check, state } = checker();
@@ -107,6 +111,94 @@ section('performance', async main => {
     check('turning it off brings back what the Blur and Animations switches say', off.includes('no-blur') === blurBefore && !off.includes('no-animations') && !off.includes('hub-perf-glass'), off.join(' '));
 });
 
+section('plugins', async main => {
+    await main.eval(`window.__pluginReplies = []; const before = onHubPlugins; onHubPlugins = p => { window.__pluginReplies.push(p); before(p); };`);
+    await main.eval(`hubOpenPlugins()`);
+    await waitFor('the plugin list', () => visible(main, '#hubPluginsCard'));
+    const rows = await main.eval(`document.querySelectorAll('#hubPluginList .hub-plugin-row').length`);
+    const total = await main.eval(`HUB_PLUGINS.length`);
+    check('Settings > Plugins lists every plugin, all on', rows === total && await main.eval(`[...document.querySelectorAll('#hubPluginList input[type=checkbox]')].every(i => i.checked)`), `${rows} of ${total}`);
+    check('each row says who made it', await main.eval(`/v1\\.0\\.0 by (HapsHub|VRCNext)/.test(document.querySelector('.hub-plugin-meta').textContent)`));
+
+    await main.eval(`document.getElementById('hubPluginSearch').value = 'eagle'; hubPluginsSearch('eagle')`);
+    check('searching narrows the list', await main.eval(`document.querySelectorAll('#hubPluginList .hub-plugin-row').length === 1`));
+    await main.eval(`document.getElementById('hubPluginSearch').value = ''; hubPluginsSearch('')`);
+
+    const navShown = key => main.eval(`(() => { const b = document.querySelector('#navEl [data-nav-key="${key}"]'); return !!b && getComputedStyle(b).display !== 'none'; })()`);
+    const eagleTab = await main.eval(`NAV_ITEMS_DEF.eagle.tab`);
+    await main.eval(`document.querySelector('#hubPluginList [data-plugin="eagle"] input').click()`);
+    await waitFor('the hub to save Eagle off', () => main.eval(`window.__pluginReplies.some(p => p.states.eagle === false)`), 10000);
+    check('turning a plugin off removes its page from the sidebar', !(await main.eval(`!!document.querySelector('#navEl .nav-btn[data-nav-key="eagle"]')`)) && !(await navShown('eagle')));
+    await main.eval(`showTab(${eagleTab})`);
+    check('its page can\'t be opened while it\'s off', await main.eval(`document.getElementById('tab0').classList.contains('active') && !document.getElementById('tab${eagleTab}').classList.contains('active')`));
+
+    await main.eval(`hubPluginSet('space-flight', false)`);
+    await sleep(300);
+    check('a VRCNext tool that\'s off loses its top bar button and its auto-start', await main.eval(`getComputedStyle(document.getElementById('badgeSpace')).display === 'none' && hubPluginBlocks('setSfAutoStartVR') && !hubPluginBlocks('setStAutoStartVR')`));
+
+    await main.eval(`hubPluginSet('history', false)`);
+    await waitFor('the History module to stop', async () => (await main.json(`(_hubUiSettings || []).find(m => m.id === 'hub.history')?.status`)) === 'Disabled', 15000).catch(() => {});
+    check('a plugin that\'s off stops its background module', await main.json(`(_hubUiSettings || []).find(m => m.id === 'hub.history')?.status`) === 'Disabled');
+
+    const options = await main.eval(`hubOpenPlugins(); [...document.querySelectorAll('#hubPluginNavItems .settings-nav-item')].map(b => b.dataset.sectionId).join(',')`);
+    check('plugins with options get a settings entry, and ones that are off don\'t', options.includes('plugin-youtube-tunnel') && !options.includes('plugin-eagle') && !options.includes('plugin-history'), options);
+    await main.eval(`hubPluginOptions('youtube-tunnel')`);
+    await waitFor('the plugin options', () => visible(main, '[data-section="plugin-youtube-tunnel"]'), 5000);
+    check('a plugin\'s options page shows its settings', await main.eval(`!!document.querySelector('[data-section="plugin-youtube-tunnel"] .hub-module-row')`));
+    check('module settings are no longer repeated under Hub modules', await main.eval(`(() => { const r = document.querySelector('#hubModulesList .hub-module-row[data-module="hub.youtube-tunnel"]'); return !r || getComputedStyle(r).display === 'none'; })()`));
+
+    await main.eval(`hubOpenPlugins()`);
+    const more = await main.center('#hubPluginList [data-plugin="youtube-tunnel"] .hub-plugin-more');
+    await main.click(more.x, more.y);
+    const menu = await main.eval(`document.getElementById('hubPluginMenu')?.innerText || ''`);
+    check('the ⋮ menu offers its page, its options and turning it off', /page/i.test(menu) && /Options/.test(menu) && /Turn off/.test(menu), menu);
+    // Clicking elsewhere closes it. Not near the window edge: a press there starts resizing the real window.
+    const away = await main.center('#hubPluginsCard .vrcn-panel-card-header');
+    await sleep(200);
+    await main.click(away.x, away.y);
+    await sleep(200);
+    check('a click elsewhere closes the menu', await main.eval(`!document.getElementById('hubPluginMenu')`));
+
+    await main.eval(`hubPluginsAll(true)`);
+    await waitFor('everything back on', () => main.eval(`window.__pluginReplies.some(p => Object.values(p.states).every(Boolean))`), 15000);
+    check('turning all on brings every page back', await navShown('eagle') && await main.eval(`getComputedStyle(document.getElementById('badgeSpace')).display !== 'none'`));
+});
+
+section('setup', async () => {
+    // A brand new install: setup asks what you use, and only those plugins are switched on.
+    const fresh = mkdtempSync(join(tmpdir(), 'hapshub-setup-'));
+    let copy;
+    try {
+        copy = startApp(fresh, PORT + 20);
+        const setup = await Page.connect(PORT + 20, 'setup.html');
+        await waitFor('setup to load', () => setup.eval(`typeof showPage === 'function' && typeof SETUP_PICKS !== 'undefined'`), 30000);
+        await setup.eval(`showPage(PAGE_PLUGINS)`);
+        await waitFor('the picks', () => setup.eval(`document.querySelectorAll('#setupPicks input[data-pick]').length === SETUP_PICKS.length`), 10000);
+        await sleep(1500);
+        check('setup asks what you use', await setup.eval(`document.querySelector('[data-page="9"] .setup-title').textContent.includes('What do you use')`));
+        const fits = await setup.json(`(() => { const p = document.getElementById('setupPicks').getBoundingClientRect(); return p.width > 0 && p.right <= innerWidth; })()`);
+        check('the picks fit the setup window', fits);
+        await setup.eval(`document.querySelectorAll('#setupPicks input[data-pick]').forEach(i => i.checked = i.dataset.pick === 'eagle' || i.dataset.pick === 'vr'); nextPage();`);
+        await sleep(2500);
+        const db = new DatabaseSync(join(fresh, 'Hub', 'hub.db'), { readOnly: true });
+        const row = key => db.prepare(`SELECT value FROM module_settings WHERE module_id = ? AND key = ?`).get('hub.plugins', key)?.value;
+        const saved = JSON.parse(row('enabled') || '{}');
+        const picked = row('picked');
+        const perf = db.prepare(`SELECT value FROM module_settings WHERE module_id = 'hub.performance' AND key = 'mode'`).get()?.value;
+        db.close();
+        check('the picks are saved exactly', saved.eagle === true && saved['space-flight'] === true && saved.oyasumi === false && saved['youtube-tunnel'] === false && saved['upstream-watch'] === false && saved.history === true, JSON.stringify(saved));
+        check('Performance mode follows the pick, and setup remembers it asked', perf === 'false' && picked === '1', `${perf} ${picked}`);
+        await setup.eval(`window.external.sendMessage(JSON.stringify({action:'windowClose'}))`).catch(() => {});
+        setup.socket.close();
+        await waitFor('setup copy to close', () => hubLog(fresh).includes('Hub stopped.'), 20000).catch(() => {});
+    } finally {
+        // Only this copy: the main test copy is still open.
+        killTree(copy?.pid);
+        await sleep(800);
+        try { rmSync(fresh, { recursive: true, force: true }); } catch { /* still closing */ }
+    }
+});
+
 const dir = freshData('hapshub-round5-');
 let main;
 try {
@@ -121,7 +213,8 @@ try {
     }
     check('no page errors', main.errors.length === 0, main.errors.join(' | '));
     check('no crash report', crashes(dir) === 0);
-    check('the app closes cleanly', await closeMain(main));
+    const closed = await closeMain(main);
+    check('the app closes cleanly', closed, hubLog(dir).trim().split(/\r?\n/).slice(-6).join(' | '));
 } catch (error) {
     check('the run finished', false, error.stack || error.message);
 } finally {

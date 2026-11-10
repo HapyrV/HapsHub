@@ -77,7 +77,8 @@ window.external.receiveMessage(rawMsg => {
                 // Fired when a VRChat session starts (VRCNext launch or detected externally)
                 if (window._isLinuxUi) break;
                 const vr = !!payload.vr;
-                const chk = id => !!document.getElementById(id)?.checked;
+                // A tool whose plugin is off doesn't start with VRChat.
+                const chk = id => !!document.getElementById(id)?.checked && !(typeof hubPluginBlocks === 'function' && hubPluginBlocks(id));
                 const session = (window._autoStartToken = (window._autoStartToken || 0) + 1);
                 let delay = 300;
                 const ensure = (cond, isRunning, start) => {
@@ -1132,6 +1133,7 @@ case 'vrcNews':
             case 'updateReady':          onUpdateReady(); break;
             case 'hubUpstream':          onHubUpstream(payload); break;
             case 'hubModules':           onHubModules(payload); break;
+            case 'hubPlugins':           if (typeof onHubPlugins === 'function') onHubPlugins(payload); break;
             case 'hubUpstreamReviewed':  onHubUpstreamReviewed(payload); break;
             case 'hubSteamBranch':       onHubSteamBranch(payload); break;
             case 'hubVrcxArchive':       onHubVrcxArchive(payload); break;

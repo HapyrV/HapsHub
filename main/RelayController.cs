@@ -682,7 +682,9 @@ public class RelayController : IDisposable
         var apps = (vr ? _core.Settings.ExtraExeVR : _core.Settings.ExtraExeDesktop).ToList();
         // The Launch window's switches. Full-body tracking only makes sense in VR.
         var addons = new List<string>();
-        if (_core.Settings.LaunchWithHaptics) addons.AddRange(_core.Settings.LaunchHapticsApps);
+        // The Launch switches plugin may be off: then its switches are gone, and so is what they start.
+        if (!HapsHub.Core.HubModules.Plugins.IsOn("launch-switches")) { }
+        else if (_core.Settings.LaunchWithHaptics) addons.AddRange(_core.Settings.LaunchHapticsApps);
         if (_core.Settings.LaunchWithFaceTracking) addons.AddRange(_core.Settings.LaunchFaceTrackingApps);
         if (vr && _core.Settings.LaunchWithFbt) addons.AddRange(_core.Settings.LaunchFbtApps);
         apps.AddRange(HapsHub.Core.LaunchAddons.NotRunning(addons.Where(a => !apps.Contains(a, StringComparer.OrdinalIgnoreCase))));

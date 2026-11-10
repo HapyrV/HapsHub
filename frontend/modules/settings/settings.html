@@ -6,6 +6,7 @@
                             <button class="settings-search-clear" onclick="clearSettingsSearch()" title="Clear" data-i18n-title="common.clear"><span class="msi">close</span></button>
                         </div>
                         <button class="settings-nav-item active" onclick="switchSettingsSection('general',this)"><span class="msi">tune</span><span data-i18n="settings.nav.general">General</span></button>
+                        <button class="settings-nav-item" data-section-id="plugins" onclick="switchSettingsSection('plugins',this)"><span class="msi">extension</span><span data-i18n="hub.plugins.title">Plugins</span></button>
                         <button class="settings-nav-item" onclick="switchSettingsSection('appearance',this)"><span class="msi">palette</span><span data-i18n="settings.nav.appearance">Appearance</span></button>
                         <button class="settings-nav-item" onclick="switchSettingsSection('friends',this)"><span class="msi">group</span><span data-i18n="settings.nav.friends">Friends</span></button>
                         <button class="settings-nav-item" onclick="switchSettingsSection('sidebar',this)"><span class="msi">view_sidebar</span><span data-i18n="settings.nav.sidebar">Sidebar</span></button>
@@ -19,8 +20,21 @@
                         <button class="settings-nav-item" onclick="switchSettingsSection('about',this)"><span class="msi">info</span><span data-i18n="settings.nav.about">About</span></button>
                         <button class="settings-nav-item" onclick="switchSettingsSection('accounts',this)"><span class="msi">account_circle</span><span data-i18n="settings.nav.accounts">Accounts</span></button>
                         <button class="settings-nav-item" onclick="switchSettingsSection('attribution',this)"><span class="msi">copyright</span><span data-i18n="settings.nav.attribution">Attribution</span></button>
+                        <div id="hubPluginNavItems"></div>
                     </nav>
                     <div class="settings-content">
+
+                    <!-- PLUGINS -->
+                    <div class="vrcn-panel-card" id="hubPluginsCard" data-section="plugins" style="display:none;">
+                        <div class="vrcn-panel-card-header"><span class="msi">extension</span> <span data-i18n="hub.plugins.title">Plugins</span> <span class="vrcn-badge" id="hubPluginCount" style="margin-left:auto;"></span></div>
+                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="hub.plugins.desc">Switch off what you don't use. Its page, buttons, settings and background work go away until you switch it back on.</div>
+                        <div class="hub-plugin-tools">
+                            <div class="search-bar-row" style="flex:1;"><span class="msi search-ico">search</span><input type="text" id="hubPluginSearch" class="vrcn-input" placeholder="Search plugins..." data-i18n-placeholder="hub.plugins.search" oninput="hubPluginsSearch(this.value)"></div>
+                            <button class="vrcn-button" onclick="hubPluginsAll(true)"><span class="msi" style="font-size:15px;">check</span> <span data-i18n="hub.plugins.all_on">Turn all on</span></button>
+                        </div>
+                        <div id="hubPluginList" class="hub-plugin-list"></div>
+                    </div>
+                    <div id="hubPluginOptions"></div>
 
                     <!-- UPDATES -->
                     <div class="vrcn-panel-card" data-section="general">
@@ -609,6 +623,7 @@
                         <div class="folder-btns" style="margin-top:10px;margin-bottom:14px;">
                             <button class="vrcn-button" onclick="browseExe('extra-vr')"><span class="msi" style="font-size:16px;">add</span> <span data-i18n="settings.launch.add_app">Add App</span></button>
                         </div>
+                        <div id="launchAddonsBlock">
                         <div class="sf-section-label" data-i18n="launch.addons.title">Launch Switches</div>
                         <div class="set-desc" style="margin-bottom:8px;" data-i18n="launch.addons.desc">The Launch window has a switch for each of these. Each switch that's on starts its apps with VRChat, unless they're already running. Full-body tracking starts only in VR.</div>
                         <div class="set-desc" style="margin:8px 0 4px;font-weight:600;" data-i18n="launch.addons.haptics">With haptics</div>
@@ -620,6 +635,7 @@
                         <div class="set-desc" style="margin:10px 0 4px;font-weight:600;" data-i18n="launch.addons.fbt">With FBT</div>
                         <div class="exe-list" id="launchAddonList_fbt"><div class="folder-empty" data-i18n="common.none">None</div></div>
                         <div class="folder-btns" style="margin-top:6px;margin-bottom:14px;"><button class="vrcn-button" onclick="browseExe('addon-fbt')"><span class="msi" style="font-size:16px;">add</span> <span data-i18n="settings.launch.add_app">Add App</span></button></div>
+                        </div>
                         <div class="sf-toggle-row">
                             <span data-i18n="settings.launch.close_with_vrc">Close with VRChat</span>
                             <label class="toggle"><input type="checkbox" id="setCloseWithVrc" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>

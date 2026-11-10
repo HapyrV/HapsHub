@@ -122,7 +122,8 @@ function navRender() {
     const navEl = document.getElementById('navEl');
     if (!navEl) return;
     const { layout, hidden } = navLoadLayout();
-    const hiddenSet = new Set(hidden);
+    // Pages of plugins that are off are left out as well.
+    const hiddenSet = new Set([...hidden, ...(typeof hubPluginHiddenNav === 'function' ? hubPluginHiddenNav() : [])]);
 
     navEl.innerHTML = '';
 
@@ -214,7 +215,8 @@ function openNavFolderPopout(groupId, anchorEl) {
     closeNavFolderPopout();
 
     const { layout, hidden } = navLoadLayout();
-    const hiddenSet = new Set(hidden);
+    // Pages of plugins that are off are left out as well.
+    const hiddenSet = new Set([...hidden, ...(typeof hubPluginHiddenNav === 'function' ? hubPluginHiddenNav() : [])]);
     const entry = layout.find(e => e.type === 'folder' && e.id === groupId);
     if (!entry) return;
     const visItems = (entry.items || []).filter(k => {

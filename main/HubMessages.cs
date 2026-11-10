@@ -13,6 +13,7 @@ public partial class AppShell
         if (HandleTunnelMessage(action, msg)) return true;
         if (HandleEmbedMessage(action, msg)) return true;
         if (HandleOvrasMessage(action, msg)) return true;
+        if (HandlePluginMessage(action, msg)) return true;
         switch (action)
         {
             case "hubGetModules":
