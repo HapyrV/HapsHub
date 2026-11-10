@@ -24,6 +24,7 @@ public sealed class VrctEngine : IDisposable
     private StreamWriter? _input;
     private System.Threading.Timer? _watchdog;
     private bool _stopping;
+    private bool _starting;
 
     /// <summary>off, starting, ready or failed.</summary>
     public string State { get; private set; } = "off";
@@ -62,10 +63,18 @@ public sealed class VrctEngine : IDisposable
 
     public bool Start(string sidecar)
     {
+        // Starting at HapsHub start and a press of Start at the same moment must not make two engines.
         lock (_lock)
         {
-            if (_process is { HasExited: false }) return true;
+            if (_process is { HasExited: false } || _starting) return true;
+            _starting = true;
         }
+        try { return StartProcess(sidecar); }
+        finally { lock (_lock) _starting = false; }
+    }
+
+    private bool StartProcess(string sidecar)
+    {
         if (OtherCopyRunning())
         {
             SetState("failed", "VRCT is already running on its own. Close it first: two copies would fight over the microphone.");

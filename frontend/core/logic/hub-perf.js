@@ -9,6 +9,8 @@
 
 (function () {
     const promoted = new WeakSet();
+    // Boxes found not to scroll aren't measured again for a few seconds: measuring can make the page lay itself out.
+    const plain = new WeakMap();
     const canScroll = node => {
         const style = getComputedStyle(node);
         return (/(auto|scroll)/.test(style.overflowY) && node.scrollHeight > node.clientHeight + 1)
@@ -17,11 +19,12 @@
     document.addEventListener('wheel', event => {
         for (let node = event.target; node && node.nodeType === 1 && node !== document.documentElement; node = node.parentElement) {
             if (promoted.has(node)) return;
-            if (canScroll(node)) {
-                promoted.add(node);
-                if (!node.style.willChange) node.style.willChange = 'scroll-position';
-                return;
-            }
+            const now = performance.now();
+            if (now - (plain.get(node) || -1e9) < 5000) continue;
+            if (!canScroll(node)) { plain.set(node, now); continue; }
+            promoted.add(node);
+            if (!node.style.willChange) node.style.willChange = 'scroll-position';
+            return;
         }
     }, { passive: true, capture: true });
 })();
