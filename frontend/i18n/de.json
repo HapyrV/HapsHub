@@ -4313,5 +4313,15 @@
   "hub.nav.rename_header": "Überschrift umbenennen",
   "hub.nav.remove_header": "Überschrift entfernen",
   "hub.nav.show_page": "{page} anzeigen",
-  "hub.nav.add_title": "Gruppe oder Überschrift hinzufügen oder eine ausgeblendete Seite zeigen"
+  "hub.nav.add_title": "Gruppe oder Überschrift hinzufügen oder eine ausgeblendete Seite zeigen",
+  "nav.world_map": "Weltkarte",
+  "hub.map.summary": "{placed} Freunde in {countries} Ländern. {unplaced} weitere sagen nicht, wo sie sind.",
+  "hub.map.note": "Freunde werden nur nach ihrem Profil platziert: eine Flagge, „aus“ einem Land oder eine Sprache, die vor allem in einem Land gesprochen wird. Nie nach IP-Adressen.",
+  "hub.map.empty": "Noch keiner deiner Freunde sagt, wo er ist.",
+  "hub.map.how_flag": "Flagge",
+  "hub.map.how_bio": "Bio",
+  "hub.map.how_language": "Sprache",
+  "hub.map.zoom_in": "Vergrößern",
+  "hub.map.zoom_out": "Verkleinern",
+  "hub.map.reset": "Ansicht zurücksetzen"
 }

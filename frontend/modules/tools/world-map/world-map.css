@@ -1,0 +1,30 @@
+.wmap-page { display: flex; gap: 14px; padding: 16px 20px; height: calc(100vh - var(--tb-h, 44px) - 30px); box-sizing: border-box; min-height: 360px; }
+.wmap-globe-wrap { position: relative; flex: 1; min-width: 0; border-radius: 14px; overflow: hidden; background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--accent) 10%, var(--bg-card)), var(--bg-base, #0a0a0a) 75%); }
+.wmap-canvas { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+.wmap-canvas.is-dragging { cursor: grabbing; }
+.wmap-controls { position: absolute; right: 10px; bottom: 10px; display: flex; flex-direction: column; gap: 6px; }
+.wmap-controls .vrcn-icon-button { background: var(--bg-card); border: 1px solid var(--brd); border-radius: 8px; }
+.wmap-tip { position: absolute; pointer-events: none; max-width: 260px; padding: 7px 10px; border-radius: 8px; background: var(--bg-card); border: 1px solid var(--brd-lt, var(--brd)); box-shadow: 0 6px 20px rgba(0,0,0,.4); font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx1); z-index: 2; }
+.wmap-tip strong { color: var(--tx0); }
+.wmap-side { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; min-height: 0; }
+.wmap-summary { font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx2); margin-bottom: 10px; }
+.wmap-list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding-right: 4px; }
+.wmap-country { display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: calc(13px + var(--fs-off, 0px)); border-radius: 8px; border: 0; background: transparent; color: var(--tx1); font: inherit; text-align: left; cursor: pointer; width: 100%; }
+.wmap-country:hover, .wmap-country.is-on { background: var(--bg-hover); }
+.wmap-country .wmap-flag { flex-shrink: 0; width: 26px; padding: 1px 0; border-radius: 4px; background: var(--bg-input); color: var(--tx2); font-size: calc(10px + var(--fs-off, 0px)); font-weight: 700; text-align: center; }
+.wmap-country .wmap-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wmap-count { font-size: calc(11px + var(--fs-off, 0px)); font-weight: 700; color: var(--accent-lt, var(--accent)); }
+.wmap-friends { display: flex; flex-direction: column; gap: 2px; margin: 2px 0 6px 30px; }
+.wmap-friend { display: flex; align-items: center; gap: 8px; font-size: calc(12px + var(--fs-off, 0px)); border: 0; background: transparent; color: var(--tx1); font: inherit; text-align: left; cursor: pointer; padding: 3px 6px; border-radius: 6px; }
+.wmap-friend:hover { background: var(--bg-hover); }
+.wmap-friend img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--bg-input); }
+.wmap-friend small { color: var(--tx2); margin-left: auto; font-size: calc(10px + var(--fs-off, 0px)); }
+.wmap-note { margin-top: 10px; font-size: calc(11px + var(--fs-off, 0px)); line-height: 1.5; color: var(--tx2); }
+@media (max-width: 900px) {
+    .wmap-page { flex-direction: column; height: auto; }
+    .wmap-globe-wrap { height: 60vh; flex: none; }
+    .wmap-side { width: auto; max-height: 50vh; }
+}
+/* After the "font: inherit" above, which would otherwise reset the size. */
+.wmap-country { font-size: calc(13px + var(--fs-off, 0px)); }
+.wmap-friend { font-size: calc(12px + var(--fs-off, 0px)); }

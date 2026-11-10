@@ -1,0 +1,17 @@
+<div class="wmap-page">
+    <div class="wmap-globe-wrap" id="wmapWrap">
+        <canvas id="wmapCanvas" class="wmap-canvas"></canvas>
+        <div class="wmap-tip" id="wmapTip" hidden></div>
+        <div class="wmap-controls">
+            <button class="vrcn-icon-button" onclick="wmapZoom(1.25)" title="Zoom in" data-i18n-title="hub.map.zoom_in"><span class="msi">add</span></button>
+            <button class="vrcn-icon-button" onclick="wmapZoom(0.8)" title="Zoom out" data-i18n-title="hub.map.zoom_out"><span class="msi">remove</span></button>
+            <button class="vrcn-icon-button" onclick="wmapReset()" title="Reset view" data-i18n-title="hub.map.reset"><span class="msi">restart_alt</span></button>
+        </div>
+    </div>
+    <div class="wmap-side vrcn-panel-card">
+        <div class="vrcn-panel-card-header"><span class="msi">public</span> <span data-i18n="nav.world_map">World Map</span></div>
+        <div class="wmap-summary" id="wmapSummary"></div>
+        <div class="wmap-list" id="wmapList"></div>
+        <div class="sf-desc wmap-note" data-i18n="hub.map.note">Friends are placed only from what their profile shows: a flag, "from" a country, or a language spoken mainly in one country. Never from IP addresses.</div>
+    </div>
+</div>

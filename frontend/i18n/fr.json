@@ -4313,5 +4313,15 @@
   "hub.nav.rename_header": "Renommer le titre",
   "hub.nav.remove_header": "Supprimer le titre",
   "hub.nav.show_page": "Afficher {page}",
-  "hub.nav.add_title": "Ajouter un groupe ou un titre, ou afficher une page masquée"
+  "hub.nav.add_title": "Ajouter un groupe ou un titre, ou afficher une page masquée",
+  "nav.world_map": "Carte du monde",
+  "hub.map.summary": "{placed} amis dans {countries} pays. {unplaced} autres ne disent pas où ils sont.",
+  "hub.map.note": "Les amis sont placés uniquement d'après leur profil : un drapeau, « de » un pays, ou une langue parlée surtout dans un pays. Jamais d'après l'adresse IP.",
+  "hub.map.empty": "Aucun de vos amis n'indique encore où il est.",
+  "hub.map.how_flag": "drapeau",
+  "hub.map.how_bio": "bio",
+  "hub.map.how_language": "langue",
+  "hub.map.zoom_in": "Zoom avant",
+  "hub.map.zoom_out": "Zoom arrière",
+  "hub.map.reset": "Réinitialiser la vue"
 }

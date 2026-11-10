@@ -4313,5 +4313,15 @@
   "hub.nav.rename_header": "제목 이름 바꾸기",
   "hub.nav.remove_header": "제목 삭제",
   "hub.nav.show_page": "{page} 표시",
-  "hub.nav.add_title": "그룹이나 제목을 추가하거나 숨긴 페이지 표시"
+  "hub.nav.add_title": "그룹이나 제목을 추가하거나 숨긴 페이지 표시",
+  "nav.world_map": "세계 지도",
+  "hub.map.summary": "{countries}개국에 친구 {placed}명. {unplaced}명은 위치를 밝히지 않았습니다.",
+  "hub.map.note": "친구 위치는 프로필 내용으로만 정합니다: 국기, \"~에서 왔어요\", 주로 한 나라에서 쓰는 언어. IP 주소는 절대 쓰지 않습니다.",
+  "hub.map.empty": "아직 위치를 밝힌 친구가 없습니다.",
+  "hub.map.how_flag": "국기",
+  "hub.map.how_bio": "소개",
+  "hub.map.how_language": "언어",
+  "hub.map.zoom_in": "확대",
+  "hub.map.zoom_out": "축소",
+  "hub.map.reset": "보기 초기화"
 }

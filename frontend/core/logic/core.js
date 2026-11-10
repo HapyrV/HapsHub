@@ -1045,7 +1045,14 @@ function getPageTitle(i) {
         t('page.status_schedule', 'Status Schedule'),
         t('page.space_turn', 'Space Turn'),
         t('page.meet_network', 'Meet Network'),
-    ][i] ?? '';
+    ][i] ?? _navPageTitle(i);
+}
+
+// Pages added after the list above take their name from the sidebar entry.
+function _navPageTitle(i) {
+    if (typeof NAV_ITEMS_DEF === 'undefined') return '';
+    const def = Object.values(NAV_ITEMS_DEF).find(d => d.tab === i);
+    return def ? t(def.i18n, def.label) : '';
 }
 
 function updateCurrentPageTitle() {

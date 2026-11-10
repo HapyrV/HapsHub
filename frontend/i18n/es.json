@@ -4313,5 +4313,15 @@
   "hub.nav.rename_header": "Renombrar encabezado",
   "hub.nav.remove_header": "Quitar encabezado",
   "hub.nav.show_page": "Mostrar {page}",
-  "hub.nav.add_title": "Añadir un grupo o un encabezado, o mostrar una página oculta"
+  "hub.nav.add_title": "Añadir un grupo o un encabezado, o mostrar una página oculta",
+  "nav.world_map": "Mapa mundial",
+  "hub.map.summary": "{placed} amigos en {countries} países. Otros {unplaced} no dicen dónde están.",
+  "hub.map.note": "Los amigos se ubican solo por lo que muestra su perfil: una bandera, \"de\" un país o un idioma hablado sobre todo en un país. Nunca por la dirección IP.",
+  "hub.map.empty": "Ninguno de tus amigos dice todavía dónde está.",
+  "hub.map.how_flag": "bandera",
+  "hub.map.how_bio": "bio",
+  "hub.map.how_language": "idioma",
+  "hub.map.zoom_in": "Acercar",
+  "hub.map.zoom_out": "Alejar",
+  "hub.map.reset": "Restablecer vista"
 }

@@ -4313,5 +4313,15 @@
   "hub.nav.rename_header": "重新命名標題",
   "hub.nav.remove_header": "刪除標題",
   "hub.nav.show_page": "顯示{page}",
-  "hub.nav.add_title": "新增群組或標題，或顯示隱藏的頁面"
+  "hub.nav.add_title": "新增群組或標題，或顯示隱藏的頁面",
+  "nav.world_map": "世界地圖",
+  "hub.map.summary": "{countries} 個國家中有 {placed} 位好友。另有 {unplaced} 位沒有寫明所在地。",
+  "hub.map.note": "好友位置只根據其個人資料：國旗、「來自」某國，或主要在一個國家使用的語言。絕不使用 IP 位址。",
+  "hub.map.empty": "還沒有好友寫明所在地。",
+  "hub.map.how_flag": "國旗",
+  "hub.map.how_bio": "簡介",
+  "hub.map.how_language": "語言",
+  "hub.map.zoom_in": "放大",
+  "hub.map.zoom_out": "縮小",
+  "hub.map.reset": "重設檢視"
 }

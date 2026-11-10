@@ -4313,5 +4313,15 @@
   "hub.nav.rename_header": "見出しの名前を変更",
   "hub.nav.remove_header": "見出しを削除",
   "hub.nav.show_page": "{page} を表示",
-  "hub.nav.add_title": "グループや見出しを追加、または隠したページを表示"
+  "hub.nav.add_title": "グループや見出しを追加、または隠したページを表示",
+  "nav.world_map": "世界地図",
+  "hub.map.summary": "{countries} か国に {placed} 人のフレンド。ほかの {unplaced} 人は場所を書いていません。",
+  "hub.map.note": "フレンドはプロフィールの内容だけで配置されます：国旗、「〇〇出身」、主に一つの国で話される言語。IP アドレスは使いません。",
+  "hub.map.empty": "まだ場所を書いているフレンドはいません。",
+  "hub.map.how_flag": "国旗",
+  "hub.map.how_bio": "自己紹介",
+  "hub.map.how_language": "言語",
+  "hub.map.zoom_in": "拡大",
+  "hub.map.zoom_out": "縮小",
+  "hub.map.reset": "表示をリセット"
 }

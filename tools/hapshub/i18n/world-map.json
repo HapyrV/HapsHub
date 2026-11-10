@@ -1,0 +1,32 @@
+{
+  "nav.world_map": { "en": "World Map", "de": "Weltkarte", "es": "Mapa mundial", "fr": "Carte du monde", "ja": "世界地図", "ko": "세계 지도", "ru": "Карта мира", "zh-CN": "世界地图", "zh-TW": "世界地圖" },
+  "hub.map.summary": {
+    "en": "{placed} friends in {countries} countries. {unplaced} more don't say where they are.",
+    "de": "{placed} Freunde in {countries} Ländern. {unplaced} weitere sagen nicht, wo sie sind.",
+    "es": "{placed} amigos en {countries} países. Otros {unplaced} no dicen dónde están.",
+    "fr": "{placed} amis dans {countries} pays. {unplaced} autres ne disent pas où ils sont.",
+    "ja": "{countries} か国に {placed} 人のフレンド。ほかの {unplaced} 人は場所を書いていません。",
+    "ko": "{countries}개국에 친구 {placed}명. {unplaced}명은 위치를 밝히지 않았습니다.",
+    "ru": "{placed} друзей в {countries} странах. Ещё {unplaced} не указывают, где они.",
+    "zh-CN": "{countries} 个国家中有 {placed} 位好友。另有 {unplaced} 位没有写明所在地。",
+    "zh-TW": "{countries} 個國家中有 {placed} 位好友。另有 {unplaced} 位沒有寫明所在地。"
+  },
+  "hub.map.note": {
+    "en": "Friends are placed only from what their profile shows: a flag, \"from\" a country, or a language spoken mainly in one country. Never from IP addresses.",
+    "de": "Freunde werden nur nach ihrem Profil platziert: eine Flagge, „aus“ einem Land oder eine Sprache, die vor allem in einem Land gesprochen wird. Nie nach IP-Adressen.",
+    "es": "Los amigos se ubican solo por lo que muestra su perfil: una bandera, \"de\" un país o un idioma hablado sobre todo en un país. Nunca por la dirección IP.",
+    "fr": "Les amis sont placés uniquement d'après leur profil : un drapeau, « de » un pays, ou une langue parlée surtout dans un pays. Jamais d'après l'adresse IP.",
+    "ja": "フレンドはプロフィールの内容だけで配置されます：国旗、「〇〇出身」、主に一つの国で話される言語。IP アドレスは使いません。",
+    "ko": "친구 위치는 프로필 내용으로만 정합니다: 국기, \"~에서 왔어요\", 주로 한 나라에서 쓰는 언어. IP 주소는 절대 쓰지 않습니다.",
+    "ru": "Друзья размещаются только по их профилю: флаг, «из» какой-то страны или язык, на котором говорят в основном в одной стране. Никогда по IP-адресу.",
+    "zh-CN": "好友位置只根据其个人资料：国旗、“来自”某国，或主要在一个国家使用的语言。绝不使用 IP 地址。",
+    "zh-TW": "好友位置只根據其個人資料：國旗、「來自」某國，或主要在一個國家使用的語言。絕不使用 IP 位址。"
+  },
+  "hub.map.empty": { "en": "None of your friends say where they are yet.", "de": "Noch keiner deiner Freunde sagt, wo er ist.", "es": "Ninguno de tus amigos dice todavía dónde está.", "fr": "Aucun de vos amis n'indique encore où il est.", "ja": "まだ場所を書いているフレンドはいません。", "ko": "아직 위치를 밝힌 친구가 없습니다.", "ru": "Пока никто из друзей не указал, где он.", "zh-CN": "还没有好友写明所在地。", "zh-TW": "還沒有好友寫明所在地。" },
+  "hub.map.how_flag": { "en": "flag", "de": "Flagge", "es": "bandera", "fr": "drapeau", "ja": "国旗", "ko": "국기", "ru": "флаг", "zh-CN": "国旗", "zh-TW": "國旗" },
+  "hub.map.how_bio": { "en": "bio", "de": "Bio", "es": "bio", "fr": "bio", "ja": "自己紹介", "ko": "소개", "ru": "о себе", "zh-CN": "简介", "zh-TW": "簡介" },
+  "hub.map.how_language": { "en": "language", "de": "Sprache", "es": "idioma", "fr": "langue", "ja": "言語", "ko": "언어", "ru": "язык", "zh-CN": "语言", "zh-TW": "語言" },
+  "hub.map.zoom_in": { "en": "Zoom in", "de": "Vergrößern", "es": "Acercar", "fr": "Zoom avant", "ja": "拡大", "ko": "확대", "ru": "Приблизить", "zh-CN": "放大", "zh-TW": "放大" },
+  "hub.map.zoom_out": { "en": "Zoom out", "de": "Verkleinern", "es": "Alejar", "fr": "Zoom arrière", "ja": "縮小", "ko": "축소", "ru": "Отдалить", "zh-CN": "缩小", "zh-TW": "縮小" },
+  "hub.map.reset": { "en": "Reset view", "de": "Ansicht zurücksetzen", "es": "Restablecer vista", "fr": "Réinitialiser la vue", "ja": "表示をリセット", "ko": "보기 초기화", "ru": "Сбросить вид", "zh-CN": "重置视图", "zh-TW": "重設檢視" }
+}

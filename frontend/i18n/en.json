@@ -4313,5 +4313,15 @@
   "hub.nav.rename_header": "Rename header",
   "hub.nav.remove_header": "Remove header",
   "hub.nav.show_page": "Show {page}",
-  "hub.nav.add_title": "Add a group or a header, or show a hidden page"
+  "hub.nav.add_title": "Add a group or a header, or show a hidden page",
+  "nav.world_map": "World Map",
+  "hub.map.summary": "{placed} friends in {countries} countries. {unplaced} more don't say where they are.",
+  "hub.map.note": "Friends are placed only from what their profile shows: a flag, \"from\" a country, or a language spoken mainly in one country. Never from IP addresses.",
+  "hub.map.empty": "None of your friends say where they are yet.",
+  "hub.map.how_flag": "flag",
+  "hub.map.how_bio": "bio",
+  "hub.map.how_language": "language",
+  "hub.map.zoom_in": "Zoom in",
+  "hub.map.zoom_out": "Zoom out",
+  "hub.map.reset": "Reset view"
 }

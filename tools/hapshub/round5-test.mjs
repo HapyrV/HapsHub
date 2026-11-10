@@ -328,6 +328,43 @@ section('vrct', async () => {
     }
 });
 
+section('map', async main => {
+    await main.eval(`(() => {
+        const friend = (id, extra) => ({ id, displayName: id, status: 'active', image: '', tags: [], bio: '', statusDescription: '', ...extra });
+        window.__savedFriends = vrcFriendsData;
+        vrcFriendsData = [
+            friend('flag', { bio: 'hi 🇩🇪 here' }),
+            friend('from', { bio: 'Hello! I am from Japan, love anime' }),
+            friend('living', { statusDescription: 'living in the Netherlands' }),
+            friend('hebrew', { tags: ['language_eng', 'language_heb'] }),
+            friend('english', { tags: ['language_eng'] }),
+            friend('two', { tags: ['language_deu', 'language_jpn'] }),
+            friend('rainbow', { bio: '🏳️‍🌈 just vibes' }),
+            friend('georgia', { bio: 'My name is Georgia' }),
+        ];
+    })()`);
+    await main.eval(`showTab(NAV_ITEMS_DEF['world-map'].tab)`);
+    await waitFor('the globe', () => main.eval(`_wmap.frame > 0 && _wmap.places.size > 0`), 10000);
+    const places = await main.json(`Object.fromEntries([..._wmap.places].map(([code, list]) => [code, list.map(p => p.friend.id + ':' + p.how)]))`);
+    check('a flag, "from Japan", "living in the Netherlands" and a Hebrew tag each place a friend', places.DE?.[0] === 'flag:flag' && places.JP?.[0] === 'from:bio' && places.NL?.[0] === 'living:bio' && places.IL?.[0] === 'hebrew:language', JSON.stringify(places));
+    check('English alone, two clashing languages, a rainbow flag and a name like Georgia place nobody', Object.keys(places).length === 4 && await main.eval(`_wmap.unplaced === 4`), JSON.stringify(places));
+    check('the page has a title', (await main.eval(`document.getElementById('pageTitle').textContent`)) === 'World Map');
+    const drawn = await main.eval(`(() => { const c = document.getElementById('wmapCanvas'); const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let lit = 0; for (let i = 3; i < d.length; i += 4 * 97) if (d[i] > 0) lit++; return lit; })()`);
+    check('the globe is drawn', drawn > 50, String(drawn));
+    await main.eval(`wmapSelect('JP')`);
+    await sleep(300);
+    check('choosing a country lists who is there', await main.eval(`document.querySelector('.wmap-country.is-on .wmap-name').textContent === 'Japan' && document.querySelectorAll('.wmap-friends .wmap-friend').length === 1`));
+    const fits = await main.json(`(() => { const p = document.querySelector('#tab39 .wmap-page'); const c = document.querySelector('.content'); return { page: Math.round(p.getBoundingClientRect().bottom), view: Math.round(c.getBoundingClientRect().bottom), scroll: c.scrollHeight - c.clientHeight }; })()`);
+    check('the map page fits the window without scrolling', fits.scroll <= 2, JSON.stringify(fits));
+    const frames = await main.eval(`_wmap.frame`);
+    await main.eval(`showTab(0)`);
+    await sleep(600);
+    const after = await main.eval(`_wmap.frame`);
+    await sleep(600);
+    check('the globe stops drawing when its page is closed', (await main.eval(`_wmap.frame`)) === after, `${frames} ${after}`);
+    await main.eval(`vrcFriendsData = window.__savedFriends`);
+});
+
 const dir = freshData('hapshub-round5-');
 let main;
 try {
