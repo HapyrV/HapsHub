@@ -1,8 +1,9 @@
 // Probe: which pages leave the top bar's menus cut off at a given size and language.
-//   node tools/hapshub/probe-topbar.mjs [width] [scale] [language]
+//   node tools/hapshub/probe-topbar.mjs [width] [scale] [language] [max]
+// max: text size, letter spacing and top bar height at their largest (the QA pass leaves them there).
 import { checker, cleanUp, closeMain, freshData, openMain, sleep, waitFor } from './lib/harness.mjs';
 
-const [width = 960, scale = 1.25, language = 'ru'] = process.argv.slice(2);
+const [width = 960, scale = 1.25, language = 'ru', max] = process.argv.slice(2);
 checker();
 const dir = freshData('hapshub-probe-');
 let main;
@@ -11,6 +12,7 @@ try {
     await waitFor('the splash to go', () => main.eval(`!document.getElementById('vrcnSplash')`), 15000);
     await main.send('Emulation.setDeviceMetricsOverride', { width: Number(width), height: 600, deviceScaleFactor: Number(scale), mobile: false });
     await main.eval(`requestTranslation(${JSON.stringify(language)})`);
+    if (max) await main.eval(`['setFontSize', 'setLetterSpacing', 'setTaskbarHeight'].forEach(id => { const s = document.getElementById(id); if (!s) return; s.value = s.max; s.dispatchEvent(new Event('input', { bubbles: true })); s.dispatchEvent(new Event('change', { bubbles: true })); })`);
     await sleep(1500);
     const tabs = await main.json(`[...document.querySelectorAll('.content > .tab')].map(t => Number(t.id.replace('tab', ''))).filter(n => !isNaN(n))`);
     // The same pages the QA pass visits: every tab, every Settings section, and the plugins with their options open.

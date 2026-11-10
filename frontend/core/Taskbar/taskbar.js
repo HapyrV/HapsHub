@@ -434,9 +434,10 @@ function tbToggleTools() {
 }());
 
 // The top bar's menus must all stay reachable and leave room for the credit to VRCNext. When they don't fit,
-// it hides the brand, then shortens the page title, then tightens the menus, one step at a time.
+// it hides the brand, then shortens the page title, then tightens the menus, one step at a time. The last two steps
+// are for the largest text settings: no title, and menu names without the extra letter spacing, then text size.
 (function () {
-    const STEPS = ['tb-fit-1', 'tb-fit-2', 'tb-fit-3', 'tb-fit-4'];
+    const STEPS = ['tb-fit-1', 'tb-fit-2', 'tb-fit-3', 'tb-fit-4', 'tb-fit-5', 'tb-fit-6'];
     const CREDIT_ROOM = 44;
     function tight() {
         const left = document.getElementById('tb-left');

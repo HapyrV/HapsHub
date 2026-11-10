@@ -175,3 +175,8 @@ body.hub-resizing, body.hub-resizing * { cursor: col-resize !important; user-sel
 #taskbar.tb-fit-2 #pageTitle { max-width: 110px; display: block; align-self: center; text-overflow: ellipsis; }
 #taskbar.tb-fit-3 .tb-menu-item { padding: 0 6px; }
 #taskbar.tb-fit-4 #pageTitle { max-width: 64px; }
+/* With the largest text settings: the title goes (the sidebar shows the page), then the menu names drop the extra
+   letter spacing, then the extra text size. Their dropdowns keep the user's settings. */
+#taskbar.tb-fit-5 #pageTitle { display: none; }
+#taskbar.tb-fit-5 .tb-menu-item > span:first-child { letter-spacing: normal; }
+#taskbar.tb-fit-6 .tb-menu-item > span:first-child { font-size: 13px; }
