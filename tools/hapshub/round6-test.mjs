@@ -255,6 +255,41 @@ section('map', async main => {
     await main.eval(`vrcFriendsData = window.__savedFriends; showTab(0)`);
 });
 
+section('plugins off', async main => {
+    // B3: with a plugin off, nothing of it is left anywhere in Settings: not its options (even when they were open),
+    // its slots, its own section or its module rows. Every Settings section is visited for every plugin.
+    await main.eval(`hubOpenPlugins()`);
+    await waitFor('plugin rows', () => main.eval(`document.querySelectorAll('.hub-plugin-row').length > 20`), 5000);
+    const result = JSON.parse(await main.eval(`(async () => {
+        const wait = ms => new Promise(r => setTimeout(r, ms));
+        const visible = el => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
+        const navs = [...document.querySelectorAll('#tab9 .settings-nav-item')];
+        const found = [];
+        let visits = 0;
+        for (const p of HUB_PLUGINS) {
+            const options = _hubPluginHasOptions(p);
+            if (options) hubPluginToggleOptions(p.id, true);
+            hubPluginSet(p.id, false);
+            const selectors = [..._hubPluginSelectors(p), '.hub-plugin-opts[data-plugin-opts="' + p.id + '"]',
+                ...(p.settings || []).map(s => '#hubModulesList .hub-module-row[data-module="' + s.module + '"]')];
+            for (const nav of navs.filter(visible)) {
+                nav.click();
+                visits++;
+                await wait(25);
+                for (const selector of selectors)
+                    for (const el of document.querySelectorAll(selector))
+                        if (el.closest('#tab9') && visible(el)) found.push(p.id + ': ' + selector + ' in ' + nav.textContent.trim());
+            }
+            hubPluginSet(p.id, true);
+            if (options) hubPluginToggleOptions(p.id, false);
+        }
+        return JSON.stringify({ found: [...new Set(found)], visits, plugins: HUB_PLUGINS.length });
+    })()`));
+    check('B3: with a plugin off, none of its settings appear anywhere in Settings', result.found.length === 0 && result.visits > result.plugins * 5, JSON.stringify(result).slice(0, 600));
+    check('B3: every plugin is back on afterwards', await main.eval(`HUB_PLUGINS.every(p => hubPluginOn(p.id))`));
+    await main.eval(`showTab(0)`);
+});
+
 // A picture folder for the dashboard: three wide pictures and an Eagle-style preview that must never be picked.
 const pics = mkdtempSync(join(tmpdir(), 'hapshub-pics-'));
 writePng(join(pics, 'red.png'), 64, 36, [200, 30, 30]);
