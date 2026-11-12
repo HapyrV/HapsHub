@@ -23,7 +23,15 @@ public partial class AppShell
         return false;
     }
 
+    private static readonly object OvrasSaveLock = new();
+
     private void SaveOvras(JObject? values)
+    {
+        // Each slider saves on its own thread; one at a time, so two quick changes can't overwrite each other.
+        lock (OvrasSaveLock) SaveOvrasLocked(values);
+    }
+
+    private void SaveOvrasLocked(JObject? values)
     {
         if (OvrasSettings.IsRunning())
         {

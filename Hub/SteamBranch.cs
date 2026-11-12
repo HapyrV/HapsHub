@@ -131,6 +131,39 @@ public sealed class SteamHost : ISteamHost
         return libraries;
     }
 
+    private static readonly Regex AppIdField = new(@"^\s*""appid""\s+""(\d+)""", RegexOptions.Multiline | RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex InstallDirField = new(@"^\s*""installdir""\s+""([^""]+)""", RegexOptions.Multiline | RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    /// <summary>The Steam app id of the game a program belongs to, or null when it isn't under a Steam library.
+    /// Starting such a program through Steam keeps its Steam Input and SteamVR controller bindings.</summary>
+    public static int? AppIdForProgram(string programPath)
+    {
+        try
+        {
+            var full = Path.GetFullPath(programPath.Trim().Trim('"'));
+            foreach (var library in SteamLibraries())
+            {
+                var common = Path.GetFullPath(Path.Combine(library, "steamapps", "common")).TrimEnd('\\', '/') + Path.DirectorySeparatorChar;
+                if (!full.StartsWith(common, StringComparison.OrdinalIgnoreCase)) continue;
+                var installDir = full.Substring(common.Length).Split('\\', '/')[0];
+                foreach (var manifest in Directory.EnumerateFiles(Path.Combine(library, "steamapps"), "appmanifest_*.acf"))
+                {
+                    var text = File.ReadAllText(manifest);
+                    var dir = InstallDirField.Match(text);
+                    var id = AppIdField.Match(text);
+                    if (dir.Success && id.Success && string.Equals(dir.Groups[1].Value, installDir, StringComparison.OrdinalIgnoreCase)
+                        && int.TryParse(id.Groups[1].Value, out var appId))
+                        return appId;
+                }
+            }
+        }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+        catch (ArgumentException) { }
+        catch (NotSupportedException) { }
+        return null;
+    }
+
     public IReadOnlyList<string> RunningBlockers()
     {
         var running = BlockerProcesses.Where(IsRunning).ToList();

@@ -89,6 +89,7 @@ public static class LaunchAddons
         {
             new("oyasumi", "OyasumiVR", First(steam.Select(c => Path.Combine(c, "OyasumiVR", "OyasumiVR.exe")))),
             new("standable", "Standable", StandableExe()),
+            new("ovr-advanced", "OVR Advanced Settings", First(steam.Select(c => Path.Combine(c, "OVR_AdvancedSettings", "AdvancedSettings.exe")))),
             new("vrct", "VRCT", First(new[] { Path.Combine(local, "VRCT", "VRCT.exe") })),
         };
     }

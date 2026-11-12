@@ -494,7 +494,10 @@ public class RelayController : IDisposable
             {
 #if WINDOWS
                 var launchPath = path;
-                if (path.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                // A program from a Steam game starts through Steam, so it keeps its controller bindings.
+                var steamAppId = HapsHub.Core.SteamHost.AppIdForProgram(path);
+                if (steamAppId != null) launchPath = $"steam://rungameid/{steamAppId}";
+                else if (path.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                 {
                     var lnk = AutoStartShortcutHelper.EnsureShortcut(path, vr);
                     if (!string.IsNullOrEmpty(lnk) && File.Exists(lnk)) launchPath = lnk;
