@@ -23,7 +23,7 @@ var SETUP_PICKS = [
     ['standable', 'accessibility_new', 'setup.pick.standable', 'Standable', 'setup.pick.standable_desc', 'Starting it with VR', ['vr-autostart']],
     ['vrct', 'translate', 'setup.pick.vrct', 'VRCT', 'setup.pick.vrct_desc', 'Its page, and starting it with VR', ['vrct', 'vr-autostart']],
     ['ovrtoolkit', 'view_in_ar', 'setup.pick.ovrtoolkit', 'OVR Toolkit', 'setup.pick.ovrtoolkit_desc', 'Its page', ['ovrtoolkit']],
-    ['eagle', 'photo_library', 'setup.pick.eagle', 'Eagle', 'setup.pick.eagle_desc', 'Its page, for your pictures', ['eagle']],
+    ['eagle', 'photo_library', 'setup.pick.eagle', 'Eagle', 'setup.pick.eagle_desc', 'Its pictures in Media Library', ['eagle']],
     ['music', 'music_note', 'setup.pick.music', 'Music into the VRChat mic', 'setup.pick.music_desc', 'YouTube Tunnel', ['youtube-tunnel']],
     ['vrcx', 'download', 'setup.pick.vrcx', 'I used VRCX', 'setup.pick.vrcx_desc', 'Bring your VRCX history over', ['vrcx']],
     ['perf', 'bolt', 'setup.pick.perf', 'Performance mode', 'setup.pick.perf_desc', 'For slower PCs: fewer effects, smoother scrolling', []]

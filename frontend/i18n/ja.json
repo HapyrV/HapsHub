@@ -4146,7 +4146,6 @@
   "hub.tunnel.choose": "デバイスを選択",
   "hub.tunnel.nowhere": "自分には再生しない",
   "nav.oyasumi": "OyasumiVR",
-  "nav.eagle": "Eagle",
   "hub.embed.open": "ここで開く",
   "hub.embed.release": "元に戻す",
   "hub.embed.test": "テスト",
@@ -4210,7 +4209,7 @@
   "hub.dash.toggle.status": "VRChatの状態",
   "hub.dash.toggle.friends": "ゲーム内のフレンド",
   "hub.dash.toggle.web": "Webのフレンド",
-  "hub.modules.info.hub.app-embeds": "Shows OyasumiVR and Eagle inside HapsHub's own pages instead of their own windows. Settings here set where each app is installed.",
+  "hub.modules.info.hub.app-embeds": "OyasumiVR、Space Calibrator、VRCT、OVR Toolkit を別ウィンドウではなく HapsHub のページ内に表示します。ここで各アプリのインストール場所を設定します。",
   "hub.modules.info.hub.crash-rejoin": "Brings you back to the instance you were in when VRChat crashes. Off unless you turn it on.",
   "hub.modules.info.hub.forwarding": "The master switch for anything HapsHub sends to outside services: avatar databases and VRCN+ lookups. Off means nothing leaves your PC.",
   "hub.modules.info.hub.calendar": "Your own calendar events on the Calendar page. Repeats are worked out in local time, so they survive clock changes.",
@@ -4342,7 +4341,6 @@
   "page.help.31": "HapsHub が記録したすべて：名前や信頼ランクの変化、通知、再生した動画、着たアバター、訪れた場所。検索や種類での絞り込み、各項目から人やワールドを開くことができます。",
   "page.help.32": "仮想オーディオケーブルを通して YouTube の曲を VRChat のマイクに流し、近くの人に聞かせます。リンクを貼って再生し、相手と自分の音量を調整できます。",
   "page.help.33": "VR 用のスリープ補助アプリ OyasumiVR を HapsHub の中に表示します。ここで開けば、HapsHub から離れずにスリープモードや明るさ、自動化を変更できます。",
-  "page.help.34": "Eagle の画像ライブラリを HapsHub の中で表示します。Eagle の起動中にフォルダーや画像を閲覧でき、どの画像も Eagle で開けます。",
   "page.help.35": "OVR Advanced Settings の移動オプション（プレイスペースのドラッグ、重力、スナップターン）をここで変更できます。SteamVR の起動中は変更がすぐに反映されます。",
   "page.help.36": "別のトラッキング方式のトラッカーをヘッドセットに合わせる Space Calibrator を HapsHub の中に表示します。オプションでは Steam の公開版とベータ版を切り替えられます。",
   "page.help.37": "HapsHub が動かす VRCT：あなたの声がチャットボックスのメッセージになり、他の人の発言は翻訳して表示され、文字で送信もできます。VRCT が対応する言語と翻訳エンジンを選べます。",
@@ -4360,5 +4358,12 @@
   "hub.map.why_flag": "プロフィールに国旗 {flag}",
   "hub.map.why_bio": "プロフィール：「{phrase}」",
   "hub.map.why_language": "言語：{language}",
-  "hub.map.why_manual": "自分で設定"
+  "hub.map.why_manual": "自分で設定",
+  "library.eagle.title": "Eagle のフォルダーと画像",
+  "library.eagle.all": "すべての画像",
+  "library.eagle.loading": "Eagle の画像を読み込み中...",
+  "library.eagle.closed": "Eagle が起動していません。Eagle を開くと、ここに画像が表示されます。",
+  "library.eagle.retry": "再試行",
+  "library.eagle.empty": "ここには画像がありません。",
+  "library.eagle.more": "さらに表示"
 }

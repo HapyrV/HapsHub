@@ -1,6 +1,6 @@
-// Tests the real OyasumiVR and Eagle in a throwaway copy of HapsHub, using the page's own Test button.
+// Tests the real OyasumiVR, Space Calibrator and OVR Toolkit in a throwaway copy of HapsHub, using the page's own Test button.
 // Windows go back to how they were. Stops only what it started, including an OyasumiVR it had to open.
-//   node tools/hapshub/embed-live.mjs [oyasumi] [eagle] [--tracked]
+//   node tools/hapshub/embed-live.mjs [oyasumi] [--tracked]
 
 import { spawn, spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -11,8 +11,8 @@ import { fileURLToPath } from 'node:url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const EXE = join(ROOT, 'bin', 'Debug', 'net10.0-windows10.0.19041.0', 'HapsHub.exe');
 const PORT = 9336;
-const TABS = { oyasumi: 33, eagle: 34, spacecal: 36, ovrtoolkit: 38 };
-const NAMES = { oyasumi: 'OyasumiVR', eagle: 'Eagle', spacecal: 'Space Calibrator', ovrtoolkit: 'OVR Toolkit' };
+const TABS = { oyasumi: 33, spacecal: 36, ovrtoolkit: 38 };
+const NAMES = { oyasumi: 'OyasumiVR', spacecal: 'Space Calibrator', ovrtoolkit: 'OVR Toolkit' };
 const chosen = process.argv.slice(2).filter(a => a in TABS);
 const apps = chosen.length ? chosen : Object.keys(TABS);
 const sleep = ms => new Promise(done => setTimeout(done, ms));

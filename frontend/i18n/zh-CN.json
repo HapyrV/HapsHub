@@ -4146,7 +4146,6 @@
   "hub.tunnel.choose": "选择设备",
   "hub.tunnel.nowhere": "不为我播放",
   "nav.oyasumi": "OyasumiVR",
-  "nav.eagle": "Eagle",
   "hub.embed.open": "在此打开",
   "hub.embed.release": "放回去",
   "hub.embed.test": "测试",
@@ -4210,7 +4209,7 @@
   "hub.dash.toggle.status": "VRChat 状态",
   "hub.dash.toggle.friends": "游戏中的好友",
   "hub.dash.toggle.web": "网页上的好友",
-  "hub.modules.info.hub.app-embeds": "Shows OyasumiVR and Eagle inside HapsHub's own pages instead of their own windows. Settings here set where each app is installed.",
+  "hub.modules.info.hub.app-embeds": "在 HapsHub 自己的页面中显示 OyasumiVR、Space Calibrator、VRCT 和 OVR Toolkit，而不是在各自的窗口中。这里设置每个应用的安装位置。",
   "hub.modules.info.hub.crash-rejoin": "Brings you back to the instance you were in when VRChat crashes. Off unless you turn it on.",
   "hub.modules.info.hub.forwarding": "The master switch for anything HapsHub sends to outside services: avatar databases and VRCN+ lookups. Off means nothing leaves your PC.",
   "hub.modules.info.hub.calendar": "Your own calendar events on the Calendar page. Repeats are worked out in local time, so they survive clock changes.",
@@ -4342,7 +4341,6 @@
   "page.help.31": "HapsHub 记录的一切：改名和信任等级变化、通知、播放的视频、穿过的模型和去过的地方。可搜索、按类型筛选，或从任一条目打开对应的人或世界。",
   "page.help.32": "通过虚拟音频线把 YouTube 歌曲播放到你的 VRChat 麦克风，让附近的人都能听到。粘贴链接、播放，并分别调节他们和你听到的音量。",
   "page.help.33": "在 HapsHub 中显示 VR 睡眠助手 OyasumiVR。在这里打开它，无需离开 HapsHub 就能调整睡眠模式、亮度和自动化。",
-  "page.help.34": "在 HapsHub 中浏览你的 Eagle 图片库。Eagle 运行时可浏览文件夹和图片，并可在 Eagle 中打开任意图片。",
   "page.help.35": "在这里修改 OVR Advanced Settings 的移动选项：拖动游玩空间、重力和分段转向。SteamVR 运行时，修改会立即生效。",
   "page.help.36": "在 HapsHub 中显示 Space Calibrator，用于把其他追踪系统的追踪器与头显对齐。它的选项还能在 Steam 正式版和测试版之间切换。",
   "page.help.37": "由 HapsHub 运行的 VRCT：你说的话会变成聊天框消息，别人说的话会翻译显示，你也可以输入文字发送。选择 VRCT 支持的语言和翻译引擎。",
@@ -4360,5 +4358,12 @@
   "hub.map.why_flag": "资料中的国旗 {flag}",
   "hub.map.why_bio": "资料写着“{phrase}”",
   "hub.map.why_language": "语言：{language}",
-  "hub.map.why_manual": "由你设置"
+  "hub.map.why_manual": "由你设置",
+  "library.eagle.title": "Eagle 的文件夹和图片",
+  "library.eagle.all": "所有图片",
+  "library.eagle.loading": "正在加载 Eagle 的图片...",
+  "library.eagle.closed": "Eagle 未运行。打开 Eagle 即可在这里查看其图片。",
+  "library.eagle.retry": "重试",
+  "library.eagle.empty": "这里没有图片。",
+  "library.eagle.more": "显示更多"
 }

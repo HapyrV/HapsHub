@@ -24,7 +24,7 @@ PAGE = """<div class="aemb-page">
     <div class="aemb-report"><div id="aemb-result-{app}"></div><div id="aemb-results-{app}"></div></div>
 </div>
 """
-APPS = [("oyasumi", "OyasumiVR", "bedtime"), ("eagle", "Eagle", "photo_library"), ("spacecal", "Space Calibrator", "gps_fixed"),
+APPS = [("oyasumi", "OyasumiVR", "bedtime"), ("spacecal", "Space Calibrator", "gps_fixed"),
         ("ovrtoolkit", "OVR Toolkit", "view_in_ar")]
 for app, name, icon in APPS:
     target = ROOT / "frontend/modules/tools/app-embed" / f"{app}.html"

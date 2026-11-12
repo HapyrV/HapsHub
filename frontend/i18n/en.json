@@ -4146,7 +4146,6 @@
   "hub.tunnel.choose": "Choose a device",
   "hub.tunnel.nowhere": "Don't play it for me",
   "nav.oyasumi": "OyasumiVR",
-  "nav.eagle": "Eagle",
   "hub.embed.open": "Open here",
   "hub.embed.release": "Put it back",
   "hub.embed.test": "Test",
@@ -4210,7 +4209,7 @@
   "hub.dash.toggle.status": "VRChat status",
   "hub.dash.toggle.friends": "Friends in game",
   "hub.dash.toggle.web": "Friends on web",
-  "hub.modules.info.hub.app-embeds": "Shows OyasumiVR and Eagle inside HapsHub's own pages instead of their own windows. Settings here set where each app is installed.",
+  "hub.modules.info.hub.app-embeds": "Shows OyasumiVR, Space Calibrator, VRCT and OVR Toolkit inside HapsHub's own pages instead of their own windows. Settings here set where each app is installed.",
   "hub.modules.info.hub.crash-rejoin": "Brings you back to the instance you were in when VRChat crashes. Off unless you turn it on.",
   "hub.modules.info.hub.forwarding": "The master switch for anything HapsHub sends to outside services: avatar databases and VRCN+ lookups. Off means nothing leaves your PC.",
   "hub.modules.info.hub.calendar": "Your own calendar events on the Calendar page. Repeats are worked out in local time, so they survive clock changes.",
@@ -4342,7 +4341,6 @@
   "page.help.31": "Everything HapsHub has recorded: name and trust changes, notifications, videos played, avatars worn and places visited. Search it, filter by kind, or open a person or world from any entry.",
   "page.help.32": "Play a YouTube song into your VRChat microphone through a virtual audio cable, so everyone nearby hears it. Paste a link, press play, and set the volume for them and for you.",
   "page.help.33": "OyasumiVR, the sleep helper for VR, shown inside HapsHub. Open it here to change its sleep mode, brightness and automations without leaving HapsHub.",
-  "page.help.34": "Your Eagle picture library inside HapsHub. Browse folders and pictures from Eagle while it runs, and open any picture in Eagle itself.",
   "page.help.35": "Change OVR Advanced Settings' movement options from here: dragging your play space, gravity and snap turn. Changes go straight to OVR Advanced Settings while SteamVR runs.",
   "page.help.36": "Space Calibrator inside HapsHub, for lining up trackers from another tracking system with your headset. Its options also switch between Space Calibrator's Steam public and beta versions.",
   "page.help.37": "VRCT run by HapsHub: your speech becomes chatbox messages, what others say is shown translated, and you can type a message to send. Pick the languages VRCT offers and the translator to use.",
@@ -4360,5 +4358,12 @@
   "hub.map.why_flag": "flag {flag} in profile",
   "hub.map.why_bio": "profile says \"{phrase}\"",
   "hub.map.why_language": "language: {language}",
-  "hub.map.why_manual": "set by you"
+  "hub.map.why_manual": "set by you",
+  "library.eagle.title": "Eagle's folders and pictures",
+  "library.eagle.all": "All pictures",
+  "library.eagle.loading": "Loading Eagle's pictures...",
+  "library.eagle.closed": "Eagle isn't running. Open Eagle to see its pictures here.",
+  "library.eagle.retry": "Try again",
+  "library.eagle.empty": "No pictures here.",
+  "library.eagle.more": "Show more"
 }

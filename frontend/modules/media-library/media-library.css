@@ -23,6 +23,26 @@
     flex-direction: column;
     height: 100%;
 }
+
+/* Eagle as a source: its pictures take the library's place, with only a folder picker beside the Eagle button. */
+#tab7:not(.lib-eagle-on) #libEagleFolderWrap,
+#tab7.lib-eagle-on .tt-scroll > :not(#libEagleBtn):not(#libEagleFolderWrap),
+#tab7.lib-eagle-on .tab-toolbar > div:last-child,
+#tab7.lib-eagle-on .lib-wrap,
+#tab7.lib-eagle-on #libPaginatorBar,
+#tab7.lib-eagle-on #libEditBar,
+#tab7.lib-eagle-on #libFolderBreadcrumb { display: none !important; }
+#libEagleBtn.active { background: color-mix(in srgb, var(--accent) 22%, transparent); border-color: var(--accent); }
+.lib-eagle { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 28px; }
+.lib-eagle[hidden] { display: none; }
+#libEagleFolderWrap { display: inline-flex; }
+.lib-eagle-status { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 24px 4px; color: var(--tx2); font-size: calc(13px + var(--fs-off, 0px)); }
+.lib-eagle-status[hidden] { display: none; }
+.lib-eagle-card { cursor: pointer; }
+.lib-eagle-card img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; display: block; background: var(--bg-input); }
+.lib-eagle-name { padding: 6px 8px; font-size: calc(11.5px + var(--fs-off, 0px)); color: var(--tx1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lib-eagle-more { display: block; margin: 14px auto 0; }
+.lib-eagle-more[hidden] { display: none; }
 .lib-wrap {
     flex: 1;
     overflow-y: auto;

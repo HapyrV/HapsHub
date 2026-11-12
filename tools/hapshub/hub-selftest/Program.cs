@@ -1170,7 +1170,7 @@ await Check("embeds: finds the app where it's installed, and a set path wins", (
         Assert(AppEmbedsModule.FindExe(app, "", new[] { library }) == inSteam, "the Steam copy was not found");
         Assert(AppEmbedsModule.FindExe(app, $"\"{chosen}\"", new[] { library }) == chosen, "the set path lost");
         Assert(AppEmbedsModule.FindExe(app, Path.Combine(library, "gone.exe"), new[] { library }) == null, "a wrong set path fell through to another copy");
-        Assert(AppEmbedsModule.App("eagle") == AppEmbedsModule.Eagle && AppEmbedsModule.App("nope") == null, "an app id resolved wrongly");
+        Assert(AppEmbedsModule.App("vrct") == AppEmbedsModule.Vrct && AppEmbedsModule.App("nope") == null, "an app id resolved wrongly");
     }
     finally { Directory.Delete(library, true); }
     return Task.CompletedTask;
@@ -1184,8 +1184,8 @@ await Check("embeds: apps are minimized when HapsHub closes unless another choic
     registry.Register(module);
     await registry.StartAllAsync();
     Assert(module.ExitAction == AppEmbedsModule.ExitMinimize, "the default isn't minimize");
-    Assert(module.Mode(AppEmbedsModule.Eagle) == AppEmbedsModule.ModeTracked && module.Mode(AppEmbedsModule.Vrct) == AppEmbedsModule.ModeTracked,
-        "Eagle and VRCT don't start as their own window over the page, where they draw");
+    Assert(module.Mode(AppEmbedsModule.Vrct) == AppEmbedsModule.ModeTracked,
+        "VRCT doesn't start as its own window over the page, where it draws");
     Assert(module.Mode(AppEmbedsModule.Oyasumi) == AppEmbedsModule.ModeChild, "OyasumiVR isn't held inside the page");
     var setting = Info(registry, AppEmbedsModule.ModuleId).Settings.Single(s => s.Definition.Key == AppEmbedsModule.ExitKey);
     Assert(setting.Definition.Kind == HubSettingKind.Choice && setting.Definition.Options.Count == 3, "the choice lost its options");

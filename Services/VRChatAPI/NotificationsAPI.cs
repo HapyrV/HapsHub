@@ -5,12 +5,21 @@ namespace VRCNext.Services;
 
 public class NotificationsAPI(VRChatApiService ctx)
 {
+    /// <summary>Set when VRChat answers 429; refreshes wait until then (as VRCX does since 8397c5f).</summary>
+    public DateTime RateLimitedUntil { get; private set; }
+
+    private void NoteStatus(System.Net.Http.HttpResponseMessage resp)
+    {
+        if ((int)resp.StatusCode == 429) RateLimitedUntil = DateTime.UtcNow.AddMinutes(2);
+    }
+
     public async Task<JArray> GetNotificationsAsync()
     {
         if (!ctx.IsLoggedIn) return new JArray();
         try
         {
             var resp = await ctx._http.GetAsync($"{VRChatApiService.BASE}/auth/user/notifications?n=100&hidden=false");
+            NoteStatus(resp);
             if (resp.IsSuccessStatusCode)
             {
                 var result = JArray.Parse(await resp.Content.ReadAsStringAsync());
@@ -30,6 +39,7 @@ public class NotificationsAPI(VRChatApiService ctx)
         try
         {
             var resp = await ctx._http.GetAsync($"{VRChatApiService.BASE}/auth/user/notificationsV2?n=100");
+            NoteStatus(resp);
             if (resp.IsSuccessStatusCode)
             {
                 var result = JArray.Parse(await resp.Content.ReadAsStringAsync());

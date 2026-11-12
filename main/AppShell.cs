@@ -1416,6 +1416,10 @@ public partial class AppShell
                 else
                     ctx.Response.StatusCode = 404;
             }
+            else if (path == "/eagle")
+            {
+                await ServeEagleAsync(ctx, isThumb);
+            }
             else if (path == "/ytembed")
             {
                 var vid = (ctx.Request.Url?.Query ?? "").TrimStart('?').Split('&')

@@ -1,5 +1,7 @@
                 <div class="tab-toolbar" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:nowrap;gap:10px;">
                     <div class="tt-scroll">
+                        <button class="vrcn-button" id="libEagleBtn" onclick="libEagleToggle()" title="Eagle's folders and pictures" data-i18n-title="library.eagle.title"><span class="msi" style="font-size:16px;">photo_library</span> <span>Eagle</span></button>
+                        <span id="libEagleFolderWrap"><select id="libEagleFolder" class="vrcn-dropdown" onchange="libEagleOpenFolder(this.value)"><option value="" data-i18n="library.eagle.all">All pictures</option></select></span>
                         <button class="vrcn-button" id="libFavBtn" onclick="toggleFavFilter()"><span class="msi" style="font-size:16px;">favorite</span> <span data-i18n="library.favorites">Favorites</span></button>
                         <div id="libRatingFilterWrap"></div>
                         <div id="libFriendFilterWrap"></div>
@@ -24,6 +26,11 @@
                 <div class="lib-wrap">
                     <div class="lib-top-fade" id="libTopFade"></div>
                     <div id="libGrid" class="lib-grid"><div class="empty-msg" data-i18n="library.empty.watch_folders">Add watch folders in Settings.</div></div>
+                </div>
+                <div id="libEagleArea" class="lib-eagle" hidden>
+                    <div id="libEagleStatus" class="lib-eagle-status" hidden></div>
+                    <div id="libEagleGrid" class="lib-date-group-cards"></div>
+                    <button id="libEagleMore" class="vrcn-button lib-eagle-more" onclick="libEagleLoadMore()" hidden data-i18n="library.eagle.more">Show more</button>
                 </div>
                 <div id="libPaginatorBar" class="tl-paginator-bar"></div>
                 <div id="libEditBar" class="lib-edit-bar" style="display:none;">

@@ -7,6 +7,7 @@ import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { writePng } from './lib/png.mjs';
+import { startFakeEagle } from './lib/fake-eagle.mjs';
 import { checker, cleanUp, closeMain, crashes, freshData, hubLog, openMain, sleep, waitFor } from './lib/harness.mjs';
 
 const PORT = 9341;
@@ -293,16 +294,90 @@ section('plugins off', async main => {
     await main.eval(`showTab(0)`);
 });
 
+section('licences', async main => {
+    await main.eval(`showTab(9); switchSettingsSection('about')`);
+    const shown = id => main.eval(`(() => { const el = document.querySelector('#settingsAttributionCard .attrib-item[data-licence="${id}"]'); return !!el && getComputedStyle(el).display !== 'none'; })()`);
+    const missing = await main.json(`HUB_PLUGINS.flatMap(p => p.licences || []).filter(l => !document.querySelector('#settingsAttributionCard .attrib-item[data-licence="' + l + '"]'))`);
+    check('B5: every licence a plugin names is in Attribution', missing.length === 0, missing.join(','));
+    check('B5: a plugin that is on shows its licence', await shown('vosk') && await shown('world-atlas'));
+    await main.eval(`hubPluginSet('voice-fight', false); hubPluginSet('world-map', false)`);
+    check('B5: turning a plugin off removes its licences', !(await shown('vosk')) && !(await shown('world-atlas')));
+    check('B5: a library another plugin still uses stays', await shown('naudio'));
+    check("B5: HapsHub's own libraries always show", await main.eval(`[...document.querySelectorAll('#settingsAttributionCard .attrib-item:not([data-licence])')].every(el => getComputedStyle(el).display !== 'none')`));
+    await main.eval(`['voice-fight', 'youtube-tunnel', 'frame-shot', 'kikitan-xd'].forEach(id => hubPluginSet(id, false))`);
+    // The app answers every switch with the full list, so earlier answers can briefly undo later switches: wait.
+    await waitFor('NAudio to go', async () => !(await shown('naudio')), 10000).catch(() => {});
+    check('B5: with every plugin that uses it off, a shared library goes too', !(await shown('naudio')));
+    await main.eval(`['voice-fight', 'youtube-tunnel', 'frame-shot', 'kikitan-xd', 'world-map'].forEach(id => hubPluginSet(id, true))`);
+    const back = async () => await shown('vosk') && await shown('naudio') && await shown('world-atlas');
+    await waitFor('the licences to come back', back, 10000).catch(() => {});
+    check('B5: turning them back on lists them again', await back());
+});
+
+section('eagle', async main => {
+    // C1: Eagle is a source inside Media Library, read through Eagle's local API (a stand-in here).
+    const cards = () => main.json(`[...document.querySelectorAll('#libEagleGrid .lib-eagle-card')].map(c => c.dataset.id)`);
+    await main.eval(`showTab(7)`);
+    await waitFor('the Eagle button', () => main.eval(`!!document.getElementById('libEagleBtn')?.offsetParent`), 10000).catch(() => {});
+    const button = await main.center('#libEagleBtn');
+    check('C1: Media Library has an Eagle button', !!button);
+    if (!button) return;
+    await main.click(button.x, button.y);
+    await waitFor('Eagle pictures', async () => (await cards()).length > 0, 15000).catch(() => {});
+    const folders = await main.json(`[...document.querySelectorAll('#libEagleFolder option')].map(o => o.textContent.trim())`);
+    check('C1: it lists Eagle\'s folders, nested ones too, but not ones with a password', ['Sunsets', 'Beach', 'Lots'].every(f => folders.includes(f)) && !folders.includes('Private') && !folders.includes('Inner'), folders.join(', ') + ' | reply: ' + JSON.stringify(await seen(main, 'eagleFolders')).slice(0, 200) + ' | on: ' + await main.eval(`hubPluginOn('eagle')`));
+    check('C1: the library\'s own filters make way for Eagle\'s', await main.eval(`!document.getElementById('libFavBtn').offsetParent && !document.querySelector('#tab7 .lib-wrap').offsetParent`));
+    let shown = await cards();
+    check('C1: it lists pictures, a page at a time, without trash or pictures from folders with a password', shown.length === 98 && shown.includes('SUN1') && !shown.includes('SECRET1') && !shown.includes('TRASH1'), shown.length + ' shown');
+    // Asked from here, not the page: the page's own fetch would need CORS, its <img> tags don't.
+    const status = async (url) => fetch(url).then(r => r.status + ':' + r.headers.get('content-type'), e => 'failed: ' + e.message);
+    const urlOf = (id, field) => main.eval(`document.querySelector('#libEagleGrid [data-id="${id}"]')?.${field === 'thumb' ? `querySelector('img').src` : 'dataset.url'}`);
+    const thumb = await status(await urlOf('SUN1', 'thumb'));
+    check('C1: thumbnails load from Eagle\'s previews', thumb.startsWith('200:image/png'), thumb);
+    const loaded = await main.eval(`(async () => { const img = document.querySelector('#libEagleGrid [data-id="SUN1"] img'); img.scrollIntoView(); if (!img.complete) await img.decode().catch(() => {}); return img.naturalWidth; })()`);
+    check('C1: the thumbnail shows', loaded === 32, 'width ' + loaded);
+    const tiny = await status(await urlOf('TINY1', 'thumb'));
+    const full = await status(await urlOf('SUN1', 'url'));
+    check('C1: a picture without a preview shows itself, and a click opens the picture', tiny.startsWith('200:') && full.startsWith('200:'), `${tiny} / ${full}`);
+    const evil = await status(await urlOf('EVIL1', 'thumb'));
+    check('C1: nothing outside the Eagle library is served', evil.startsWith('404'), evil);
+    const base = String(await urlOf('SUN1', 'url')).split('?')[0];
+    const locked = await status(`${base}?id=SECRET1&thumb=1`);
+    check('C1: a picture from a folder with a password isn\'t served', locked.startsWith('404'), locked);
+    await main.eval(`document.getElementById('libEagleMore').click()`);
+    await waitFor('the next page', async () => (await cards()).length > 98, 10000).catch(() => {});
+    shown = await cards();
+    check('C1: "Show more" adds the next page, then goes away', shown.length === 109 && new Set(shown).size === 109 && await main.eval(`document.getElementById('libEagleMore').hidden`), shown.length + ' shown');
+    await main.eval(`(() => { const s = document.getElementById('libEagleFolder'); s.value = 'F1'; s.dispatchEvent(new Event('change')); })()`);
+    await waitFor('the folder', async () => { const c = await cards(); return c.length > 0 && c.length < 10; }, 10000).catch(() => {});
+    shown = await cards();
+    check('C1: picking a folder shows its pictures', shown.sort().join(',') === 'SUN1,TINY1', shown.join(','));
+
+    // The plugin owns it: off, the button and the pictures are gone and the library is back.
+    await main.eval(`hubPluginSet('eagle', false)`);
+    check('C1: with the Eagle plugin off, Media Library has no Eagle', await main.eval(`!document.getElementById('libEagleBtn').offsetParent && !document.getElementById('libEagleArea').offsetParent && !!document.getElementById('libFavBtn').offsetParent`));
+    await main.eval(`hubPluginSet('eagle', true)`);
+
+    // Eagle closed: it says so, and offers to try again.
+    await eagle.close();
+    await main.eval(`libEagleToggle(true)`);
+    await waitFor('the closed message', () => main.eval(`!document.getElementById('libEagleStatus').hidden && !!document.querySelector('#libEagleStatus button')`), 15000).catch(() => {});
+    const said = await main.eval(`document.getElementById('libEagleStatus').innerText`);
+    check('C1: with Eagle closed, it says so', /isn't running/.test(said) && (await cards()).length === 0, said);
+    await main.eval(`libEagleClose(); showTab(0)`);
+});
+
 // A picture folder for the dashboard: three wide pictures and an Eagle-style preview that must never be picked.
 const pics = mkdtempSync(join(tmpdir(), 'hapshub-pics-'));
 writePng(join(pics, 'red.png'), 64, 36, [200, 30, 30]);
 writePng(join(pics, 'green.png'), 64, 36, [30, 200, 30]);
 writePng(join(pics, 'blue.png'), 64, 36, [30, 30, 200]);
 writePng(join(pics, 'red_thumbnail.png'), 64, 36, [250, 250, 30]);
+const eagle = await startFakeEagle();
 const dir = freshData('hapshub-round6-', { RandomDashBg: true, DashBgFolders: [pics], DashBgLandscapeOnly: true });
 let main;
 try {
-    main = await openMain(dir, PORT);
+    main = await openMain(dir, PORT, { HAPSHUB_EAGLE_API: eagle.url });
     await waitFor('the splash to go', () => main.eval(`!document.getElementById('vrcnSplash')`), 15000);
     await sleep(1500);
     for (const { name, run } of sections) {
@@ -339,7 +414,8 @@ try {
 } catch (error) {
     check('the run finished', false, error.stack || error.message);
 } finally {
-    await cleanUp(dir, pics);
+    await eagle.close();
+    await cleanUp(dir, pics, eagle.root);
 }
 console.log(state.failures ? `${state.failures} check(s) failed` : `all ${state.passed} checks passed`);
 process.exit(state.failures ? 1 : 0);

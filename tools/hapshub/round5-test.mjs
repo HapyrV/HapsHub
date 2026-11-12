@@ -126,12 +126,12 @@ section('plugins', async main => {
     await main.eval(`document.getElementById('hubPluginSearch').value = ''; hubPluginsSearch('')`);
 
     const navShown = key => main.eval(`(() => { const b = document.querySelector('#navEl [data-nav-key="${key}"]'); return !!b && getComputedStyle(b).display !== 'none'; })()`);
-    const eagleTab = await main.eval(`NAV_ITEMS_DEF.eagle.tab`);
-    await main.eval(`document.querySelector('#hubPluginList [data-plugin="eagle"] input').click()`);
-    await waitFor('the hub to save Eagle off', () => main.eval(`window.__pluginReplies.some(p => p.states.eagle === false)`), 10000);
-    check('turning a plugin off removes its page from the sidebar', !(await main.eval(`!!document.querySelector('#navEl .nav-btn[data-nav-key="eagle"]')`)) && !(await navShown('eagle')));
-    await main.eval(`showTab(${eagleTab})`);
-    check('its page can\'t be opened while it\'s off', await main.eval(`document.getElementById('tab0').classList.contains('active') && !document.getElementById('tab${eagleTab}').classList.contains('active')`));
+    const pageTab = await main.eval(`NAV_ITEMS_DEF.ovrtoolkit.tab`);
+    await main.eval(`document.querySelector('#hubPluginList [data-plugin="ovrtoolkit"] input').click()`);
+    await waitFor('the hub to save OVR Toolkit off', () => main.eval(`window.__pluginReplies.some(p => p.states.ovrtoolkit === false)`), 10000);
+    check('turning a plugin off removes its page from the sidebar', !(await main.eval(`!!document.querySelector('#navEl .nav-btn[data-nav-key="ovrtoolkit"]')`)) && !(await navShown('ovrtoolkit')));
+    await main.eval(`showTab(${pageTab})`);
+    check('its page can\'t be opened while it\'s off', await main.eval(`document.getElementById('tab0').classList.contains('active') && !document.getElementById('tab${pageTab}').classList.contains('active')`));
 
     await main.eval(`hubPluginSet('space-flight', false)`);
     await sleep(300);
@@ -172,7 +172,7 @@ section('plugins', async main => {
 
     await main.eval(`hubPluginsAll(true)`);
     await waitFor('everything back on', () => main.eval(`window.__pluginReplies.some(p => Object.values(p.states).every(Boolean))`), 15000);
-    check('turning all on brings every page back', await navShown('eagle') && await main.eval(`getComputedStyle(document.getElementById('badgeSpace')).display !== 'none'`));
+    check('turning all on brings every page back', await navShown('ovrtoolkit') && await main.eval(`getComputedStyle(document.getElementById('badgeSpace')).display !== 'none'`));
 });
 
 section('setup', async () => {

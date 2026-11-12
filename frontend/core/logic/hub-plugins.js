@@ -7,8 +7,9 @@ const HUB_PLUGINS = [
     // --- Added by HapsHub ---
     { id: 'oyasumi', name: 'OyasumiVR', by: 'HapsHub', icon: 'bedtime', nav: ['oyasumi'], hide: ['[data-known-app="oyasumi"]'], settings: [{ module: 'hub.app-embeds', keys: ['oyasumi_path', 'on_exit'] }],
       desc: 'Shows OyasumiVR, the sleep helper for VR, inside a HapsHub page.' },
-    { id: 'eagle', name: 'Eagle', by: 'HapsHub', icon: 'photo_library', nav: ['eagle'], settings: [{ module: 'hub.app-embeds', keys: ['eagle_path', 'on_exit'] }],
-      desc: 'Shows the Eagle picture organizer inside a HapsHub page.' },
+    { id: 'eagle', name: 'Eagle', by: 'HapsHub', icon: 'photo_library', hide: ['#libEagleBtn', '#libEagleFolderWrap', '#libEagleArea'],
+      onOff: () => { if (typeof libEagleClose === 'function') libEagleClose(); },
+      desc: 'Eagle\'s folders and pictures in Media Library, read from Eagle while it runs.' },
     { id: 'spacecal', name: 'Space Calibrator', by: 'HapsHub', icon: 'gps_fixed', nav: ['spacecal'], hide: ['#hubSteamBranch'], slots: ['hubSteamBranch'],
       settings: [{ module: 'hub.app-embeds', keys: ['spacecal_path', 'on_exit'] }, { module: 'hub.steam-branch' }],
       desc: 'Space Calibrator in a page, and a switch between its Steam public and beta versions.' },
@@ -18,13 +19,13 @@ const HUB_PLUGINS = [
       desc: 'OVR Toolkit\'s desktop window inside a HapsHub page.' },
     { id: 'ovr-advanced', name: 'OVR Advanced Settings', by: 'HapsHub', icon: 'open_with', nav: ['ovr-advanced'],
       desc: 'Edit OVR Advanced Settings\' movement options: dragging, gravity, snap turn.' },
-    { id: 'youtube-tunnel', name: 'YouTube Tunnel', by: 'HapsHub', icon: 'music_note', nav: ['youtube-tunnel'], settings: [{ module: 'hub.youtube-tunnel' }],
+    { id: 'youtube-tunnel', name: 'YouTube Tunnel', by: 'HapsHub', icon: 'music_note', licences: ['naudio', 'naudio-vorbis'], nav: ['youtube-tunnel'], settings: [{ module: 'hub.youtube-tunnel' }],
       desc: 'Plays a YouTube song into your VRChat microphone through a virtual cable.' },
     { id: 'history', name: 'History', by: 'HapsHub', icon: 'history', nav: ['history'], settings: [{ module: 'hub.history' }],
       desc: 'Records name and trust changes, notifications, videos, avatars and visits for the History page.' },
     { id: 'friend-schedule', name: 'Friend Schedule', by: 'HapsHub', icon: 'date_range', nav: ['friend-schedule'],
       desc: 'Shows when your friends are usually online, to find a good time to meet.' },
-    { id: 'world-map', name: 'World Map', by: 'HapsHub', icon: 'public', nav: ['world-map'],
+    { id: 'world-map', name: 'World Map', by: 'HapsHub', icon: 'public', licences: ['world-atlas'], nav: ['world-map'],
       desc: 'A globe with your friends placed by the languages and countries on their profiles.' },
     { id: 'launch-switches', name: 'Launch switches', by: 'HapsHub', icon: 'rocket_launch', hide: ['.launch-addons', '#launchAddonsBlock'],
       desc: 'Haptics, face tracking and full-body tracking switches in the Launch window, each starting its apps with VRChat.' },
@@ -52,19 +53,19 @@ const HUB_PLUGINS = [
       desc: 'Turn your play space in VR with your controllers.' },
     { id: 'youtube-fix', name: 'YouTube Fix', by: 'VRCNext', icon: 'smart_display', nav: ['youtube-fix'], hide: ['#badgeYt'], autostart: ['setYtAutoStartVR', 'setYtAutoStartDesktop'],
       desc: 'Makes YouTube videos play in VRChat worlds through VRCVideoCacher.' },
-    { id: 'frame-shot', name: 'FrameShot', by: 'VRCNext', icon: 'photo_camera', nav: ['frame-shot'], hide: ['#badgeFrameShot'], autostart: ['setFsAutoStartVR'],
+    { id: 'frame-shot', name: 'FrameShot', by: 'VRCNext', icon: 'photo_camera', licences: ['naudio', 'naudio-vorbis', 'zxing-net'], nav: ['frame-shot'], hide: ['#badgeFrameShot'], autostart: ['setFsAutoStartVR'],
       desc: 'Take pictures and clips of what you see in VR.' },
     { id: 'osc-tool', name: 'OSC Tool', by: 'VRCNext', icon: 'tune', nav: ['osc-tool'],
       desc: 'Read and change your avatar\'s OSC parameters.' },
-    { id: 'voice-fight', name: 'Voice Fight', by: 'VRCNext', icon: 'mic', nav: ['voice-fight'], hide: ['#badgeVoice'], autostart: ['setVfAutoStartVR', 'setVfAutoStartDesktop'],
+    { id: 'voice-fight', name: 'Voice Fight', by: 'VRCNext', icon: 'mic', licences: ['vosk', 'naudio', 'naudio-vorbis'], nav: ['voice-fight'], hide: ['#badgeVoice'], autostart: ['setVfAutoStartVR', 'setVfAutoStartDesktop'],
       desc: 'Voice-to-chatbox with blocked words and sound effects.' },
-    { id: 'discord-presence', name: 'Discord Presence', by: 'VRCNext', icon: 'sensors', nav: ['discord-presence'], hide: ['#badgeDp'], autostart: ['setDpAutoStartVR', 'setDpAutoStartDesktop'],
+    { id: 'discord-presence', name: 'Discord Presence', by: 'VRCNext', icon: 'sensors', licences: ['discord-rpc'], nav: ['discord-presence'], hide: ['#badgeDp'], autostart: ['setDpAutoStartVR', 'setDpAutoStartDesktop'],
       desc: 'Shows the world you\'re in on your Discord profile.' },
     { id: 'vr-overlay', name: 'VR Overlay', by: 'VRCNext', icon: 'watch', nav: ['vr-overlay'], hide: ['#badgeVroTop'], autostart: ['setVroAutoStartVR'],
       desc: 'A wrist overlay in VR with friends, notifications and the time.' },
     { id: 'permini', name: 'Permini', by: 'VRCNext', icon: 'lock', nav: ['permini'],
       desc: 'Decides who may join your instances.' },
-    { id: 'kikitan-xd', name: 'Kikitan XD', by: 'VRCNext', icon: 'translate', nav: ['kikitan-xd'], hide: ['#badgeKxd'],
+    { id: 'kikitan-xd', name: 'Kikitan XD', by: 'VRCNext', icon: 'translate', licences: ['naudio', 'naudio-vorbis', 'whisper-net', 'llamasharp'], nav: ['kikitan-xd'], hide: ['#badgeKxd'],
       desc: 'Speech to text and translation into your chatbox.' },
     { id: 'event-snipe', name: 'Event Snipe', by: 'VRCNext', icon: 'gps_fixed', nav: ['event-snipe'],
       desc: 'Joins a group event\'s instance the moment it opens.' },
@@ -76,7 +77,7 @@ const HUB_PLUGINS = [
       desc: 'Changes your status and status text on a schedule.' },
     { id: 'media-relay', name: 'Media Relay', by: 'VRCNext', icon: 'cell_tower', nav: ['media-relay'], hide: ['#badgeRelay'], autostart: ['setAutoStartVR', 'setAutoStartDesktop'],
       desc: 'Sends your new screenshots to Discord.' },
-    { id: 'chatbox', name: 'Custom Chatbox', by: 'VRCNext', icon: 'chat', nav: ['chatbox'], hide: ['#badgeChatbox'], autostart: ['setCbAutoStartVR', 'setCbAutoStartDesktop'],
+    { id: 'chatbox', name: 'Custom Chatbox', by: 'VRCNext', icon: 'chat', licences: ['perfcounter'], nav: ['chatbox'], hide: ['#badgeChatbox'], autostart: ['setCbAutoStartVR', 'setCbAutoStartDesktop'],
       desc: 'Shows the time, music and stats in your VRChat chatbox.' },
 ];
 
@@ -103,6 +104,14 @@ function hubPluginBlocks(checkboxId) {
     return HUB_PLUGINS.some(p => !hubPluginOn(p.id) && (p.autostart || []).includes(checkboxId));
 }
 
+// Each plugin names the third-party libraries it brings (data-licence in Settings > About). A library shows while any
+// plugin using it is on; libraries no plugin names belong to HapsHub itself and always show.
+function hubPluginOffLicences() {
+    const owners = {};
+    for (const p of HUB_PLUGINS) for (const l of p.licences || []) (owners[l] = owners[l] || []).push(p.id);
+    return Object.keys(owners).filter(l => !owners[l].some(hubPluginOn));
+}
+
 function _hubPluginSelectors(plugin) {
     const selectors = [...(plugin.hide || [])];
     for (const key of plugin.nav || []) {
@@ -125,7 +134,7 @@ function _hubPluginsApply() {
     const offPlugins = HUB_PLUGINS.filter(p => !hubPluginOn(p.id));
     // A plugin that's off may still be showing something (a filter, a panel); it puts the page back first.
     for (const p of offPlugins) { try { p.onOff?.(); } catch { /* the page isn't loaded yet */ } }
-    const off = offPlugins.flatMap(_hubPluginSelectors);
+    const off = [...offPlugins.flatMap(_hubPluginSelectors), ...hubPluginOffLicences().map(l => `.attrib-item[data-licence="${l}"]`)];
     // Modules that belong to a plugin are set on its own options page, not in the general Hub modules list.
     const owned = HUB_PLUGINS.flatMap(p => (p.settings || []).map(s => s.module));
     const ownedRules = [...new Set(owned)].map(m => `#hubModulesList .hub-module-row[data-module="${m}"]`);

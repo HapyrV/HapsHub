@@ -23,7 +23,6 @@ const NAV_ITEMS_DEF = {
     'history':          { icon: 'history',         tab: 31, i18n: 'nav.history',            label: 'History',          defaultFolder: 'folder-tools' },
     'youtube-tunnel':   { icon: 'music_note',      tab: 32, i18n: 'nav.youtube_tunnel',     label: 'YouTube Tunnel',   defaultFolder: 'folder-tools', windowsOnly: true },
     'oyasumi':          { icon: 'bedtime',         tab: 33, i18n: 'nav.oyasumi',            label: 'OyasumiVR',        defaultFolder: 'folder-tools', windowsOnly: true },
-    'eagle':            { icon: 'photo_library',   tab: 34, i18n: 'nav.eagle',              label: 'Eagle',            defaultFolder: 'folder-tools', windowsOnly: true },
     'ovr-advanced':     { icon: 'open_with',       tab: 35, i18n: 'nav.ovr_advanced',       label: 'OVR Advanced Settings', defaultFolder: 'folder-tools', windowsOnly: true },
     'spacecal':         { icon: 'gps_fixed',       tab: 36, i18n: 'nav.spacecal',           label: 'Space Calibrator', defaultFolder: 'folder-tools', windowsOnly: true },
     'vrct':             { icon: 'translate',       tab: 37, i18n: 'nav.vrct',               label: 'VRCT',             defaultFolder: 'folder-tools', windowsOnly: true },
@@ -101,7 +100,7 @@ const NAV_DEFAULT_LAYOUT = [
         type: 'folder', id: 'folder-tools', name: 'Tools', icon: 'adjust',
         items: [
             'chatbox','media-relay','frame-shot','osc-tool',
-            'activity-log','meet-network','friend-schedule','world-map','history','youtube-tunnel','oyasumi','eagle','ovr-advanced','spacecal','vrct','ovrtoolkit','voice-fight',
+            'activity-log','meet-network','friend-schedule','world-map','history','youtube-tunnel','oyasumi','ovr-advanced','spacecal','vrct','ovrtoolkit','voice-fight',
             'discord-presence','vr-overlay','permini','kikitan-xd','event-snipe','avatar-scaling','action-flow',
             'status-schedule',
         ],

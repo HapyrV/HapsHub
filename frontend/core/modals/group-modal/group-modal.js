@@ -103,7 +103,7 @@ function renderGroupDetail(g) {
     window._gdLogsLoaded   = false;
     window._gdLogRows      = [];
     window._gdLogsOffset   = 0;
-    if (typeof navUpdateLabel === 'function') navUpdateLabel(g.name || '');
+    if (typeof navUpdateLabel === 'function') navUpdateLabel(g.name || g.id || '');
     window._gdMemberRoleIds = {};
     const el = document.getElementById('detailModalContent');
     const canEdit = g.canEdit === true;
@@ -118,7 +118,7 @@ function renderGroupDetail(g) {
         : (canEdit ? `<div style="position:relative;display:inline-block;flex-shrink:0;"><div class="fd-avatar" style="display:flex;align-items:center;justify-content:center;font-size:calc(20px + var(--fs-off, 0px));font-weight:700;color:var(--tx0);">${esc((g.name||'?')[0])}</div>${iconEditBtn}</div>` : '');
     const membersPart = esc(getGroupMembersText(g.memberCount || 0)) + (g.onlineMemberCount > 0 ? ` &middot; ${g.onlineMemberCount} ${esc(t('status.online', 'Online'))}` : '');
     const headerMeta = [g.shortCode ? esc(g.shortCode) : '', membersPart].filter(Boolean).join(' &middot; ');
-    const ownerLabel = g.ownerDisplayName || '';
+    const ownerLabel = g.ownerDisplayName || g.ownerId || '';
     const ownerHtml = (g.ownerId && ownerLabel)
         ? `<div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);margin-top:2px;margin-bottom:4px;">${t('worlds.meta.by', 'by')} <span onclick="navOpenModal('friend','${jsq(g.ownerId)}','${jsq(ownerLabel)}')" style="display:inline-flex;align-items:center;padding:1px 8px;border-radius:20px;background:var(--badge-bg);font-size:calc(11px + var(--fs-off, 0px));font-weight:600;color:var(--badge-tx);cursor:pointer;line-height:1.8;">${esc(ownerLabel)}</span></div>`
         : '';
@@ -503,7 +503,7 @@ function renderGroupDetail(g) {
         const gdLeftHtml = `<div class="fd-left">
             <div class="fd-left-banner">${banner ? `<img src="${banner}" onerror="this.src='fallback_cover.png'"><div class="fd-banner-fade"></div>` : ''}${canEdit ? `<button class="fd-banner-edit" onclick="openImagePicker('group-banner','${gidJs}')" title="${esc(t('groups.images.change_banner', 'Change banner'))}"><span class="msi">edit</span></button>` : ''}</div>
             <div class="fd-left-body">
-                <div class="fd-left-id">${iconHtml}<div class="fd-left-name-wrap"><div class="fd-name">${esc(g.name)}</div>${ownerHtml}<div class="fd-status">${headerMeta}</div></div></div>
+                <div class="fd-left-id">${iconHtml}<div class="fd-left-name-wrap"><div class="fd-name">${esc(g.name || g.id || '')}</div>${ownerHtml}<div class="fd-status">${headerMeta}</div></div></div>
             </div>
         </div>`;
         el.innerHTML = `${headerActions}<div class="fd-layout">${gdLeftHtml}<div class="fd-right"><div class="fd-right-scroll">${tabsHtml}${gdTabsContent}</div></div></div>`;

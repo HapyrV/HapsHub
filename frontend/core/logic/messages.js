@@ -1134,6 +1134,8 @@ case 'vrcNews':
             case 'hubUpstream':          onHubUpstream(payload); break;
             case 'hubModules':           onHubModules(payload); break;
             case 'hubPlugins':           if (typeof onHubPlugins === 'function') onHubPlugins(payload); break;
+            case 'eagleFolders':         if (typeof onEagleFolders === 'function') onEagleFolders(payload); break;
+            case 'eagleItems':           if (typeof onEagleItems === 'function') onEagleItems(payload); break;
             case 'hubVrct':              if (typeof onHubVrct === 'function') onHubVrct(payload); break;
             case 'hubVrctState':         if (typeof onHubVrctState === 'function') onHubVrctState(payload); break;
             case 'hubUpstreamReviewed':  onHubUpstreamReviewed(payload); break;

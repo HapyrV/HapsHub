@@ -185,7 +185,7 @@ function _wdUpdateInstancesInPlace(w) {
 function renderWorldSearchDetail(w) {
     _wdCurrentWorld = w || null;
     if (w.id && w.rawJson) _wdRawJsonCache[w.id] = w.rawJson;
-    if (typeof navUpdateLabel === 'function') navUpdateLabel(w.name || '');
+    if (typeof navUpdateLabel === 'function') navUpdateLabel(w.name || w.id || '');
     // Stop refresh spinner if running
     const refreshBtn = document.getElementById('wdInstancesRefreshBtn');
     if (refreshBtn) refreshBtn.classList.remove('spinning');
@@ -342,7 +342,7 @@ function renderWorldSearchDetail(w) {
     const wdHistoryInner = `<div class="fd-group-rep-label">${t('worlds.instance_history.title', 'Instance History')}</div>
             <div id="wdInstanceHistory" style="max-height:160px;overflow-y:auto;"><div style="padding:4px 0;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx3);">${t('profiles.insights.loading', 'Loading...')}</div></div>`;
     const wdNameAuthor = `<div id="wdfNameView" style="display:flex;align-items:center;gap:6px;">
-            <h2 style="margin:0 0 4px;color:var(--tx0);font-size:calc(18px + var(--fs-off, 0px));">${esc(w.name)}</h2>
+            <h2 style="margin:0 0 4px;color:var(--tx0);font-size:calc(18px + var(--fs-off, 0px));">${esc(w.name || w.id || '')}</h2>
             ${isOwnWorld ? `<button class="myp-edit-btn" onclick="editWdField('name')"><span class="msi" style="font-size:14px;">edit</span></button>` : ''}
         </div>
         ${isOwnWorld ? `<div id="wdfNameEdit" style="display:none;margin-bottom:6px;">
@@ -352,7 +352,7 @@ function renderWorldSearchDetail(w) {
                 <button class="vrcn-button vrcn-btn-primary" onclick="saveWdField('name','${jsq(wid)}')">${t('common.save', 'Save')}</button>
             </div>
         </div>` : ''}
-        <div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);margin-bottom:12px;">${t('worlds.meta.by', 'by')} ${w.authorId ? `<span onclick="navOpenModal('friend','${jsq(w.authorId)}','${jsq(w.authorName || '')}')" style="display:inline-flex;align-items:center;padding:1px 8px;border-radius:20px;background:var(--badge-bg);font-size:calc(11px + var(--fs-off, 0px));font-weight:600;color:var(--badge-tx);cursor:pointer;line-height:1.8;">${esc(w.authorName)}</span>` : esc(w.authorName)}</div>`;
+        <div style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);margin-bottom:12px;">${t('worlds.meta.by', 'by')} ${w.authorId ? `<span onclick="navOpenModal('friend','${jsq(w.authorId)}','${jsq(w.authorName || '')}')" style="display:inline-flex;align-items:center;padding:1px 8px;border-radius:20px;background:var(--badge-bg);font-size:calc(11px + var(--fs-off, 0px));font-weight:600;color:var(--badge-tx);cursor:pointer;line-height:1.8;">${esc(w.authorName || w.authorId || '')}</span>` : esc(w.authorName || w.authorId || '')}</div>`;
     const wdActionsCompact = `<div class="fd-actions">
             <button class="vrcn-button-round" onclick="openCreateInstanceModal()" title="${esc(t('worlds.instances.create_title', 'Create Instance'))}"><span class="msi" style="font-size:16px;">add_circle_outline</span></button>
             <button class="vrcn-button-round${isFavWorld ? ' active' : ''}" id="wdFavBtn" onclick="toggleWorldFavPicker('${wid}')" title="${isFavWorld ? esc(t('worlds.favorites.unfavorite', 'Unfavorite')) : esc(t('worlds.favorites.favorite', 'Favorite'))}"><span class="msi" style="font-size:16px;">${isFavWorld ? 'favorite' : 'favorite_border'}</span></button>

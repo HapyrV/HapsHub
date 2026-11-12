@@ -139,7 +139,7 @@ function renderAvatarDetail(a) {
     _avDetailData = a;
     _avGalleryLoaded = false;
     _avGalleryImages = [];
-    if (typeof navUpdateLabel === 'function') navUpdateLabel(a.name || '');
+    if (typeof navUpdateLabel === 'function') navUpdateLabel(a.name || a.id || '');
     const c = document.getElementById('avatarDetailContent');
     if (!c) return;
 
@@ -164,7 +164,7 @@ function renderAvatarDetail(a) {
 
     const authorHtml = a.authorId
         ? `<span onclick="navOpenModal('friend','${jsq(a.authorId)}','${jsq(a.authorName || '')}')" style="display:inline-flex;align-items:center;padding:1px 8px;border-radius:20px;background:var(--badge-bg);font-size:calc(11px + var(--fs-off, 0px));font-weight:600;color:var(--badge-tx);cursor:pointer;line-height:1.8;">${esc(a.authorName || a.authorId)}</span>`
-        : esc(a.authorName || '');
+        : esc(a.authorName || a.authorId || '');
 
     const tagsViewHtml = (a.tags && a.tags.length)
         ? `<div class="fd-lang-tags">${a.tags.map(tag => `<span class="vrcn-badge">${esc(fmtAvatarTag(tag))}</span>`).join('')}</div>`
@@ -275,7 +275,7 @@ function renderAvatarDetail(a) {
         { icon: 'close', title: t('common.close', 'Close'), onclick: `closeAvatarDetail()` },
     ]);
     const _avNameAuthor = `<div id="avfNameView" style="display:flex;align-items:center;gap:6px;">
-                        <div class="fd-name">${esc(a.name || t('avatars.detail.unnamed', 'Unnamed Avatar'))}</div>
+                        <div class="fd-name">${esc(a.name || a.id || t('avatars.detail.unnamed', 'Unnamed Avatar'))}</div>
                         ${isOwn ? `<button class="myp-edit-btn" onclick="editAvField('name')"><span class="msi" style="font-size:14px;">edit</span></button>` : ''}
                     </div>
                     ${isOwn ? `<div id="avfNameEdit" style="display:none;margin-top:6px;">

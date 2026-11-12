@@ -15,7 +15,7 @@ Everything VRCNext does (friends, worlds, groups, avatars, instances, media libr
 - **Plugins**: switch off what you don't use (Settings > Plugins). A plugin that's off loses its page, buttons, settings
   and background work. The first run asks what you use (VR, full-body tracking, face tracking, haptics, the apps below)
   and ticks what's already installed.
-- **Pages for other apps**: OyasumiVR, Eagle, Space Calibrator and OVR Toolkit inside HapsHub's window. They minimize or
+- **Pages for other apps**: OyasumiVR, Space Calibrator, VRCT and OVR Toolkit inside HapsHub's window. They minimize or
   close with HapsHub, as you choose.
 - **VRCT built in**: HapsHub runs VRCT's translator itself, with one-click language pairs, your microphone turned into
   chatbox messages and what others say translated.

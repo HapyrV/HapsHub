@@ -745,7 +745,24 @@ public class NotificationsController
         return _instance.BuildTimelinePayload(notifEv);
     }
 
-    public Task GetNotificationsAsync() => Task.Run(async () =>
+    private Task? _notifRefresh;
+    private readonly object _notifRefreshLock = new();
+
+    // Callers while a refresh runs share it, and after a 429 refreshes pause for 2 minutes (VRCX 8397c5f).
+    public Task GetNotificationsAsync()
+    {
+        lock (_notifRefreshLock)
+        {
+            if (_notifRefresh != null) return _notifRefresh;
+            if (DateTime.UtcNow < _core.Notifications.RateLimitedUntil) return Task.CompletedTask;
+            var task = FetchAllNotificationsAsync();
+            _notifRefresh = task;
+            _ = task.ContinueWith(_ => { lock (_notifRefreshLock) if (_notifRefresh == task) _notifRefresh = null; }, TaskScheduler.Default);
+            return task;
+        }
+    }
+
+    private Task FetchAllNotificationsAsync() => Task.Run(async () =>
     {
         // Restore persisted v2 support flag — avoids one 404 call per session restart
         _core.VrcApi.NotifV2Supported = _core.Settings.NotifV2Supported;
@@ -753,6 +770,8 @@ public class NotificationsController
         var t1 = _core.Notifications.GetNotificationsAsync();
         var t2 = _core.Notifications.GetNotificationsV2Async();
         await Task.WhenAll(t1, t2);
+        // Rate limited: keep the list that's showing rather than replace it with an empty one.
+        if (DateTime.UtcNow < _core.Notifications.RateLimitedUntil) return;
 
         // Persist if v2 was disabled this session (404)
         if (!_core.VrcApi.NotifV2Supported && _core.Settings.NotifV2Supported)
