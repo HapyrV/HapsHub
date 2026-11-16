@@ -6,7 +6,9 @@ namespace VRCNext.Services;
 
 public class CalendarAPI(VRChatApiService ctx)
 {
-    public async Task<JArray> GetCalendarEventsAsync(string filter = "all", int year = 0, int month = 0)
+    // Pages through the month from its first day. The API says whether more follow (hasNext); a page can come back
+    // one short of n while more remain, so a short page alone doesn't end it.
+    public async Task<JArray> GetCalendarEventsAsync(string filter = "all", int year = 0, int month = 0, int maxPages = 20)
     {
         if (!ctx.IsLoggedIn) return new JArray();
         try
@@ -32,17 +34,21 @@ public class CalendarAPI(VRChatApiService ctx)
                 if (!resp.IsSuccessStatusCode) break;
 
                 JArray? page = null;
+                bool? hasNext = null;
                 var token = JToken.Parse(body);
                 if (token is JArray arr) page = arr;
                 else if (token is JObject obj)
+                {
+                    if (obj["hasNext"]?.Type == JTokenType.Boolean) hasNext = obj["hasNext"]!.Value<bool>();
                     foreach (var key in new[] { "results", "events", "data", "items" })
                         if (obj[key] is JArray found) { page = found; break; }
+                }
 
                 if (page == null || page.Count == 0) break;
                 foreach (var ev in page) allEvents.Add(ev);
-                if (page.Count < pageSize) break;
+                if (hasNext == false || (hasNext == null && page.Count < pageSize)) break;
                 pageOffset += pageSize;
-                if (pageOffset >= pageSize * 5) break;
+                if (pageOffset >= pageSize * maxPages) break;
             }
 
             ctx.Log($"GetCalendarEvents({filter},{y}/{m}): total={allEvents.Count}");

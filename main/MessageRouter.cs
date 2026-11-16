@@ -3210,7 +3210,8 @@ public partial class AppShell
                             var nextMonth = calMonth == 12 ? 1 : calMonth + 1;
                             var seen = new HashSet<string>(evts.OfType<JObject>()
                                 .Select(e => e["id"]?.ToString() ?? "").Where(s => s.Length > 0));
-                            foreach (var e in await _core.Calendar.GetCalendarEventsAsync(calFilter, nextYear, nextMonth))
+                            // Only the first days of the next month show in the grid, so one page of it is enough.
+                            foreach (var e in await _core.Calendar.GetCalendarEventsAsync(calFilter, nextYear, nextMonth, maxPages: 1))
                                 if (e is JObject eo && seen.Add(eo["id"]?.ToString() ?? "")) evts.Add(eo);
                         }
                         // Block event series and show 1 event instead of multiple ones lol.
