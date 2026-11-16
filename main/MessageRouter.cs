@@ -713,25 +713,7 @@ public partial class AppShell
                     break;
 
                 case "vrcGetVisitedWorlds":
-                    _ = Task.Run(async () =>
-                    {
-                        var ids = _core.Timeline.GetRecentVisitedWorldIds(999);
-                        var worlds = await _core.World.GetWorldsByIdsAsync(ids);
-                        foreach (JObject w in worlds.OfType<JObject>())
-                        {
-                            var wid = w["id"]?.ToString() ?? "";
-                            var url = ImageCacheHelper.GetWorldUrl(wid, w["imageUrl"]?.ToString() ?? w["thumbnailImageUrl"]?.ToString());
-                            w["imageUrl"] = url; w["thumbnailImageUrl"] = url;
-                            EnrichWorldDatesFromCache(_core.TimeEngine, w, wid);
-                            w["created_at"] = DateTimeHelper.Iso(w["created_at"]);
-                            w["updated_at"] = DateTimeHelper.Iso(w["updated_at"]);
-                            var stats = _core.TimeEngine.GetWorldStats(wid);
-                            w["worldTimeSeconds"]  = stats.totalSeconds;
-                            w["worldVisitCount"]   = stats.visitCount;
-                            w["worldLastVisited"]  = stats.lastVisited;
-                        }
-                        Invoke(() => SendToJS("visitedWorlds", new { worlds }));
-                    });
+                    _ = Task.Run(SendVisitedWorldsAsync);
                     break;
 
                 case "vrcGetRecentSeen":
@@ -4380,6 +4362,133 @@ public partial class AppShell
     {
         if (string.IsNullOrEmpty(text) || text.IndexOf('<') < 0) return text;
         return VrcRichTextRe.Replace(text, "");
+    }
+
+    // Recently visited: up to 999 worlds. The list goes out at once from what this machine holds (world cache,
+    // then the world_tracking row, then a name-only stub); only the worlds with nothing local are fetched, four
+    // at a time, saved to world_tracking so the next start needs no API call, and the full list follows.
+    // Worlds the API would not return (deleted or private), skipped for a while instead of asked for on every visit.
+    private readonly Dictionary<string, DateTime> _visitedUnavailable = new();
+
+    private async Task SendVisitedWorldsAsync()
+    {
+        var sw = Stopwatch.StartNew();
+        bool sent = false;
+        try
+        {
+            var ids = _core.Timeline.GetRecentVisitedWorldIds(999);
+            var byId = new Dictionary<string, JObject>();
+            var missing = new List<string>();
+            foreach (var id in ids)
+            {
+                var local = _core.World.TryGetLocalWorld(id);
+                var w = local != null ? (JObject)local.DeepClone() : VisitedWorldFromDb(id);
+                if (w == null)
+                {
+                    w = VisitedWorldStub(id);
+                    lock (_visitedUnavailable)
+                        if (!_visitedUnavailable.TryGetValue(id, out var until) || until < DateTime.UtcNow) missing.Add(id);
+                }
+                byId[id] = PrepareVisitedWorld(w, id);
+            }
+            JArray Ordered() { var a = new JArray(); foreach (var id in ids) if (byId.TryGetValue(id, out var w)) a.Add(w); return a; }
+
+            var first = Ordered();
+            Invoke(() => SendToJS("visitedWorlds", new { worlds = first, partial = missing.Count > 0 }));
+            sent = true;
+            Invoke(() => SendToJS("log", new { color = "sec", msg = $"[Visited] {ids.Count} worlds sent in {sw.ElapsedMilliseconds} ms ({missing.Count} to fetch)" }));
+            if (missing.Count == 0) return;
+
+            var fetched = await _core.World.GetWorldsByIdsAsync(missing);
+            int got = 0;
+            foreach (JObject w in fetched.OfType<JObject>())
+            {
+                var wid = w["id"]?.ToString() ?? "";
+                if (!byId.ContainsKey(wid)) continue;
+                SaveVisitedWorldDetail(w, wid);
+                byId[wid] = PrepareVisitedWorld(w, wid);
+                got++;
+            }
+            lock (_visitedUnavailable)
+                foreach (var id in missing)
+                    if (byId[id]["stub"] != null) _visitedUnavailable[id] = DateTime.UtcNow.AddHours(6);
+            if (got == 0) return;
+            var full = Ordered();
+            Invoke(() => SendToJS("visitedWorlds", new { worlds = full }));
+            Invoke(() => SendToJS("log", new { color = "sec", msg = $"[Visited] fetched {got}/{missing.Count} in {sw.ElapsedMilliseconds} ms" }));
+        }
+        catch (Exception ex)
+        {
+            Invoke(() => SendToJS("log", new { color = "sec", msg = $"[Visited] failed: {ex.Message}" }));
+            if (!sent) Invoke(() => SendToJS("visitedWorlds", new { worlds = new JArray() }));
+        }
+    }
+
+    private JObject PrepareVisitedWorld(JObject w, string wid)
+    {
+        var url = ImageCacheHelper.GetWorldUrl(wid, w["imageUrl"]?.ToString() ?? w["thumbnailImageUrl"]?.ToString());
+        w["imageUrl"] = url; w["thumbnailImageUrl"] = url;
+        EnrichWorldDatesFromCache(_core.TimeEngine, w, wid);
+        w["created_at"] = DateTimeHelper.Iso(w["created_at"]);
+        w["updated_at"] = DateTimeHelper.Iso(w["updated_at"]);
+        var stats = _core.TimeEngine.GetWorldStats(wid);
+        w["worldTimeSeconds"] = stats.totalSeconds;
+        w["worldVisitCount"]  = stats.visitCount;
+        w["worldLastVisited"] = stats.lastVisited;
+        return w;
+    }
+
+    // A world in the API's shape from its world_tracking row, or null when the row has no saved detail.
+    private JObject? VisitedWorldFromDb(string wid)
+    {
+        var d = _core.TimeEngine.GetWorldDetail(wid);
+        if (d == null) return null;
+        return new JObject
+        {
+            ["id"] = wid, ["name"] = d.WorldName, ["description"] = d.Description,
+            ["imageUrl"] = string.IsNullOrEmpty(d.ImageUrl) ? d.WorldThumb : d.ImageUrl,
+            ["thumbnailImageUrl"] = string.IsNullOrEmpty(d.WorldThumb) ? d.ImageUrl : d.WorldThumb,
+            ["authorName"] = d.AuthorName, ["authorId"] = d.AuthorId,
+            ["capacity"] = d.Capacity, ["recommendedCapacity"] = d.RecommendedCapacity,
+            ["tags"] = new JArray(d.Tags), ["favorites"] = d.Favorites, ["visits"] = d.Visits,
+            ["heat"] = d.Heat, ["popularity"] = d.Popularity,
+            ["occupants"] = d.PublicOccupants + d.PrivateOccupants,
+            ["publicOccupants"] = d.PublicOccupants, ["privateOccupants"] = d.PrivateOccupants,
+            ["version"] = d.Version, ["created_at"] = d.Published, ["updated_at"] = d.Updated,
+            ["fromCache"] = true,
+        };
+    }
+
+    // Name and thumbnail from time tracking, for a world with nothing else saved yet.
+    private JObject VisitedWorldStub(string wid)
+    {
+        var (name, thumb) = _core.TimeEngine.GetWorldNameThumb(wid);
+        return new JObject
+        {
+            ["id"] = wid, ["name"] = string.IsNullOrEmpty(name) ? wid : name,
+            ["imageUrl"] = thumb, ["thumbnailImageUrl"] = thumb,
+            ["authorName"] = "", ["tags"] = new JArray(), ["fromCache"] = true, ["stub"] = true,
+        };
+    }
+
+    // Keeps a fetched world in world_tracking. File sizes are not fetched here, so the saved ones are kept.
+    private void SaveVisitedWorldDetail(JObject w, string wid)
+    {
+        var prev = _core.TimeEngine.GetWorldDetail(wid);
+        static string Day(JToken? t) =>
+            DateTime.TryParse(t?.ToString(), null, System.Globalization.DateTimeStyles.RoundtripKind, out var dt)
+                ? dt.ToUniversalTime().ToString("yyyy-MM-dd") : "";
+        _core.TimeEngine.SaveWorldDetail(wid,
+            w["name"]?.ToString() ?? "", w["thumbnailImageUrl"]?.ToString() ?? "", w["description"]?.ToString() ?? "",
+            w["imageUrl"]?.ToString() ?? "", w["authorName"]?.ToString() ?? "", w["authorId"]?.ToString() ?? "",
+            Day(w["created_at"]), Day(w["updated_at"]),
+            w["capacity"]?.Value<int>() ?? 0, w["recommendedCapacity"]?.Value<int>() ?? 0,
+            w["tags"]?.ToObject<List<string>>() ?? new List<string>(),
+            w["favorites"]?.Value<int>() ?? 0, w["visits"]?.Value<int>() ?? 0,
+            prev?.PcSize ?? 0, prev?.AndroidSize ?? 0, prev?.IosSize ?? 0,
+            w["heat"]?.Value<int>() ?? 0, w["popularity"]?.Value<int>() ?? 0,
+            w["publicOccupants"]?.Value<int>() ?? 0, w["privateOccupants"]?.Value<int>() ?? 0,
+            w["version"]?.Value<int>() ?? 0);
     }
 
     internal static void EnrichWorldDatesFromCache(UnifiedTimeEngine engine, JObject w, string worldId)

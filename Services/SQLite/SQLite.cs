@@ -175,6 +175,12 @@ public class UnifiedTimeEngine : IDisposable
             return (total, rec.LastSeen);
         }
     }
+    public (string name, string thumb) GetWorldNameThumb(string worldId)
+    {
+        lock (_lock)
+            return Worlds.TryGetValue(worldId, out var rec) ? (rec.WorldName, rec.WorldThumb) : ("", "");
+    }
+
     public (long totalSeconds, int visitCount, string lastVisited) GetWorldStats(string worldId)
     {
         lock (_lock)

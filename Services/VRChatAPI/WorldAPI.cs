@@ -351,6 +351,14 @@ public class WorldAPI
         return new JArray();
     }
 
+    // The world if this machine already holds it (memory or disk cache). Never calls the API.
+    public JObject? TryGetLocalWorld(string worldId)
+    {
+        if (string.IsNullOrEmpty(worldId)) return null;
+        if (TryGetCachedWorld(worldId, out var mem)) return mem;
+        lock (_diskCache) return _diskCache.TryGetValue(worldId, out var disk) ? disk : null;
+    }
+
     // Resolve a list of world IDs to full world objects (order preserved), using the world cache.
     public async Task<JArray> GetWorldsByIdsAsync(IEnumerable<string> ids)
     {
