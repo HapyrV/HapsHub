@@ -148,14 +148,24 @@ function _hubPluginsApply() {
     hubPluginsRender();
 }
 
+// Switches sent to the app and not yet answered, oldest first. The app answers each one with the full list, so while
+// several are on their way an answer can be older than the page: switches still pending stay as the page set them.
+const _hubPluginPending = [];
+
 function onHubPlugins(payload) {
     window.__hubPluginsAnswered = true;
-    _hubPluginStates = payload?.states || {};
+    if (payload?.switched) _hubPluginPending.shift();
+    _hubPluginStates = { ...(payload?.states || {}) };
+    for (const p of _hubPluginPending) _hubPluginStates[p.id] = p.on;
     _hubPluginsApply();
 }
 
+/** True once the app has answered every plugin switch the page sent. */
+function hubPluginsSettled() { return _hubPluginPending.length === 0; }
+
 function hubPluginSet(id, on) {
     _hubPluginStates[id] = !!on;
+    _hubPluginPending.push({ id, on: !!on });
     _hubPluginsApply();
     sendToCS({ action: 'hubPluginSet', id, on: !!on });
 }

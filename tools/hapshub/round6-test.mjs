@@ -328,9 +328,9 @@ section('plugins off', async main => {
         return JSON.stringify({ found: [...new Set(found)], visits, plugins: HUB_PLUGINS.length });
     })()`));
     check('B3: with a plugin off, none of its settings appear anywhere in Settings', result.found.length === 0 && result.visits > result.plugins * 5, JSON.stringify(result).slice(0, 600));
-    // The app answers every switch with the full list, so wait for the last answer before reading it.
+    // The app answers every switch with the full list; wait until it has answered the last one.
     const stillOff = () => main.json(`HUB_PLUGINS.filter(p => !hubPluginOn(p.id)).map(p => p.id)`);
-    await waitFor('every plugin back on', async () => (await stillOff()).length === 0, 15000).catch(() => {});
+    await waitFor('every switch answered', () => main.eval(`hubPluginsSettled()`), 30000).catch(() => {});
     const off = await stillOff();
     check('B3: every plugin is back on afterwards', off.length === 0, 'still off: ' + off.join(', '));
     await main.eval(`showTab(0)`);
@@ -352,6 +352,7 @@ section('licences', async main => {
     check('B5: with every plugin that uses it off, a shared library goes too', !(await shown('naudio')));
     await main.eval(`['voice-fight', 'youtube-tunnel', 'frame-shot', 'kikitan-xd', 'world-map'].forEach(id => hubPluginSet(id, true))`);
     const back = async () => await shown('vosk') && await shown('naudio') && await shown('world-atlas');
+    await waitFor('every switch answered', () => main.eval(`hubPluginsSettled()`), 30000).catch(() => {});
     await waitFor('the licences to come back', back, 10000).catch(() => {});
     check('B5: turning them back on lists them again', await back());
 });

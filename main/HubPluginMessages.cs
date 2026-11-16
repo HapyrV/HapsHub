@@ -39,10 +39,11 @@ public partial class AppShell
         return false;
     }
 
-    private void SendPlugins()
+    // switched: this list answers one hubPluginSet, so the page can tell which of its own switches are still on their way.
+    private void SendPlugins(bool switched = false)
     {
         var plugins = HubModules.Plugins;
-        SendToJS("hubPlugins", new { states = plugins.States(), picked = plugins.Picked });
+        SendToJS("hubPlugins", new { states = plugins.States(), picked = plugins.Picked, switched });
     }
 
     private readonly object _pluginQueueLock = new();
@@ -56,7 +57,7 @@ public partial class AppShell
         try
         {
             var plugin = HubPluginsModule.Find(id);
-            if (plugin == null || !HubModules.Plugins.Set(id, on)) { SendPlugins(); return; }
+            if (plugin == null || !HubModules.Plugins.Set(id, on)) { SendPlugins(true); return; }
             if (_hub != null)
                 foreach (var module in plugin.Modules) await _hub.Modules.SetEnabledAsync(module, on);
 #if WINDOWS
@@ -77,7 +78,7 @@ public partial class AppShell
         {
             _pluginSwitch.Release();
         }
-        SendPlugins();
+        SendPlugins(true);
         SendHubModules();
     }
 
