@@ -282,7 +282,10 @@ function toggleHelpPanel() {
         document.getElementById('helpPanelText').textContent = helpText;
         panel.style.display = '';
         requestAnimationFrame(function() { panel.classList.add('panel-open'); });
+        // Added after this click is done. Closed again in the meantime (or already listening): add nothing, or the
+        // stray listener toggles the panel on every later click, and each of those adds another.
         setTimeout(function() {
+            if (!_helpPanelOpen || _helpDismiss) return;
             _helpDismiss = function(ev) {
                 var p = document.getElementById('helpPanel');
                 var tl = document.getElementById('pageTitle');
