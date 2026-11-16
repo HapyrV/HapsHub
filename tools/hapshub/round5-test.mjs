@@ -164,8 +164,13 @@ section('plugins', async main => {
     const hit = menu ? '' : await main.eval(`(() => { const e = document.elementFromPoint(${more.x}, ${more.y}); return 'no menu; at (${more.x},${more.y}): ' + (e ? e.tagName + '.' + e.className + ' in ' + (e.closest('[id]')?.id || '?') : 'nothing') + '; viewport ' + innerWidth + 'x' + innerHeight; })()`);
     check('the ⋮ menu offers its page, its options and turning it off', /page/i.test(menu) && /Options/.test(menu) && /Turn off/.test(menu), menu || hit);
     // Clicking elsewhere closes it. Not near the window edge: a press there starts resizing the real window.
-    const away = await main.center('#hubPluginsCard .vrcn-panel-card-header');
+    // Nor on the top bar: a press there starts moving the real window, which waits for a real mouse release
+    // and holds up the app (and every answer to the page) until then. So the header is scrolled into view first.
+    await main.eval(`document.querySelector('#hubPluginsCard .vrcn-panel-card-header').scrollIntoView({ block: 'center' })`);
     await sleep(200);
+    const away = await main.center('#hubPluginsCard .vrcn-panel-card-header');
+    const under = await main.eval(`(() => { const e = document.elementFromPoint(${away.x}, ${away.y}); return e ? (e.closest('#hubPluginsCard') ? '' : e.tagName + '#' + e.id + '.' + e.className) : 'nothing'; })()`);
+    if (under) throw new Error('the plugin card header is covered by ' + under);
     await main.click(away.x, away.y);
     await sleep(200);
     check('a click elsewhere closes the menu', await main.eval(`!document.getElementById('hubPluginMenu')`));
