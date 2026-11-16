@@ -374,7 +374,9 @@ public sealed class AppEmbedHost : IDisposable
         var exStyle = slot.SavedExStyle & ~(nint)(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE);
         if (slot.Mode == AppEmbedsModule.ModeChild)
         {
-            style = (style & ~unchecked((nint)WS_POPUP)) | (nint)WS_CHILD;
+            // Clipped against its siblings, so the page's own window can't paint over it (or it over the page)
+            // whenever the page redraws, as it does each time focus moves between the two.
+            style = (style & ~unchecked((nint)WS_POPUP)) | (nint)(WS_CHILD | WS_CLIPSIBLINGS);
             SetWindowLongPtr(window, GWL_STYLE, style);
             SetWindowLongPtr(window, GWL_EXSTYLE, exStyle);
             var error = SetParentChecked(window, _host);
@@ -385,6 +387,7 @@ public sealed class AppEmbedHost : IDisposable
                 Fail(slot, $"Windows wouldn't let HapsHub hold {slot.App.Name} (error {error}).");
                 return;
             }
+            ClipHostChildren();
         }
         else
         {
@@ -464,7 +467,8 @@ public sealed class AppEmbedHost : IDisposable
         var child = slot.Mode == AppEmbedsModule.ModeChild;
         // Its own window sits directly above HapsHub: on top of the page, and never in front of whatever is above HapsHub.
         var above = child ? 0 : GetWindow(_host, GW_HWNDPREV);
-        var stacked = child || above == slot.Window;
+        // A held window must stay the first of HapsHub's child windows, above the page's.
+        var stacked = child ? AboveThePage(slot) : above == slot.Window;
         ApplyRegion(slot, pane);
         // A double-click on the app's own title bar maximizes it; OyasumiVR does that itself, whatever its style says.
         // In a page it must stay the page's size, so it's put back at once.
@@ -488,6 +492,29 @@ public sealed class AppEmbedHost : IDisposable
             else if (above != 0 && (GetWindowLongPtr(above, GWL_EXSTYLE) & WS_EX_TOPMOST) == 0) after = above;
         }
         SetWindowPos(slot.Window, after, x, y, pane.Width, pane.Height, flags);
+    }
+
+    /// <summary>HapsHub's own child windows (the page) clip around held windows instead of painting over them.</summary>
+    private void ClipHostChildren()
+    {
+        var style = GetWindowLongPtr(_host, GWL_STYLE);
+        if ((style & (nint)WS_CLIPCHILDREN) == 0) SetWindowLongPtr(_host, GWL_STYLE, style | (nint)WS_CLIPCHILDREN);
+        for (var child = GetWindow(_host, GW_CHILD); child != 0; child = GetWindow(child, GW_HWNDNEXT))
+        {
+            var childStyle = GetWindowLongPtr(child, GWL_STYLE);
+            if ((childStyle & (nint)WS_CLIPSIBLINGS) == 0) SetWindowLongPtr(child, GWL_STYLE, childStyle | (nint)WS_CLIPSIBLINGS);
+        }
+    }
+
+    /// <summary>Whether the held window comes before every child window of HapsHub's own (other held windows don't count).</summary>
+    private bool AboveThePage(Slot slot)
+    {
+        for (var child = GetWindow(_host, GW_CHILD); child != 0; child = GetWindow(child, GW_HWNDNEXT))
+        {
+            if (child == slot.Window) return true;
+            if (!_slots.Values.Any(other => other.Attached && other.Window == child)) return false;
+        }
+        return false;
     }
 
     /// <summary>
@@ -644,7 +671,8 @@ public sealed class AppEmbedHost : IDisposable
                 yield return picture.GetPixel(picture.Width * column / 9, picture.Height * row / 9).ToArgb();
     }
 
-    private const int GWL_STYLE = -16, GWL_EXSTYLE = -20, GW_OWNER = 4, GW_HWNDPREV = 3, GA_ROOT = 2;
+    private const int GWL_STYLE = -16, GWL_EXSTYLE = -20, GW_OWNER = 4, GW_HWNDPREV = 3, GW_HWNDNEXT = 2, GW_CHILD = 5, GA_ROOT = 2;
+    private const long WS_CLIPSIBLINGS = 0x04000000, WS_CLIPCHILDREN = 0x02000000;
     private const int SW_HIDE = 0, SW_SHOWMINIMIZED = 2, SW_SHOWNOACTIVATE = 4, SW_SHOWMINNOACTIVE = 7;
     private const uint WM_CLOSE = 0x0010;
     private const long WS_VISIBLE = 0x10000000;
