@@ -323,7 +323,7 @@ function filterOwnAvatars() {
     _avUpdateCounts();
     if (!filtered.length) {
         el.classList.add('avatar-grid');
-        el.innerHTML = avatarEmptyMessage(q ? 'avatars.empty.no_match' : 'avatars.empty.none', q ? 'No avatars match your filter' : 'No avatars found');
+        el.innerHTML = stillLoading(_avCountsLoaded.own) ? loadingStateHtml() : avatarEmptyMessage(q ? 'avatars.empty.no_match' : 'avatars.empty.none', q ? 'No avatars match your filter' : 'No avatars found');
         setPaginator('avatarOwnPaginatorBar', '');
         return;
     }
@@ -615,7 +615,7 @@ function filterRecentAvatars() {
         : _recentAvatarsData).filter(_avPassesFilters);
     if (!list.length) {
         el.classList.add('avatar-grid');
-        el.innerHTML = avatarEmptyMessage(q ? 'avatars.empty.no_match' : 'avatars.recent.empty', q ? 'No avatars match your filter' : 'No recently used avatars');
+        el.innerHTML = stillLoading(_avCountsLoaded.recent, false) ? loadingStateHtml() : avatarEmptyMessage(q ? 'avatars.empty.no_match' : 'avatars.recent.empty', q ? 'No avatars match your filter' : 'No recently used avatars');
         setPaginator('avatarRecentPaginatorBar', '');
         return;
     }

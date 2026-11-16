@@ -38,6 +38,27 @@ section('nav tabs', async main => {
     await main.eval(`showTab(0)`);
 });
 
+section('loading states', async main => {
+    // A list says "nothing here" only once its load has answered; before that it shows a loading state.
+    const got = await main.json(`(() => {
+        const grid = () => document.getElementById('worldRecentGrid');
+        _visitedWorldsLoaded = false; _visitedWorldsData = [];
+        renderVisitedWorlds();
+        const before = { loading: !!grid().querySelector('.loading-msg'), text: grid().textContent.trim() };
+        renderVisitedWorlds([]);
+        const after = { loading: !!grid().querySelector('.loading-msg'), text: grid().textContent.trim() };
+        const savedUser = currentVrcUser; currentVrcUser = null;
+        const signedOut = stillLoading(false);
+        currentVrcUser = { id: 'usr_test' };
+        const signedIn = stillLoading(false);
+        currentVrcUser = savedUser;
+        return { before, after, signedOut, signedIn };
+    })()`);
+    check('Recently visited shows loading before its answer', got.before.loading, JSON.stringify(got.before));
+    check('Recently visited shows empty after an empty answer', !got.after.loading && got.after.text.length > 0, JSON.stringify(got.after));
+    check('lists fed by VRChat do not wait while signed out', got.signedOut === false && got.signedIn === true, JSON.stringify(got));
+});
+
 section('settings', async main => {
     await main.eval(`showTab(9); switchSettingsSection('general')`);
     const nav = await main.json(`[...document.querySelectorAll('#tab9 .settings-nav-item')].map(b => b.dataset.sectionId || (b.getAttribute('onclick').match(/'([^']+)'/) || [])[1])`);

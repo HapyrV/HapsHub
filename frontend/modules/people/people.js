@@ -469,7 +469,7 @@ function filterRecentSeen() {
     const listMode = _peopleListMode();
     el.classList.toggle('search-grid', !listMode);
     if (!list.length) {
-        el.innerHTML = q ? emptyStateHtml('search', t('profiles.people.no_results', 'No results')) : emptyStateHtml('history', t('profiles.people.recent_seen.empty', 'No recently seen players'));
+        el.innerHTML = stillLoading(_pplRecentLoaded, false) ? loadingStateHtml() : q ? emptyStateHtml('search', t('profiles.people.no_results', 'No results')) : emptyStateHtml('history', t('profiles.people.recent_seen.empty', 'No recently seen players'));
         plSetPaginator('peopleRecentPaginatorBar', '');
         return;
     }
@@ -773,7 +773,7 @@ function filterAllFriends() {
     const page = _peopleAllPage;
     const slice = all.slice(page * pageSize, (page + 1) * pageSize);
     if (!all.length) {
-        el.innerHTML = q ? emptyStateHtml('search', t('profiles.people.no_results', 'No results')) : emptyStateHtml('person', t('profiles.people.no_friends', 'No friends yet'));
+        el.innerHTML = stillLoading(vrcFriendsLoaded) ? loadingStateHtml() : q ? emptyStateHtml('search', t('profiles.people.no_results', 'No results')) : emptyStateHtml('person', t('profiles.people.no_friends', 'No friends yet'));
         plSetPaginator('peopleAllPaginatorBar', '');
         return;
     }
@@ -1190,7 +1190,7 @@ function filterFavFriends() {
     const favListMode = _peopleListMode();
     el.classList.toggle('search-grid', !favListMode);
     if (!friends.length) {
-        el.innerHTML = q || favFriendGroupFilter ? emptyStateHtml('search', t('friends.favorites.no_match', 'No favorites match your filter')) : emptyStateHtml('favorite', t('friends.favorites.empty', 'No favorite friends yet'));
+        el.innerHTML = stillLoading(_pplFavLoaded) ? loadingStateHtml() : q || favFriendGroupFilter ? emptyStateHtml('search', t('friends.favorites.no_match', 'No favorites match your filter')) : emptyStateHtml('favorite', t('friends.favorites.empty', 'No favorite friends yet'));
         plSetPaginator('peopleFavPaginatorBar', '');
         if (_favFriendEditMode) updateFriendEditBar();
         return;

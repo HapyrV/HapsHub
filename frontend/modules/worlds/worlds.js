@@ -76,6 +76,11 @@ function renderVisitedWorlds(worlds) {
     const el = document.getElementById('worldRecentGrid');
     if (!el) return;
     const list = _visitedWorldsData;
+    if (stillLoading(_visitedWorldsLoaded, false)) {
+        el.innerHTML = loadingStateHtml();
+        setPaginator('worldRecentPaginatorBar', '');
+        return;
+    }
     if (!Array.isArray(list) || list.length === 0) {
         el.innerHTML = emptyStateHtml('history', t('worlds.recent.empty', 'No recently visited worlds'));
         setPaginator('worldRecentPaginatorBar', '');
@@ -220,6 +225,7 @@ function renderMyWorlds(worlds) {
     if (Array.isArray(worlds)) { _myWorldsData = worlds; _myWorldsDataLoaded = true; }
     _wdUpdateCounts();
     const list = _myWorldsData;
+    if (stillLoading(_myWorldsDataLoaded)) { el.innerHTML = loadingStateHtml(t('worlds.mine.loading', 'Loading your worlds...')); return; }
     if (!Array.isArray(list) || list.length === 0) {
         el.innerHTML = `<div class="empty-msg"><div class="empty-msg-icon"><span class="msi">upload</span></div><div class="empty-msg-title">${t('worlds.mine.upload_title', 'Upload a world')}</div><div class="empty-msg-desc">${t('worlds.mine.empty', 'No worlds uploaded yet')}</div></div>`;
         setPaginator('worldMinePaginatorBar', '');
@@ -435,6 +441,11 @@ function filterFavWorlds() {
     if (favWorldGroupFilter) filtered = filtered.filter(w => w.favoriteGroup === favWorldGroupFilter);
     if (q) filtered = filtered.filter(w => (w.name||'').toLowerCase().includes(q) || (w.authorName||'').toLowerCase().includes(q));
     const el = document.getElementById('favWorldsGrid');
+    if (stillLoading(_favWorldsLoaded)) {
+        el.innerHTML = loadingStateHtml(t('worlds.favorites.loading', 'Loading favorite worlds...'));
+        setPaginator('favWorldsPaginatorBar', '');
+        return;
+    }
     if (!filtered.length) {
         el.innerHTML = q || favWorldGroupFilter
             ? emptyStateHtml('search', t('worlds.favorites.no_match', 'No favorites match your filter'))

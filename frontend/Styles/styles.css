@@ -298,6 +298,9 @@ html.text-tools-active * { user-select: text !important; }
     font-size: 22px;
     color: var(--tx3);
 }
+.empty-msg-icon .msi.loading-spin { animation: empty-msg-spin 1s linear infinite; }
+@keyframes empty-msg-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .empty-msg-icon .msi.loading-spin { animation: none; } }
 
 .empty-msg-title {
     font-size: calc(14px + var(--fs-off, 0px));

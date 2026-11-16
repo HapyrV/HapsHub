@@ -367,7 +367,7 @@ function filterMyGroups() {
         : base;
     if (!filtered.length) {
         el.classList.add('search-grid');
-        el.innerHTML = q ? emptyStateHtml('search', esc(t('groups.mine.empty_match', 'No groups match'))) : emptyStateHtml('groups', esc(_groupEmptyMsg()));
+        el.innerHTML = stillLoading(myGroupsLoaded) ? loadingStateHtml() : q ? emptyStateHtml('search', esc(t('groups.mine.empty_match', 'No groups match'))) : emptyStateHtml('groups', esc(_groupEmptyMsg()));
         setPaginator('groupsPaginatorBar', '');
         return;
     }

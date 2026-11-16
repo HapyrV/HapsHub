@@ -474,6 +474,17 @@ function sk(type, n = 1) {
 }
 
 
+// Stands in for an empty state until a list's first load finishes, so "nothing here" only shows once it is true.
+function loadingStateHtml(title) {
+    return `<div class="empty-msg loading-msg"><div class="empty-msg-icon"><span class="msi loading-spin">progress_activity</span></div><div class="empty-msg-title">${title || t('common.loading', 'Loading...')}</div></div>`;
+}
+
+// True while a list's first load is still on its way. Lists fed by VRChat only wait while signed in;
+// signed out they show their empty state straight away.
+function stillLoading(loaded, needsLogin = true) {
+    return !loaded && (!needsLogin || (typeof currentVrcUser !== 'undefined' && !!currentVrcUser));
+}
+
 function emptyStateHtml(icon, title, desc) {
     return `<div class="empty-msg"><div class="empty-msg-icon"><span class="msi">${icon}</span></div><div class="empty-msg-title">${title}</div>${desc ? `<div class="empty-msg-desc">${desc}</div>` : ''}</div>`;
 }
