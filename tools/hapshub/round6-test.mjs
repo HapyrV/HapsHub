@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { writePng } from './lib/png.mjs';
 import { startFakeEagle } from './lib/fake-eagle.mjs';
-import { checker, cleanUp, closeMain, crashes, freshData, hubLog, openMain, sleep, waitFor } from './lib/harness.mjs';
+import { checker, cleanUp, closeMain, crashes, freshData, hubLog, openMain, seen, sleep, waitFor } from './lib/harness.mjs';
 
 const PORT = 9341;
 const { check, state } = checker();
@@ -16,6 +16,27 @@ const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf
 const sections = [];
 const section = (name, run) => sections.push({ name, run });
 const savedSettings = dir => JSON.parse(readFileSync(join(dir, 'settings.json'), 'utf8'));
+
+section('nav tabs', async main => {
+    // Every sidebar entry must open its own page. Tab ids have gaps (tab17 is in the HTML, tab34 is not), and a
+    // positional lookup once sent Space Calibrator to VRCT, VRCT to OVR Toolkit and OVR Toolkit to World Map.
+    const entries = await main.json(`Object.entries(NAV_ITEMS_DEF).filter(([, d]) => Number.isInteger(d.tab)).map(([k, d]) => [k, d.tab])`);
+    const wrong = [];
+    for (const [key, tab] of entries) {
+        const got = await main.json(`(() => {
+            const btn = document.querySelector('#sidebarEl .nav-btn[onclick*="showTab(${tab})"]');
+            if (btn) btn.click(); else showTab(${tab});
+            const active = [...document.querySelectorAll('.tab.active')].map(t => t.id);
+            return { via: btn ? 'button' : 'showTab', active };
+        })()`);
+        if (got.active.length !== 1 || got.active[0] !== 'tab' + tab) wrong.push(`${key}(${got.via}) -> ${got.active.join('+') || 'nothing'}`);
+    }
+    check('every sidebar entry opens its own tab', wrong.length === 0, wrong.join('; ') || `${entries.length} entries`);
+    await main.eval(`showTab(NAV_ITEMS_DEF['world-map'].tab)`);
+    const mapBuilt = await waitFor('the World Map tab', () => main.eval(`(() => { const t = document.getElementById('tab' + NAV_ITEMS_DEF['world-map'].tab); return !!t && t.classList.contains('active') && t.offsetHeight > 0 && t.children.length > 0; })()`), 5000).catch(() => false);
+    check('the World Map tab shows something', !!mapBuilt);
+    await main.eval(`showTab(0)`);
+});
 
 section('settings', async main => {
     await main.eval(`showTab(9); switchSettingsSection('general')`);

@@ -1849,8 +1849,8 @@ function _unloadTabImages(tabEl) {
         count++;
     });
     if (count > 0) {
-        const tabIdx = Array.from(document.querySelectorAll('.tab')).indexOf(tabEl);
-        const label = tabIdx >= 0 ? `Tab ${tabIdx}` : (tabEl.id || 'modal');
+        const tabM = /^tab(\d+)$/.exec(tabEl.id || '');
+        const label = tabM ? `Tab ${tabM[1]}` : (tabEl.id || 'modal');
         addLog(`[Unload] Unloaded ${count} image${count !== 1 ? 's' : ''} from ${label} from memory.`, 'info');
     }
 }
@@ -1870,15 +1870,16 @@ function _reloadTabImages(tabEl) {
 function showTab(i) {
     clearTimeout(_lazyUnloadTimer);
 
-    const _tabs = document.querySelectorAll('.tab');
-    const _prevTabEl = (_prevTab >= 0 && _prevTab !== i) ? _tabs[_prevTab] : null;
-    const _nextTabEl = _tabs[i];
+    // Look tabs up by id, not position: the tab ids have gaps (tab34 was removed),
+    // so the n-th .tab element is not always #tab{n}.
+    const _prevTabEl = (_prevTab >= 0 && _prevTab !== i) ? document.getElementById('tab' + _prevTab) : null;
+    const _nextTabEl = document.getElementById('tab' + i);
 
     if (_nextTabEl) _reloadTabImages(_nextTabEl);
 
     if (_prevTab === 7 && i !== 7) destroyLibrary();
     _prevTab = i;
-    document.querySelectorAll('.tab').forEach((t, j) => t.classList.toggle('active', j === i));
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === _nextTabEl));
     const contentEl = document.querySelector('.content');
     if (contentEl) {
         contentEl.classList.toggle('tab1-active', i === 1);
