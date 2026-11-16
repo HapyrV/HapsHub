@@ -37,6 +37,8 @@ export function checker() {
     return { check, state };
 }
 
+const PAGE_TIMEOUT_MS = 180000;
+
 export class Page {
     constructor(socket, port) {
         this.socket = socket;
@@ -90,9 +92,29 @@ export class Page {
     send(method, params = {}) {
         const id = this.nextId++;
         if (this.closed) return Promise.reject(new Error('the page connection closed (did the app quit or crash?)'));
+        // A page that never answers (the app hung) fails the test instead of leaving the run waiting forever.
         return new Promise((done, fail) => {
-            this.pending.set(id, { done, fail });
+            const timer = setTimeout(() => {
+                this.pending.delete(id);
+                const why = `the page didn't answer ${method} within ${PAGE_TIMEOUT_MS / 1000} s (did the app hang?)`;
+                this.stuckAt().then(where => fail(new Error(why + where)));
+            }, PAGE_TIMEOUT_MS);
+            this.pending.set(id, { done: m => { clearTimeout(timer); done(m); }, fail: e => { clearTimeout(timer); fail(e); } });
             this.socket.send(JSON.stringify({ id, method, params }));
+        });
+    }
+
+    /** Where the page's script is busy: pauses it through the debugger and names the top frames. Never waits long. */
+    stuckAt() {
+        if (this.closed) return Promise.resolve('');
+        return new Promise(done => {
+            const finish = text => { clearTimeout(timer); done(text); };
+            const timer = setTimeout(() => finish(' | the debugger could not pause it either'), 10000);
+            this.on('Debugger.paused', params => {
+                const frames = params.callFrames.slice(0, 12).map(f => `${f.functionName || '(anonymous)'} ${f.url.split('/').pop()}:${f.location.lineNumber + 1}`);
+                finish(' | paused in: ' + frames.join(' < '));
+            });
+            for (const method of ['Debugger.enable', 'Debugger.pause']) this.socket.send(JSON.stringify({ id: this.nextId++, method }));
         });
     }
 

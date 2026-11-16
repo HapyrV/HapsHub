@@ -1,9 +1,9 @@
 // Drives the built app through round 6 (docs/hapshub/round6-requirements.md): the Settings clean-up, plugin options
 // that fold open, themed controls, launch switches, and the rest as they land.
 // Uses a throwaway data folder, no login and no VRChat traffic. Stops only what it started.
-//   node tools/hapshub/round6-test.mjs [--release] [--only name]
+//   node tools/hapshub/round6-test.mjs [--release] [--only name[,name...]]   (HAPSHUB_KEEP_LOG=file saves the app log if the app quits mid-run)
 
-import { mkdtempSync, readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { writePng } from './lib/png.mjs';
@@ -12,7 +12,8 @@ import { checker, cleanUp, closeMain, crashes, freshData, hubLog, openMain, seen
 
 const PORT = 9341;
 const { check, state } = checker();
-const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : null;
+// --only takes one section name or several, comma-separated.
+const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1].split(',').map(n => n.trim()) : null;
 const sections = [];
 const section = (name, run) => sections.push({ name, run });
 const savedSettings = dir => JSON.parse(readFileSync(join(dir, 'settings.json'), 'utf8'));
@@ -424,20 +425,20 @@ try {
     await waitFor('the splash to go', () => main.eval(`!document.getElementById('vrcnSplash')`), 15000);
     await sleep(1500);
     for (const { name, run } of sections) {
-        if (only && only !== name) continue;
+        if (only && !only.includes(name)) continue;
         try { await run(main); }
         catch (error) {
             const log = main.closed ? ' | app log: ' + hubLog(dir).trim().split(/\r?\n/).slice(-10).join(' | ') : '';
             check(`${name}: the section finished`, false, error.message + log);
-            if (main.closed) break;
+            if (main.closed) { if (process.env.HAPSHUB_KEEP_LOG) writeFileSync(process.env.HAPSHUB_KEEP_LOG, hubLog(dir)); break; }
         }
     }
     check('no page errors', main.errors.length === 0, main.errors.join(' | '));
     const switchId = main.switchId;
     const closed = await closeMain(main);
     check('the app closes cleanly', closed, hubLog(dir).trim().split(/\r?\n/).slice(-6).join(' | '));
-    const switches = switchId && (!only || only === 'launch switches');
-    const pins = !only || only === 'map';
+    const switches = switchId && (!only || only.includes('launch switches'));
+    const pins = !only || only.includes('map');
     if (switches || pins) {
         main = await openMain(dir, PORT);
         if (switches) {
