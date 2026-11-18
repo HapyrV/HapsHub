@@ -113,7 +113,7 @@ static class Program
 
             static string Quote(string value) => "\"" + value.Replace("\"", "\\\"") + "\"";
             var passOn = args.Where(a => a != HapsHub.Core.SourceUpdate.UpdatedArg && a != HapsHub.Core.SourceUpdate.FailedArg);
-            var line = $"-NoProfile -ExecutionPolicy Bypass -File {Quote(script)} -Root {Quote(repo)} -Exe {Quote(exe)} "
+            var line = $"-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File {Quote(script)} -Root {Quote(repo)} -Exe {Quote(exe)} "
                 + $"-WaitPid {Environment.ProcessId} -LogFile {Quote(HubPaths.Data("Logs", HapsHub.Core.SourceUpdate.FailedLogName))}";
             // PowerShell would read "--minimized" as one of its own parameters, so the arguments travel as one value.
             var rest = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(string.Join("\n", passOn)));
@@ -121,8 +121,8 @@ static class Program
             using var updater = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("powershell.exe", line)
             {
                 UseShellExecute = true,
-                // Started with Windows into the tray, it stays out of the way too.
-                WindowStyle = args.Contains("--minimized") ? System.Diagnostics.ProcessWindowStyle.Minimized : System.Diagnostics.ProcessWindowStyle.Normal,
+                // The script draws its own small update window, so the PowerShell console stays hidden.
+                WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
             });
             return updater != null;
         }
