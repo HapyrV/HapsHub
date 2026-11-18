@@ -1,0 +1,19 @@
+{
+  "avatars.more.title": { "en": "Filters", "de": "Filter", "es": "Filtros", "fr": "Filtres", "ja": "フィルター", "ko": "필터", "ru": "Фильтры", "zh-CN": "筛选", "zh-TW": "篩選" },
+  "avatars.more.performance": { "en": "Performance", "de": "Leistung", "es": "Rendimiento", "fr": "Performance", "ja": "パフォーマンス", "ko": "퍼포먼스", "ru": "Производительность", "zh-CN": "性能", "zh-TW": "效能" },
+  "avatars.more.any_platform": { "en": "Any platform", "de": "Jede Plattform", "es": "Cualquier plataforma", "fr": "Toute plateforme", "ja": "すべてのプラットフォーム", "ko": "모든 플랫폼", "ru": "Любая платформа", "zh-CN": "任意平台", "zh-TW": "任意平台" },
+  "avatars.more.any_rank": { "en": "Any rank", "de": "Jeder Rang", "es": "Cualquier rango", "fr": "Tout rang", "ja": "すべてのランク", "ko": "모든 등급", "ru": "Любой ранг", "zh-CN": "任意等级", "zh-TW": "任意等級" },
+  "avatars.more.or_better": { "en": "{rank} or better", "de": "{rank} oder besser", "es": "{rank} o mejor", "fr": "{rank} ou mieux", "ja": "{rank}以上", "ko": "{rank} 이상", "ru": "{rank} или лучше", "zh-CN": "{rank}或更好", "zh-TW": "{rank}或更好" },
+  "avatars.more.any_rated": { "en": "Any rating", "de": "Jede Bewertung", "es": "Cualquier valoración", "fr": "Toute note", "ja": "すべての評価", "ko": "모든 평가", "ru": "Любая оценка", "zh-CN": "任意评级", "zh-TW": "任意評級" },
+  "avatars.more.impostor": { "en": "Impostor", "de": "Impostor", "es": "Impostor", "fr": "Imposteur", "ja": "インポスター", "ko": "임포스터", "ru": "Импостер", "zh-CN": "替身", "zh-TW": "替身" },
+  "avatars.more.any": { "en": "Any", "de": "Alle", "es": "Cualquiera", "fr": "Tous", "ja": "すべて", "ko": "전체", "ru": "Любой", "zh-CN": "任意", "zh-TW": "任意" },
+  "avatars.more.has_impostor": { "en": "Has an impostor", "de": "Mit Impostor", "es": "Con impostor", "fr": "Avec imposteur", "ja": "インポスターあり", "ko": "임포스터 있음", "ru": "С импостером", "zh-CN": "有替身", "zh-TW": "有替身" },
+  "avatars.more.no_impostor": { "en": "No impostor", "de": "Ohne Impostor", "es": "Sin impostor", "fr": "Sans imposteur", "ja": "インポスターなし", "ko": "임포스터 없음", "ru": "Без импостера", "zh-CN": "无替身", "zh-TW": "無替身" },
+  "avatars.more.author": { "en": "Author", "de": "Autor", "es": "Autor", "fr": "Auteur", "ja": "作者", "ko": "제작자", "ru": "Автор", "zh-CN": "作者", "zh-TW": "作者" },
+  "avatars.more.tag": { "en": "Tag", "de": "Tag", "es": "Etiqueta", "fr": "Tag", "ja": "タグ", "ko": "태그", "ru": "Тег", "zh-CN": "标签", "zh-TW": "標籤" },
+  "avatars.more.created": { "en": "Created", "de": "Erstellt", "es": "Creado", "fr": "Créé", "ja": "作成日", "ko": "생성일", "ru": "Создан", "zh-CN": "创建", "zh-TW": "建立" },
+  "avatars.more.updated": { "en": "Updated", "de": "Aktualisiert", "es": "Actualizado", "fr": "Mis à jour", "ja": "更新日", "ko": "업데이트", "ru": "Обновлён", "zh-CN": "更新", "zh-TW": "更新" },
+  "avatars.more.from": { "en": "From", "de": "Von", "es": "Desde", "fr": "Du", "ja": "開始", "ko": "부터", "ru": "С", "zh-CN": "从", "zh-TW": "從" },
+  "avatars.more.to": { "en": "To", "de": "Bis", "es": "Hasta", "fr": "Au", "ja": "終了", "ko": "까지", "ru": "По", "zh-CN": "到", "zh-TW": "到" },
+  "avatars.more.clear": { "en": "Clear filters", "de": "Filter löschen", "es": "Borrar filtros", "fr": "Effacer les filtres", "ja": "フィルターをクリア", "ko": "필터 지우기", "ru": "Сбросить фильтры", "zh-CN": "清除筛选", "zh-TW": "清除篩選" }
+}

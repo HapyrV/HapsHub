@@ -68,3 +68,16 @@
     flex-wrap: wrap;
     gap: 4px;
 }
+
+/* More filters panel (issue 10) */
+.av-more-btn.active { color: var(--accent-lt); border-color: var(--accent); }
+.av-more-panel { display: none; position: fixed; z-index: 1300; width: 340px; padding: 12px; border-radius: 10px;
+    background: var(--modal-bg, var(--bg-card)); border: 1px solid var(--brd-lt); box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+.av-more-title { font-weight: 600; margin-bottom: 10px; color: var(--tx0); }
+.av-more-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.av-more-row > span { width: 86px; flex-shrink: 0; font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx2); }
+.av-more-row > select, .av-more-row > .vn-select, .av-more-row > input { flex: 1; min-width: 0; }
+.av-more-date { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 2px; }
+.av-more-date > span { font-size: calc(10px + var(--fs-off, 0px)); color: var(--tx3); }
+.av-more-date input { width: 100%; color-scheme: dark; }
+.av-more-foot { display: flex; justify-content: flex-end; margin-top: 4px; }

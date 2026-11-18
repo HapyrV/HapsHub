@@ -38,6 +38,105 @@ section('nav tabs', async main => {
     await main.eval(`showTab(0)`);
 });
 
+section('issue 12 layout state', async main => {
+    // body:has(...) rules were replaced by body classes mirrored from the sidebars and the Dashboard tab.
+    const got = await main.json(`(async () => {
+        const frame = () => new Promise(r => setTimeout(r, 30));
+        showTab(0); await frame();
+        const onDash = document.body.classList.contains('tab0-active');
+        showTab(8); await frame();
+        const offDash = !document.body.classList.contains('tab0-active');
+        const sb = document.getElementById('sidebarEl');
+        const was = sb.classList.contains('collapsed');
+        sb.classList.add('collapsed'); await frame();
+        const collapsed = document.body.classList.contains('sb-l-collapsed');
+        if (!was) sb.classList.remove('collapsed'); await frame();
+        const restored = document.body.classList.contains('sb-l-collapsed') === was;
+        const hasRules = [...document.styleSheets].some(s => { try { return [...s.cssRules].some(r => /body:has\\(/.test(r.selectorText || '')); } catch { return false; } });
+        showTab(0);
+        return { onDash, offDash, collapsed, restored, hasRules };
+    })()`);
+    check('body mirrors the Dashboard tab and the sidebar state', got.onDash && got.offDash && got.collapsed && got.restored, JSON.stringify(got));
+    check('no body:has() rules are left in the page', !got.hasRules, JSON.stringify(got));
+    const badge = await main.json(`(() => {
+        _navApplyBadge('library', 12345);
+        const el = document.querySelector('[data-nav-badge="library"]');
+        if (!el) return { skipped: true };
+        const node = el.firstChild;
+        _navApplyBadge('library', 12345);
+        return { same: el.firstChild === node, text: el.textContent };
+    })()`);
+    check('an unchanged sidebar badge is not rewritten', badge.skipped || badge.same, JSON.stringify(badge));
+});
+
+section('world tags (issue 13)', async main => {
+    const got = await main.json(`(() => {
+        showTab(NAV_ITEMS_DEF.worlds?.tab ?? 1);
+        setWorldFilter('recent');
+        renderVisitedWorlds([
+            { id: 'wrld_a', name: 'Alpha', tags: ['author_tag_horror', 'system_approved'] },
+            { id: 'wrld_b', name: 'Beta', tags: ['author_tag_chill', 'author_tag_horror'] },
+            { id: 'wrld_c', name: 'Gamma', tags: ['author_tag_chill'] },
+        ]);
+        const sel = document.getElementById('worldTagFilter');
+        const options = [...sel.options].map(o => o.value + '=' + o.textContent);
+        const shown = () => document.getElementById('worldRecentGrid').querySelectorAll('[onclick*="wrld_"], .vrcn-content-card, .world-card').length;
+        const all = shown();
+        setWorldTagFilter('author_tag_horror');
+        const horror = document.getElementById('worldRecentGrid').textContent;
+        setWorldTagFilter('author_tag_none');
+        const none = document.getElementById('worldRecentGrid').textContent;
+        setWorldFilter('search');
+        const hiddenOnSearch = document.getElementById('worldTagWrap').style.display === 'none';
+        setWorldFilter('favorites');
+        return { options, all, horror, none, hiddenOnSearch, reset: worldTagFilter === '' };
+    })()`);
+    check('the tag list offers author tags with counts, most common first, and no system tags',
+        got.options[1]?.startsWith('author_tag_chill=') && got.options[2]?.startsWith('author_tag_horror=') && !got.options.some(o => o.startsWith('system_')), got.options.join(' | '));
+    check('picking a tag shows only worlds with it', got.horror.includes('Alpha') && got.horror.includes('Beta') && !got.horror.includes('Gamma'), got.horror.slice(0, 120));
+    check('a tag no world has says so', /tag/i.test(got.none), got.none.slice(0, 120));
+    check('Search hides the tag filter and switching clears it', got.hiddenOnSearch && got.reset, JSON.stringify(got));
+});
+
+section('avatar filters (issue 10)', async main => {
+    const got = await main.json(`(() => {
+        const mk = (id, extra) => ({ id, name: id, releaseStatus: 'public', authorName: 'Someone', tags: [], ...extra });
+        const avs = [
+            mk('a_good_pc', { performance: { standalonewindows: 'Good', android: 'VeryPoor' }, unityPackages: [{ platform: 'standalonewindows' }, { platform: 'android' }, { platform: 'android', variant: 'impostor' }], authorName: 'Haps', created_at: '2025-03-01T00:00:00Z', tags: ['author_tag_cat_ears'] }),
+            mk('a_poor', { performance: { standalonewindows: 'Poor' }, unityPackages: [{ platform: 'standalonewindows' }], created_at: '2024-01-01T00:00:00Z' }),
+            mk('a_unknown', {}),
+        ];
+        const pass = () => avs.filter(_avPassesFilters).map(a => a.id).join(',');
+        const out = {};
+        avClearMoreFilters();
+        out.none = pass();
+        avSetMoreFilter('perfMax', 'good'); out.goodAny = pass();
+        avSetMoreFilter('perfPlat', 'quest'); out.goodQuest = pass();
+        avClearMoreFilters();
+        avSetMoreFilter('impostor', 'yes'); out.impostor = pass();
+        avClearMoreFilters();
+        avSetMoreFilter('author', 'haps'); out.author = pass();
+        avClearMoreFilters();
+        avSetMoreFilter('tag', 'cat ears'); out.tag = pass();
+        avClearMoreFilters();
+        avSetMoreFilter('createdFrom', '2025-01-01'); out.created = pass();
+        out.count = document.querySelector('.av-more-btn .av-more-count')?.textContent;
+        avClearMoreFilters();
+        const btn = document.querySelector('.av-more-btn');
+        if (btn) avToggleMoreFilters(btn);
+        const panel = document.getElementById('avMoreFilters');
+        out.panel = !!panel && panel.style.display === 'block' && panel.querySelectorAll('select').length >= 3 && panel.querySelectorAll('input[type=date]').length === 4;
+        if (panel) panel.style.display = 'none';
+        return out;
+    })()`);
+    check('with no extra filters every avatar passes', got.none === 'a_good_pc,a_poor,a_unknown', JSON.stringify(got));
+    check('"Good or better" keeps rated avatars that qualify and unrated ones', got.goodAny === 'a_good_pc,a_unknown', got.goodAny);
+    check('the rank can be checked per platform (Quest)', got.goodQuest === 'a_poor,a_unknown' || got.goodQuest === 'a_unknown', got.goodQuest);
+    check('impostor, author, tag and date filters each narrow the list',
+        got.impostor === 'a_good_pc,a_unknown' && got.author === 'a_good_pc' && got.tag === 'a_good_pc' && got.created === 'a_good_pc', JSON.stringify(got));
+    check('the Filters button counts active filters and opens its panel', got.count === '1' && got.panel, JSON.stringify(got));
+});
+
 section('loading states', async main => {
     // A list says "nothing here" only once its load has answered; before that it shows a loading state.
     const got = await main.json(`(() => {

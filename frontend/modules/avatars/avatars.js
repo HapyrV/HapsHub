@@ -543,7 +543,114 @@ function _avPassesFilters(a) {
             if (avatarPlatformFilter === 'ios'   && !hasIos)   return false;
         }
     }
+    return _avPassesMore(a);
+}
+
+// ---- More filters (issue 10): performance per platform, impostor, author, tag and date ranges ----
+const _AV_MORE_DEFAULT = { perfPlat: 'any', perfMax: 'any', impostor: 'any', author: '', tag: '', createdFrom: '', createdTo: '', updatedFrom: '', updatedTo: '' };
+const _avMore = { ..._AV_MORE_DEFAULT };
+const _avPerfKey = v => String(v || '').toLowerCase().replace(/[^a-z]/g, '');
+
+function _avMoreActive() {
+    const f = _avMore;
+    return [f.perfMax !== 'any', f.impostor !== 'any', !!f.author, !!f.tag, !!(f.createdFrom || f.createdTo), !!(f.updatedFrom || f.updatedTo)].filter(Boolean).length;
+}
+
+function _avPassesMore(a) {
+    const f = _avMore;
+    if (f.perfMax !== 'any') {
+        // Lenient like the other filters: an avatar with no ratings at all passes; otherwise a rating must be good enough.
+        const p = _avPerfByPlatform(a);
+        const all = [p.pc, p.quest, p.ios].map(_avPerfKey).filter(Boolean);
+        if (all.length) {
+            const pick = f.perfPlat === 'any' ? all : [_avPerfKey(p[f.perfPlat])].filter(Boolean);
+            const limit = _AV_PERF_ORDER.indexOf(f.perfMax);
+            if (!pick.some(k => _AV_PERF_ORDER.indexOf(k) <= limit)) return false;
+        }
+    }
+    if (f.impostor !== 'any' && Array.isArray(a.unityPackages) && a.unityPackages.length) {
+        const has = a.unityPackages.some(pk => pk.variant === 'impostor');
+        if (f.impostor === 'yes' && !has) return false;
+        if (f.impostor === 'no' && has) return false;
+    }
+    if (f.author && !String(a.authorName || '').toLowerCase().includes(f.author.toLowerCase())) return false;
+    if (f.tag) {
+        const q = f.tag.toLowerCase();
+        if (!(a.tags || []).some(tag => String(tag).replace(/^(author_tag_|content_)/, '').replace(/_/g, ' ').toLowerCase().includes(q))) return false;
+    }
+    const day = v => String(v || '').slice(0, 10);
+    const created = day(a.created_at || a.createdAt), updated = day(a.updated_at || a.updatedAt);
+    if (f.createdFrom && (!created || created < f.createdFrom)) return false;
+    if (f.createdTo && (!created || created > f.createdTo)) return false;
+    if (f.updatedFrom && (!updated || updated < f.updatedFrom)) return false;
+    if (f.updatedTo && (!updated || updated > f.updatedTo)) return false;
     return true;
+}
+
+function _avMoreHtml() {
+    const f = _avMore;
+    const opt = (v, label, cur) => `<option value="${v}"${v === cur ? ' selected' : ''}>${esc(label)}</option>`;
+    const ranks = _AV_PERF_ORDER.map(k => opt(k, k === 'verypoor' ? t('avatars.more.any_rated', 'Any rating') : tf('avatars.more.or_better', { rank: _avPerfPretty(k) }, '{rank} or better'), f.perfMax)).join('');
+    const date = (key, label) => `<label class="av-more-date"><span>${esc(label)}</span><input type="date" class="vrcn-input" value="${esc(f[key])}" onchange="avSetMoreFilter('${key}', this.value)"></label>`;
+    return `<div class="av-more-title">${esc(t('avatars.more.title', 'Filters'))}</div>
+        <div class="av-more-row"><span>${esc(t('avatars.more.performance', 'Performance'))}</span>
+            <select class="vrcn-dropdown" onchange="avSetMoreFilter('perfPlat', this.value)">${opt('any', t('avatars.more.any_platform', 'Any platform'), f.perfPlat)}${opt('pc', 'PC', f.perfPlat)}${opt('quest', 'Quest', f.perfPlat)}${opt('ios', 'iOS', f.perfPlat)}</select>
+            <select class="vrcn-dropdown" onchange="avSetMoreFilter('perfMax', this.value)">${opt('any', t('avatars.more.any_rank', 'Any rank'), f.perfMax)}${ranks}</select></div>
+        <div class="av-more-row"><span>${esc(t('avatars.more.impostor', 'Impostor'))}</span>
+            <select class="vrcn-dropdown" onchange="avSetMoreFilter('impostor', this.value)">${opt('any', t('avatars.more.any', 'Any'), f.impostor)}${opt('yes', t('avatars.more.has_impostor', 'Has an impostor'), f.impostor)}${opt('no', t('avatars.more.no_impostor', 'No impostor'), f.impostor)}</select></div>
+        <div class="av-more-row"><span>${esc(t('avatars.more.author', 'Author'))}</span><input type="text" class="vrcn-input" value="${esc(f.author)}" oninput="avSetMoreFilter('author', this.value, true)"></div>
+        <div class="av-more-row"><span>${esc(t('avatars.more.tag', 'Tag'))}</span><input type="text" class="vrcn-input" value="${esc(f.tag)}" oninput="avSetMoreFilter('tag', this.value, true)"></div>
+        <div class="av-more-row"><span>${esc(t('avatars.more.created', 'Created'))}</span>${date('createdFrom', t('avatars.more.from', 'From'))}${date('createdTo', t('avatars.more.to', 'To'))}</div>
+        <div class="av-more-row"><span>${esc(t('avatars.more.updated', 'Updated'))}</span>${date('updatedFrom', t('avatars.more.from', 'From'))}${date('updatedTo', t('avatars.more.to', 'To'))}</div>
+        <div class="av-more-foot"><button class="vrcn-button" onclick="avClearMoreFilters()">${esc(t('avatars.more.clear', 'Clear filters'))}</button></div>`;
+}
+
+function _avSyncMoreButtons() {
+    const n = _avMoreActive();
+    document.querySelectorAll('.av-more-btn').forEach(b => {
+        b.classList.toggle('active', n > 0);
+        const c = b.querySelector('.av-more-count');
+        if (c) { c.textContent = n ? String(n) : ''; c.style.display = n ? '' : 'none'; }
+    });
+}
+
+let _avMoreTimer = 0;
+function avSetMoreFilter(key, value, typing) {
+    const v = String(value ?? '').trim();
+    _avMore[key] = v || _AV_MORE_DEFAULT[key];
+    _avSyncMoreButtons();
+    clearTimeout(_avMoreTimer);
+    if (typing) _avMoreTimer = setTimeout(_rerenderAvatarFilter, 250);
+    else _rerenderAvatarFilter();
+}
+
+function avClearMoreFilters() {
+    Object.assign(_avMore, _AV_MORE_DEFAULT);
+    const panel = document.getElementById('avMoreFilters');
+    if (panel) panel.innerHTML = _avMoreHtml();
+    _avSyncMoreButtons();
+    _rerenderAvatarFilter();
+}
+
+function avToggleMoreFilters(btn) {
+    let panel = document.getElementById('avMoreFilters');
+    if (panel && panel.style.display === 'block' && panel._for === btn) { panel.style.display = 'none'; return; }
+    if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'avMoreFilters';
+        panel.className = 'av-more-panel';
+        document.body.appendChild(panel);
+        document.addEventListener('mousedown', e => {
+            if (panel.style.display !== 'block' || panel.contains(e.target) || e.target.closest?.('.av-more-btn, .vn-select-panel, .vn-select')) return;
+            panel.style.display = 'none';
+        }, true);
+    }
+    panel._for = btn;
+    panel.innerHTML = _avMoreHtml();
+    const r = btn.getBoundingClientRect();
+    panel.style.top = Math.round(r.bottom + 6) + 'px';
+    panel.style.left = Math.round(Math.max(8, Math.min(r.right - 340, innerWidth - 348))) + 'px';
+    panel.style.display = 'block';
 }
 
 function setAvPublishFilter(v) {
