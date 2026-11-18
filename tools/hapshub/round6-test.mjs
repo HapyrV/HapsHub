@@ -494,6 +494,34 @@ section('licences', async main => {
     check('B5: turning them back on lists them again', await back());
 });
 
+section('licences install', async main => {
+    // B5: a plugin that is installed brings its licence, and removing it cleans the licence up again. Plugins ship
+    // with HapsHub for now, so the test takes World Map (the only plugin naming world-atlas) out of the list and
+    // puts it back, the way an installer would, and restores it whatever happens.
+    await main.eval(`showTab(9); switchSettingsSection('about')`);
+    const shown = id => main.eval(`(() => { const el = document.querySelector('#settingsAttributionCard .attrib-item[data-licence="${id}"]'); return !!el && getComputedStyle(el).display !== 'none'; })()`);
+    const listed = () => main.eval(`!!document.querySelector('#hubPluginList .hub-plugin-row[data-plugin="world-map"]')`);
+    await main.eval(`window.__b5Def = HUB_PLUGINS.find(p => p.id === 'world-map'); window.__b5At = HUB_PLUGINS.indexOf(window.__b5Def)`);
+    const remove = () => main.eval(`HUB_PLUGINS.splice(HUB_PLUGINS.indexOf(window.__b5Def), 1); _hubPluginsApply()`);
+    const install = () => main.eval(`if (!HUB_PLUGINS.includes(window.__b5Def)) HUB_PLUGINS.splice(window.__b5At, 0, window.__b5Def); _hubPluginsApply()`);
+    try {
+        check('B5: World Map is on before the test', await main.eval(`hubPluginOn('world-map')`) && await shown('world-atlas'));
+        await remove();
+        check('B5: before install, its licence is not listed', !(await shown('world-atlas')));
+        await install();
+        check('B5: installing the plugin lists its licence', await shown('world-atlas'));
+        check('B5: installing the plugin lists it in Plugins', await listed());
+        await remove();
+        check('B5: removing the plugin cleans its licence up', !(await shown('world-atlas')));
+        check('B5: removing the plugin takes it out of Plugins', !(await listed()));
+        check('B5: removing it leaves the other licences alone', await shown('vosk') && await shown('naudio'));
+    } finally {
+        await install();
+    }
+    check('B5: World Map and its licence are back after the test', await shown('world-atlas') && await listed());
+    await main.eval(`showTab(0)`);
+});
+
 section('eagle', async main => {
     // Issue 9: Eagle is held in a tab inside Media Library, the way OyasumiVR is held in its page.
     const visible = sel => main.eval(`!!document.querySelector(${JSON.stringify(sel)})?.offsetParent`);

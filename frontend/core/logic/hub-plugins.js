@@ -105,9 +105,11 @@ function hubPluginBlocks(checkboxId) {
 }
 
 // Each plugin names the third-party libraries it brings (data-licence in Settings > About). A library shows while any
-// plugin using it is on; libraries no plugin names belong to HapsHub itself and always show.
+// plugin using it is on; entries without data-licence belong to HapsHub itself and always show. A data-licence entry
+// that no listed plugin names any more came with a plugin that was removed, so it goes too.
 function hubPluginOffLicences() {
     const owners = {};
+    for (const el of document.querySelectorAll('.attrib-item[data-licence]')) owners[el.dataset.licence] = [];
     for (const p of HUB_PLUGINS) for (const l of p.licences || []) (owners[l] = owners[l] || []).push(p.id);
     return Object.keys(owners).filter(l => !owners[l].some(hubPluginOn));
 }
