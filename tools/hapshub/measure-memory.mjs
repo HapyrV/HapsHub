@@ -13,7 +13,9 @@ const EXE = join(ROOT, 'bin', 'Debug', 'net10.0-windows10.0.19041.0', 'HapsHub.e
 const version = readFileSync(join(ROOT, 'main', 'AppInfo.cs'), 'utf8').match(/Version = "([^"]+)"/)[1];
 const idleS = Number(process.argv[2] || 120), minS = Number(process.argv[3] || 60);
 const dir = mkdtempSync(join(tmpdir(), 'hub-mem-'));
-writeFileSync(join(dir, 'settings.json'), JSON.stringify({ SetupComplete: true, MinimizeToTray: false, LastChangelogVersion: version }));
+// MEM_SETTINGS='{"ReducedBackgroundUsage":true}' measures with other settings on top (e.g. the user's own).
+const extra = process.env.MEM_SETTINGS ? JSON.parse(process.env.MEM_SETTINGS) : {};
+writeFileSync(join(dir, 'settings.json'), JSON.stringify({ SetupComplete: true, MinimizeToTray: false, LastChangelogVersion: version, ...extra }));
 const app = spawn(EXE, [], { env: { ...process.env, HAPSHUB_DATA_DIR: dir }, stdio: 'ignore' });
 const wait = s => new Promise(r => setTimeout(r, s * 1000));
 const ps = cmd => spawnSync('powershell', ['-NoProfile', '-Command', cmd], { encoding: 'utf8' }).stdout.trim();
