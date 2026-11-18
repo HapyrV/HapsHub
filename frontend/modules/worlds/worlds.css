@@ -23,3 +23,7 @@
     background: var(--ui-input-active-bg);
     color: #fff;
 }
+
+/* Tag filter (issue 13) */
+.wd-tag-wrap { max-width: 190px; min-width: 120px; }
+.wd-tag-wrap .vn-select, .wd-tag-wrap select { width: 100%; }

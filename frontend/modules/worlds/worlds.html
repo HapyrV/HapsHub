@@ -6,6 +6,7 @@
                         <button class="vrcn-button sub-tab-btn" id="worldFilterSearch" onclick="setWorldFilter('search')"><span class="msi" style="font-size:16px;">search</span> <span data-i18n="worlds.filters.search">Search</span></button>
                     </div>
                     <div style="display:flex;gap:4px;align-items:center;flex-shrink:0;">
+                        <span id="worldTagWrap" class="wd-tag-wrap" style="display:none;"><select id="worldTagFilter" class="vrcn-dropdown" onchange="setWorldTagFilter(this.value)" title="Filter by tag" data-i18n-title="worlds.tags.filter_title"><option value="" data-i18n="worlds.tags.all">All tags</option></select></span>
                         <button id="worldEditModeBtn" class="vrcn-button" onclick="toggleWorldEditMode()" title="Edit favorites" data-i18n-title="worlds.edit.button"><span class="msi" style="font-size:16px;">edit</span> <span data-i18n="worlds.edit.button">Edit</span></button>
                         <button class="vrcn-button sub-tab-btn active" id="worldGridLarge" onclick="setGridSize('worlds','default');setWorldsViewMode('grid')" title="Large grid"><span class="msi" style="font-size:16px;">grid_on</span></button>
                         <button class="vrcn-button sub-tab-btn" id="worldGridSmall" onclick="setGridSize('worlds','compact');setWorldsViewMode('grid')" title="Compact grid"><span class="msi" style="font-size:14px;">apps</span></button>

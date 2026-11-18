@@ -1,0 +1,6 @@
+{
+  "worlds.tags.all": { "en": "All tags", "de": "Alle Tags", "es": "Todas las etiquetas", "fr": "Tous les tags", "ja": "すべてのタグ", "ko": "모든 태그", "ru": "Все теги", "zh-CN": "所有标签", "zh-TW": "所有標籤" },
+  "worlds.tags.filter_title": { "en": "Filter by tag", "de": "Nach Tag filtern", "es": "Filtrar por etiqueta", "fr": "Filtrer par tag", "ja": "タグで絞り込む", "ko": "태그로 필터", "ru": "Фильтр по тегу", "zh-CN": "按标签筛选", "zh-TW": "依標籤篩選" },
+  "worlds.tags.no_match": { "en": "No worlds have this tag", "de": "Keine Welten mit diesem Tag", "es": "Ningún mundo tiene esta etiqueta", "fr": "Aucun monde n'a ce tag", "ja": "このタグのワールドはありません", "ko": "이 태그가 있는 월드가 없습니다", "ru": "Нет миров с этим тегом", "zh-CN": "没有带此标签的世界", "zh-TW": "沒有帶此標籤的世界" },
+  "worlds.tags.content": { "en": "Content", "de": "Inhalt", "es": "Contenido", "fr": "Contenu", "ja": "コンテンツ", "ko": "콘텐츠", "ru": "Контент", "zh-CN": "内容", "zh-TW": "內容" }
+}

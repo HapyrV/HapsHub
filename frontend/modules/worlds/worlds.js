@@ -44,6 +44,7 @@ function getWorldVisitCountLabel(count) {
 function setWorldFilter(filter) {
     if (_worldEditMode) exitWorldEditMode();
     worldFilter = filter;
+    worldTagFilter = '';
     document.getElementById('worldFilterFav').classList.toggle('active', filter === 'favorites');
     document.getElementById('worldFilterRecent').classList.toggle('active', filter === 'recent');
     document.getElementById('worldFilterMine').classList.toggle('active', filter === 'mine');
@@ -59,6 +60,7 @@ function setWorldFilter(filter) {
     if (wlBtn) wlBtn.style.display = '';
     setPaginator('worldRecentPaginatorBar', '');
     renderWorldsListView();
+    _wdRefreshTagOptions();
     if (filter === 'favorites' && favWorldsData.length === 0) sendToCS({ action: 'vrcGetFavoriteWorlds' });
     if (filter === 'mine' && !_myWorldsLoaded) {
         _myWorldsLoaded = true;
@@ -73,16 +75,19 @@ let _worldRecentPage = 0;
 function renderVisitedWorlds(worlds) {
     if (Array.isArray(worlds)) { _visitedWorldsData = worlds; _visitedWorldsLoaded = true; }
     _wdUpdateCounts();
+    _wdRefreshTagOptions();
     const el = document.getElementById('worldRecentGrid');
     if (!el) return;
-    const list = _visitedWorldsData;
+    const list = Array.isArray(_visitedWorldsData) ? _visitedWorldsData.filter(_wdHasTag) : _visitedWorldsData;
     if (stillLoading(_visitedWorldsLoaded, false)) {
         el.innerHTML = loadingStateHtml();
         setPaginator('worldRecentPaginatorBar', '');
         return;
     }
     if (!Array.isArray(list) || list.length === 0) {
-        el.innerHTML = emptyStateHtml('history', t('worlds.recent.empty', 'No recently visited worlds'));
+        el.innerHTML = worldTagFilter
+            ? emptyStateHtml('search', t('worlds.tags.no_match', 'No worlds have this tag'))
+            : emptyStateHtml('history', t('worlds.recent.empty', 'No recently visited worlds'));
         setPaginator('worldRecentPaginatorBar', '');
         return;
     }
@@ -134,6 +139,52 @@ function _worldsSyncViewBtns() {
         document.getElementById('worldGridLarge')?.classList.toggle('active', !compact);
         document.getElementById('worldGridSmall')?.classList.toggle('active', compact);
     }
+}
+
+// ---- Tag filter (issue 13): one dropdown for Favorites, Recently Visited and My Worlds ----
+let worldTagFilter = '';
+
+/** A readable name for tags people pick (author tags and content warnings); null for system tags. */
+function _wdTagLabel(tag) {
+    if (typeof tag !== 'string') return null;
+    if (tag.startsWith('author_tag_')) return tag.slice(11).replace(/_/g, ' ');
+    if (tag.startsWith('content_')) return t('worlds.tags.content', 'Content') + ': ' + tag.slice(8).replace(/_/g, ' ');
+    return null;
+}
+
+function _wdHasTag(w) { return !worldTagFilter || (Array.isArray(w?.tags) && w.tags.includes(worldTagFilter)); }
+
+function _wdTagSource() {
+    if (worldFilter === 'recent') return _visitedWorldsData;
+    if (worldFilter === 'mine') return _myWorldsData;
+    if (worldFilter === 'favorites') return favWorldGroupFilter ? favWorldsData.filter(w => w.favoriteGroup === favWorldGroupFilter) : favWorldsData;
+    return [];
+}
+
+/** Lists the tags of the worlds on screen, most common first; only touches the page when the list changed. */
+function _wdRefreshTagOptions() {
+    const sel = document.getElementById('worldTagFilter');
+    const wrap = document.getElementById('worldTagWrap');
+    if (!sel) return;
+    const counts = new Map();
+    for (const w of (Array.isArray(_wdTagSource()) ? _wdTagSource() : []))
+        for (const tag of new Set(Array.isArray(w?.tags) ? w.tags : [])) if (_wdTagLabel(tag)) counts.set(tag, (counts.get(tag) || 0) + 1);
+    if (worldTagFilter && !counts.has(worldTagFilter)) counts.set(worldTagFilter, 0);
+    const sorted = [...counts].sort((a, b) => b[1] - a[1] || _wdTagLabel(a[0]).localeCompare(_wdTagLabel(b[0]))).slice(0, 300);
+    if (wrap) wrap.style.display = sorted.length ? '' : 'none';
+    const html = `<option value="">${esc(t('worlds.tags.all', 'All tags'))}</option>`
+        + sorted.map(([tag, n]) => `<option value="${esc(tag)}">${esc(_wdTagLabel(tag))} (${n})</option>`).join('');
+    if (sel._wdTagHtml === html && sel.value === worldTagFilter) return;
+    sel._wdTagHtml = html;
+    sel.innerHTML = html;
+    sel.value = worldTagFilter;
+    if (sel._vnRefresh) sel._vnRefresh();
+}
+
+function setWorldTagFilter(tag) {
+    worldTagFilter = tag || '';
+    _worldMinePage = 0; _favWorldsPage = 0; _worldRecentPage = 0;
+    renderWorldsListView();
 }
 
 function renderWorldsListView() {
@@ -224,8 +275,14 @@ function renderMyWorlds(worlds) {
     if (!el) return;
     if (Array.isArray(worlds)) { _myWorldsData = worlds; _myWorldsDataLoaded = true; }
     _wdUpdateCounts();
-    const list = _myWorldsData;
+    _wdRefreshTagOptions();
+    const list = Array.isArray(_myWorldsData) ? _myWorldsData.filter(_wdHasTag) : _myWorldsData;
     if (stillLoading(_myWorldsDataLoaded)) { el.innerHTML = loadingStateHtml(t('worlds.mine.loading', 'Loading your worlds...')); return; }
+    if (worldTagFilter && Array.isArray(list) && list.length === 0) {
+        el.innerHTML = emptyStateHtml('search', t('worlds.tags.no_match', 'No worlds have this tag'));
+        setPaginator('worldMinePaginatorBar', '');
+        return;
+    }
     if (!Array.isArray(list) || list.length === 0) {
         el.innerHTML = `<div class="empty-msg"><div class="empty-msg-icon"><span class="msi">upload</span></div><div class="empty-msg-title">${t('worlds.mine.upload_title', 'Upload a world')}</div><div class="empty-msg-desc">${t('worlds.mine.empty', 'No worlds uploaded yet')}</div></div>`;
         setPaginator('worldMinePaginatorBar', '');
@@ -436,8 +493,9 @@ function renderWorldCard(w) {
 
 function filterFavWorlds() {
     _wdUpdateCounts();
+    _wdRefreshTagOptions();
     const q = (document.getElementById('favWorldSearchInput')?.value || '').toLowerCase();
-    let filtered = favWorldsData;
+    let filtered = favWorldsData.filter(_wdHasTag);
     if (favWorldGroupFilter) filtered = filtered.filter(w => w.favoriteGroup === favWorldGroupFilter);
     if (q) filtered = filtered.filter(w => (w.name||'').toLowerCase().includes(q) || (w.authorName||'').toLowerCase().includes(q));
     const el = document.getElementById('favWorldsGrid');
@@ -447,7 +505,7 @@ function filterFavWorlds() {
         return;
     }
     if (!filtered.length) {
-        el.innerHTML = q || favWorldGroupFilter
+        el.innerHTML = q || favWorldGroupFilter || worldTagFilter
             ? emptyStateHtml('search', t('worlds.favorites.no_match', 'No favorites match your filter'))
             : emptyStateHtml('favorite', t('worlds.favorites.empty', 'No favorite worlds found'));
         setPaginator('favWorldsPaginatorBar', '');
