@@ -7,9 +7,9 @@ const HUB_PLUGINS = [
     // --- Added by HapsHub ---
     { id: 'oyasumi', name: 'OyasumiVR', by: 'HapsHub', icon: 'bedtime', nav: ['oyasumi'], hide: ['[data-known-app="oyasumi"]'], settings: [{ module: 'hub.app-embeds', keys: ['oyasumi_path', 'on_exit'] }],
       desc: 'Shows OyasumiVR, the sleep helper for VR, inside a HapsHub page.' },
-    { id: 'eagle', name: 'Eagle', by: 'HapsHub', icon: 'photo_library', hide: ['#libEagleBtn', '#libEagleFolderWrap', '#libEagleArea'],
+    { id: 'eagle', name: 'Eagle', by: 'HapsHub', icon: 'photo_library', hide: ['#libTabEagle', '#libEagleView', '#libEagleTools'], settings: [{ module: 'hub.app-embeds', keys: ['eagle_path', 'on_exit'] }],
       onOff: () => { if (typeof libEagleClose === 'function') libEagleClose(); },
-      desc: 'Eagle\'s folders and pictures in Media Library, read from Eagle while it runs.' },
+      desc: 'Shows the Eagle picture organizer in a tab inside Media Library.' },
     { id: 'spacecal', name: 'Space Calibrator', by: 'HapsHub', icon: 'gps_fixed', nav: ['spacecal'], hide: ['#hubSteamBranch'], slots: ['hubSteamBranch'],
       settings: [{ module: 'hub.app-embeds', keys: ['spacecal_path', 'on_exit'] }, { module: 'hub.steam-branch' }],
       desc: 'Space Calibrator in a page, and a switch between its Steam public and beta versions.' },

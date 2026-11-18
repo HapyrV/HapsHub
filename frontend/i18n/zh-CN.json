@@ -1,4 +1,4 @@
-﻿{
+{
   "nav.dashboard": "仪表盘",
   "nav.worlds": "世界",
   "nav.groups": "群组",
@@ -1625,6 +1625,8 @@
   "library.filters.rating": "评分",
   "library.filters.rating_n": "{n}颗心",
   "library.favorites": "收藏",
+  "library.tabs.library": "媒体库",
+  "library.tabs.eagle_title": "在此标签页中显示 Eagle",
   "library.filters.all_tags": "所有标签",
   "library.filters.all_user_tags": "所有用户标签",
   "library.detail.tags": "标签",
@@ -4358,12 +4360,5 @@
   "hub.map.why_flag": "资料中的国旗 {flag}",
   "hub.map.why_bio": "资料写着“{phrase}”",
   "hub.map.why_language": "语言：{language}",
-  "hub.map.why_manual": "由你设置",
-  "library.eagle.title": "Eagle 的文件夹和图片",
-  "library.eagle.all": "所有图片",
-  "library.eagle.loading": "正在加载 Eagle 的图片...",
-  "library.eagle.closed": "Eagle 未运行。打开 Eagle 即可在这里查看其图片。",
-  "library.eagle.retry": "重试",
-  "library.eagle.empty": "这里没有图片。",
-  "library.eagle.more": "显示更多"
+  "hub.map.why_manual": "由你设置"
 }

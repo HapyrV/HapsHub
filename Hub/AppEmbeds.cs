@@ -4,8 +4,8 @@ namespace HapsHub.Core;
 public sealed record EmbedApp(string Id, string Name, string ProcessName, string? KnownPath, string? SteamFolder, string Chromium)
 {
     /// <summary>
-    /// Where the app goes by default. VRCT draws nothing while held inside the page (its GPU drawing doesn't reach
-    /// a window held by another app), so it sits over the page as its own window instead.
+    /// Where the app goes by default. Eagle and VRCT draw nothing while held inside the page (their GPU drawing
+    /// doesn't reach a window held by another app), so they sit over the page as their own window instead.
     /// </summary>
     public string DefaultMode { get; init; } = AppEmbedsModule.ModeChild;
 
@@ -48,7 +48,8 @@ public static class EmbedWindows
 
     /// <summary>
     /// Chromium stops drawing a window it thinks is covered, and a window held inside another app's window always
-    /// looks covered to it, so it went black. OyasumiVR and VRCT are Chromium inside (through WebView2), so HapsHub starts them with that check off. The msWeb/msPdf/SmartScreen entries are what Tauri sets
+    /// looks covered to it, so it went black. OyasumiVR and VRCT are Chromium inside (through WebView2) and Eagle through
+    /// Electron, so HapsHub starts them with that check off. The msWeb/msPdf/SmartScreen entries are what Tauri sets
     /// itself, since this replaces its list.
     /// </summary>
     public const string ChromiumArguments =
@@ -81,12 +82,14 @@ public sealed class AppEmbedsModule : IHubModule
     public const string ExitLeave = "leave";
 
     public static readonly EmbedApp Oyasumi = new("oyasumi", "OyasumiVR", "OyasumiVR", null, "OyasumiVR", EmbedApp.WebView2);
+    /// <summary>Shown in a tab inside Media Library rather than a page of its own.</summary>
+    public static readonly EmbedApp Eagle = new("eagle", "Eagle", "Eagle", @"%ProgramFiles%\Eagle\Eagle.exe", null, EmbedApp.Electron) { DefaultMode = ModeTracked };
     public static readonly EmbedApp SpaceCalibrator = new("spacecal", "Space Calibrator", "OpenVR-SpaceCalibrator",
         @"%ProgramFiles%\OpenVR-SpaceCalibrator\OpenVR-SpaceCalibrator.exe", null, EmbedApp.NoChromium);
     public static readonly EmbedApp Vrct = new("vrct", "VRCT", "VRCT", @"%LOCALAPPDATA%\VRCT\VRCT.exe", null, EmbedApp.WebView2) { DefaultMode = ModeTracked };
     public static readonly EmbedApp OvrToolkit = new("ovrtoolkit", "OVR Toolkit", "OVR Toolkit", null, "OVR Toolkit", EmbedApp.NoChromium);
 
-    public static IReadOnlyList<EmbedApp> Apps { get; } = new[] { Oyasumi, SpaceCalibrator, Vrct, OvrToolkit };
+    public static IReadOnlyList<EmbedApp> Apps { get; } = new[] { Oyasumi, Eagle, SpaceCalibrator, Vrct, OvrToolkit };
 
     private HubModuleContext? _context;
 

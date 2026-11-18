@@ -143,7 +143,7 @@ section('plugins', async main => {
 
     // Round 6: options fold open under the plugin in the list instead of getting a Settings entry each.
     const options = await main.eval(`hubOpenPlugins(); [...document.querySelectorAll('.hub-plugin-expand')].map(b => b.closest('.hub-plugin-row').dataset.plugin).join(',')`);
-    check("plugins with options can fold them open, and ones that are off can't", options.includes('youtube-tunnel') && !options.includes('eagle') && !options.includes('history'), options);
+    check("plugins with options can fold them open, and ones that are off can't", options.includes('youtube-tunnel') && options.includes('eagle') && !options.includes('history'), options);
     await main.eval(`hubPluginOptions('youtube-tunnel')`);
     await waitFor('the plugin options', () => visible(main, '.hub-plugin-opts[data-plugin-opts="youtube-tunnel"]'), 5000);
     check("a plugin's options show its settings", await main.eval(`!!document.querySelector('.hub-plugin-opts[data-plugin-opts="youtube-tunnel"] .hub-module-row')`));

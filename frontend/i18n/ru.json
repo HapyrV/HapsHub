@@ -1,4 +1,4 @@
-﻿{
+{
   "_language": "Russian",
   "_code": "ru",
   "_author": "NeSi0",
@@ -1657,6 +1657,8 @@
   "library.filters.rating": "Рейтинг",
   "library.filters.rating_n": "{n} сердец",
   "library.favorites": "Избранное",
+  "library.tabs.library": "Библиотека",
+  "library.tabs.eagle_title": "Eagle внутри этой вкладки",
   "library.filters.all_tags": "Все теги",
   "library.filters.all_user_tags": "Все теги пользователей",
   "library.detail.tags": "Теги",
@@ -4362,12 +4364,5 @@
   "hub.map.why_flag": "флаг {flag} в профиле",
   "hub.map.why_bio": "в профиле: «{phrase}»",
   "hub.map.why_language": "язык: {language}",
-  "hub.map.why_manual": "указано вами",
-  "library.eagle.title": "Папки и изображения Eagle",
-  "library.eagle.all": "Все изображения",
-  "library.eagle.loading": "Загрузка изображений Eagle...",
-  "library.eagle.closed": "Eagle не запущен. Откройте Eagle, чтобы увидеть его изображения здесь.",
-  "library.eagle.retry": "Повторить",
-  "library.eagle.empty": "Здесь нет изображений.",
-  "library.eagle.more": "Показать ещё"
+  "hub.map.why_manual": "указано вами"
 }

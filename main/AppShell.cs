@@ -1,4 +1,4 @@
-﻿using Photino.NET;
+using Photino.NET;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
@@ -1415,10 +1415,6 @@ public partial class AppShell
                     await ServeFileAsync(ctx, fileParam);
                 else
                     ctx.Response.StatusCode = 404;
-            }
-            else if (path == "/eagle")
-            {
-                await ServeEagleAsync(ctx, isThumb);
             }
             else if (path == "/ytembed")
             {

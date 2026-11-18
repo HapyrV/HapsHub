@@ -1,7 +1,9 @@
                 <div class="tab-toolbar" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:nowrap;gap:10px;">
                     <div class="tt-scroll">
-                        <button class="vrcn-button" id="libEagleBtn" onclick="libEagleToggle()" title="Eagle's folders and pictures" data-i18n-title="library.eagle.title"><span class="msi" style="font-size:16px;">photo_library</span> <span>Eagle</span></button>
-                        <span id="libEagleFolderWrap"><select id="libEagleFolder" class="vrcn-dropdown" onchange="libEagleOpenFolder(this.value)"><option value="" data-i18n="library.eagle.all">All pictures</option></select></span>
+                        <span id="libSourceTabs" class="lib-source-tabs" role="tablist">
+                            <button class="vrcn-button sub-tab-btn active" id="libTabLibrary" role="tab" aria-selected="true" onclick="libShowSource('library')"><span class="msi" style="font-size:16px;">photo_library</span> <span data-i18n="library.tabs.library">Library</span></button>
+                            <button class="vrcn-button sub-tab-btn" id="libTabEagle" role="tab" aria-selected="false" onclick="libShowSource('eagle')" title="Eagle, held in this tab" data-i18n-title="library.tabs.eagle_title"><span class="msi" style="font-size:16px;">collections</span> <span>Eagle</span></button>
+                        </span>
                         <button class="vrcn-button" id="libFavBtn" onclick="toggleFavFilter()"><span class="msi" style="font-size:16px;">favorite</span> <span data-i18n="library.favorites">Favorites</span></button>
                         <div id="libRatingFilterWrap"></div>
                         <div id="libFriendFilterWrap"></div>
@@ -10,6 +12,18 @@
                         <div id="libUserTagFilterWrap"></div>
                         <select id="libFolderFilter" class="vrcn-dropdown" onchange="filterLibrary()"><option value="__all__" data-i18n="library.filters.all_folders">All Folders</option></select>
                         <select id="libTypeFilter" class="vrcn-dropdown" onchange="filterLibrary()"><option value="all" data-i18n="library.filters.all_media">All Media</option><option value="image" data-i18n="library.filters.images">Images</option><option value="video" data-i18n="library.filters.videos">Videos</option><option value="gif" data-i18n="library.filters.gifs">GIFs</option></select>
+                    </div>
+                    <div id="libEagleTools" class="lib-eagle-tools">
+                        <div id="aemb-status-eagle" class="aemb-status" role="status"></div>
+                        <div class="aemb-actions">
+                            <select id="aemb-mode-eagle" class="vrcn-dropdown" onchange="aembMode('eagle')">
+                                <option value="child" data-i18n="hub.embed.mode_child">Inside this page</option>
+                                <option value="tracked" data-i18n="hub.embed.mode_tracked">Its own window over this page</option>
+                            </select>
+                            <button id="aemb-start-eagle" class="vrcn-button-round vrcn-btn-join" onclick="aembStart('eagle')"><span class="msi">open_in_new</span> <span data-i18n="hub.embed.open">Open here</span></button>
+                            <button id="aemb-release-eagle" class="vrcn-button-round" onclick="aembRelease('eagle')" disabled><span class="msi">close</span> <span data-i18n="hub.embed.release">Put it back</span></button>
+                            <button id="aemb-test-eagle" class="vrcn-button-round" onclick="aembTest('eagle')"><span class="msi">bug_report</span> <span data-i18n="hub.embed.test">Test</span></button>
+                        </div>
                     </div>
                     <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
                         <button class="vrcn-button" id="libResetFiltersBtn" onclick="resetLibFilters()" style="display:none;" data-i18n="library.filters.reset">Reset</button>
@@ -27,10 +41,11 @@
                     <div class="lib-top-fade" id="libTopFade"></div>
                     <div id="libGrid" class="lib-grid"><div class="empty-msg" data-i18n="library.empty.watch_folders">Add watch folders in Settings.</div></div>
                 </div>
-                <div id="libEagleArea" class="lib-eagle" hidden>
-                    <div id="libEagleStatus" class="lib-eagle-status" hidden></div>
-                    <div id="libEagleGrid" class="lib-date-group-cards"></div>
-                    <button id="libEagleMore" class="vrcn-button lib-eagle-more" onclick="libEagleLoadMore()" hidden data-i18n="library.eagle.more">Show more</button>
+                <div id="libEagleView" class="aemb-page lib-eagle-view" hidden>
+                    <div id="aemb-pane-eagle" class="aemb-pane">
+                        <div id="aemb-hint-eagle" class="aemb-hint" data-i18n="hub.embed.hint">Open here shows the app in this space. Put it back returns it to its own window.</div>
+                    </div>
+                    <div class="aemb-report"><div id="aemb-result-eagle"></div><div id="aemb-results-eagle"></div></div>
                 </div>
                 <div id="libPaginatorBar" class="tl-paginator-bar"></div>
                 <div id="libEditBar" class="lib-edit-bar" style="display:none;">

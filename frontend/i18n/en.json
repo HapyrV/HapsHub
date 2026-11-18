@@ -1,4 +1,4 @@
-﻿{
+{
   "nav.dashboard": "Dashboard",
   "nav.worlds": "Worlds",
   "nav.groups": "Groups",
@@ -1706,6 +1706,8 @@
   "library.filters.rating": "Rating",
   "library.filters.rating_n": "{n} Hearts",
   "library.favorites": "Favorites",
+  "library.tabs.library": "Library",
+  "library.tabs.eagle_title": "Eagle, held in this tab",
   "library.filters.all_tags": "All Tags",
   "library.filters.all_user_tags": "All User Tags",
   "library.detail.tags": "Tags",
@@ -4358,12 +4360,5 @@
   "hub.map.why_flag": "flag {flag} in profile",
   "hub.map.why_bio": "profile says \"{phrase}\"",
   "hub.map.why_language": "language: {language}",
-  "hub.map.why_manual": "set by you",
-  "library.eagle.title": "Eagle's folders and pictures",
-  "library.eagle.all": "All pictures",
-  "library.eagle.loading": "Loading Eagle's pictures...",
-  "library.eagle.closed": "Eagle isn't running. Open Eagle to see its pictures here.",
-  "library.eagle.retry": "Try again",
-  "library.eagle.empty": "No pictures here.",
-  "library.eagle.more": "Show more"
+  "hub.map.why_manual": "set by you"
 }

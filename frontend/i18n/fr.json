@@ -1,4 +1,4 @@
-﻿{
+{
   "nav.dashboard": "Tableau de bord",
   "nav.worlds": "Mondes",
   "nav.groups": "Groupes",
@@ -1625,6 +1625,8 @@
   "library.filters.rating": "Note",
   "library.filters.rating_n": "{n} Cœurs",
   "library.favorites": "Favoris",
+  "library.tabs.library": "Bibliothèque",
+  "library.tabs.eagle_title": "Eagle, affiché dans cet onglet",
   "library.filters.all_tags": "Tous les tags",
   "library.filters.all_user_tags": "Tous les tags utilisateur",
   "library.detail.tags": "Tags",
@@ -4358,12 +4360,5 @@
   "hub.map.why_flag": "drapeau {flag} dans le profil",
   "hub.map.why_bio": "le profil dit « {phrase} »",
   "hub.map.why_language": "langue : {language}",
-  "hub.map.why_manual": "placé par vous",
-  "library.eagle.title": "Dossiers et images d'Eagle",
-  "library.eagle.all": "Toutes les images",
-  "library.eagle.loading": "Chargement des images d'Eagle...",
-  "library.eagle.closed": "Eagle n'est pas lancé. Ouvrez Eagle pour voir ses images ici.",
-  "library.eagle.retry": "Réessayer",
-  "library.eagle.empty": "Aucune image ici.",
-  "library.eagle.more": "Afficher plus"
+  "hub.map.why_manual": "placé par vous"
 }

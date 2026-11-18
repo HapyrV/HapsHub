@@ -1,4 +1,4 @@
-﻿{
+{
   "nav.dashboard": "儀表板",
   "nav.worlds": "世界",
   "nav.groups": "群組",
@@ -1689,6 +1689,8 @@
   "library.filters.rating": "評分",
   "library.filters.rating_n": "{n}顆心",
   "library.favorites": "收藏",
+  "library.tabs.library": "媒體庫",
+  "library.tabs.eagle_title": "在此分頁中顯示 Eagle",
   "library.filters.all_tags": "所有標籤",
   "library.filters.all_user_tags": "所有玩家標籤",
   "library.detail.tags": "標籤",
@@ -4358,12 +4360,5 @@
   "hub.map.why_flag": "資料中的國旗 {flag}",
   "hub.map.why_bio": "資料寫著「{phrase}」",
   "hub.map.why_language": "語言：{language}",
-  "hub.map.why_manual": "由你設定",
-  "library.eagle.title": "Eagle 的資料夾和圖片",
-  "library.eagle.all": "所有圖片",
-  "library.eagle.loading": "正在載入 Eagle 的圖片...",
-  "library.eagle.closed": "Eagle 未執行。開啟 Eagle 即可在這裡查看其圖片。",
-  "library.eagle.retry": "重試",
-  "library.eagle.empty": "這裡沒有圖片。",
-  "library.eagle.more": "顯示更多"
+  "hub.map.why_manual": "由你設定"
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "nav.dashboard": "대시보드",
   "nav.worlds": "월드",
   "nav.groups": "그룹",
@@ -1704,6 +1704,8 @@
   "library.filters.rating": "평가",
   "library.filters.rating_n": "{n} 하트",
   "library.favorites": "즐겨찾기",
+  "library.tabs.library": "라이브러리",
+  "library.tabs.eagle_title": "이 탭 안의 Eagle",
   "library.filters.all_tags": "모든 태그",
   "library.filters.all_user_tags": "모든 유저 태그",
   "library.detail.tags": "태그",
@@ -4358,12 +4360,5 @@
   "hub.map.why_flag": "프로필에 국기 {flag}",
   "hub.map.why_bio": "프로필: \"{phrase}\"",
   "hub.map.why_language": "언어: {language}",
-  "hub.map.why_manual": "직접 설정함",
-  "library.eagle.title": "Eagle의 폴더와 사진",
-  "library.eagle.all": "모든 사진",
-  "library.eagle.loading": "Eagle 사진을 불러오는 중...",
-  "library.eagle.closed": "Eagle이 실행 중이 아닙니다. Eagle을 열면 여기에 사진이 표시됩니다.",
-  "library.eagle.retry": "다시 시도",
-  "library.eagle.empty": "여기에는 사진이 없습니다.",
-  "library.eagle.more": "더 보기"
+  "hub.map.why_manual": "직접 설정함"
 }

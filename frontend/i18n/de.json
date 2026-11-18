@@ -1,4 +1,4 @@
-﻿{
+{
   "nav.dashboard": "Dashboard",
   "nav.worlds": "Welten",
   "nav.groups": "Gruppen",
@@ -1653,6 +1653,8 @@
   "library.filters.rating": "Bewertung",
   "library.filters.rating_n": "{n} Herzen",
   "library.favorites": "Favoriten",
+  "library.tabs.library": "Bibliothek",
+  "library.tabs.eagle_title": "Eagle, in diesem Tab gehalten",
   "library.filters.all_tags": "Alle Tags",
   "library.filters.all_user_tags": "Alle User Tags",
   "library.detail.tags": "Tags",
@@ -4358,12 +4360,5 @@
   "hub.map.why_flag": "Flagge {flag} im Profil",
   "hub.map.why_bio": "Profil: „{phrase}“",
   "hub.map.why_language": "Sprache: {language}",
-  "hub.map.why_manual": "von dir gesetzt",
-  "library.eagle.title": "Eagles Ordner und Bilder",
-  "library.eagle.all": "Alle Bilder",
-  "library.eagle.loading": "Eagles Bilder werden geladen ...",
-  "library.eagle.closed": "Eagle läuft nicht. Öffne Eagle, um seine Bilder hier zu sehen.",
-  "library.eagle.retry": "Erneut versuchen",
-  "library.eagle.empty": "Hier sind keine Bilder.",
-  "library.eagle.more": "Mehr anzeigen"
+  "hub.map.why_manual": "von dir gesetzt"
 }

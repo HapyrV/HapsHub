@@ -119,7 +119,7 @@ public partial class AppShell
             ["face"] = Safe(() => LaunchAddons.Detect(LaunchAddons.FaceTracking).Count > 0),
             ["haptics"] = Safe(() => LaunchAddons.Detect(LaunchAddons.Haptics).Count > 0),
             ["oyasumi"] = Safe(() => embeds.FindExe(AppEmbedsModule.Oyasumi) != null),
-            ["eagle"] = Safe(EagleLibrary.Installed),
+            ["eagle"] = Safe(() => embeds.FindExe(AppEmbedsModule.Eagle) != null),
             ["vrct"] = Safe(() => embeds.FindExe(AppEmbedsModule.Vrct) != null),
             ["ovrtoolkit"] = Safe(() => embeds.FindExe(AppEmbedsModule.OvrToolkit) != null),
             ["standable"] = Safe(() => LaunchAddons.KnownVrApps().Any(a => a.Id == "standable" && a.Path != null)),

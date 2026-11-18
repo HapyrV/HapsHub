@@ -1,4 +1,4 @@
-﻿/* === Photino message handler === */
+/* === Photino message handler === */
 window.external.receiveMessage(rawMsg => {
     const { type, payload } = JSON.parse(rawMsg);
     // Forward every incoming event to Action Flow's websocket-trigger router.
@@ -1134,8 +1134,6 @@ case 'vrcNews':
             case 'hubUpstream':          onHubUpstream(payload); break;
             case 'hubModules':           onHubModules(payload); break;
             case 'hubPlugins':           if (typeof onHubPlugins === 'function') onHubPlugins(payload); break;
-            case 'eagleFolders':         if (typeof onEagleFolders === 'function') onEagleFolders(payload); break;
-            case 'eagleItems':           if (typeof onEagleItems === 'function') onEagleItems(payload); break;
             case 'hubVrct':              if (typeof onHubVrct === 'function') onHubVrct(payload); break;
             case 'hubVrctState':         if (typeof onHubVrctState === 'function') onHubVrctState(payload); break;
             case 'hubUpstreamReviewed':  onHubUpstreamReviewed(payload); break;
