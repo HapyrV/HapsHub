@@ -4381,5 +4381,19 @@
   "avatars.more.updated": "업데이트",
   "avatars.more.from": "부터",
   "avatars.more.to": "까지",
-  "avatars.more.clear": "필터 지우기"
+  "avatars.more.clear": "필터 지우기",
+  "library.prints.title": "VRChat 프린트",
+  "library.prints.button_title": "VRChat 프린트 찾기",
+  "library.prints.intro": "VRChat은 프린트를 두 번 저장합니다. 일반 사진과, 아래에 \"Captured By\"가 있는 흰 테두리 사본입니다. 여기 있는 것은 테두리 사본입니다. 선택한 항목은 휴지통으로 이동하므로 복원할 수 있습니다.",
+  "library.prints.select_all": "모두 선택",
+  "library.prints.select_none": "선택 해제",
+  "library.prints.searching": "프린트를 찾는 중...",
+  "library.prints.none": "사진 폴더에서 VRChat 프린트를 찾지 못했습니다",
+  "library.prints.count": "프린트 {count}개 찾음, {picked}개 선택됨",
+  "library.prints.move": "{count}개를 휴지통으로",
+  "library.prints.confirm_title": "프린트를 휴지통으로 옮길까요?",
+  "library.prints.confirm": "테두리 프린트 사본 {count}개를 휴지통으로 옮길까요? 일반 사진은 그대로 남습니다.",
+  "library.prints.moving": "휴지통으로 옮기는 중...",
+  "library.prints.done": "{moved}개를 휴지통으로 옮겼습니다.",
+  "library.prints.done_some": "{moved}개를 휴지통으로 옮겼습니다. {failed}개는 그대로 두었습니다(더 이상 프린트가 아니거나 감시 폴더 밖)."
 }

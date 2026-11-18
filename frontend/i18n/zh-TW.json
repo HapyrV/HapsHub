@@ -4381,5 +4381,19 @@
   "avatars.more.updated": "更新",
   "avatars.more.from": "從",
   "avatars.more.to": "到",
-  "avatars.more.clear": "清除篩選"
+  "avatars.more.clear": "清除篩選",
+  "library.prints.title": "VRChat 列印",
+  "library.prints.button_title": "尋找 VRChat 列印",
+  "library.prints.intro": "VRChat 會把每張列印存兩次：一般照片，以及一張帶白框和「Captured By」頁尾的副本。這裡列出的是帶框副本。選取的會移到資源回收筒，仍可還原。",
+  "library.prints.select_all": "全選",
+  "library.prints.select_none": "全不選",
+  "library.prints.searching": "正在尋找列印...",
+  "library.prints.none": "圖片資料夾中沒有找到 VRChat 列印",
+  "library.prints.count": "找到 {count} 張列印，已選 {picked} 張",
+  "library.prints.move": "將 {count} 張移到資源回收筒",
+  "library.prints.confirm_title": "將列印移到資源回收筒？",
+  "library.prints.confirm": "將 {count} 張帶框列印副本移到資源回收筒？一般照片保持不變。",
+  "library.prints.moving": "正在移到資源回收筒...",
+  "library.prints.done": "已將 {moved} 張移到資源回收筒。",
+  "library.prints.done_some": "已將 {moved} 張移到資源回收筒；{failed} 張未動（已不是列印，或不在監視的資料夾中）。"
 }

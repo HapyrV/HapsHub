@@ -4385,5 +4385,19 @@
   "avatars.more.updated": "Обновлён",
   "avatars.more.from": "С",
   "avatars.more.to": "По",
-  "avatars.more.clear": "Сбросить фильтры"
+  "avatars.more.clear": "Сбросить фильтры",
+  "library.prints.title": "Отпечатки VRChat",
+  "library.prints.button_title": "Найти отпечатки VRChat",
+  "library.prints.intro": "VRChat сохраняет каждый отпечаток дважды: обычное фото и копию в белой рамке с подписью «Captured By». Здесь показаны копии в рамке. Выбранные попадут в корзину, их можно восстановить.",
+  "library.prints.select_all": "Выбрать все",
+  "library.prints.select_none": "Снять выбор",
+  "library.prints.searching": "Поиск отпечатков...",
+  "library.prints.none": "В папках с изображениями нет отпечатков VRChat",
+  "library.prints.count": "Найдено отпечатков: {count}, выбрано: {picked}",
+  "library.prints.move": "Переместить {count} в корзину",
+  "library.prints.confirm_title": "Переместить отпечатки в корзину?",
+  "library.prints.confirm": "Переместить {count} копий в рамке в корзину? Обычные фото останутся на месте.",
+  "library.prints.moving": "Перемещение в корзину...",
+  "library.prints.done": "Перемещено в корзину: {moved}.",
+  "library.prints.done_some": "Перемещено в корзину: {moved}; не тронуто: {failed} (уже не отпечаток или вне отслеживаемой папки)."
 }

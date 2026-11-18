@@ -78,6 +78,24 @@ public class PhotosController
 
     // Public Methods
 
+    private bool InWatchFolder(string fullPath) => _core.Settings.WatchFolders.Any(f =>
+        !string.IsNullOrEmpty(f) &&
+        fullPath.StartsWith(Path.GetFullPath(f).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase));
+
+    public List<string> FindVrcPrints() => HapsHub.Core.HubPrints.Find(_core.Settings.WatchFolders);
+
+    /// <summary>Sends a file to the Recycle Bin. Never deletes it outright: where there is no Recycle Bin it does nothing.</summary>
+    private static bool MoveToRecycleBin(string path)
+    {
+#if WINDOWS
+        Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(path,
+            Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
+        return !File.Exists(path);
+#else
+        return false;
+#endif
+    }
+
     public string GetVirtualMediaUrl(string filePath)
     {
         // Check watch-folder routes first
@@ -382,6 +400,46 @@ public class PhotosController
                     {
                         _core.SendToJS("log", new { msg = $"Delete error: {ex.Message}", color = "err" });
                     }
+                }
+                break;
+
+            // Issue 11: VRChat prints. Each print also saves the normal photo, so the print copies can go.
+            case "findVrcPrints":
+                _ = Task.Run(() =>
+                {
+                    var found = new List<object>();
+                    foreach (var path in FindVrcPrints())
+                        found.Add(new { path, name = Path.GetFileName(path), url = GetVirtualMediaUrl(path), size = new FileInfo(path).Length });
+                    _core.SendToJS("vrcPrintsFound", new { prints = found });
+                });
+                break;
+
+            case "recycleVrcPrints":
+                {
+                    var asked = (msg["paths"] as JArray)?.Select(p => p.ToString()).ToList() ?? new List<string>();
+                    _ = Task.Run(() =>
+                    {
+                        var moved = new List<string>();
+                        var failed = new List<string>();
+                        foreach (var p in asked)
+                        {
+                            try
+                            {
+                                var full = Path.GetFullPath(p);
+                                // Only files that still look like prints, inside a watched folder, and only to the Recycle Bin.
+                                if (!InWatchFolder(full) || !File.Exists(full) || !HapsHub.Core.HubPrints.IsPrint(full)) { failed.Add(p); continue; }
+                                if (!MoveToRecycleBin(full)) { failed.Add(p); continue; }
+                                _favorites.Remove(p);
+                                _ratingCache.TryRemove(p, out _);
+                                _media.Delete(p);
+                                moved.Add(p);
+                                _core.SendToJS("libraryFileDeleted", new { path = p });
+                            }
+                            catch { failed.Add(p); }
+                        }
+                        _core.SendToJS("log", new { msg = $"[LOG] Prints moved to the Recycle Bin: {moved.Count}" + (failed.Count > 0 ? $", skipped {failed.Count}" : ""), color = moved.Count > 0 ? "ok" : "warn" });
+                        _core.SendToJS("vrcPrintsRecycled", new { moved, failed });
+                    });
                 }
                 break;
 

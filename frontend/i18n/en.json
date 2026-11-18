@@ -4381,5 +4381,19 @@
   "avatars.more.updated": "Updated",
   "avatars.more.from": "From",
   "avatars.more.to": "To",
-  "avatars.more.clear": "Clear filters"
+  "avatars.more.clear": "Clear filters",
+  "library.prints.title": "VRChat prints",
+  "library.prints.button_title": "Find VRChat prints",
+  "library.prints.intro": "VRChat saves each print twice: the normal photo, and a copy in a white frame with \"Captured By\" under it. These are the framed copies. The ones you pick go to the Recycle Bin, so you can still restore them.",
+  "library.prints.select_all": "Select all",
+  "library.prints.select_none": "Select none",
+  "library.prints.searching": "Looking for prints...",
+  "library.prints.none": "No VRChat prints found in your picture folders",
+  "library.prints.count": "{count} prints found, {picked} selected",
+  "library.prints.move": "Move {count} to the Recycle Bin",
+  "library.prints.confirm_title": "Move prints to the Recycle Bin?",
+  "library.prints.confirm": "Move {count} framed print copies to the Recycle Bin? The normal photos stay where they are.",
+  "library.prints.moving": "Moving to the Recycle Bin...",
+  "library.prints.done": "Moved {moved} to the Recycle Bin.",
+  "library.prints.done_some": "Moved {moved} to the Recycle Bin; {failed} were left alone (no longer a print, or not in a watched folder)."
 }

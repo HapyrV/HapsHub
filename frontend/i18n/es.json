@@ -4381,5 +4381,19 @@
   "avatars.more.updated": "Actualizado",
   "avatars.more.from": "Desde",
   "avatars.more.to": "Hasta",
-  "avatars.more.clear": "Borrar filtros"
+  "avatars.more.clear": "Borrar filtros",
+  "library.prints.title": "Impresiones de VRChat",
+  "library.prints.button_title": "Buscar impresiones de VRChat",
+  "library.prints.intro": "VRChat guarda cada impresión dos veces: la foto normal y una copia con marco blanco y «Captured By» debajo. Estas son las copias con marco. Las que elijas van a la Papelera, así que puedes restaurarlas.",
+  "library.prints.select_all": "Seleccionar todo",
+  "library.prints.select_none": "No seleccionar ninguno",
+  "library.prints.searching": "Buscando impresiones...",
+  "library.prints.none": "No se encontraron impresiones de VRChat en tus carpetas de imágenes",
+  "library.prints.count": "{count} impresiones encontradas, {picked} seleccionadas",
+  "library.prints.move": "Mover {count} a la Papelera",
+  "library.prints.confirm_title": "¿Mover las impresiones a la Papelera?",
+  "library.prints.confirm": "¿Mover {count} copias con marco a la Papelera? Las fotos normales se quedan donde están.",
+  "library.prints.moving": "Moviendo a la Papelera...",
+  "library.prints.done": "{moved} movidas a la Papelera.",
+  "library.prints.done_some": "{moved} movidas a la Papelera; {failed} se dejaron como estaban (ya no son impresiones o no están en una carpeta vigilada)."
 }

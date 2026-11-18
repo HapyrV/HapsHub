@@ -245,6 +245,8 @@ window.external.receiveMessage(rawMsg => {
                 if (typeof onPhotoRating === 'function') onPhotoRating(payload);
                 break;
             case 'libraryNewFile': addNewLibraryFile(payload); renderDashRecentPhotos(); break;
+            case 'vrcPrintsFound': if (typeof libPrintsFound === 'function') libPrintsFound(payload); break;
+            case 'vrcPrintsRecycled': if (typeof libPrintsRecycled === 'function') libPrintsRecycled(payload); break;
             case 'libraryFileDeleted':
                 onLibraryFileDeleted(payload.path);
                 renderDashRecentPhotos();

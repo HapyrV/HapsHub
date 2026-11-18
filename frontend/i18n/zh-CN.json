@@ -4381,5 +4381,19 @@
   "avatars.more.updated": "更新",
   "avatars.more.from": "从",
   "avatars.more.to": "到",
-  "avatars.more.clear": "清除筛选"
+  "avatars.more.clear": "清除筛选",
+  "library.prints.title": "VRChat 打印",
+  "library.prints.button_title": "查找 VRChat 打印",
+  "library.prints.intro": "VRChat 会把每张打印保存两次：普通照片，以及一张带白框和“Captured By”页脚的副本。这里列出的是带框副本。选中的会移到回收站，仍可恢复。",
+  "library.prints.select_all": "全选",
+  "library.prints.select_none": "全不选",
+  "library.prints.searching": "正在查找打印...",
+  "library.prints.none": "图片文件夹中没有找到 VRChat 打印",
+  "library.prints.count": "找到 {count} 张打印，已选 {picked} 张",
+  "library.prints.move": "将 {count} 张移到回收站",
+  "library.prints.confirm_title": "将打印移到回收站？",
+  "library.prints.confirm": "将 {count} 张带框打印副本移到回收站？普通照片保持不变。",
+  "library.prints.moving": "正在移到回收站...",
+  "library.prints.done": "已将 {moved} 张移到回收站。",
+  "library.prints.done_some": "已将 {moved} 张移到回收站；{failed} 张未动（已不是打印，或不在监视的文件夹中）。"
 }

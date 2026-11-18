@@ -643,6 +643,8 @@ public partial class AppShell
                 case "scanLibraryForce":
                 case "loadLibraryPage":
                 case "deleteLibraryFile":
+                case "findVrcPrints":
+                case "recycleVrcPrints":
                 case "addFavorite":
                 case "removeFavorite":
                 case "setDesktopBackground":

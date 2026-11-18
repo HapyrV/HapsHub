@@ -40,7 +40,8 @@ section('nav tabs', async main => {
 
 section('issue 12 layout state', async main => {
     // body:has(...) rules were replaced by body classes mirrored from the sidebars and the Dashboard tab.
-    const got = await main.json(`(async () => {
+    // eval, not json: json() does not wait for a promise.
+    const got = JSON.parse(await main.eval(`(async () => {
         const frame = () => new Promise(r => setTimeout(r, 30));
         showTab(0); await frame();
         const onDash = document.body.classList.contains('tab0-active');
@@ -54,8 +55,8 @@ section('issue 12 layout state', async main => {
         const restored = document.body.classList.contains('sb-l-collapsed') === was;
         const hasRules = [...document.styleSheets].some(s => { try { return [...s.cssRules].some(r => /body:has\\(/.test(r.selectorText || '')); } catch { return false; } });
         showTab(0);
-        return { onDash, offDash, collapsed, restored, hasRules };
-    })()`);
+        return JSON.stringify({ onDash, offDash, collapsed, restored, hasRules });
+    })()`));
     check('body mirrors the Dashboard tab and the sidebar state', got.onDash && got.offDash && got.collapsed && got.restored, JSON.stringify(got));
     check('no body:has() rules are left in the page', !got.hasRules, JSON.stringify(got));
     const badge = await main.json(`(() => {
@@ -135,6 +136,43 @@ section('avatar filters (issue 10)', async main => {
     check('impostor, author, tag and date filters each narrow the list',
         got.impostor === 'a_good_pc,a_unknown' && got.author === 'a_good_pc' && got.tag === 'a_good_pc' && got.created === 'a_good_pc', JSON.stringify(got));
     check('the Filters button counts active filters and opens its panel', got.count === '1' && got.panel, JSON.stringify(got));
+});
+
+section('prints (issue 11)', async main => {
+    // The page side: list, pick, confirm, then only the picked paths are sent. sendToCS is stubbed, so nothing moves.
+    const got = await main.json(`(() => {
+        const sentNow = [];
+        const real = sendToCS;
+        sendToCS = m => sentNow.push(m);
+        try {
+            showTab(7);
+            document.getElementById('libPrintsBtn').click();
+            const asked = sentNow.some(m => m.action === 'findVrcPrints');
+            const searching = document.getElementById('libPrintsStatus').textContent;
+            const goWhileSearching = document.getElementById('libPrintsGo').disabled;
+            libPrintsFound({ prints: [
+                { path: 'C:\\\\p\\\\VRChat_a_2048x1440.png', name: 'VRChat_a_2048x1440.png', url: 'about:blank' },
+                { path: 'C:\\\\p\\\\VRChat_b_2048x1440.png', name: 'VRChat_b_2048x1440.png', url: 'about:blank' },
+            ] });
+            const cards = document.querySelectorAll('#libPrintsGrid .lib-print-card.picked').length;
+            libPrintsToggle(1);
+            const label = document.getElementById('libPrintsGo').textContent;
+            document.getElementById('libPrintsGo').click();
+            const confirmShown = !!document.getElementById('vnConfirmModal');
+            const sentBeforeConfirm = sentNow.filter(m => m.action === 'recycleVrcPrints').length;
+            document.getElementById('vnConfirmModalOk').click();
+            const recycle = sentNow.find(m => m.action === 'recycleVrcPrints');
+            libPrintsRecycled({ moved: recycle ? recycle.paths : [], failed: [] });
+            const left = document.querySelectorAll('#libPrintsGrid .lib-print-card').length;
+            const done = document.getElementById('libPrintsStatus').textContent;
+            document.getElementById('libPrintsModal')?.remove();
+            return { asked, searching, goWhileSearching, cards, label, confirmShown, sentBeforeConfirm, paths: recycle?.paths, left, done };
+        } finally { sendToCS = real; }
+    })()`);
+    check('the print finder asks the app and waits', got.asked && got.searching.length > 0 && got.goWhileSearching, JSON.stringify(got));
+    check('found prints all start picked; unpicking one updates the button', got.cards === 2 && /1/.test(got.label), got.label);
+    check('nothing is sent until the confirm dialog is accepted', got.confirmShown && got.sentBeforeConfirm === 0, JSON.stringify(got));
+    check('only the picked prints are sent, and moved ones leave the list', JSON.stringify(got.paths) === JSON.stringify(['C:\\p\\VRChat_a_2048x1440.png']) && got.left === 1 && /1/.test(got.done), JSON.stringify(got));
 });
 
 section('loading states', async main => {

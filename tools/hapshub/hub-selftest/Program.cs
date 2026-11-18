@@ -830,6 +830,50 @@ await Check("steam: a reviewed beta build survives restart, and bad input is ref
     await reopened.StopAllAsync(TimeSpan.FromSeconds(5));
 });
 
+// ---- VRChat prints (issue 11) ----
+
+await Check("prints: only a 2048x1440 VRChat PNG with a white frame counts", async () =>
+{
+    var dir = Fresh("hub-prints");
+    var sub = Path.Combine(dir, "2026-10");
+    Directory.CreateDirectory(sub);
+    void Save(string path, bool framed, int w = 2048, int h = 1440)
+    {
+        using var bmp = new SkiaSharp.SKBitmap(w, h);
+        using (var canvas = new SkiaSharp.SKCanvas(bmp))
+        {
+            canvas.Clear(framed ? SkiaSharp.SKColors.White : new SkiaSharp.SKColor(60, 40, 30));
+            using var paint = new SkiaSharp.SKPaint { Color = new SkiaSharp.SKColor(90, 70, 50) };
+            if (framed) canvas.DrawRect(64, 72, w - 128, 1072, paint);
+        }
+        using var data = bmp.Encode(SkiaSharp.SKEncodedImageFormat.Png, 80);
+        File.WriteAllBytes(path, data.ToArray());
+    }
+    var print = Path.Combine(sub, "VRChat_2026-10-25_21-42-45.597_2048x1440.png");
+    var printWorld = Path.Combine(dir, "VRChat_2026-10-25_21-50-00.100_2048x1440_wrld_4cf554b4-430c-4f8f-b53e-1f294eed230b.png");
+    var photoSameSize = Path.Combine(dir, "VRChat_2026-10-25_22-00-00.000_2048x1440.png");
+    var wrongName = Path.Combine(dir, "print_2048x1440.png");
+    var normal = Path.Combine(dir, "VRChat_2026-10-25_21-42-45.597_1920x1080.png");
+    Save(print, true); Save(printWorld, true); Save(photoSameSize, false); Save(wrongName, true); Save(normal, false, 1920, 1080);
+    Assert(HubPrints.IsPrint(print) && HubPrints.IsPrint(printWorld), "a framed print was missed");
+    Assert(!HubPrints.IsPrint(photoSameSize), "a normal photo at print size counted as a print");
+    Assert(!HubPrints.IsPrint(wrongName) && !HubPrints.IsPrint(normal), "a non-VRChat or other-size file counted");
+    var found = HubPrints.Find(new[] { dir, dir, Path.Combine(dir, "missing") });
+    Assert(found.Count == 2 && found.Contains(print) && found.Contains(printWorld), "Find: " + string.Join(", ", found));
+    await Task.CompletedTask;
+});
+
+// Read-only look at a real pictures folder: set HAPSHUB_PRINTS_DIR to list what would count as a print.
+if (Environment.GetEnvironmentVariable("HAPSHUB_PRINTS_DIR") is { Length: > 0 } realPrints)
+    await Check("prints: real folder " + realPrints, async () =>
+    {
+        var named = Directory.EnumerateFiles(realPrints, "VRChat_*_2048x1440*.png", SearchOption.AllDirectories).Count();
+        var found = HubPrints.Find(new[] { realPrints });
+        Console.WriteLine($"      {found.Count} prints of {named} print-sized files");
+        foreach (var f in found.Take(3)) Console.WriteLine("      " + Path.GetFileName(f));
+        await Task.CompletedTask;
+    });
+
 // ---- Hub database backup ----
 
 await Check("backup: copies a database in use, and a missing or bad target only returns false", async () =>

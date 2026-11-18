@@ -4381,5 +4381,19 @@
   "avatars.more.updated": "更新日",
   "avatars.more.from": "開始",
   "avatars.more.to": "終了",
-  "avatars.more.clear": "フィルターをクリア"
+  "avatars.more.clear": "フィルターをクリア",
+  "library.prints.title": "VRChatプリント",
+  "library.prints.button_title": "VRChatプリントを探す",
+  "library.prints.intro": "VRChatはプリントを2回保存します。通常の写真と、白い枠に「Captured By」が付いたコピーです。ここに出るのは枠付きのコピーです。選んだものはごみ箱に移るので、元に戻せます。",
+  "library.prints.select_all": "すべて選択",
+  "library.prints.select_none": "選択を解除",
+  "library.prints.searching": "プリントを探しています...",
+  "library.prints.none": "画像フォルダにVRChatプリントはありません",
+  "library.prints.count": "{count}件のプリント、{picked}件を選択中",
+  "library.prints.move": "{count}件をごみ箱へ",
+  "library.prints.confirm_title": "プリントをごみ箱に移しますか？",
+  "library.prints.confirm": "枠付きのプリントコピー{count}件をごみ箱に移しますか？通常の写真はそのまま残ります。",
+  "library.prints.moving": "ごみ箱に移動しています...",
+  "library.prints.done": "{moved}件をごみ箱に移しました。",
+  "library.prints.done_some": "{moved}件をごみ箱に移しました。{failed}件はそのままです（プリントではなくなったか、監視フォルダ外）。"
 }

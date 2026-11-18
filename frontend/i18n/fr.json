@@ -4381,5 +4381,19 @@
   "avatars.more.updated": "Mis à jour",
   "avatars.more.from": "Du",
   "avatars.more.to": "Au",
-  "avatars.more.clear": "Effacer les filtres"
+  "avatars.more.clear": "Effacer les filtres",
+  "library.prints.title": "Impressions VRChat",
+  "library.prints.button_title": "Trouver les impressions VRChat",
+  "library.prints.intro": "VRChat enregistre chaque impression deux fois : la photo normale et une copie dans un cadre blanc avec « Captured By » dessous. Voici les copies encadrées. Celles que vous choisissez vont dans la Corbeille et restent récupérables.",
+  "library.prints.select_all": "Tout sélectionner",
+  "library.prints.select_none": "Ne rien sélectionner",
+  "library.prints.searching": "Recherche des impressions...",
+  "library.prints.none": "Aucune impression VRChat dans vos dossiers d'images",
+  "library.prints.count": "{count} impressions trouvées, {picked} sélectionnées",
+  "library.prints.move": "Mettre {count} à la Corbeille",
+  "library.prints.confirm_title": "Mettre les impressions à la Corbeille ?",
+  "library.prints.confirm": "Mettre {count} copies encadrées à la Corbeille ? Les photos normales restent en place.",
+  "library.prints.moving": "Déplacement vers la Corbeille...",
+  "library.prints.done": "{moved} mises à la Corbeille.",
+  "library.prints.done_some": "{moved} mises à la Corbeille ; {failed} laissées telles quelles (plus une impression, ou hors d'un dossier surveillé)."
 }

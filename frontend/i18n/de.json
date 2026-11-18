@@ -4381,5 +4381,19 @@
   "avatars.more.updated": "Aktualisiert",
   "avatars.more.from": "Von",
   "avatars.more.to": "Bis",
-  "avatars.more.clear": "Filter löschen"
+  "avatars.more.clear": "Filter löschen",
+  "library.prints.title": "VRChat-Drucke",
+  "library.prints.button_title": "VRChat-Drucke finden",
+  "library.prints.intro": "VRChat speichert jeden Druck doppelt: das normale Foto und eine Kopie im weißen Rahmen mit „Captured By“ darunter. Das hier sind die gerahmten Kopien. Ausgewählte kommen in den Papierkorb und lassen sich wiederherstellen.",
+  "library.prints.select_all": "Alle auswählen",
+  "library.prints.select_none": "Keine auswählen",
+  "library.prints.searching": "Suche nach Drucken...",
+  "library.prints.none": "Keine VRChat-Drucke in deinen Bilderordnern gefunden",
+  "library.prints.count": "{count} Drucke gefunden, {picked} ausgewählt",
+  "library.prints.move": "{count} in den Papierkorb",
+  "library.prints.confirm_title": "Drucke in den Papierkorb verschieben?",
+  "library.prints.confirm": "{count} gerahmte Druckkopien in den Papierkorb verschieben? Die normalen Fotos bleiben, wo sie sind.",
+  "library.prints.moving": "Wird in den Papierkorb verschoben...",
+  "library.prints.done": "{moved} in den Papierkorb verschoben.",
+  "library.prints.done_some": "{moved} in den Papierkorb verschoben; {failed} unverändert gelassen (kein Druck mehr oder nicht in einem überwachten Ordner)."
 }
