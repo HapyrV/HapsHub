@@ -555,11 +555,11 @@
 }
 .status-desc-row #statusDescEditBtn:not(.active):hover { background: var(--ui-input-hover-bg); color: var(--tx0); }
 
-body:has(#tab0.active) .rsidebar.collapsed::before {
+body.tab0-active .rsidebar.collapsed::before {
     background: transparent;
 }
 
-body:has(#tab0.active) .rsidebar.collapsed::after {
+body.tab0-active .rsidebar.collapsed::after {
     content: '';
     position: absolute;
     inset: 0;

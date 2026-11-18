@@ -1457,6 +1457,7 @@ function setAutoColorAccuracy(val) {
     if (currentSpecialTheme === 'auto') applyAutoColor();
 }
 
+let _autoColorScan = { url: '', args: null };
 function applyAutoColor() {
     const url = (typeof dashBgSample !== 'undefined' && dashBgSample)
         || (typeof dashBgDataUri !== 'undefined' && dashBgDataUri) || '';
@@ -1465,6 +1466,14 @@ function applyAutoColor() {
         return;
     }
 
+    // The picture's colours only need reading once; the theme is still rebuilt each time from the saved numbers.
+    // The Dashboard calls this on every refresh; rewriting the same root colours restyled the whole page each time.
+    if (_autoColorScan.url === url) {
+        const theme = _buildAutoTheme(..._autoColorScan.args);
+        if (!_activeLightOn && JSON.stringify(theme) === JSON.stringify(_activePrimaryColors)) return;
+        applyColors(theme);
+        return;
+    }
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
@@ -1491,7 +1500,7 @@ function applyAutoColor() {
                 if (s > bestSat && l > 18 && l < 75) { bestSat = s; accentHue = h; accentLit = l; }
             }
 
-            if (colorful < 20) { applyColors(_buildAutoTheme(210, 210, 55, 55)); return; }
+            if (colorful < 20) { _autoColorScan = { url, args: [210, 210, 55, 55] }; applyColors(_buildAutoTheme(210, 210, 55, 55)); return; }
 
             const avgSat = satSum / colorful;
 
@@ -1504,6 +1513,7 @@ function applyAutoColor() {
             const domHue = domBucket * 10 + 5;
             if (bestSat < 15) { accentHue = domHue; accentLit = 55; }
 
+            _autoColorScan = { url, args: [domHue, accentHue, accentLit, avgSat] };
             applyColors(_buildAutoTheme(domHue, accentHue, accentLit, avgSat));
         } catch (e) { console.warn('[AutoColor]', e); }
     };
@@ -1877,6 +1887,32 @@ function _reloadTabImages(tabEl) {
     });
 }
 
+// Copies the sidebars' collapsed state and the Dashboard tab's active state onto <body> classes, so CSS can use
+// `body.sb-l-collapsed` instead of `body:has(.sidebar.collapsed)`. A body-level :has() made Chrome search the whole
+// page (over 100k elements when signed in) every time an `active` or `collapsed` class changed anywhere.
+(function _mirrorLayoutState() {
+    const sync = () => {
+        const b = document.body?.classList;
+        if (!b) return;
+        const l = document.getElementById('sidebarEl')?.classList;
+        const r = document.getElementById('rsidebar')?.classList;
+        b.toggle('sb-l-collapsed', !!l?.contains('collapsed'));
+        b.toggle('sb-l-collapsing', !!l?.contains('collapsing'));
+        b.toggle('sb-r-collapsed', !!r?.contains('collapsed'));
+        b.toggle('tab0-active', !!document.getElementById('tab0')?.classList.contains('active'));
+    };
+    const start = () => {
+        const mo = new MutationObserver(sync);
+        for (const id of ['sidebarEl', 'rsidebar', 'tab0']) {
+            const el = document.getElementById(id);
+            if (el) mo.observe(el, { attributes: true, attributeFilter: ['class'] });
+        }
+        sync();
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+    else start();
+})();
+
 
 function showTab(i) {
     clearTimeout(_lazyUnloadTimer);
@@ -1999,12 +2035,24 @@ function setRelayState(r, s) {
 const _httpCounts = { 200: 0, 429: 0, 404: 0, 403: 0, 400: 0 };
 const _httpStatIds = { 200: 'statHttp200', 429: 'statHttp429', 404: 'statHttp404', 403: 'statHttp403', 400: 'statHttp400' };
 
+// The counters live on the Log tab. While it is hidden they are only remembered and written when it opens: the app
+// sends about 8 log lines a second, and each write restyled the page (issue 12).
+const _logStatPending = new Map();
 function _setLogStat(id, value) {
+    if (!document.getElementById('tab8')?.classList.contains('active')) { _logStatPending.set(id, value); return; }
+    _writeLogStat(id, value);
+}
+function _flushLogStats() {
+    for (const [id, value] of _logStatPending) _writeLogStat(id, value);
+    _logStatPending.clear();
+}
+function _writeLogStat(id, value) {
     const el = document.getElementById(id);
     if (!el) return;
     const v = el.querySelector('.log-stat-v');
     if (!v) return;
-    v.textContent = value;
+    const text = String(value);
+    if (v.textContent !== text) v.textContent = text;
     v.classList.toggle('zero', !value);
 }
 
@@ -2059,6 +2107,7 @@ function _applyLogFilter() {
 }
 
 function flushActivityLog() {
+    _flushLogStats();
     const a = document.getElementById('logArea');
     if (!a) return;
     if (_logDomDirty) {

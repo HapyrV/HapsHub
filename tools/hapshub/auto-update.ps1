@@ -5,10 +5,13 @@
 param(
     [Parameter(Mandatory)] [string] $Root,
     [Parameter(Mandatory)] [string] $Exe,
-    [Parameter(Mandatory)] [int] $WaitPid,
+    # The copy that started this; 0 when you started the update yourself (Update HapsHub.cmd).
+    [int] $WaitPid = 0,
     [Parameter(Mandatory)] [string] $LogFile,
     # The arguments HapsHub was opened with, one per line, base64 encoded.
-    [string] $PassArgs = ''
+    [string] $PassArgs = '',
+    # Started by hand: waits as long as it takes for you to exit HapsHub.
+    [switch] $Manual
 )
 
 $ErrorActionPreference = 'Stop'
@@ -132,8 +135,9 @@ $timer.Add_Tick({
     switch ($st.Stage) {
         'wait' {
             # The copy that started this, plus its helpers (watchdog, VR overlay), must be gone before the files change.
-            $left = @(Get-Process -Id $WaitPid -ErrorAction SilentlyContinue) + @(Get-Process -Name HapsHub -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $Exe })
-            if ($st.StageClock.Elapsed.TotalSeconds -ge 0.8 -and ($left.Count -eq 0 -or (Get-Date) -gt $st.Deadline)) {
+            $left = @(if ($WaitPid -gt 0) { Get-Process -Id $WaitPid -ErrorAction SilentlyContinue }) + @(Get-Process -Name HapsHub -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $Exe })
+            if ($Manual -and $left.Count -gt 0 -and $st.Sub -ne 'Exit HapsHub from the tray icon to continue') { $st.Sub = 'Exit HapsHub from the tray icon to continue' }
+            if ($st.StageClock.Elapsed.TotalSeconds -ge 0.8 -and ($left.Count -eq 0 -or (-not $Manual -and (Get-Date) -gt $st.Deadline))) {
                 Set-Stage 'build' 'Installing update' 'Building the newest version of HapsHub' 0.0
                 $st.Proc = Start-Process -FilePath 'dotnet' -PassThru -WindowStyle Hidden -RedirectStandardOutput $output `
                     -ArgumentList @('build', ('"' + (Join-Path $Root 'VRCNext.csproj') + '"'), '-c', 'Release', '-maxcpucount:2', '-v', 'quiet', '-nologo')

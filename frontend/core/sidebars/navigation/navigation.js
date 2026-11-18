@@ -17,13 +17,18 @@ function _navCalendarMonthCount() {
     if (!Array.isArray(src) || !src.length) return null;
     const now = new Date();
     const y = now.getFullYear(), m = now.getMonth();
+    // Badges refresh often; the count only changes with the event list or the month (issue 12: 1.3 s in 10 min).
+    const c = _navCalCountCache;
+    if (c.src === src && c.len === src.length && c.y === y && c.m === m) return c.n;
     let n = 0;
     for (const evt of src) {
         const d = new Date(evt.startsAt || evt.startDate || '');
         if (!isNaN(d) && d.getFullYear() === y && d.getMonth() === m) n++;
     }
+    Object.assign(c, { src, len: src.length, y, m, n });
     return n;
 }
+const _navCalCountCache = { src: null, len: -1, y: 0, m: 0, n: 0 };
 
 function _navFmtCount(n) {
     if (typeof n !== 'number' || !Number.isFinite(n)) return String(n);
@@ -36,6 +41,8 @@ function _navFmtCount(n) {
 function _navApplyBadge(kind, value) {
     if (value === null || value === undefined) return;
     const text = _navFmtCount(value);
+    // Rewriting the same text still swaps the text node, which wakes observers and restyles the page.
+    if (_navBadgeCache[kind] === text) return;
     _navBadgeCache[kind] = text;
     document.querySelectorAll(`[data-nav-badge="${kind}"]`).forEach(el => {
         el.textContent = text;

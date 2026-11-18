@@ -143,13 +143,13 @@
 }
 
 /* Force opaque taskbar when at least one sidebar is open */
-body:has(#sidebarEl:not(.collapsed)) #taskbar::after,
-body:has(#rsidebar:not(.collapsed)) #taskbar::after {
+body:not(.sb-l-collapsed) #taskbar::after,
+body:not(.sb-r-collapsed) #taskbar::after {
     opacity: 1;
 }
 
-body:has(#sidebarEl:not(.collapsed)) #taskbar::before,
-body:has(#rsidebar:not(.collapsed)) #taskbar::before {
+body:not(.sb-l-collapsed) #taskbar::before,
+body:not(.sb-r-collapsed) #taskbar::before {
     border-bottom-color: var(--sep-color);
 }
 

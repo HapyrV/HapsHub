@@ -1819,8 +1819,13 @@ function renderFtAvatarBody(ev) {
     let _fadeRaf = 0;
     function updateAllFades() {
         if (_fadeRaf) return;
-        _fadeRaf = requestAnimationFrame(() => { _fadeRaf = 0; document.querySelectorAll(FADE_SEL).forEach(updateFade); });
+        // Rows on hidden tabs measure as 0 anyway, and measuring them forced a style pass (issue 12); tabchange catches up.
+        _fadeRaf = requestAnimationFrame(() => {
+            _fadeRaf = 0;
+            document.querySelectorAll(FADE_SEL).forEach(row => { const tab = row.closest('.tab'); if (!tab || tab.classList.contains('active')) updateFade(row); });
+        });
     }
+    document.documentElement.addEventListener('tabchange', updateAllFades);
     document.addEventListener('scroll', e => { if (e.target instanceof Element && e.target.matches(FADE_SEL)) updateFade(e.target); }, true);
     window.addEventListener('resize', updateAllFades);
     // Only changes in or around a fading row matter. Anything else (the clock, the sidebars, the dashboard's scroll

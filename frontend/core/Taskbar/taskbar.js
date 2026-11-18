@@ -449,25 +449,39 @@ function tbToggleTools() {
         if (!left || !items.length) return false;
         return items[items.length - 1].getBoundingClientRect().right > left.getBoundingClientRect().right + 0.5 || (drag && drag.clientWidth < CREDIT_ROOM);
     }
-    let queued = false;
-    function fit() {
+    let queued = false, lastSig = '';
+    // Starts from the steps already applied instead of clearing them all: clearing and re-adding forced up to seven
+    // full layouts and woke every class watcher on each page switch (issue 12). Unchanged inputs skip the work.
+    function fit(force) {
         queued = false;
         const bar = document.getElementById('taskbar');
         if (!bar) return;
-        bar.classList.remove(...STEPS);
-        for (const step of STEPS) {
-            if (!tight()) break;
-            bar.classList.add(step);
+        const title = document.getElementById('pageTitle');
+        const right = document.getElementById('tb-right');
+        const sig = [window.innerWidth, document.documentElement.lang, title?.textContent, right?.offsetWidth].join('|');
+        if (force !== true && sig === lastSig) return;
+        lastSig = sig;
+        let k = 0;
+        while (k < STEPS.length && bar.classList.contains(STEPS[k])) k++;
+        bar.classList.remove(...STEPS.slice(k));
+        if (tight()) {
+            while (k < STEPS.length) { bar.classList.add(STEPS[k++]); if (!tight()) break; }
+        } else {
+            while (k > 0) {
+                bar.classList.remove(STEPS[k - 1]);
+                if (tight()) { bar.classList.add(STEPS[k - 1]); break; }
+                k--;
+            }
         }
     }
-    window.tbFit = fit;
+    window.tbFit = () => fit(true);
     const soon = () => { if (!queued) { queued = true; requestAnimationFrame(fit); } };
     window.addEventListener('resize', soon);
-    document.documentElement.addEventListener('languagechange', () => setTimeout(fit, 50));
+    document.documentElement.addEventListener('languagechange', () => setTimeout(() => fit(true), 50));
     // The page title changes with every page.
     const title = document.getElementById('pageTitle');
     if (title) new MutationObserver(soon).observe(title, { childList: true, characterData: true, subtree: true });
-    if (document.fonts?.ready) document.fonts.ready.then(fit);
+    if (document.fonts?.ready) document.fonts.ready.then(() => fit(true));
     // The app controls on the right fill in after a page opens, and the menus change with the language:
     // either side changing size can leave the menus cut off, so the bar fits itself again.
     if (window.ResizeObserver) {

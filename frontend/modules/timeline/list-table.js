@@ -452,6 +452,14 @@ function tlTableSortLocal(list, entries, accessors) {
         if (root.classList.contains('tl-list-wrap')) attach(root);
         root.querySelectorAll('.tl-list-wrap:not([data-hbar])').forEach(attach);
     }
-    new MutationObserver(muts => { for (const m of muts) m.addedNodes.forEach(scan); }).observe(document.documentElement, { childList: true, subtree: true });
+    // Searching every added subtree on the page cost up to 150 ms on big re-renders (issue 12). The wraps are few, so
+    // one lookup per frame through the live collection is enough.
+    const wraps = document.getElementsByClassName('tl-list-wrap');
+    let scanRaf = 0;
+    const scanAll = () => { scanRaf = 0; for (const w of [...wraps]) if (!w.hasAttribute('data-hbar')) attach(w); };
+    new MutationObserver(muts => {
+        if (scanRaf) return;
+        for (const m of muts) for (const n of m.addedNodes) if (n.nodeType === 1) { scanRaf = requestAnimationFrame(scanAll); return; }
+    }).observe(document.documentElement, { childList: true, subtree: true });
     if (document.readyState !== 'loading') scan(document.body); else document.addEventListener('DOMContentLoaded', () => scan(document.body));
 })();

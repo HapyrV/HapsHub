@@ -89,7 +89,7 @@ function networkProgressText(done, total) {
 function initNetwork() {
     const canvas = document.getElementById('netCanvas');
     if (!canvas || !window.HHGraphLib) return;
-    if (_netGraph) { _netGraph.resize(); return; }
+    if (_netGraph) { _netGraph.resize(); if (_netGraph._rebuildPending) _netGraph._rebuildNow(); return; }
     _netGraph = new MutualGraph(canvas);
 
     _cacheLoadPending = true;
@@ -415,6 +415,9 @@ class MutualGraph {
 
     async _rebuild() {
         if (this._destroyed) return;
+        // Mutuals keep arriving after you leave the tab; each rebuild is ~300 ms, so it waits until you come back.
+        if (!document.getElementById('tab15')?.classList.contains('active')) { this._rebuildPending = true; return; }
+        this._rebuildPending = false;
         if (this._rebuilding) { this._rebuildAgain = true; return; }
         this._rebuilding = true;
         try {

@@ -1825,31 +1825,37 @@ window.addEventListener('resize', _dashShelfFadeAll);
 // Edge fade on vertically scrollable hero widget lists.
 // The mask sits on each card, not on the scroll container: an ancestor mask
 // would isolate the cards and kill their backdrop-filter blur.
+// Reads every position first and writes masks after, and only writes a mask that changed: each write between reads
+// forced a fresh style pass over the whole page (the issue 12 freezes of up to 660 ms).
+const _dashHeroMask = new WeakMap();
 function _dashHeroFade(el) {
+    if (!el.isConnected || !document.body.classList.contains('tab0-active')) return;
     const box = el.getBoundingClientRect();
+    if (box.height === 0) return;
     const zone = Math.min(56, (box.bottom - box.top) / 3);
     const canT = el.scrollTop > 4;
     const canB = el.scrollTop + el.clientHeight < el.scrollHeight - 4;
     let zT = box.top + zone, zB = box.bottom - zone;
     if (canT && canB && zB < zT) { const mid = (box.top + box.bottom) / 2; zT = mid; zB = mid; }
-    for (const card of el.children) {
-        const r = card.getBoundingClientRect();
+    const cards = Array.from(el.children);
+    const rects = (canT || canB) ? cards.map(c => c.getBoundingClientRect()) : null;
+    cards.forEach((card, i) => {
         const stops = [];
-        if (canT && r.top < zT) {
-            stops.push(`transparent ${(box.top - r.top).toFixed(1)}px`, `#000 ${(zT - r.top).toFixed(1)}px`);
+        const r = rects?.[i];
+        if (r) {
+            if (canT && r.top < zT) {
+                stops.push(`transparent ${(box.top - r.top).toFixed(1)}px`, `#000 ${(zT - r.top).toFixed(1)}px`);
+            }
+            if (canB && r.bottom > zB) {
+                stops.push(`#000 ${(zB - r.top).toFixed(1)}px`, `transparent ${(box.bottom - r.top).toFixed(1)}px`);
+            }
         }
-        if (canB && r.bottom > zB) {
-            stops.push(`#000 ${(zB - r.top).toFixed(1)}px`, `transparent ${(box.bottom - r.top).toFixed(1)}px`);
-        }
-        if (stops.length) {
-            const m = `linear-gradient(to bottom, ${stops.join(', ')})`;
-            card.style.webkitMaskImage = m;
-            card.style.maskImage = m;
-        } else if (card.style.maskImage || card.style.webkitMaskImage) {
-            card.style.webkitMaskImage = '';
-            card.style.maskImage = '';
-        }
-    }
+        const m = stops.length ? `linear-gradient(to bottom, ${stops.join(', ')})` : '';
+        if ((_dashHeroMask.get(card) ?? card.style.maskImage) === m) return;
+        _dashHeroMask.set(card, m);
+        card.style.webkitMaskImage = m;
+        card.style.maskImage = m;
+    });
 }
 
 let _dashHeroFadeRaf = 0;
@@ -1877,7 +1883,9 @@ window.addEventListener('resize', _dashHeroFadeAll);
             }
         })
         : null;
+    let rewireRaf = 0;
     const rewire = () => {
+        rewireRaf = 0;
         if (ro) {
             ro.disconnect();
             widgets.querySelectorAll('.dash-hw-friends').forEach(el => {
@@ -1887,7 +1895,15 @@ window.addEventListener('resize', _dashHeroFadeAll);
         }
         _dashHeroFadeAll();
     };
-    new MutationObserver(rewire).observe(widgets, { childList: true, subtree: true });
+    // Only cards or lists coming and going need a rewire; text changing inside a card (status, time) does not.
+    new MutationObserver(muts => {
+        if (rewireRaf) return;
+        const relevant = muts.some(m => {
+            const t = m.target;
+            return t === widgets || t.classList?.contains('dash-hw-friends') || !t.closest?.('.dash-hw-friends');
+        });
+        if (relevant) rewireRaf = requestAnimationFrame(rewire);
+    }).observe(widgets, { childList: true, subtree: true });
     rewire();
 })();
 

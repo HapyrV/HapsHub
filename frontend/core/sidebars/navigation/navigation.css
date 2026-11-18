@@ -68,8 +68,8 @@ body.sidebar-resizing .content {
 .sidebar .sidebar-sep { right: 0; }
 .rsidebar .sidebar-sep { left: 0; }
 
-body:has(#tab0.active) .sidebar.collapsed .sidebar-sep,
-body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
+body.tab0-active .sidebar.collapsed .sidebar-sep,
+body.tab0-active .rsidebar.collapsed .sidebar-sep {
     opacity: var(--sidebar-glass-t, 1);
 }
 
@@ -552,11 +552,11 @@ body:has(#tab0.active) .rsidebar.collapsed .sidebar-sep {
     font-size: calc(19px + var(--fs-off, 0px)) !important;
 }
 
-body:has(#tab0.active) .sidebar.collapsed::before {
+body.tab0-active .sidebar.collapsed::before {
     background: transparent;
 }
 
-body:has(#tab0.active) .sidebar.collapsed::after {
+body.tab0-active .sidebar.collapsed::after {
     content: '';
     position: absolute;
     inset: 0;

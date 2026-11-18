@@ -33,7 +33,8 @@ section('credit', async main => {
     check('the credit sits inside the top bar', fits.inside && fits.top >= 0 && fits.bottom <= fits.barHeight, JSON.stringify(fits));
 
     const usual = await main.json(`({ lead: getComputedStyle(document.querySelector('.tb-credit-lead')).display !== 'none', window: innerWidth, pill: document.getElementById('tbCredit').getBoundingClientRect().width, bar: document.getElementById('tb-drag').getBoundingClientRect().width })`);
-    check('at the usual window size the credit reads "Heavily based on VRCNext"', usual.lead && usual.pill <= usual.bar, JSON.stringify(usual));
+    // Since the Smart Search bar shares the top bar (f586a114), "Heavily based on" is dropped when the bar is narrow.
+    check('at the usual window size the credit fits in the top bar beside the search bar', usual.pill <= usual.bar && (usual.lead || usual.bar < 520), JSON.stringify(usual));
 
     const at = await main.center('#tbCredit');
     await main.click(at.x, at.y);
@@ -59,7 +60,8 @@ section('credit', async main => {
     }
     await main.eval(`document.getElementById('tb-drag').style.cssText = ''`);
     check('the credit shortens as the bar narrows but never disappears',
-        widths[500].more && widths[500].lead && !widths[300].more && widths[300].lead && !widths[150].lead && widths[150].text && !widths[90].text
+        // "Heavily based on" goes below 520 px since the search bar shares the top bar (f586a114).
+        widths[500].more && !widths[500].lead && !widths[300].more && widths[300].text && widths[150].text && !widths[90].text
         && Object.values(widths).every(w => w.pill), JSON.stringify(widths));
 });
 

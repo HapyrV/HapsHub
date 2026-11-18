@@ -5,7 +5,16 @@
 // Eagle is held in a tab inside Media Library (tab7); its pane only counts as visible while that tab is shown.
 const _AEMB_TABS = { oyasumi: 'tab33', eagle: 'tab7', spacecal: 'tab36', ovrtoolkit: 'tab38' };
 const _AEMB_APPS = Object.keys(_AEMB_TABS);
-const _aemb = { sent: {}, holes: {}, selectOpen: false };
+const _aemb = { sent: {}, holes: {}, holesKey: {}, selectOpen: false };
+let _aembLastChange = 0;
+(function _aembWatchChanges() {
+    const mark = () => { _aembLastChange = performance.now(); };
+    for (const type of ['pointerdown', 'pointerup', 'pointermove', 'keydown', 'wheel', 'scroll', 'resize'])
+        window.addEventListener(type, mark, { capture: true, passive: true });
+    const start = () => new MutationObserver(mark).observe(document.documentElement,
+        { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'hidden', 'open'] });
+    if (document.documentElement) start(); else document.addEventListener('DOMContentLoaded', start, { once: true });
+})();
 
 function _aembEl(app, part) { return document.getElementById(`aemb-${part}-${app}`); }
 
@@ -77,6 +86,11 @@ function _aembReport(app) {
     }
     if (!visible) return;
 
+    // Something can only start to cover the pane after the page changes, the pane moves, or you use the mouse or
+    // keyboard. Checking 120 points five times a second regardless cost about 3 s in 10 minutes (issue 12). The
+    // check keeps running for a short while after each change so menus that slide in are caught at rest.
+    if (_aemb.holesKey[app] === key && performance.now() - _aembLastChange > 800) return;
+    _aemb.holesKey[app] = key;
     const holes = JSON.stringify(_aembHoles(pane, rect, scale));
     if (holes !== (_aemb.holes[app] || '[]')) {
         _aemb.holes[app] = holes;

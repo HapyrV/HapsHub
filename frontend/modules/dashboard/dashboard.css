@@ -13,9 +13,9 @@
     transition: margin-left .22s ease, margin-right .22s ease;
 }
 
-body:has(.sidebar.collapsed) .dash-hero,
-body:has(.sidebar.collapsing) .dash-hero { margin-left:  calc(-1 * (var(--sidebar-c)  + 14px)); }
-body:has(.rsidebar.collapsed) .dash-hero { margin-right: calc(-1 * (var(--rsidebar-c) + 14px)); }
+body.sb-l-collapsed .dash-hero,
+body.sb-l-collapsing .dash-hero { margin-left:  calc(-1 * (var(--sidebar-c)  + 14px)); }
+body.sb-r-collapsed .dash-hero { margin-right: calc(-1 * (var(--rsidebar-c) + 14px)); }
 
 .dash-hero-bg {
     position: absolute;
@@ -49,9 +49,9 @@ body:has(.rsidebar.collapsed) .dash-hero { margin-right: calc(-1 * (var(--rsideb
     transition: padding-left .22s ease, padding-right .22s ease;
 }
 
-body:has(.sidebar.collapsed) .dash-hero-content,
-body:has(.sidebar.collapsing) .dash-hero-content { padding-left:  calc(var(--sidebar-c)  + 28px); }
-body:has(.rsidebar.collapsed) .dash-hero-content { padding-right: calc(var(--rsidebar-c) + 28px); }
+body.sb-l-collapsed .dash-hero-content,
+body.sb-l-collapsing .dash-hero-content { padding-left:  calc(var(--sidebar-c)  + 28px); }
+body.sb-r-collapsed .dash-hero-content { padding-right: calc(var(--rsidebar-c) + 28px); }
 
 .dash-welcome {
     font-size: calc(37px + var(--fs-off, 0px));
