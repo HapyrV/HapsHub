@@ -284,6 +284,14 @@
                 </div>
             </div>
             <div id="tb-drag">
+                <!-- Smart Search: a bar between the clock and the credit. Its results drop down under it (#ssModal). -->
+                <div id="ssWrap" class="ss-wrap ss-bar">
+                    <label class="ss-badge ss-bar-field" id="ssBadge" title="Smart Search (Ctrl K)" data-i18n-title="tb.title.smart_search">
+                        <span class="msi ss-icon">search</span>
+                        <input id="ssInput" type="text" placeholder="Search friends, worlds, groups, avatars, tools, settings and the wiki…" data-i18n-placeholder="search.hint" autocomplete="off" spellcheck="false">
+                        <span class="vrcn-keybind ss-bar-key">CTRL K</span>
+                    </label>
+                </div>
                 <div id="dbMigrationIndicator" style="display:none;flex:0 0 auto;align-items:center;gap:8px;margin:0 8px;min-width:140px;max-width:200px;">
                     <div style="flex:1;">
                         <div style="font-size:calc(10px + var(--fs-off, 0px));color:var(--tx2);margin-bottom:3px;white-space:nowrap;" data-i18n="migration.label">Migrating Database...</div>
@@ -301,11 +309,6 @@
                 <button class="tb-sidebar-btn" id="badgeVrcCredits" style="display:none;width:auto;padding:0 9px;gap:5px;" title="VRC Credits" data-i18n-title="tb.title.vrc_credits"><span class="tb-mask-icon tb-mask-credits"></span><span id="badgeVrcCreditsLabel" style="font-size:calc(11px + var(--fs-off, 0px));font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;"></span></button>
                 <button class="tb-sidebar-btn" id="badgeVrcPlus" style="display:none;" title="VRC+" data-i18n-title="tb.title.vrc_plus"><span class="tb-mask-icon tb-mask-vrcplus"></span></button>
                 <div class="tb-sep"></div>
-                <div id="ssWrap" class="ss-wrap">
-                    <div class="ss-badge" id="ssBadge" title="Smart Search" data-i18n-title="tb.title.smart_search">
-                        <span class="msi ss-icon">search</span>
-                    </div>
-                </div>
                 <button class="tb-sidebar-btn" id="tbApiHealth" style="display:none;" title="VRChat API Status" data-i18n-title="apihealth.title" onclick="toggleApiHealthPanel()"><span class="msi tbah-icon" id="tbApiHealthDot">database</span></button>
                 <div id="tbToolsGroup" data-windows-only>
                     <button class="tb-sidebar-btn" id="badgeRelay" title="Media Relay" data-i18n-title="nav.media_relay" onclick="toggleRelay()"><span class="msi">cell_tower</span></button>

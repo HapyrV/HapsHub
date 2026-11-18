@@ -441,7 +441,7 @@ function tbToggleTools() {
 // are for the largest text settings: no title, and menu names without the extra letter spacing, then text size.
 (function () {
     const STEPS = ['tb-fit-1', 'tb-fit-2', 'tb-fit-3', 'tb-fit-4', 'tb-fit-5', 'tb-fit-6'];
-    const CREDIT_ROOM = 44;
+    const CREDIT_ROOM = 80; // the credit plus the Smart Search icon
     function tight() {
         const left = document.getElementById('tb-left');
         const drag = document.getElementById('tb-drag');

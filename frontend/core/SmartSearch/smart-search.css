@@ -304,12 +304,13 @@
 .ss-modal-overlay {
     display: none;
     position: fixed;
-    inset: 0;
+    /* Starts under the top bar (smart-search.js sets top and the left padding) so the search field stays usable. */
+    inset: 40px 0 0 0;
     z-index: 10050;
-    background: rgba(0, 0, 0, 0.55);
+    background: rgba(0, 0, 0, 0.3);
     align-items: flex-start;
-    justify-content: center;
-    padding-top: 72px;
+    justify-content: flex-start;
+    padding-top: 6px;
     animation: fadeIn .1s ease;
 }
 
@@ -318,7 +319,7 @@
 }
 
 .ss-modal-box {
-    width: 540px;
+    width: var(--ss-panel-w, 540px);
     max-width: calc(100vw - 48px);
     background: var(--bg-card);
     border: 1px solid var(--brd-lt);
@@ -541,3 +542,50 @@
 }
 .ss-ai-alt-title { font-weight: 600; color: var(--tx0); }
 .ss-ai-alt-sub { font-size: calc(11px + var(--fs-off, 0px)); color: var(--tx2); }
+
+/* Nothing to show yet: no empty box under the bar. */
+.ss-modal-box:not(:has(.ss-dropdown.ss-visible)) { display: none; }
+
+/* === The search bar in the top bar, between the clock and the credit === */
+.ss-wrap.ss-bar {
+    flex: 1 1 auto;
+    max-width: 420px;
+    min-width: 0;
+    height: 100%;
+}
+.ss-badge.ss-bar-field {
+    width: 100%;
+    height: 26px;
+    gap: 7px;
+    padding: 0 6px 0 10px;
+    justify-content: flex-start;
+    border: 1px solid var(--brd);
+    border-radius: 8px;
+    background: var(--bg-input, color-mix(in srgb, var(--tx0) 5%, transparent));
+    cursor: text;
+}
+.ss-badge.ss-bar-field:hover { background: var(--bg-hover); }
+.ss-badge.ss-bar-field:focus-within,
+.ss-badge.ss-bar-field.tb-active { border-color: var(--accent); color: var(--tx0); }
+.ss-bar-field .ss-icon { font-size: 16px; }
+.ss-bar-field input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--tx1);
+    font-family: inherit;
+    font-size: calc(12px + var(--fs-off, 0px));
+    text-overflow: ellipsis;
+}
+.ss-bar-field input::placeholder { color: var(--tx3); }
+.ss-bar-key { height: 18px; min-width: 0; font-size: 10px; flex-shrink: 0; }
+.ss-bar-field:focus-within .ss-bar-key { display: none; }
+/* A narrow bar gives up the shortcut, then the text, and keeps the icon (the credit always keeps its room). */
+@container (max-width: 380px) { .ss-bar-key { display: none; } }
+@container (max-width: 230px) {
+    .ss-wrap.ss-bar { flex: 0 0 auto; }
+    .ss-bar-field input { display: none; }
+    .ss-badge.ss-bar-field { width: 30px; padding: 0; justify-content: center; cursor: pointer; }
+}

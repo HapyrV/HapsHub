@@ -38,7 +38,8 @@
 .tb-credit .msi { font-size: 13px; color: var(--accent-lt, var(--accent)); }
 .tb-credit strong { color: var(--accent-lt, var(--accent)); font-weight: 700; }
 @container (max-width: 360px) { .tb-credit-more { display: none; } }
-@container (max-width: 195px) { .tb-credit-lead { display: none; } }
+/* With the Smart Search bar beside it, a narrow bar keeps just "♥ VRCNext". */
+@container (max-width: 520px) { .tb-credit-lead { display: none; } }
 @container (max-width: 105px) {
     .tb-credit-text { display: none; }
     .tb-credit { padding: 0 6px; }

@@ -1140,10 +1140,21 @@ const SmartSearch = (() => {
         }
         _open = true;
         _badge.classList.add('tb-active');
+        _place();
         _modal.classList.add('ss-modal-open');
         if (!myGroupsLoaded && typeof loadMyGroups === 'function') loadMyGroups();
-        _input.value = '';
-        setTimeout(() => _input.focus(), 40);
+        if (document.activeElement !== _input) _input.value = '';
+        setTimeout(() => _input.focus(), 0);
+    }
+
+    // The results hang under the top-bar search field, at least 540 px wide, kept on screen.
+    function _place() {
+        const r = _wrap.getBoundingClientRect();
+        const barBottom = document.getElementById('taskbar')?.getBoundingClientRect().bottom ?? r.bottom;
+        const w = Math.min(Math.max(r.width, 540), window.innerWidth - 24);
+        _modal.style.top = Math.round(barBottom) + 'px';
+        _modal.style.paddingLeft = Math.round(Math.max(12, Math.min(r.left, window.innerWidth - w - 12))) + 'px';
+        _modal.style.setProperty('--ss-panel-w', Math.round(w) + 'px');
     }
 
     function _close() {
@@ -1154,6 +1165,7 @@ const SmartSearch = (() => {
         _hideDropdown();
         _input.value = '';
         _hideDebAnim('ssInput');
+        _input.blur();
     }
 
     function _onInput() {
@@ -1186,6 +1198,7 @@ const SmartSearch = (() => {
 
         _input.addEventListener('input', _onInput);
         _input.addEventListener('focus', () => {
+            if (!_open) _open_ui();
             if (!_input.value.trim()) _showHint();
             else _showDropdown();
         });
@@ -1226,8 +1239,9 @@ const SmartSearch = (() => {
         });
 
         document.addEventListener('mousedown', (e) => {
-            if (_open && !e.target.closest('.ss-modal-box')) _close();
+            if (_open && !e.target.closest('.ss-modal-box, #ssWrap')) _close();
         });
+        window.addEventListener('resize', () => { if (_open) _place(); });
     }
 
     function rebuildDebouncer() {
