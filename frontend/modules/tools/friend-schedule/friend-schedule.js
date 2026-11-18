@@ -157,21 +157,13 @@ function _fschOptions() {
     };
 }
 
+// The rows go to the engine as they are; it builds the events (FriendScheduleEngine.expandFriendSchedulePayload).
 function _fschPayload(options) {
-    const names = _fschData.names || {};
-    const toEvents = (rows, on, off) => (rows || []).map((row, index) => ({
-        id: index + 1,
-        createdAt: row[0],
-        type: row[1] ? on : off,
-        userId: row[2],
-        displayName: names[row[2]] || '',
-    }));
     return {
         nowMs: Date.now(),
-        presenceEvents: toEvents(_fschData.presence, 'Online', 'Offline'),
-        friendHistory: toEvents(_fschData.relationships, 'Friend', 'Unfriend'),
+        rows: { presence: _fschData.presence, relationships: _fschData.relationships, self: _fschData.self },
+        names: _fschData.names || {},
         currentFriends: _fschFriends(),
-        selfActivityRows: (_fschData.self || []).map(row => ({ createdAt: row[0], time: row[1] })),
         options,
     };
 }
@@ -303,7 +295,7 @@ async function _fschAnalyze() {
         _fschGetWorker().postMessage({ seq, payload });
     } catch {
         // Worse on a long history, but a page without workers still gets an answer.
-        try { _fschFinish(FriendScheduleEngine.buildFriendSchedule(payload)); }
+        try { _fschFinish(FriendScheduleEngine.buildFriendSchedule(FriendScheduleEngine.expandFriendSchedulePayload(payload))); }
         catch (error) { _fschSetStatus(String(error?.message || error), true); }
     }
 }

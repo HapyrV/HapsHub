@@ -18,9 +18,15 @@ const _hhist = { view: 'names', search: '', offset: 0, total: 0, pageSize: 100, 
 
 function _hhistEl(id) { return document.getElementById(id); }
 
+// One formatter for every row: toLocaleString with options builds a new one per call (a page of 100 rows, issue 12).
+// It is rebuilt when the language changes.
+let _hhistWhenFmt = null, _hhistWhenLang = '';
 function _hhistWhen(value) {
     const date = new Date(value);
-    return isNaN(date) ? '' : date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+    if (isNaN(date)) return '';
+    const lang = document.documentElement.lang;
+    if (!_hhistWhenFmt || _hhistWhenLang !== lang) { _hhistWhenFmt = new Intl.DateTimeFormat([], { dateStyle: 'medium', timeStyle: 'short' }); _hhistWhenLang = lang; }
+    return _hhistWhenFmt.format(date);
 }
 
 function _hhistRenderViews() {

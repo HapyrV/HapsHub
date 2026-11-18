@@ -1066,6 +1066,7 @@ function _navPageTitle(i) {
     return def ? t(def.i18n, def.label) : '';
 }
 
+let _pageTitleFrame = 0, _pageTitleW = 0;
 function updateCurrentPageTitle() {
     const activeTab = document.querySelector('.tab.active');
     if (!activeTab) return;
@@ -1075,25 +1076,19 @@ function updateCurrentPageTitle() {
     if (!pageTitle) return;
     const next = getPageTitle(parseInt(match[1], 10));
     if (pageTitle.textContent === next) return;
-    const noAnim = document.documentElement.classList.contains('no-animations');
-    const oldW = pageTitle.offsetWidth;
     pageTitle.textContent = next;
-    pageTitle.classList.remove('tb-title-anim');
-    void pageTitle.offsetWidth;
-    pageTitle.classList.add('tb-title-anim');
-    if (noAnim || !oldW) return;
-    const newW = pageTitle.offsetWidth;
-    if (newW === oldW) return;
-    pageTitle.style.width = oldW + 'px';
-    void pageTitle.offsetWidth;
-    pageTitle.style.transition = 'width 0.18s ease';
-    pageTitle.style.width = newW + 'px';
-    const done = () => {
-        pageTitle.style.transition = '';
-        pageTitle.style.width = '';
-        pageTitle.removeEventListener('transitionend', done);
-    };
-    pageTitle.addEventListener('transitionend', done);
+    if (document.documentElement.classList.contains('no-animations') || !pageTitle.animate) return;
+    // Issue 12: reading the title's width here forced a layout of the page just switched to, inside the click, and
+    // the page's own first render then laid it out again (Timeline's first open: 83 ms, 23 ms without). The fade
+    // restarts through the animation API, which needs no layout read, and the width glide waits for the next frame,
+    // whose layout happens anyway, starting from the width measured after the previous change.
+    pageTitle.animate([{ opacity: 0, transform: 'translateY(2px)' }, { opacity: 1, transform: 'none' }], { duration: 180, easing: 'ease' });
+    cancelAnimationFrame(_pageTitleFrame);
+    _pageTitleFrame = requestAnimationFrame(() => {
+        const oldW = _pageTitleW, newW = pageTitle.offsetWidth;
+        _pageTitleW = newW;
+        if (oldW && newW && oldW !== newW) pageTitle.animate([{ width: oldW + 'px' }, { width: newW + 'px' }], { duration: 180, easing: 'ease' });
+    });
 }
 
 const THEME_SKELETON_KEYS = ['bg-base', 'bg-side', 'bg-taskbar', 'bg-card', 'bg-input', 'accent', 'tx0', 'tx2', 'brd'];

@@ -1613,6 +1613,21 @@ function _libUpdateCardMeta(path) {
         .forEach(el => { el.innerHTML = _libMetaHtml(item); });
 }
 
+// Many cards at once (the ratings answer): one pass over the cards on the page instead of a whole-document search and
+// a scan of every file per path (issue 12).
+function _libUpdateCardsMeta(paths) {
+    const want = new Set(paths);
+    if (!want.size) return;
+    let byPath = null;
+    for (const card of document.querySelectorAll('.lib-card[data-path]')) {
+        if (!want.has(card.dataset.path)) continue;
+        byPath ||= new Map(libraryFiles.map(f => [f.path, f]));
+        const item = byPath.get(card.dataset.path);
+        if (!item) continue;
+        card.querySelectorAll('.lib-meta-left').forEach(el => { el.innerHTML = _libMetaHtml(item); });
+    }
+}
+
 function _photoRefreshInfoPaneIfShowing(path) {
     const photoModal = document.getElementById('photoDetailModal');
     if (photoModal && _photoState.item?.path === path) {
@@ -1638,7 +1653,7 @@ function onLibraryRatings(payload) {
         _libRatingsRenderTimer = null;
         _renderLibRatingSelect();
         if (_libRatingFilter !== '__all__') filterLibrary(true);
-        else Object.keys(payload).forEach(_libUpdateCardMeta);
+        else _libUpdateCardsMeta(Object.keys(payload));
     }, 150);
 }
 

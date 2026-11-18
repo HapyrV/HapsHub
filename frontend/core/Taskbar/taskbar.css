@@ -497,9 +497,6 @@ body:not(.sb-r-collapsed) #taskbar::before {
 #tbNormalLeft { display: flex; align-items: stretch; min-width: 0; }
 #tbAppControls { display: flex; align-items: stretch; flex-shrink: 2; min-width: 0; overflow: hidden; }
 
-@keyframes tbTitleFade { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
-.tb-title-anim { animation: tbTitleFade 0.18s ease; }
-html.no-animations .tb-title-anim { animation: none !important; }
 
 .tb-crumb, .tb-crumb-current {
     font-size: calc(13px + var(--fs-off, 0px));

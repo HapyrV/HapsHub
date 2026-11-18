@@ -1337,14 +1337,33 @@ function uniqueStrings(input) {
         : [];
 }
 
-const api = { FRIEND_SCHEDULE_CACHE_VERSION, normalizeFriendScheduleOptions, validateTimeZone, zonedDateStartMs, buildFriendSchedule, rankBestRecurringBlocks };
+// The page sends the history as it keeps it, [time, on, userId] rows plus a name table, and the events are built
+// here: building and copying one object per event on the page took ~45 ms on a long history (issue 12).
+function expandFriendSchedulePayload(compact) {
+    const { rows = {}, names = {}, ...rest } = compact || {};
+    const toEvents = (list, on, off) => (list || []).map((row, index) => ({
+        id: index + 1,
+        createdAt: row[0],
+        type: row[1] ? on : off,
+        userId: row[2],
+        displayName: names[row[2]] || '',
+    }));
+    return {
+        ...rest,
+        presenceEvents: toEvents(rows.presence, 'Online', 'Offline'),
+        friendHistory: toEvents(rows.relationships, 'Friend', 'Unfriend'),
+        selfActivityRows: (rows.self || []).map(row => ({ createdAt: row[0], time: row[1] })),
+    };
+}
+
+const api = { FRIEND_SCHEDULE_CACHE_VERSION, normalizeFriendScheduleOptions, validateTimeZone, zonedDateStartMs, buildFriendSchedule, expandFriendSchedulePayload, rankBestRecurringBlocks };
 self.FriendScheduleEngine = api;
 
 if (typeof document === 'undefined') {
     self.onmessage = event => {
         const { seq, payload } = event.data;
         try {
-            self.postMessage({ seq, result: buildFriendSchedule(payload) });
+            self.postMessage({ seq, result: buildFriendSchedule(expandFriendSchedulePayload(payload)) });
         } catch (error) {
             self.postMessage({ seq, error: String(error?.message || error) });
         }
