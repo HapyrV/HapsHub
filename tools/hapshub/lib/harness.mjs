@@ -191,7 +191,9 @@ export function startApp(dataDir, port, env = {}, args = []) {
     const app = spawn(EXE, args, {
         detached: true,
         stdio: 'ignore',
-        env: { ...process.env, ...env, HAPSHUB_DATA_DIR: dataDir, WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${port}` },
+        // This variable replaces the app's own WebView2 arguments (heap size, GPU, process limit); pass
+        // env.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS to keep them (see lag-profile.mjs appFlags).
+        env: { ...process.env, ...env, HAPSHUB_DATA_DIR: dataDir, WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${port} ${env.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS ?? ''}`.trim() },
     });
     started.push(app.pid);
     return app;
