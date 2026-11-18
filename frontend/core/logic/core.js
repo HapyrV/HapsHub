@@ -1929,6 +1929,7 @@ function showTab(i) {
     if (i === 3 && typeof _favFriendsDirty !== 'undefined' && _favFriendsDirty && favFriendsData.length > 0) filterFavFriends();
     if (i === 4) { if (!avatarsLoaded) refreshAvatars(); }
     if (i === 7) { if (!libraryFiles.length) refreshLibrary(); else filterLibrary(); }
+    if (i === 40 && typeof hapsplorerOpen === 'function') hapsplorerOpen();
     if (i === 9) {
         renderLanguageChips();
         renderThemeChips();

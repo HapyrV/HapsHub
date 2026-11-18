@@ -27,6 +27,8 @@ const HUB_PLUGINS = [
       desc: 'Shows when your friends are usually online, to find a good time to meet.' },
     { id: 'world-map', name: 'World Map', by: 'HapsHub', icon: 'public', licences: ['world-atlas'], nav: ['world-map'],
       desc: 'A globe with your friends placed by the languages and countries on their profiles.' },
+    { id: 'hapsplorer', name: 'Hapsplorer', by: 'HapsHub', icon: 'storefront', licences: ['vrcatalogue-data'], nav: ['hapsplorer'],
+      desc: 'Search BOOTH avatar assets on a Hapsplorer server. Needs its address and an access key from whoever runs it.' },
     { id: 'launch-switches', name: 'Launch switches', by: 'HapsHub', icon: 'rocket_launch', hide: ['.launch-addons', '#launchAddonsBlock'],
       desc: 'Haptics, face tracking and full-body tracking switches in the Launch window, each starting its apps with VRChat.' },
     { id: 'vr-autostart', name: 'Start with VR', by: 'HapsHub', icon: 'play_circle', hide: ['#knownVrAppToggles'],

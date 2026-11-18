@@ -16,6 +16,7 @@ public static class HubModules
     public static HubPerformanceModule Performance { get; } = new();
     public static HubPluginsModule Plugins { get; } = new();
     public static HubVrctModule Vrct { get; } = new();
+    public static HubHapsplorerModule Hapsplorer { get; } = new();
 
     public static IReadOnlyList<IHubModule> All() => new IHubModule[]
     {
@@ -35,5 +36,6 @@ public static class HubModules
         Performance,
         Plugins,
         Vrct,
+        Hapsplorer,
     };
 }
