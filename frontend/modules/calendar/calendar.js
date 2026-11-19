@@ -585,7 +585,10 @@ function _calLayoutDayColumn(items) {
 
 function _calSizeView() {
     const el = document.getElementById('calWeekScroll') || document.getElementById('calMonthCard');
-    if (!el || !el.offsetParent) return;
+    // Runs on every tab switch. Bail on the class check first: offsetParent forces a layout of the page just switched
+    // to, inside the click (Settings: 56-61 ms once the page title stopped forcing that layout itself).
+    const tab = el && el.closest('.tab');
+    if (!el || (tab && !tab.classList.contains('active')) || !el.offsetParent) return;
     const panel = document.getElementById('calDayPanel');
     const reserve = panel && panel.style.display !== 'none'
         ? Math.min(panel.offsetHeight + 14, Math.round(window.innerHeight * 0.35))
