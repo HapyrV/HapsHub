@@ -4604,5 +4604,11 @@
   "library.prints.confirm": "¿Mover {count} copias con marco a la Papelera? Las fotos normales se quedan donde están.",
   "library.prints.moving": "Moviendo a la Papelera...",
   "library.prints.done": "{moved} movidas a la Papelera.",
-  "library.prints.done_some": "{moved} movidas a la Papelera; {failed} se dejaron como estaban (ya no son impresiones o no están en una carpeta vigilada)."
+  "library.prints.done_some": "{moved} movidas a la Papelera; {failed} se dejaron como estaban (ya no son impresiones o no están en una carpeta vigilada).",
+  "hub.set.hub.vrcx-extras.queue_alarm": "Sonar y hacer parpadear la barra de tareas cuando una cola esté lista",
+  "hub.queue.ready_in": "Tu sitio en {world} está listo. Únete antes de que caduque.",
+  "hub.queue.ready": "Tu sitio en la cola está listo. Únete antes de que caduque.",
+  "hub.set.hub.vrcx-extras.recent_invites": "Mostrar un reloj junto a los amigos que invitaste en la última hora",
+  "hub.modules.info.hub.vrcx-extras": "Pequeñas funciones de VRCX, cada una desactivada hasta que la actives. La alarma de cola suena y hace parpadear el botón de la barra de tareas cuando una cola a la que te uniste para una instancia llena tiene sitio para ti, aunque los sonidos de notificación estén desactivados; el mensaje en HapsHub aparece igualmente. El reloj marca a los amigos que invitaste, o a quienes pediste invitación, en la última hora, para que no lo pidas dos veces.",
+  "hub.recent_invite": "Lo invitaste, o le pediste invitación, en la última hora"
 }

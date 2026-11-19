@@ -23,6 +23,8 @@ function hubUiApply(modules) {
     if (typeof hubPerfApply === 'function') hubPerfApply(modules);
     hubWelcomeRender();
     _hubApplyForwardingNote(_hubSetting(modules, 'hub.forwarding', 'forward_avatar_data') === 'true');
+    window._hubRecentInvitesOn = _hubSetting(modules, 'hub.vrcx-extras', 'recent_invites') === 'true';
+    if (typeof hubRecentInvitesRefresh === 'function') hubRecentInvitesRefresh();
 }
 
 function _hubApplyDashboard() {

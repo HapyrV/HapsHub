@@ -187,6 +187,7 @@ function _handleBackendMessage(type, payload) {
             case 'dbBackupDone':      handleDbBackupDone(payload); break;
             case 'regBackupDone':     handleRegBackupDone(payload); break;
             case 'log': addLog(payload.msg, payload.color); break;
+            case 'hubQueueReady': if (typeof hubQueueReady === 'function') hubQueueReady(payload); break;
             case 'consoleOutput': addLog(payload.text, payload.color); break;
             case 'vrcMyProfile': handleMyProfileFields(payload); break;
             case 'debugImgCacheState':

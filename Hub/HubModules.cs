@@ -17,6 +17,7 @@ public static class HubModules
     public static HubPluginsModule Plugins { get; } = new();
     public static HubVrctModule Vrct { get; } = new();
     public static HubHapsplorerModule Hapsplorer { get; } = new();
+    public static VrcxExtrasModule VrcxExtras { get; } = new();
 
     public static IReadOnlyList<IHubModule> All() => new IHubModule[]
     {
@@ -37,5 +38,6 @@ public static class HubModules
         Plugins,
         Vrct,
         Hapsplorer,
+        VrcxExtras,
     };
 }

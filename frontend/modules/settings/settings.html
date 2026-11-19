@@ -478,6 +478,7 @@
                         <div class="vrcn-panel-card-header"><span class="msi">group</span> <span data-i18n="settings.friends.title">Friends And User Settings</span></div>
                         <div class="sf-toggle-row"><span data-i18n="settings.friends.always_stats">Show Always Stats</span><label class="toggle"><input type="checkbox" id="setPeopleAlwaysStats" onchange="settings.peopleAlwaysStats=this.checked;autoSave();if(typeof applyPeopleAlwaysStats==='function'){if(!this.checked)window._peopleStatsMode=false;applyPeopleAlwaysStats();}"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
                         <div class="set-desc" data-i18n="settings.friends.always_stats_desc">When enabled, every person in the People tab always shows a bar with how much time you spent with them and how many meets you have, instead of clicking the "Stats" button. While this is on, the Stats button is hidden because it is always active.</div>
+                        <div id="hubRecentInvitesSlot"></div>
                     </div>
 
                     <div class="vrcn-panel-card" data-section="sidebar" style="display:none;">
@@ -552,6 +553,7 @@
                                 <span id="messageSoundVolumeVal" class="snd-val">50%</span>
                             </div>
                         </div>
+                        <div id="hubQueueAlarmSlot"></div>
                         <div class="sf-toggle-row" data-windows-only><span data-i18n="settings.sounds.media_relay">Media Relay Success Sounds</span><label class="toggle"><input type="checkbox" id="setMediaRelaySoundEnabled" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
                         <div class="set-desc" data-windows-only data-i18n="settings.sounds.media_relay_desc">Plays a sound when Media Relay successfully sends an image to one of your Discord channels.</div>
                         <div class="snd-picker" data-windows-only>

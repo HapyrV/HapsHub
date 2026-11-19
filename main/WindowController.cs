@@ -34,6 +34,23 @@ public class WindowController
     [DllImport("user32.dll")] private static extern bool IsIconic(nint hWnd);
     [DllImport("user32.dll")] private static extern bool IsWindowVisible(nint hWnd);
     [DllImport("user32.dll")] private static extern bool GetWindowPlacement(nint hWnd, ref WINDOWPLACEMENT lpwndpl);
+    [DllImport("user32.dll")] private static extern bool FlashWindowEx(ref FLASHWINFO pwfi);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct FLASHWINFO { public uint cbSize; public nint hwnd; public uint dwFlags; public uint uCount; public uint dwTimeout; }
+
+    /// <summary>Flashes the taskbar button until the window comes to the front.</summary>
+    public static void FlashTaskbar(nint hWnd)
+    {
+        if (hWnd == 0) return;
+        const uint FLASHW_ALL = 3, FLASHW_TIMERNOFG = 12;
+        var info = new FLASHWINFO
+        {
+            cbSize = (uint)Marshal.SizeOf<FLASHWINFO>(), hwnd = hWnd,
+            dwFlags = FLASHW_ALL | FLASHW_TIMERNOFG, uCount = uint.MaxValue, dwTimeout = 0,
+        };
+        FlashWindowEx(ref info);
+    }
 
     private const int SW_HIDE           = 0;
     private const int SW_SHOW           = 5;
@@ -64,6 +81,7 @@ public class WindowController
     private bool _linuxWindowHidden;
 
     public static void AllowNextClose() => _forceClose = true;
+    public static void FlashTaskbar(nint hWnd) { }
 #endif
 #if WINDOWS
 

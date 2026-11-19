@@ -318,6 +318,49 @@ section('dashboard', async main => {
     check('D2: each click shows a different picture, never an Eagle preview', ok, seen.join(','));
 });
 
+section('from vrcx', async main => {
+    // VRCX de1633f and e819c4e: both off to start with, each under its own settings card, and not listed twice.
+    await main.eval(`showTab(9); hubModulesRefresh()`);
+    await waitFor('the From VRCX switches', () => main.eval(`!!document.querySelector('#hubRecentInvitesSlot input[data-module="hub.vrcx-extras"]')`), 15000).catch(() => {});
+    const rows = await main.json(`(() => {
+        const alarm = document.querySelector('#hubQueueAlarmSlot input[data-module="hub.vrcx-extras"][data-key="queue_alarm"]');
+        const clock = document.querySelector('#hubRecentInvitesSlot input[data-module="hub.vrcx-extras"][data-key="recent_invites"]');
+        return { alarm: !!alarm, alarmOn: !!alarm?.checked, clock: !!clock, clockOn: !!clock?.checked, twice: !!document.querySelector('#hubModulesList [data-module="hub.vrcx-extras"]') };
+    })()`);
+    check('VRCX: the queue alarm (Sounds) and the invite clock (Sidebar) switches are there, off, and not in the module list too',
+        rows.alarm && rows.clock && !rows.alarmOn && !rows.clockOn && !rows.twice, JSON.stringify(rows));
+
+    // The hub's message as it arrives when VRChat says a queued place is ready.
+    const ready = await main.json(`(() => {
+        worldInfoCache['wrld_queuetest'] = { id: 'wrld_queuetest', name: 'Queue Test World' };
+        _handleBackendMessage('hubQueueReady', { location: 'wrld_queuetest:123~group(grp_x)', alarm: true });
+        const loud = window._hubLastQueueReady;
+        _handleBackendMessage('hubQueueReady', { location: 'wrld_unknown:1', alarm: false });
+        return { loud, quiet: window._hubLastQueueReady, toast: document.body.innerText.includes('Queue Test World') };
+    })()`);
+    check('VRCX queue alarm: a ready queue names the world and chimes only with the alarm on',
+        ready.loud?.world === 'Queue Test World' && ready.loud?.chimed === true && ready.quiet?.chimed === false && ready.toast, JSON.stringify(ready));
+
+    // Turning the clock on goes through the hub and back.
+    await main.eval(`(() => { const i = document.querySelector('#hubRecentInvitesSlot input[data-key="recent_invites"]'); i.checked = true; i.dispatchEvent(new Event('change')); })()`);
+    const on = await waitFor('the clock setting', () => main.eval(`window._hubRecentInvitesOn === true`), 10000).then(() => true, () => false);
+    check('VRCX invite clock: the switch turns it on', on);
+    const clock = await main.json(`(() => {
+        hubNoteInvite({ action: 'vrcRequestInvite', userId: 'usr_clock' });
+        hubNoteInvite({ action: 'vrcBatchInvite', userIds: ['usr_batch'] });
+        hubNoteInvite({ action: 'vrcGetInviteMessages', userId: 'usr_not' });
+        const card = id => buildFriendCardHtml({ id, displayName: id, status: 'active', location: 'private' }, 'game').includes('hub-recent-invite');
+        const out = { asked: card('usr_clock'), batch: card('usr_batch'), other: card('usr_not') };
+        window._hubRecentInvitesOn = false;
+        out.off = card('usr_clock');
+        window._hubRecentInvitesOn = true;
+        return out;
+    })()`);
+    check('VRCX invite clock: invited and asked friends get the clock, others and the switched-off list do not',
+        clock.asked && clock.batch && !clock.other && !clock.off, JSON.stringify(clock));
+    await main.eval(`(() => { const i = document.querySelector('#hubRecentInvitesSlot input[data-key="recent_invites"]'); i.checked = false; i.dispatchEvent(new Event('change')); })()`);
+});
+
 section('help', async main => {
     const read = () => main.json(`(() => {
         const out = {};

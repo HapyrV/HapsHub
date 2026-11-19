@@ -2387,6 +2387,7 @@ function playVRChat() {
 
 // Communication
 function sendToCS(m) {
+    if (typeof hubNoteInvite === 'function') hubNoteInvite(m);
     window.external.sendMessage(JSON.stringify(m));
 }
 

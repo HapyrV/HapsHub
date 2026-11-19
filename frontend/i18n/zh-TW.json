@@ -4604,5 +4604,11 @@
   "library.prints.confirm": "將 {count} 張帶框列印副本移到資源回收筒？一般照片保持不變。",
   "library.prints.moving": "正在移到資源回收筒...",
   "library.prints.done": "已將 {moved} 張移到資源回收筒。",
-  "library.prints.done_some": "已將 {moved} 張移到資源回收筒；{failed} 張未動（已不是列印，或不在監視的資料夾中）。"
+  "library.prints.done_some": "已將 {moved} 張移到資源回收筒；{failed} 張未動（已不是列印，或不在監視的資料夾中）。",
+  "hub.set.hub.vrcx-extras.queue_alarm": "排隊輪到你時播放提示音並閃爍工作列",
+  "hub.queue.ready_in": "{world} 已輪到你。請在過期前加入。",
+  "hub.queue.ready": "排隊已輪到你。請在過期前加入。",
+  "hub.set.hub.vrcx-extras.recent_invites": "在過去一小時內邀請過的好友旁顯示時鐘",
+  "hub.modules.info.hub.vrcx-extras": "來自 VRCX 的小功能，每項在你開啟前都是關閉的。排隊提醒會在你排隊等待的滿員房間有空位時播放提示音並閃爍工作列按鈕，即使通知音已關閉；HapsHub 內的訊息一律會顯示。時鐘會標記你在過去一小時內邀請過或請求過邀請的好友，免得重複請求。",
+  "hub.recent_invite": "你在過去一小時內邀請過或請求過邀請"
 }

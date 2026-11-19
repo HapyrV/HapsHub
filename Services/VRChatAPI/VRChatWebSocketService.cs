@@ -57,6 +57,9 @@ public sealed class VRChatWebSocketService : IDisposable
 
     public event EventHandler? AuthExpiredSuspected;
 
+    /// <summary>A queue you joined for a full instance has a place for you now. The argument is the instance's location.</summary>
+    public event EventHandler<string>? InstanceQueueReady;
+
     // State
 
     private string _authToken = "";
@@ -343,6 +346,16 @@ public sealed class VRChatWebSocketService : IDisposable
                     {
                         NotificationArrived?.Invoke(this, new NotificationEventArgs { WsType = type });
                     }
+                    break;
+
+                case "instance-queue-ready":
+                    try
+                    {
+                        var location = JObject.Parse(contentStr)["instanceLocation"]?.Value<string>() ?? "";
+                        if (!string.IsNullOrEmpty(location))
+                            InstanceQueueReady?.Invoke(this, location);
+                    }
+                    catch { }
                     break;
 
                 case "user-location":

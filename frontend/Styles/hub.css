@@ -181,3 +181,6 @@ body.hub-resizing, body.hub-resizing * { cursor: col-resize !important; user-sel
 #taskbar.tb-fit-5 #pageTitle { display: none; }
 #taskbar.tb-fit-5 .tb-menu-item > span:first-child { letter-spacing: normal; }
 #taskbar.tb-fit-6 .tb-menu-item > span:first-child { font-size: 13px; }
+
+/* From VRCX: a clock beside friends you invited in the last hour. */
+.vrc-friend-name .hub-recent-invite { font-size: 13px; margin-right: 3px; color: var(--tx2); flex-shrink: 0; }

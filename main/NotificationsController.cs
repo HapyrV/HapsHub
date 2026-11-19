@@ -55,6 +55,14 @@ public class NotificationsController
                 }
             });
         };
+        // From VRCX: say when a queued instance is ready, and with the queue alarm on, chime and flash the taskbar.
+        ws.InstanceQueueReady += (_, location) =>
+        {
+            if (!_core.VrcApi.IsLoggedIn) return;
+            var alarm = HapsHub.Core.HubModules.VrcxExtras.QueueAlarm;
+            _core.SendToJS("hubQueueReady", new { location, alarm });
+            if (alarm) WindowController.FlashTaskbar(_core.Window?.WindowHandle ?? 0);
+        };
     }
 
     // Message Handler

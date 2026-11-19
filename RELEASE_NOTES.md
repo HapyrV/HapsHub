@@ -11,6 +11,7 @@ The first release of HapsHub, built on VRCNext 2027.2.0. HapsHub is heavily base
 - Performance mode for slower PCs, and a setting to rename the app.
 - Rearrange the sidebar by dragging; rename groups by double-clicking them.
 - From VRCNext 2027.2.0: Space Walk, My Reports, Purchase History, reporting users, reward codes, instance descriptions and vibes, Worlds Discover, Ukrainian, Linux support, and faster loading and tab switching.
+- From VRCX, off until you turn them on: a chime and a flashing taskbar button when a queued instance has a place for you (Settings > Sounds), and a clock beside friends you invited in the last hour (Settings > Sidebar).
 
 **Fixed**
 - Scrolling in Settings dropped half its frames.

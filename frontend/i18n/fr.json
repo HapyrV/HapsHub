@@ -4604,5 +4604,11 @@
   "library.prints.confirm": "Mettre {count} copies encadrées à la Corbeille ? Les photos normales restent en place.",
   "library.prints.moving": "Déplacement vers la Corbeille...",
   "library.prints.done": "{moved} mises à la Corbeille.",
-  "library.prints.done_some": "{moved} mises à la Corbeille ; {failed} laissées telles quelles (plus une impression, ou hors d'un dossier surveillé)."
+  "library.prints.done_some": "{moved} mises à la Corbeille ; {failed} laissées telles quelles (plus une impression, ou hors d'un dossier surveillé).",
+  "hub.set.hub.vrcx-extras.queue_alarm": "Jouer un son et faire clignoter la barre des tâches quand une file d'attente est prête",
+  "hub.queue.ready_in": "Votre place dans {world} est prête. Rejoignez avant qu'elle expire.",
+  "hub.queue.ready": "Votre place dans la file d'attente est prête. Rejoignez avant qu'elle expire.",
+  "hub.set.hub.vrcx-extras.recent_invites": "Afficher une horloge à côté des amis invités dans la dernière heure",
+  "hub.modules.info.hub.vrcx-extras": "Petites fonctions reprises de VRCX, chacune désactivée tant que vous ne l'activez pas. L'alarme de file d'attente joue un son et fait clignoter le bouton de la barre des tâches quand une file rejointe pour une instance pleine a une place pour vous, même si les sons de notification sont coupés ; le message dans HapsHub s'affiche dans tous les cas. L'horloge marque les amis invités, ou à qui vous avez demandé une invitation, dans la dernière heure, pour éviter de demander deux fois.",
+  "hub.recent_invite": "Invité, ou invitation demandée, dans la dernière heure"
 }

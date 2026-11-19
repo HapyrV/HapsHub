@@ -4604,5 +4604,11 @@
   "library.prints.confirm": "Move {count} framed print copies to the Recycle Bin? The normal photos stay where they are.",
   "library.prints.moving": "Moving to the Recycle Bin...",
   "library.prints.done": "Moved {moved} to the Recycle Bin.",
-  "library.prints.done_some": "Moved {moved} to the Recycle Bin; {failed} were left alone (no longer a print, or not in a watched folder)."
+  "library.prints.done_some": "Moved {moved} to the Recycle Bin; {failed} were left alone (no longer a print, or not in a watched folder).",
+  "hub.set.hub.vrcx-extras.queue_alarm": "Chime and flash the taskbar when a queued instance is ready",
+  "hub.queue.ready_in": "Your place in {world} is ready. Join before it runs out.",
+  "hub.queue.ready": "Your place in the queue is ready. Join before it runs out.",
+  "hub.set.hub.vrcx-extras.recent_invites": "Show a clock beside friends you invited in the last hour",
+  "hub.modules.info.hub.vrcx-extras": "Small features from VRCX, each off until you turn it on. The queue alarm chimes and flashes the taskbar button when a queue you joined for a full instance has a place for you, even with notification sounds off; the message in HapsHub shows either way. The clock marks friends you invited, or asked for an invite, in the last hour, so you don't ask twice.",
+  "hub.recent_invite": "You invited them, or asked for an invite, in the last hour"
 }

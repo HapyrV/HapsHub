@@ -4604,5 +4604,11 @@
   "library.prints.confirm": "将 {count} 张带框打印副本移到回收站？普通照片保持不变。",
   "library.prints.moving": "正在移到回收站...",
   "library.prints.done": "已将 {moved} 张移到回收站。",
-  "library.prints.done_some": "已将 {moved} 张移到回收站；{failed} 张未动（已不是打印，或不在监视的文件夹中）。"
+  "library.prints.done_some": "已将 {moved} 张移到回收站；{failed} 张未动（已不是打印，或不在监视的文件夹中）。",
+  "hub.set.hub.vrcx-extras.queue_alarm": "排队轮到你时播放提示音并闪烁任务栏",
+  "hub.queue.ready_in": "{world} 已轮到你。请在过期前加入。",
+  "hub.queue.ready": "排队已轮到你。请在过期前加入。",
+  "hub.set.hub.vrcx-extras.recent_invites": "在过去一小时内邀请过的好友旁显示时钟",
+  "hub.modules.info.hub.vrcx-extras": "来自 VRCX 的小功能，每项在你开启前都是关闭的。排队提醒会在你排队等待的满员实例有空位时播放提示音并闪烁任务栏按钮，即使通知音已关闭；HapsHub 内的消息总会显示。时钟会标记你在过去一小时内邀请过或请求过邀请的好友，免得重复请求。",
+  "hub.recent_invite": "你在过去一小时内邀请过或请求过邀请"
 }

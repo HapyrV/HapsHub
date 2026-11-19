@@ -1,0 +1,68 @@
+{
+  "hub.set.hub.vrcx-extras.queue_alarm": {
+    "en": "Chime and flash the taskbar when a queued instance is ready",
+    "de": "Ton abspielen und Taskleiste blinken lassen, wenn eine Warteschlange bereit ist",
+    "es": "Sonar y hacer parpadear la barra de tareas cuando una cola esté lista",
+    "fr": "Jouer un son et faire clignoter la barre des tâches quand une file d'attente est prête",
+    "ja": "待機列の順番が来たら音を鳴らしてタスクバーを点滅させる",
+    "ko": "대기열 차례가 오면 알림음을 울리고 작업 표시줄을 깜박이기",
+    "ru": "Звуковой сигнал и мигание панели задач, когда подошла очередь",
+    "zh-CN": "排队轮到你时播放提示音并闪烁任务栏",
+    "zh-TW": "排隊輪到你時播放提示音並閃爍工作列"
+  },
+  "hub.set.hub.vrcx-extras.recent_invites": {
+    "en": "Show a clock beside friends you invited in the last hour",
+    "de": "Uhr neben Freunden zeigen, die du in der letzten Stunde eingeladen hast",
+    "es": "Mostrar un reloj junto a los amigos que invitaste en la última hora",
+    "fr": "Afficher une horloge à côté des amis invités dans la dernière heure",
+    "ja": "1時間以内に招待したフレンドの横に時計を表示する",
+    "ko": "지난 1시간 안에 초대한 친구 옆에 시계 표시",
+    "ru": "Показывать часы рядом с друзьями, которых вы пригласили за последний час",
+    "zh-CN": "在过去一小时内邀请过的好友旁显示时钟",
+    "zh-TW": "在過去一小時內邀請過的好友旁顯示時鐘"
+  },
+  "hub.modules.info.hub.vrcx-extras": {
+    "en": "Small features from VRCX, each off until you turn it on. The queue alarm chimes and flashes the taskbar button when a queue you joined for a full instance has a place for you, even with notification sounds off; the message in HapsHub shows either way. The clock marks friends you invited, or asked for an invite, in the last hour, so you don't ask twice.",
+    "de": "Kleine Funktionen aus VRCX, jede aus, bis du sie einschaltest. Der Warteschlangen-Alarm spielt einen Ton und lässt die Taskleiste blinken, wenn in einer Warteschlange für eine volle Instanz ein Platz für dich frei wird, auch wenn Benachrichtigungstöne aus sind; die Meldung in HapsHub erscheint immer. Die Uhr markiert Freunde, die du in der letzten Stunde eingeladen oder um eine Einladung gebeten hast, damit du nicht doppelt fragst.",
+    "es": "Pequeñas funciones de VRCX, cada una desactivada hasta que la actives. La alarma de cola suena y hace parpadear el botón de la barra de tareas cuando una cola a la que te uniste para una instancia llena tiene sitio para ti, aunque los sonidos de notificación estén desactivados; el mensaje en HapsHub aparece igualmente. El reloj marca a los amigos que invitaste, o a quienes pediste invitación, en la última hora, para que no lo pidas dos veces.",
+    "fr": "Petites fonctions reprises de VRCX, chacune désactivée tant que vous ne l'activez pas. L'alarme de file d'attente joue un son et fait clignoter le bouton de la barre des tâches quand une file rejointe pour une instance pleine a une place pour vous, même si les sons de notification sont coupés ; le message dans HapsHub s'affiche dans tous les cas. L'horloge marque les amis invités, ou à qui vous avez demandé une invitation, dans la dernière heure, pour éviter de demander deux fois.",
+    "ja": "VRCX から取り入れた小さな機能です。どれもオンにするまでオフです。待機列アラームは、満員のインスタンスの待機列で順番が来ると、通知音がオフでも音を鳴らしてタスクバーのボタンを点滅させます。HapsHub 内のメッセージはどちらの場合も表示されます。時計は、1時間以内に招待した、または招待をリクエストしたフレンドに付き、二重に頼むのを防ぎます。",
+    "ko": "VRCX에서 가져온 작은 기능들로, 켜기 전까지는 모두 꺼져 있습니다. 대기열 알람은 가득 찬 인스턴스의 대기열에서 차례가 오면 알림음이 꺼져 있어도 알림음을 울리고 작업 표시줄 버튼을 깜박입니다. HapsHub 안의 메시지는 항상 표시됩니다. 시계는 지난 1시간 안에 초대했거나 초대를 요청한 친구에게 표시되어 두 번 요청하지 않게 해 줍니다.",
+    "ru": "Небольшие функции из VRCX, каждая выключена, пока вы её не включите. Сигнал очереди звучит и мигает кнопкой на панели задач, когда в очереди в заполненный инстанс для вас освобождается место, даже если звуки уведомлений выключены; сообщение в HapsHub показывается в любом случае. Часы отмечают друзей, которых вы пригласили или у которых попросили приглашение за последний час, чтобы не просить дважды.",
+    "zh-CN": "来自 VRCX 的小功能，每项在你开启前都是关闭的。排队提醒会在你排队等待的满员实例有空位时播放提示音并闪烁任务栏按钮，即使通知音已关闭；HapsHub 内的消息总会显示。时钟会标记你在过去一小时内邀请过或请求过邀请的好友，免得重复请求。",
+    "zh-TW": "來自 VRCX 的小功能，每項在你開啟前都是關閉的。排隊提醒會在你排隊等待的滿員房間有空位時播放提示音並閃爍工作列按鈕，即使通知音已關閉；HapsHub 內的訊息一律會顯示。時鐘會標記你在過去一小時內邀請過或請求過邀請的好友，免得重複請求。"
+  },
+  "hub.recent_invite": {
+    "en": "You invited them, or asked for an invite, in the last hour",
+    "de": "In der letzten Stunde eingeladen oder um eine Einladung gebeten",
+    "es": "Lo invitaste, o le pediste invitación, en la última hora",
+    "fr": "Invité, ou invitation demandée, dans la dernière heure",
+    "ja": "1時間以内に招待、または招待をリクエストしました",
+    "ko": "지난 1시간 안에 초대했거나 초대를 요청했습니다",
+    "ru": "Вы пригласили или попросили приглашение за последний час",
+    "zh-CN": "你在过去一小时内邀请过或请求过邀请",
+    "zh-TW": "你在過去一小時內邀請過或請求過邀請"
+  },
+  "hub.queue.ready_in": {
+    "en": "Your place in {world} is ready. Join before it runs out.",
+    "de": "Dein Platz in {world} ist bereit. Tritt bei, bevor er verfällt.",
+    "es": "Tu sitio en {world} está listo. Únete antes de que caduque.",
+    "fr": "Votre place dans {world} est prête. Rejoignez avant qu'elle expire.",
+    "ja": "{world} の順番が来ました。期限が切れる前に参加してください。",
+    "ko": "{world}에 들어갈 차례입니다. 만료되기 전에 참가하세요.",
+    "ru": "Ваше место в {world} готово. Зайдите, пока оно не истекло.",
+    "zh-CN": "{world} 已轮到你。请在过期前加入。",
+    "zh-TW": "{world} 已輪到你。請在過期前加入。"
+  },
+  "hub.queue.ready": {
+    "en": "Your place in the queue is ready. Join before it runs out.",
+    "de": "Dein Platz in der Warteschlange ist bereit. Tritt bei, bevor er verfällt.",
+    "es": "Tu sitio en la cola está listo. Únete antes de que caduque.",
+    "fr": "Votre place dans la file d'attente est prête. Rejoignez avant qu'elle expire.",
+    "ja": "待機列の順番が来ました。期限が切れる前に参加してください。",
+    "ko": "대기열 차례가 왔습니다. 만료되기 전에 참가하세요.",
+    "ru": "Ваша очередь подошла. Зайдите, пока место не истекло.",
+    "zh-CN": "排队已轮到你。请在过期前加入。",
+    "zh-TW": "排隊已輪到你。請在過期前加入。"
+  }
+}

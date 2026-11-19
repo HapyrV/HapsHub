@@ -27,6 +27,7 @@ function hubSettingChanged(input) {
 // A slot id that doesn't exist hides the setting; its own page edits it.
 const _HUB_MOVED_SETTINGS = {
     'hub.forwarding': { forward_avatar_data: 'hubForwardingSlot' },
+    'hub.vrcx-extras': { queue_alarm: 'hubQueueAlarmSlot', recent_invites: 'hubRecentInvitesSlot' },
     // Settings > Plugins and Settings > Performance draw these themselves.
     'hub.plugins': { enabled: 'hubOwnPage', picked: 'hubOwnPage' },
     'hub.vrct': { auto_start: 'hubOwnPage' },
