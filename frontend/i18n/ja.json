@@ -4316,6 +4316,7 @@
   "hub.nav.show_page": "{page} を表示",
   "hub.nav.add_title": "グループや見出しを追加、または隠したページを表示",
   "nav.world_map": "世界地図",
+  "nav.hapsplorer": "Hapsplorer",
   "hub.map.summary": "{countries} か国に {placed} 人のフレンド。ほかの {unplaced} 人は場所を書いていません。",
   "hub.map.note": "ピンはプロフィールから推測します：国旗、「〇〇出身」、言語。IP アドレスは使いません。",
   "hub.map.empty": "まだ場所を書いているフレンドはいません。",

@@ -4316,6 +4316,7 @@
   "hub.nav.show_page": "Afficher {page}",
   "hub.nav.add_title": "Ajouter un groupe ou un titre, ou afficher une page masquée",
   "nav.world_map": "Carte du monde",
+  "nav.hapsplorer": "Hapsplorer",
   "hub.map.summary": "{placed} amis dans {countries} pays. {unplaced} autres ne disent pas où ils sont.",
   "hub.map.note": "Les épingles sont devinées d'après les profils : drapeaux, « de … » et langues. Jamais d'après l'adresse IP.",
   "hub.map.empty": "Aucun de vos amis n'indique encore où il est.",

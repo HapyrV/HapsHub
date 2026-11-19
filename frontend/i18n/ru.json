@@ -4320,6 +4320,7 @@
   "hub.nav.show_page": "Показать {page}",
   "hub.nav.add_title": "Добавить группу или заголовок либо показать скрытую страницу",
   "nav.world_map": "Карта мира",
+  "nav.hapsplorer": "Hapsplorer",
   "hub.map.summary": "{placed} друзей в {countries} странах. Ещё {unplaced} не указывают, где они.",
   "hub.map.note": "Метки угадываются по профилям: флаги, «из …» и языки. Никогда по IP-адресу.",
   "hub.map.empty": "Пока никто из друзей не указал, где он.",

@@ -4316,6 +4316,7 @@
   "hub.nav.show_page": "{page} anzeigen",
   "hub.nav.add_title": "Gruppe oder Überschrift hinzufügen oder eine ausgeblendete Seite zeigen",
   "nav.world_map": "Weltkarte",
+  "nav.hapsplorer": "Hapsplorer",
   "hub.map.summary": "{placed} Freunde in {countries} Ländern. {unplaced} weitere sagen nicht, wo sie sind.",
   "hub.map.note": "Pins werden aus Profilen geraten: Flaggen, „aus …“ und Sprachen. Nie aus IP-Adressen.",
   "hub.map.empty": "Noch keiner deiner Freunde sagt, wo er ist.",

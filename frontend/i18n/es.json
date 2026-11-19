@@ -4316,6 +4316,7 @@
   "hub.nav.show_page": "Mostrar {page}",
   "hub.nav.add_title": "Añadir un grupo o un encabezado, o mostrar una página oculta",
   "nav.world_map": "Mapa mundial",
+  "nav.hapsplorer": "Hapsplorer",
   "hub.map.summary": "{placed} amigos en {countries} países. Otros {unplaced} no dicen dónde están.",
   "hub.map.note": "Los pines se deducen de los perfiles: banderas, «de …» e idiomas. Nunca de la dirección IP.",
   "hub.map.empty": "Ninguno de tus amigos dice todavía dónde está.",

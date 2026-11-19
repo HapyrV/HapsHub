@@ -4316,6 +4316,7 @@
   "hub.nav.show_page": "顯示{page}",
   "hub.nav.add_title": "新增群組或標題，或顯示隱藏的頁面",
   "nav.world_map": "世界地圖",
+  "nav.hapsplorer": "Hapsplorer",
   "hub.map.summary": "{countries} 個國家中有 {placed} 位好友。另有 {unplaced} 位沒有寫明所在地。",
   "hub.map.note": "圖釘根據個人資料推測：國旗、「來自……」和語言。絕不使用 IP 位址。",
   "hub.map.empty": "還沒有好友寫明所在地。",
