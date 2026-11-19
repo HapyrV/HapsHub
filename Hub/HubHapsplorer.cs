@@ -90,8 +90,16 @@ public sealed class HubHapsplorerModule : IHubModule
         while (l is { IsListening: true } && !ct.IsCancellationRequested)
         {
             HttpListenerContext ctx;
-            try { ctx = await l.GetContextAsync().WaitAsync(ct); }
-            catch (Exception) { break; }
+            var pending = l.GetContextAsync();
+            try { ctx = await pending.WaitAsync(ct); }
+            catch (Exception)
+            {
+                // On shutdown the wait ends first and the listener closes after, which faults the pending accept.
+                // Observe it, or the finalizer reports it as an unobserved task exception (a crash report).
+                _ = pending.ContinueWith(t => _ = t.Exception, CancellationToken.None,
+                    TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                break;
+            }
             _ = Task.Run(async () =>
             {
                 try { await Handle(ctx, ct); }
