@@ -1,4 +1,4 @@
-﻿                <div class="settings-layout">
+                <div class="settings-layout">
                     <nav class="settings-nav">
                         <div class="search-bar-row settings-search" id="settingsSearchWrap">
                             <span class="msi search-ico">search</span>
@@ -154,13 +154,13 @@
                         </div>
                         <div data-linux-only style="display:none;">
                             <div class="sf-toggle-row">
-                                <span data-i18n="settings.perf.linux_gpu.label">Enable Hardware Acceleration</span>
+                                <span data-i18n="settings.perf.linux_soft_render.label">Force Software Rendering</span>
                                 <label class="toggle">
-                                    <input type="checkbox" id="setLinuxGpuAccel" onchange="onPerfSettingChange()">
+                                    <input type="checkbox" id="setLinuxSoftRender" onchange="onPerfSettingChange()">
                                     <div class="toggle-track"><div class="toggle-knob"></div></div>
                                 </label>
                             </div>
-                            <div class="set-desc" data-i18n="settings.perf.linux_gpu.desc">Lets WebKitGTK use the GPU for rendering. Recommended on real hardware with working graphics drivers. Keep it off in virtual machines or when the window stays blank or shows glitches; HapsHub then uses safe software rendering.</div>
+                            <div class="set-desc" data-i18n="settings.perf.linux_soft_render.desc">Draws HapsHub on the CPU instead of the GPU. Only turn this on if the window stays blank or shows glitches, for example in a virtual machine. Blur effects are not shown while it is on.</div>
                         </div>
                         <div class="sf-toggle-row" style="margin-top:14px;">
                             <span data-i18n="settings.perf.animations.label">Animations and Transitions</span>
@@ -345,6 +345,11 @@
                             <label class="toggle"><input type="checkbox" id="setRememberWindowPosition" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
                         </div>
                         <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.window.remember_position_desc">Restores the window to its last screen position when HapsHub starts. Resets to the default monitor if the previous monitor is no longer connected.</div>
+                        <div class="sf-toggle-row">
+                            <span data-i18n="settings.window.loading_bar">Show Loading-bar on Startup</span>
+                            <label class="toggle"><input type="checkbox" id="setShowLoadingBar" checked onchange="onShowLoadingBarChange(this.checked)"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
+                        </div>
+                        <div class="set-desc" style="margin-bottom:10px;" data-i18n="settings.window.loading_bar_desc">When disabled it will hide the loading bar which shows UI elements faster.</div>
                         <div class="sf-toggle-row" style="margin-top:6px;">
                             <span data-i18n="settings.debug.text_tools.label">Enable Text Tools</span>
                             <label class="toggle"><input type="checkbox" id="setTextToolsEnabled" onchange="toggleTextTools(this.checked)"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
@@ -370,29 +375,21 @@
                                 <div class="toggle-track"><div class="toggle-knob"></div></div>
                             </label>
                         </div>
-                        <div class="set-desc" data-windows-only data-i18n="settings.system.hide_in_tray_desc">When closing HapsHub, it minimizes to the system tray instead of exiting. Click the tray icon to restore the window.</div>
-                        <div class="sf-toggle-row" style="margin-top:14px;" id="trayNotifRow" data-windows-only>
+                        <div class="set-desc" data-i18n="settings.system.hide_in_tray_desc">When closing HapsHub, it hides to the system tray instead of exiting. Click the tray icon to restore the window.</div>
+                        <div class="sf-toggle-row" style="margin-top:14px;" id="trayNotifRow">
                             <span data-i18n="settings.system.tray.notifications">Show notifications on system tray</span>
                             <label class="toggle">
                                 <input type="checkbox" id="setTrayNotifications" onchange="autoSave()">
                                 <div class="toggle-track"><div class="toggle-knob"></div></div>
                             </label>
                         </div>
-                        <div class="set-desc" id="trayNotifDesc" data-windows-only data-i18n="settings.system.tray.notifications_desc">Displays a notification when a new VRChat notification arrives while HapsHub is hidden in the system tray.</div>
+                        <div class="set-desc" id="trayNotifDesc" data-i18n="settings.system.tray.notifications_desc">Displays a desktop notification when a new VRChat notification arrives while HapsHub is hidden in the system tray.</div>
                     </div>
 
                     <!-- VRC+ DECORATIONS -->
                     <div class="vrcn-panel-card" data-section="general">
                         <div class="vrcn-panel-card-header"><span class="msi" style="font-size:16px;">workspace_premium</span> <span data-i18n="settings.decorations.title">VRC+ Decorations</span></div>
                         <div class="sf-toggle-row">
-                            <span data-i18n="settings.decorations.optimize.label">Optimize VRC+ Usage</span>
-                            <label class="toggle">
-                                <input type="checkbox" id="setVrcPlusOptimize" checked onchange="onVrcPlusOptimizeToggle()">
-                                <div class="toggle-track"><div class="toggle-knob"></div></div>
-                            </label>
-                        </div>
-                        <div class="set-desc" data-i18n="settings.decorations.optimize.desc">Shows animated decorations as static images in friend lists and cards to greatly reduce memory and GPU usage. Animations still play in profile modals and on your own profile.</div>
-                        <div class="sf-toggle-row" style="margin-top:14px;">
                             <span data-i18n="settings.decorations.enable_all">Enable VRC+ Decorations</span>
                             <label class="toggle">
                                 <input type="checkbox" id="setVrcPlusDecorations" onchange="onVrcPlusDecorationsToggle(this.checked)">
@@ -530,7 +527,8 @@
                         <div class="vrcn-panel-card-header"><span class="msi">volume_up</span> <span data-i18n="settings.sounds.title">Sounds</span></div>
                         <div class="sf-toggle-row"><span data-i18n="settings.sounds.notifications">Notification Sounds</span><label class="toggle"><input type="checkbox" id="setNotifySoundEnabled" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
                         <div class="set-desc" data-i18n="settings.sounds.notifications_desc">Plays a sound when you receive a new notification such as friend requests, invites and more.</div>
-                        <div class="snd-picker">
+                        <div class="set-desc" data-kde-only style="display:none;">Configure sounds per event in System Settings &gt; Notifications &gt; Applications &gt; HapsHub. The in-app toggles below enable or disable their corresponding sounds.</div>
+                        <div class="snd-picker" data-kde-hide>
                             <div class="snd-row">
                                 <label class="snd-label" data-i18n="settings.sounds.sound">Sound</label>
                                 <select id="setNotifySoundFile" class="vrcn-dropdown snd-select" data-vn-hover="sndPreviewNotify" onchange="applySoundSettings();autoSave()"></select>
@@ -543,7 +541,7 @@
                         </div>
                         <div class="sf-toggle-row"><span data-i18n="settings.sounds.messages">Message Sounds</span><label class="toggle"><input type="checkbox" id="setMessageSoundEnabled" onchange="autoSave()"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
                         <div class="set-desc" data-i18n="settings.sounds.messages_desc">Plays a sound when you get a boop or when someone sends you a message through the VRCN Messenger.</div>
-                        <div class="snd-picker">
+                        <div class="snd-picker" data-kde-hide>
                             <div class="snd-row">
                                 <label class="snd-label" data-i18n="settings.sounds.sound">Sound</label>
                                 <select id="setMessageSoundFile" class="vrcn-dropdown snd-select" data-vn-hover="sndPreviewMessage" onchange="applySoundSettings();autoSave()"></select>

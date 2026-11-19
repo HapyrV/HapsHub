@@ -36,6 +36,9 @@ fi
 echo "==> Using dotnet: $DOTNET ($("$DOTNET" --version))"
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export DOTNET_NOLOGO=1
+if [ -z "${VRCNEXT_HYPERATE_API_KEY:-}" ]; then
+    echo "[WARN] HypeRate support will be unavailable in this build because VRCNEXT_HYPERATE_API_KEY is unset."
+fi
 
 # ----------------------------------------------------------------- source sync
 SRC="$CACHE/src"
@@ -58,6 +61,14 @@ else
         .) | (cd "$SRC" && tar -xf -)
 fi
 
+# ------------------------------------------------------- Photino.Native (fork)
+FORK_DIR="$SRC/external/photino.NET"
+FORK_SO="$FORK_DIR/Photino.Native/lib/x64/Photino.Native.so"
+echo "==> Building Photino.Native.so from the fork..."
+rm -f "$FORK_SO"
+sed -i 's/\r$//' "$FORK_DIR/build-native-linux.sh"
+bash "$FORK_DIR/build-native-linux.sh"
+
 # -------------------------------------------------------------------- publish
 echo "==> Publishing linux-x64 (self-contained)..."
 rm -rf "$STAGE"
@@ -70,6 +81,7 @@ rm -rf "$STAGE"
 [ -f "$STAGE/HapsHub" ] || { echo "[ERROR] Publish output missing HapsHub binary"; exit 1; }
 [ -d "$STAGE/frontend" ] || { echo "[ERROR] Publish output missing frontend/"; exit 1; }
 [ -f "$STAGE/Photino.Native.so" ] || { echo "[ERROR] Publish output missing Photino.Native.so"; exit 1; }
+cmp -s "$STAGE/Photino.Native.so" "$FORK_SO" || { echo "[ERROR] Publish output does not contain the fork Photino.Native.so"; exit 1; }
 [ -f "$STAGE/libnfd.so" ] || { echo "[ERROR] Publish output missing libnfd.so (file dialogs)"; exit 1; }
 [ -f "$STAGE/libe_sqlite3.so" ] || { echo "[ERROR] Publish output missing libe_sqlite3.so (SQLite)"; exit 1; }
 [ -f "$STAGE/libSkiaSharp.so" ] || { echo "[ERROR] Publish output missing libSkiaSharp.so"; exit 1; }
@@ -85,7 +97,7 @@ for f in libvosk.so Vosk.dll NAudio.dll NAudio.Vorbis.dll NVorbis.dll DiscordRPC
         LEFTOVERS="$LEFTOVERS $f"
     fi
 done
-for d in voice tray frameshot; do
+for d in voice tray; do # removed frameshot and youtube-fix
     if [ -d "$STAGE/$d" ]; then
         rm -rf "$STAGE/$d"
         LEFTOVERS="$LEFTOVERS $d/"
@@ -103,11 +115,12 @@ rm -rf "$APPDIR"
 mkdir -p "$APPDIR/usr/bin/hapshub" \
          "$APPDIR/usr/lib" \
          "$APPDIR/usr/share/applications" \
+         "$APPDIR/usr/share/knotifications6" \
          "$APPDIR/usr/share/icons/hicolor/512x512/apps"
 
 cp -a "$STAGE/." "$APPDIR/usr/bin/hapshub/"
 
-for lib in /usr/lib/x86_64-linux-gnu/libnotify.so.4*; do
+for lib in /usr/lib/x86_64-linux-gnu/libnotify.so.4* /usr/lib/libnotify.so.4*; do
     [ -e "$lib" ] && cp -a "$lib" "$APPDIR/usr/lib/"
 done
 [ -e "$APPDIR/usr/lib/libnotify.so.4" ] || echo "[WARN] libnotify.so.4 not found on build system — not bundled"
@@ -130,12 +143,26 @@ cp "$APPDIR/hapshub.desktop" "$APPDIR/usr/share/applications/hapshub.desktop"
 cp "$REPO/frontend/logo.png" "$APPDIR/hapshub.png"
 cp "$REPO/frontend/logo.png" "$APPDIR/usr/share/icons/hicolor/512x512/apps/hapshub.png"
 cp "$REPO/frontend/logo.png" "$APPDIR/.DirIcon"
+cp "$SCRIPT_DIR/linux/vrcnext.notifyrc" "$APPDIR/usr/share/knotifications6/vrcnext.notifyrc"
 
 cat > "$APPDIR/AppRun" <<'EOF'
 #!/bin/bash
 HERE="$(dirname "$(readlink -f "$0")")"
 APP="$HERE/usr/bin/hapshub/HapsHub"
 export LD_LIBRARY_PATH="$HERE/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
+if printf '%s' "${XDG_CURRENT_DESKTOP:-}" | grep -qi 'kde'; then
+    DATA_HOME="${XDG_DATA_HOME:-${HOME:-/tmp}/.local/share}"
+    NOTIFYRC_DIR="$DATA_HOME/knotifications6"
+    NOTIFYRC="$NOTIFYRC_DIR/vrcnext.notifyrc"
+    if [ ! -e "$NOTIFYRC" ]; then
+        if mkdir -p "$NOTIFYRC_DIR" && cp "$HERE/usr/share/knotifications6/vrcnext.notifyrc" "$NOTIFYRC"; then
+            echo "Installed HapsHub KDE notification events to $NOTIFYRC" >&2
+        else
+            echo "Warning: Could not install HapsHub KDE notification events to $NOTIFYRC" >&2
+        fi
+    fi
+fi
 
 MISSING="$(ldd "$HERE/usr/bin/hapshub/Photino.Native.so" 2>&1 | grep -E 'not found' | sed 's|'"$HERE"'/usr/bin/hapshub/||g' | sort -u)"
 if [ -n "$MISSING" ]; then
@@ -144,9 +171,12 @@ if [ -n "$MISSING" ]; then
 $MISSING
 
 If a library is missing, install the WebKitGTK package of your distribution, e.g.:
-  Arch/CachyOS:  sudo pacman -S webkit2gtk-4.1 gst-plugins-base gst-plugins-good gst-libav
-  Debian/Ubuntu: sudo apt install libwebkit2gtk-4.1-0 gstreamer1.0-plugins-good gstreamer1.0-libav
-  Fedora:        sudo dnf install webkit2gtk4.1 gstreamer1-plugins-good
+  Arch/CachyOS:  sudo pacman -S webkit2gtk-4.1 gst-plugins-base gst-plugins-base-libs gst-plugins-good gst-libav
+  Debian/Ubuntu: sudo apt install libwebkit2gtk-4.1-0 gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-libav
+  Fedora:        sudo dnf install webkit2gtk4.1 gstreamer1-plugins-base-tools gstreamer1-plugins-base gstreamer1-plugins-good
+
+GStreamer tools (including gst-play-1.0) are needed for Linux notification sounds.
+On KDE, libcanberra-gtk3 (canberra-gtk-play) is preferred for notification sounds.
 
 If a GLIBC version is reported as missing, your distribution is too old for this build (glibc 2.38 or newer is required)."
     echo "$MSG" >&2
@@ -160,7 +190,32 @@ If a GLIBC version is reported as missing, your distribution is too old for this
     exit 1
 fi
 
-exec "$APP" "$@"
+DEBUG=0
+APP_ARGS=()
+for arg in "$@"; do
+    if [ "$arg" = "--debug" ]; then
+        DEBUG=1
+    else
+        APP_ARGS+=("$arg")
+    fi
+done
+
+if [ "${VRCNEXT_DEBUG:-0}" = "1" ]; then
+    DEBUG=1
+fi
+
+if [ "$DEBUG" = "1" ]; then
+    export VRCNEXT_DEBUG=1
+    STATE_HOME="${XDG_STATE_HOME:-${HOME:-/tmp}/.local/state}"
+    LOG_DIR="$STATE_HOME/VRCNext/Logs"
+    mkdir -p "$LOG_DIR"
+    LOG_FILE="$LOG_DIR/appimage_$(date +%Y-%m-%d_%H-%M-%S).log"
+    printf 'VRCNext AppImage debug log: %s\n' "$LOG_FILE" >&2
+    "$APP" "${APP_ARGS[@]}" 2>&1 | tee "$LOG_FILE"
+    exit "${PIPESTATUS[0]}"
+fi
+
+exec "$APP" "${APP_ARGS[@]}"
 EOF
 chmod +x "$APPDIR/AppRun"
 

@@ -1,6 +1,13 @@
 /* === Photino message handler === */
 window.external.receiveMessage(rawMsg => {
-    const { type, payload } = JSON.parse(rawMsg);
+    const msg = JSON.parse(rawMsg);
+    if (msg.type !== '__batch') { _handleBackendMessage(msg.type, msg.payload); return; }
+    for (const m of msg.payload) {
+        try { _handleBackendMessage(m.type, m.payload); } catch (e) { console.error('[messages] ' + m.type, e); }
+    }
+});
+
+function _handleBackendMessage(type, payload) {
     // Forward every incoming event to Action Flow's websocket-trigger router.
     // Fire-and-forget; any errors must not break the main handler.
     if (typeof window.__afOnWebsocketEvent === 'function') {
@@ -75,7 +82,6 @@ window.external.receiveMessage(rawMsg => {
             case 'customThemes': _localHttpPort = payload.port || _localHttpPort; _customThemes = payload.themes || []; applyCustomThemesFromSettings([..._activeCustomThemes]); break;
             case 'vrcLaunched': {
                 // Fired when a VRChat session starts (VRCNext launch or detected externally)
-                if (window._isLinuxUi) break;
                 const vr = !!payload.vr;
                 // A tool whose plugin is off doesn't start with VRChat.
                 const chk = id => !!document.getElementById(id)?.checked && !(typeof hubPluginBlocks === 'function' && hubPluginBlocks(id));
@@ -107,6 +113,9 @@ window.external.receiveMessage(rawMsg => {
                 ensure(vr && chk('setStAutoStartVR'),
                     () => typeof stConnected !== 'undefined' && stConnected,
                     () => { if (typeof stConnect === 'function') stConnect(); });
+                ensure(vr && chk('setSwAutoStartVR'),
+                    () => typeof swConnected !== 'undefined' && swConnected,
+                    () => { if (typeof swConnect === 'function') swConnect(); });
                 // FrameShot (VR only)
                 ensure(vr && chk('setFsAutoStartVR'),
                     () => typeof fsConnected !== 'undefined' && fsConnected,
@@ -149,6 +158,7 @@ window.external.receiveMessage(rawMsg => {
                 if (typeof sfConnected !== 'undefined' && sfConnected) stop(() => sendToCS({ action: 'sfDisconnect' }));
                 // Space Turn
                 if (typeof stConnected !== 'undefined' && stConnected) stop(() => sendToCS({ action: 'stDisconnect' }));
+                if (typeof swConnected !== 'undefined' && swConnected) stop(() => sendToCS({ action: 'swDisconnect' }));
                 // FrameShot
                 if (typeof fsConnected !== 'undefined' && fsConnected) stop(() => sendToCS({ action: 'fsDisconnect' }));
                 // Media Relay
@@ -211,7 +221,18 @@ window.external.receiveMessage(rawMsg => {
                 document.getElementById('winMaxIcon').textContent = payload ? 'close_fullscreen' : 'open_in_full';
                 document.body.classList.toggle('maximized', !!payload);
                 break;
-            case 'filePosted': addFileToList(payload); playMediaRelaySound(); break;
+            case 'filePosted':
+                addFileToList(payload);
+                playMediaRelaySound();
+                if (window._isLinuxUi) {
+                    sendToCS({
+                        action: 'trayNotification',
+                        title: 'Media Relay',
+                        subtitle: `${payload.name} sent to ${payload.channel}`,
+                        kdeEventId: 'mediaRelay'
+                    });
+                }
+                break;
             case 'deleteResult':
                 if (payload.success) {
                     postedFiles = postedFiles.filter(f => f.messageId !== payload.messageId);
@@ -464,15 +485,15 @@ window.external.receiveMessage(rawMsg => {
                     break;
                 }
                 if (payload.action === 'createInstance') {
-                    showToast(payload.success, payload.message);
+                    showToast(payload.success, payload.messageKey ? t(payload.messageKey, payload.message) : payload.message);
                     if (payload.success) {
                         loadMyInstances();
                         closeCreateInstanceModal();
                     } else {
                         const cb = document.getElementById('ciCreateBtn');
                         const jb = document.getElementById('ciCreateJoinBtn');
-                        if (cb) { cb.disabled = false; cb.innerHTML = `<span class="msi" style="font-size:14px;">add_circle_outline</span> Create Instance`; }
-                        if (jb) { jb.disabled = false; jb.innerHTML = `<span class="msi" style="font-size:14px;">play_circle</span> Create &amp; Join`; }
+                        if (cb) { cb.disabled = false; cb.innerHTML = `<span class="msi" style="font-size:14px;">add_circle_outline</span> ${t('worlds.instances.create_only', 'Create Instance')}`; }
+                        if (jb) { jb.disabled = false; jb.innerHTML = `<span class="msi" style="font-size:14px;">play_circle</span> ${t('worlds.instances.create_join', 'Create & Join')}`; }
                     }
                     break;
                 }
@@ -535,7 +556,7 @@ window.external.receiveMessage(rawMsg => {
                 } else {
                     if (payload.action === 'leaveGroup' && typeof groupBulkLeaveConsume === 'function'
                         && groupBulkLeaveConsume(payload.success)) break;
-                    showToast(payload.success, payload.message);
+                    showToast(payload.success, payload.messageKey ? t(payload.messageKey, payload.message) : payload.message);
                     // Auto-refresh groups list on join/leave (from anywhere in the app)
                     if (payload.success && (payload.action === 'joinGroup' || payload.action === 'leaveGroup' || payload.groupJoined)) {
                         loadMyGroups();
@@ -824,6 +845,17 @@ window.external.receiveMessage(rawMsg => {
             case 'vrcGroupDetail':
             {
                 let data = payload;
+                if (payload._partial) {
+                    const prev = (typeof _groupDetailCache !== 'undefined') ? _groupDetailCache[payload.id] : null;
+                    if (!prev) break;
+                    data = { ...prev, galleryImages: payload.galleryImages || [] };
+                    const gdModal = document.getElementById('modalDetail');
+                    const showing = gdModal && gdModal.style.display !== 'none' && gdModal.classList.contains('gd-style-compact')
+                        && window._currentGroupDetail && window._currentGroupDetail.id === payload.id;
+                    if (showing) renderGroupDetail(data);
+                    else _groupDetailCache[payload.id] = data;
+                    break;
+                }
                 if (!payload.isJoined && typeof myGroups !== 'undefined') {
                     const mg = myGroups.find(x => x.id === payload.id);
                     if (mg) {
@@ -1044,6 +1076,9 @@ case 'vrcNews':
             case 'visitedWorlds':
                 if (typeof renderVisitedWorlds === 'function') renderVisitedWorlds(payload.worlds);
                 break;
+            case 'vrcWorldDiscover':
+                if (typeof onWorldDiscover === 'function') onWorldDiscover(payload);
+                break;
             case 'recentSeenPlayers':
                 if (typeof renderRecentSeen === 'function') renderRecentSeen(payload.players);
                 break;
@@ -1111,7 +1146,7 @@ case 'vrcNews':
                     if (typeof _pendingTrayNotifs !== 'undefined' && _pendingTrayNotifs[payload.notifId]) {
                         const p = _pendingTrayNotifs[payload.notifId];
                         delete _pendingTrayNotifs[payload.notifId];
-                        sendToCS({ action: 'trayNotification', title: p.title, subtitle: p.subtitle, imageUrl: payload.image || '', accentKey: p.accentKey });
+                        sendToCS({ action: 'trayNotification', title: p.title, subtitle: p.subtitle, imageUrl: payload.image || '', accentKey: p.accentKey, kdeEventId: p.kdeEventId });
                     }
                 }
                 break;
@@ -1200,11 +1235,18 @@ case 'vrcNews':
             case 'chatboxUpdate':
                 handleChatboxUpdate(payload);
                 break;
+            case 'chatboxWindowToolsState':
+                if (typeof handleChatboxWindowToolsState === 'function')
+                    handleChatboxWindowToolsState(payload);
+                break;
             case 'sfUpdate':
                 handleSfUpdate(payload);
                 break;
             case 'stUpdate':
                 if (typeof handleStUpdate === 'function') handleStUpdate(payload);
+                break;
+            case 'swUpdate':
+                if (typeof handleSwUpdate === 'function') handleSwUpdate(payload);
                 break;
             case 'fsUpdate':
                 if (typeof handleFsUpdate === 'function') handleFsUpdate(payload);
@@ -1315,6 +1357,51 @@ case 'vrcNews':
             case 'vrcMessageTemplates':
                 if (typeof onMessageTemplates === 'function') onMessageTemplates(payload);
                 break;
+            case 'timelineForGroup':
+                if (typeof renderGdInstanceHistory === 'function') renderGdInstanceHistory(payload.groupId, payload.events);
+                break;
+            case 'vrcPrivacySettingResult':
+                if (typeof onPrivacySettingResult === 'function') onPrivacySettingResult(payload);
+                break;
+            case 'vrcReportOptions':
+                if (typeof onReportOptions === 'function') onReportOptions(payload);
+                break;
+            case 'vrcUserReportResult':
+                if (typeof onUserReportResult === 'function') onUserReportResult(payload);
+                break;
+            case 'vrcRedeemRewardResult':
+                if (typeof onRedeemRewardResult === 'function') onRedeemRewardResult(payload);
+                break;
+            case 'vrcFriendStatus':
+                if (typeof onFriendStatus === 'function') onFriendStatus(payload);
+                break;
+            case 'vrcFriendRequestResult':
+                if (typeof onFriendRequestResult === 'function') onFriendRequestResult(payload);
+                break;
+            case 'vrcAvatarImpostorResult':
+                if (typeof onAvatarImpostorResult === 'function') onAvatarImpostorResult(payload);
+                break;
+            case 'vrcWorldManageInfo':
+                if (typeof onWorldManageInfo === 'function') onWorldManageInfo(payload);
+                break;
+            case 'vrcWorldPublishResult':
+                if (typeof onWorldPublishResult === 'function') onWorldPublishResult(payload);
+                break;
+            case 'vrcWorldPersistResult':
+                if (typeof onWorldPersistResult === 'function') onWorldPersistResult(payload);
+                break;
+            case 'vrcInstanceCreateOptions':
+                if (typeof onInstanceCreateOptions === 'function') onInstanceCreateOptions(payload);
+                break;
+            case 'vrcMyReports':
+                if (typeof onMyReports === 'function') onMyReports(payload);
+                break;
+            case 'vrcPurchaseHistory':
+                if (typeof onPurchaseHistory === 'function') onPurchaseHistory(payload);
+                break;
+            case 'vrcCreditActivity':
+                if (typeof onCreditActivity === 'function') onCreditActivity(payload);
+                break;
             case 'vrcMessageTemplateResult':
                 if (typeof onMessageTemplateResult === 'function') onMessageTemplateResult(payload);
                 break;
@@ -1377,6 +1464,8 @@ case 'vrcNews':
         case 'setPlatform':
             window._isLinuxUi = !!payload?.isLinux;
             if (payload?.isLinux) {
+                if (typeof vriSetMode === 'function') vriSetMode(0);
+                sendToCS({ action: 'chatboxWindowToolsCheck' });
                 document.documentElement.classList.add('linux-ui');
                 window._kxdProfileTranslationEnabled = false;
                 if (typeof navSetLinux === 'function') navSetLinux(true);
@@ -1393,7 +1482,7 @@ case 'vrcNews':
                     lblDesc.textContent = t('settings.launch.auto_start_linux_desc', 'HapsHub launches automatically when Linux starts. It will open minimized.');
                 }
                 const vrcPathInput = document.getElementById('setVrcPath');
-                if (vrcPathInput) { vrcPathInput.value = 'steam://rungameid/438100'; vrcPathInput.readOnly = true; vrcPathInput.style.opacity = '0.5'; }
+                if (vrcPathInput) { vrcPathInput.readOnly = false; vrcPathInput.placeholder = `${window._homeDir || '/home/<username>'}/.local/share/Steam/steamapps/common/VRChat/VRChat.exe`; vrcPathInput.style.opacity = ''; }
                 const browseVrcBtn = document.getElementById('browseVrcBtn');
                 if (browseVrcBtn) browseVrcBtn.style.display = 'none';
                 const dbHint = document.getElementById('dbPathHint');
@@ -1469,9 +1558,8 @@ case 'vrcNews':
     }
     if (typeof navUpdateBadges === 'function') navUpdateBadges();
     if (typeof navUpdatePlaySubtitle === 'function') navUpdatePlaySubtitle();
-});
+}
 // 'ready' and 'kxdGetDevices' are sent by the fragment loader at the end of
 // index.html, AFTER all scripts have loaded. Sending them here would cause the
 // backend's loadSettings response to arrive before init.js runs, and init.js's
 // renderWebhookCards([{},{},{},{}]) would overwrite the loaded webhook data.
-

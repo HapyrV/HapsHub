@@ -1,6 +1,7 @@
 using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using VRCNext;
 
 namespace VRCNext.Services.VRCNPlusAPI;
 

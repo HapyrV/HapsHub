@@ -118,17 +118,25 @@ public class FileWatcherService : IDisposable
     public void Start(IEnumerable<string> folders)
     {
         Stop();
-        foreach (var folder in folders.Where(Directory.Exists))
+        try
         {
-            var w = new FileSystemWatcher(folder)
+            foreach (var folder in folders.Where(Directory.Exists))
             {
-                IncludeSubdirectories = true,
-                EnableRaisingEvents = true,
-                NotifyFilter = NotifyFilters.FileName | NotifyFilters.CreationTime
-            };
-            w.Created += (s, e) => Handle(e.FullPath);
-            w.Renamed += (s, e) => Handle(e.FullPath);
-            _watchers.Add(w);
+                var w = new FileSystemWatcher(folder)
+                {
+                    IncludeSubdirectories = true,
+                    EnableRaisingEvents = true,
+                    NotifyFilter = NotifyFilters.FileName | NotifyFilters.CreationTime
+                };
+                w.Created += (s, e) => Handle(e.FullPath);
+                w.Renamed += (s, e) => Handle(e.FullPath);
+                _watchers.Add(w);
+            }
+        }
+        catch
+        {
+            Stop();
+            throw;
         }
     }
 
@@ -325,7 +333,6 @@ public class AppSettings
     public bool PeopleAlwaysStats { get; set; } = false;
     public bool ModernFolderLayout { get; set; } = true;
     public bool NavSidebarHoverText { get; set; } = true;
-    public bool VrcPlusOptimizeEnabled { get; set; } = true;
     public bool EnableVrcPlusDecorations { get; set; } = false;
     public bool EnableProfileIconFrames { get; set; } = true;
     public bool SquareIconFrames { get; set; } = true;
@@ -536,6 +543,23 @@ public class AppSettings
     public uint  StIdxLeftResetButton { get; set; } = 0;
     public uint  StIdxRightResetButton{ get; set; } = 0;
 
+    public float SwMultiplier   { get; set; } = 1f;
+    public float SwSmoothing    { get; set; } = 0f;
+    public float SwMomentum     { get; set; } = 0f;
+    public bool  SwInvert       { get; set; }
+    public bool  SwLockPitch    { get; set; }
+    public bool  SwLockRoll     { get; set; }
+    public bool  SwLockYaw      { get; set; }
+    public bool  SwAutoStartVR  { get; set; }
+    public uint  SwLeftWalkButton     { get; set; } = 0;
+    public uint  SwRightWalkButton    { get; set; } = 2;
+    public uint  SwLeftResetButton    { get; set; } = 0;
+    public uint  SwRightResetButton   { get; set; } = 0;
+    public uint  SwIdxLeftWalkButton  { get; set; } = 0;
+    public uint  SwIdxRightWalkButton { get; set; } = 0;
+    public uint  SwIdxLeftResetButton { get; set; } = 0;
+    public uint  SwIdxRightResetButton{ get; set; } = 0;
+
     // FrameShot settings
     public uint   FsLeftButton       { get; set; } = 2;  // EVRButtonId.k_EButton_Grip
     public uint   FsRightButton      { get; set; } = 2;  // EVRButtonId.k_EButton_Grip
@@ -581,6 +605,7 @@ public class AppSettings
     public bool RelayAutoStartDesktop    { get; set; }
     public bool YtAutoStartVR            { get; set; }
     public bool YtAutoStartDesktop       { get; set; }
+    public bool YtAutoStartSteam         { get; set; }
     public bool VfAutoStartVR            { get; set; }
     public bool VfAutoStartDesktop       { get; set; }
     public bool DpAutoStartVR            { get; set; }
@@ -736,6 +761,7 @@ public class AppSettings
     public bool EventPlayerSessionsMigrated { get; set; } = false;
 
     public bool EventPlayerSessionsRepaired { get; set; } = false;
+    public bool TimelineIndexesAdded { get; set; } = false;
 
     public bool RewindHistoryRepaired { get; set; } = false;
 
@@ -757,6 +783,7 @@ public class AppSettings
     // Window Behavior
     public bool RememberWindowSize     { get; set; } = false;
     public bool RememberWindowPosition { get; set; } = false;
+    public bool ShowStartupLoadingBar  { get; set; } = true;
     public int  SavedWindowWidth       { get; set; } = 1100;
     public int  SavedWindowHeight      { get; set; } = 700;
     public int  SavedWindowX           { get; set; } = -1;
@@ -773,7 +800,7 @@ public class AppSettings
 
     // Performance — WebView2/Chromium flags (all require restart)
     public bool GpuAcceleration     { get; set; } = true;
-    public bool LinuxGpuAcceleration { get; set; } = false;
+    public bool LinuxSoftwareRendering { get; set; } = false;
     public bool GpuShaderCache      { get; set; } = false;
     public bool V8Heap128           { get; set; } = false;
     public bool TwoRenderProcesses  { get; set; } = false;
@@ -813,6 +840,8 @@ public class AppSettings
     public int DashLayoutVersion           { get; set; } = 0;
 
     public bool SetupComplete { get; set; }
+
+    public string CustomUserAgent { get; set; } = "";
 
     public List<string> InviteMessages { get; set; } = new()
     {

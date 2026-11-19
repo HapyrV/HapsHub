@@ -6,7 +6,7 @@ namespace VRCNext.Services;
 
 public class AvatarsAPI(VRChatApiService ctx)
 {
-    private const string UA = AppInfo.UserAgent;
+    private static readonly string UA = AppInfo.UserAgent;
 
     public async Task<JObject?> GetAvatarAsync(string avatarId)
     {
@@ -102,6 +102,31 @@ public class AvatarsAPI(VRChatApiService ctx)
         if (avatar?["unityPackages"] is not JArray packages) return null;
         var impostor = packages.OfType<JObject>().LastOrDefault(p => p["variant"]?.ToString() == "impostor");
         return impostor?["impostorizerVersion"]?.ToString() ?? "";
+    }
+
+    public async Task<bool> EnqueueImpostorAsync(string avatarId)
+    {
+        if (!ctx.IsLoggedIn) return false;
+        try
+        {
+            var content = new StringContent("{}", Encoding.UTF8, "application/json");
+            var resp = await ctx._http.PostAsync($"{VRChatApiService.BASE}/avatars/{avatarId}/impostor/enqueue", content);
+            ctx.Log($"EnqueueImpostor {avatarId}: {(int)resp.StatusCode}");
+            return resp.IsSuccessStatusCode;
+        }
+        catch (Exception ex) { ctx.Log($"EnqueueImpostor exception: {ex.Message}"); return false; }
+    }
+
+    public async Task<bool> DeleteImpostorAsync(string avatarId)
+    {
+        if (!ctx.IsLoggedIn) return false;
+        try
+        {
+            var resp = await ctx._http.DeleteAsync($"{VRChatApiService.BASE}/avatars/{avatarId}/impostor");
+            ctx.Log($"DeleteImpostor {avatarId}: {(int)resp.StatusCode}");
+            return resp.IsSuccessStatusCode;
+        }
+        catch (Exception ex) { ctx.Log($"DeleteImpostor exception: {ex.Message}"); return false; }
     }
 
     public async Task<bool> SelectAvatarAsync(string avatarId)

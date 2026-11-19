@@ -577,6 +577,23 @@ public partial class TimelineService : IDisposable
         }
     }
 
+    public void UpdateEventWorldName(string id, string worldName, string worldThumb)
+    {
+        lock (_lock)
+        {
+            try
+            {
+                using var cmd = _db.CreateCommand();
+                cmd.CommandText = "UPDATE events SET world_name=$n, world_thumb=CASE WHEN world_thumb IS NULL OR world_thumb='' THEN $t ELSE world_thumb END WHERE id=$id";
+                cmd.Parameters.AddWithValue("$n", worldName);
+                cmd.Parameters.AddWithValue("$t", worldThumb ?? "");
+                cmd.Parameters.AddWithValue("$id", id);
+                cmd.ExecuteNonQuery();
+            }
+            catch { }
+        }
+    }
+
     public TimelineEvent? GetEvent(string id)
     {
         lock (_lock) return DbReadEvent(id);
@@ -1103,9 +1120,10 @@ public partial class TimelineService : IDisposable
         {
             using var cmd = _db.CreateCommand();
             cmd.CommandText = @"
-                SELECT DISTINCT e.id FROM events e
-                LEFT JOIN event_players ep ON e.id = ep.event_id
-                WHERE ep.user_id = $uid OR e.user_id = $uid OR e.sender_id = $uid
+                SELECT e.id FROM events e
+                WHERE e.id IN (
+                    SELECT event_id FROM event_players WHERE user_id = $uid
+                    UNION SELECT id FROM events WHERE user_id = $uid OR sender_id = $uid)
                 ORDER BY e.timestamp DESC LIMIT $limit";
             cmd.Parameters.AddWithValue("$uid",   userId);
             cmd.Parameters.AddWithValue("$limit", limit);
@@ -1614,21 +1632,23 @@ public partial class TimelineService : IDisposable
     }
 
     // Distinct world IDs ordered by most recent visit (instance_join events).
-    public Dictionary<string, string> GetLastSeenTogetherMap()
+    public Dictionary<string, string> GetLastSeenTogether(IReadOnlyCollection<string> userIds)
     {
         var map = new Dictionary<string, string>();
+        if (userIds.Count == 0) return map;
         try
         {
             using var cmd = _db.CreateCommand();
             cmd.CommandText = @"SELECT user_id, MAX(ts) AS last_seen FROM (
                     SELECT ep.user_id AS user_id, j.value AS ts
                       FROM event_players ep, json_each(ep.left_at) j
-                     WHERE ep.user_id <> '' AND ep.left_at LIKE '[%'
+                     WHERE ep.user_id IN (SELECT value FROM json_each($ids)) AND ep.user_id <> '' AND ep.left_at LIKE '[%'
                     UNION ALL
                     SELECT ep.user_id, j.value
                       FROM event_players ep, json_each(ep.joined_at) j
-                     WHERE ep.user_id <> '' AND ep.joined_at LIKE '[%'
+                     WHERE ep.user_id IN (SELECT value FROM json_each($ids)) AND ep.user_id <> '' AND ep.joined_at LIKE '[%'
                 ) GROUP BY user_id";
+            cmd.Parameters.AddWithValue("$ids", JsonConvert.SerializeObject(userIds));
             using var r = cmd.ExecuteReader();
             while (r.Read())
             {
@@ -1717,15 +1737,25 @@ public partial class TimelineService : IDisposable
     public List<TimelineEvent> GetInstanceVisitsForWorld(string worldId, int limit = 10)
     {
         if (string.IsNullOrEmpty(worldId)) return new List<TimelineEvent>();
+        return LoadInstanceVisits("world_id=$key", worldId, limit);
+    }
 
+    public List<TimelineEvent> GetInstanceVisitsForGroup(string groupId, int limit = 10)
+    {
+        if (string.IsNullOrEmpty(groupId)) return new List<TimelineEvent>();
+        return LoadInstanceVisits("instr(location,$key)>0", $"~group({groupId})", limit);
+    }
+
+    private List<TimelineEvent> LoadInstanceVisits(string filter, string key, int limit)
+    {
         var ids = new List<string>();
         try
         {
             using var cmd = _db.CreateCommand();
-            cmd.CommandText = @"SELECT id FROM events
-                WHERE type='instance_join' AND world_id=$wid
+            cmd.CommandText = $@"SELECT id FROM events
+                WHERE type='instance_join' AND {filter}
                 ORDER BY timestamp DESC LIMIT $limit";
-            cmd.Parameters.AddWithValue("$wid",   worldId);
+            cmd.Parameters.AddWithValue("$key",   key);
             cmd.Parameters.AddWithValue("$limit", limit);
             using var r = cmd.ExecuteReader();
             while (r.Read()) ids.Add(r.GetString(0));
@@ -2432,7 +2462,7 @@ public partial class TimelineService : IDisposable
     public void AddLoggedNotif(string notifId)
     {
         if (string.IsNullOrEmpty(notifId)) return;
-        lock (_lock) { if (_loggedNotifs.Count < 2000) _loggedNotifs.Add(notifId); }
+        lock (_lock) _loggedNotifs.Add(notifId);
         try
         {
             using var cmd = _db.CreateCommand();

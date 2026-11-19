@@ -12,7 +12,6 @@ public class UnifiedTimeEngine : IDisposable
     {
         public long TotalSeconds { get; set; }
         public string LastSeen { get; set; } = "";
-        public string LastSeenLocation { get; set; } = "";
         public string DisplayName { get; set; } = "";
         public string Image { get; set; } = "";
     }
@@ -137,6 +136,7 @@ public class UnifiedTimeEngine : IDisposable
 
             var now = DateTime.UtcNow;
             var delta = (long)(now - sessionStart).TotalSeconds;
+            var location = "";
             if (delta > 0 && delta <= 86400) // cap at 24h sanity check
             {
                 if (Users.TryGetValue(userId, out var rec))
@@ -144,11 +144,11 @@ public class UnifiedTimeEngine : IDisposable
                     AddUserSecondsLocked(userId, rec, delta, now);
                     rec.LastSeen = now.ToString("o");
                     if (!string.IsNullOrEmpty(_currentLocation))
-                        rec.LastSeenLocation = _currentLocation;
+                        location = _currentLocation;
                 }
             }
             _playerSessions.Remove(userId);
-            PersistUserLocked(userId, now);
+            PersistUserLocked(userId, now, location);
             PersistActiveSessionLocked();
         }
     }
@@ -1552,20 +1552,12 @@ public class UnifiedTimeEngine : IDisposable
 
     private long _mutualsVersion;
     private long _mutualsCleanVersion = -1;
-    private long _mutualsCleanDataVersion = -1;
+    private static long _mutualsExternalVersion;
+    private long _mutualsCleanExternalVersion = -1;
     private HashSet<string>? _mutualsCleanFriendIds;
     private HashSet<string>? _mutualsCleanGroupIds;
 
-    private long? ReadDataVersionLocked()
-    {
-        try
-        {
-            using var cmd = _db.CreateCommand();
-            cmd.CommandText = "PRAGMA data_version";
-            return Convert.ToInt64(cmd.ExecuteScalar());
-        }
-        catch { return null; }
-    }
+    public static void MarkMutualCachesChangedExternally() => Interlocked.Increment(ref _mutualsExternalVersion);
 
     private static bool SameIdSet(HashSet<string>? a, HashSet<string>? b) =>
         a == null ? b == null : b != null && a.SetEquals(b);
@@ -1575,17 +1567,16 @@ public class UnifiedTimeEngine : IDisposable
         if (validFriendIds == null && validGroupIds == null) return;
         lock (_lock)
         {
-            var dataVersion = ReadDataVersionLocked();
-            if (dataVersion is long dv
-                && _mutualsCleanVersion == _mutualsVersion
-                && _mutualsCleanDataVersion == dv
+            var externalVersion = Interlocked.Read(ref _mutualsExternalVersion);
+            if (_mutualsCleanVersion == _mutualsVersion
+                && _mutualsCleanExternalVersion == externalVersion
                 && SameIdSet(_mutualsCleanFriendIds, validFriendIds)
                 && SameIdSet(_mutualsCleanGroupIds, validGroupIds))
                 return;
             _mutualsCleanVersion = -1;
             try
             {
-                var rows = new List<(string id, string mutuals, string mutualGroups)>();
+                var changed = new List<(string id, string? mutuals, string? mutualGroups)>();
                 using (var sel = _db.CreateCommand())
                 {
                     sel.CommandText = @"SELECT user_id, mutuals, mutual_groups FROM user_tracking
@@ -1593,86 +1584,90 @@ public class UnifiedTimeEngine : IDisposable
                            OR (mutual_groups IS NOT NULL AND mutual_groups != '' AND mutual_groups != '[]')";
                     using var r = sel.ExecuteReader();
                     while (r.Read())
-                        rows.Add((
-                            r.IsDBNull(0) ? "" : r.GetString(0),
-                            r.IsDBNull(1) ? "" : r.GetString(1),
-                            r.IsDBNull(2) ? "" : r.GetString(2)));
-                }
-
-                foreach (var (uid, mutualsJson, mutualGroupsJson) in rows)
-                {
-                    if (string.IsNullOrEmpty(uid)) continue;
-                    string? newMutuals = null;
-                    string? newMutualGroups = null;
-
-                    if (validFriendIds != null && !string.IsNullOrEmpty(mutualsJson) && mutualsJson != "{}")
                     {
-                        try
+                        var uid = r.IsDBNull(0) ? "" : r.GetString(0);
+                        if (string.IsNullOrEmpty(uid)) continue;
+                        var mutualsJson = r.IsDBNull(1) ? "" : r.GetString(1);
+                        var mutualGroupsJson = r.IsDBNull(2) ? "" : r.GetString(2);
+                        string? newMutuals = null;
+                        string? newMutualGroups = null;
+
+                        if (validFriendIds != null && !string.IsNullOrEmpty(mutualsJson) && mutualsJson != "{}")
                         {
-                            var obj = JObject.Parse(mutualsJson);
-                            if (obj["mutuals"] is JArray arr)
+                            try
                             {
-                                var filtered = new JArray(arr.Where(m =>
+                                var obj = JObject.Parse(mutualsJson);
+                                if (obj["mutuals"] is JArray arr)
                                 {
-                                    var id = m?["id"]?.ToString() ?? "";
-                                    return id.Length == 0 || validFriendIds.Contains(id);
-                                }));
-                                if (filtered.Count != arr.Count)
-                                {
-                                    obj["mutuals"] = filtered;
-                                    newMutuals = obj.ToString(Formatting.None);
+                                    var filtered = new JArray(arr.Where(m =>
+                                    {
+                                        var id = m?["id"]?.ToString() ?? "";
+                                        return id.Length == 0 || validFriendIds.Contains(id);
+                                    }));
+                                    if (filtered.Count != arr.Count)
+                                    {
+                                        obj["mutuals"] = filtered;
+                                        newMutuals = obj.ToString(Formatting.None);
+                                    }
                                 }
                             }
+                            catch { }
                         }
-                        catch { }
-                    }
 
-                    if (validGroupIds != null && !string.IsNullOrEmpty(mutualGroupsJson) && mutualGroupsJson != "[]")
-                    {
-                        try
+                        if (validGroupIds != null && !string.IsNullOrEmpty(mutualGroupsJson) && mutualGroupsJson != "[]")
                         {
-                            var arr = JArray.Parse(mutualGroupsJson);
-                            var filtered = new JArray(arr.Where(g =>
+                            try
                             {
-                                var id = g?["groupId"]?.ToString() ?? g?["id"]?.ToString() ?? "";
-                                return id.Length == 0 || validGroupIds.Contains(id);
-                            }));
-                            if (filtered.Count != arr.Count)
-                                newMutualGroups = filtered.ToString(Formatting.None);
+                                var arr = JArray.Parse(mutualGroupsJson);
+                                var filtered = new JArray(arr.Where(g =>
+                                {
+                                    var id = g?["groupId"]?.ToString() ?? g?["id"]?.ToString() ?? "";
+                                    return id.Length == 0 || validGroupIds.Contains(id);
+                                }));
+                                if (filtered.Count != arr.Count)
+                                    newMutualGroups = filtered.ToString(Formatting.None);
+                            }
+                            catch { }
                         }
-                        catch { }
-                    }
 
-                    if (newMutuals == null && newMutualGroups == null) continue;
-
-                    using var upd = _db.CreateCommand();
-                    if (newMutuals != null && newMutualGroups != null)
-                    {
-                        upd.CommandText = "UPDATE user_tracking SET mutuals=$m, mutual_groups=$g WHERE user_id=$id";
-                        upd.Parameters.AddWithValue("$m", newMutuals);
-                        upd.Parameters.AddWithValue("$g", newMutualGroups);
+                        if (newMutuals != null || newMutualGroups != null)
+                            changed.Add((uid, newMutuals, newMutualGroups));
                     }
-                    else if (newMutuals != null)
-                    {
-                        upd.CommandText = "UPDATE user_tracking SET mutuals=$m WHERE user_id=$id";
-                        upd.Parameters.AddWithValue("$m", newMutuals);
-                    }
-                    else
-                    {
-                        upd.CommandText = "UPDATE user_tracking SET mutual_groups=$g WHERE user_id=$id";
-                        upd.Parameters.AddWithValue("$g", newMutualGroups);
-                    }
-                    upd.Parameters.AddWithValue("$id", uid);
-                    upd.ExecuteNonQuery();
                 }
 
-                if (dataVersion is long done)
+                if (changed.Count > 0)
                 {
-                    _mutualsCleanVersion = _mutualsVersion;
-                    _mutualsCleanDataVersion = done;
-                    _mutualsCleanFriendIds = validFriendIds;
-                    _mutualsCleanGroupIds = validGroupIds;
+                    using var tx = _db.BeginTransaction();
+                    foreach (var (uid, newMutuals, newMutualGroups) in changed)
+                    {
+                        using var upd = _db.CreateCommand();
+                        upd.Transaction = tx;
+                        if (newMutuals != null && newMutualGroups != null)
+                        {
+                            upd.CommandText = "UPDATE user_tracking SET mutuals=$m, mutual_groups=$g WHERE user_id=$id";
+                            upd.Parameters.AddWithValue("$m", newMutuals);
+                            upd.Parameters.AddWithValue("$g", newMutualGroups);
+                        }
+                        else if (newMutuals != null)
+                        {
+                            upd.CommandText = "UPDATE user_tracking SET mutuals=$m WHERE user_id=$id";
+                            upd.Parameters.AddWithValue("$m", newMutuals);
+                        }
+                        else
+                        {
+                            upd.CommandText = "UPDATE user_tracking SET mutual_groups=$g WHERE user_id=$id";
+                            upd.Parameters.AddWithValue("$g", newMutualGroups);
+                        }
+                        upd.Parameters.AddWithValue("$id", uid);
+                        upd.ExecuteNonQuery();
+                    }
+                    tx.Commit();
                 }
+
+                _mutualsCleanVersion = _mutualsVersion;
+                _mutualsCleanExternalVersion = externalVersion;
+                _mutualsCleanFriendIds = validFriendIds;
+                _mutualsCleanGroupIds = validGroupIds;
             }
             catch (Exception ex) { CrashHandler.WriteEntry("CleanMutualCaches", ex); }
         }
@@ -1800,7 +1795,7 @@ public class UnifiedTimeEngine : IDisposable
         {
             if (_disposed) return;
             var now = DateTime.UtcNow;
-            var changed = new List<(string userId, UserRecord rec)>();
+            var changed = new List<(string userId, UserRecord rec, string location)>();
 
             foreach (var (userId, location, presence) in onlineFriends)
             {
@@ -1810,13 +1805,14 @@ public class UnifiedTimeEngine : IDisposable
                     rec = new UserRecord();
                     Users[userId] = rec;
                 }
+                var seenLocation = "";
                 if (presence != "offline")
                 {
                     rec.LastSeen = now.ToString("o");
                     if (!string.IsNullOrEmpty(location) && location != "offline" && location != "private")
-                        rec.LastSeenLocation = location;
+                        seenLocation = location;
                 }
-                changed.Add((userId, rec));
+                changed.Add((userId, rec, seenLocation));
             }
 
             if (changed.Count == 0) return;
@@ -1830,7 +1826,7 @@ public class UnifiedTimeEngine : IDisposable
                     ON CONFLICT(user_id) DO UPDATE SET
                         total_seconds=excluded.total_seconds,
                         last_seen=excluded.last_seen,
-                        last_seen_location=excluded.last_seen_location,
+                        last_seen_location=CASE WHEN excluded.last_seen_location!='' THEN excluded.last_seen_location ELSE user_tracking.last_seen_location END,
                         display_name=CASE WHEN excluded.display_name!='' THEN excluded.display_name ELSE user_tracking.display_name END,
                         image=CASE WHEN excluded.image!='' THEN excluded.image ELSE user_tracking.image END";
                 var pUid = cmd.Parameters.Add("$uid", SqliteType.Text);
@@ -1839,10 +1835,10 @@ public class UnifiedTimeEngine : IDisposable
                 var pLsl = cmd.Parameters.Add("$lsl", SqliteType.Text);
                 var pDn  = cmd.Parameters.Add("$dn",  SqliteType.Text);
                 var pImg = cmd.Parameters.Add("$img", SqliteType.Text);
-                foreach (var (userId, rec) in changed)
+                foreach (var (userId, rec, seenLocation) in changed)
                 {
                     pUid.Value = userId; pTs.Value = rec.TotalSeconds;
-                    pLs.Value = rec.LastSeen; pLsl.Value = rec.LastSeenLocation;
+                    pLs.Value = rec.LastSeen; pLsl.Value = seenLocation;
                     pDn.Value = rec.DisplayName; pImg.Value = rec.Image;
                     cmd.ExecuteNonQuery();
                 }
@@ -2198,6 +2194,7 @@ public class UnifiedTimeEngine : IDisposable
     {
         if (_playerSessions.Count == 0) return;
         var userIds = _playerSessions.Keys.ToList();
+        var locationUserIds = new HashSet<string>();
         foreach (var userId in userIds)
         {
             var sessionStart = _playerSessions[userId];
@@ -2209,11 +2206,11 @@ public class UnifiedTimeEngine : IDisposable
                     AddUserSecondsLocked(userId, rec, delta, now);
                     rec.LastSeen = now.ToString("o");
                     if (!string.IsNullOrEmpty(_currentLocation))
-                        rec.LastSeenLocation = _currentLocation;
+                        locationUserIds.Add(userId);
                 }
             }
         }
-        PersistAllUsersLocked(userIds, now);
+        PersistAllUsersLocked(userIds, now, locationUserIds);
         _playerSessions.Clear();
     }
 
@@ -2734,16 +2731,15 @@ public class UnifiedTimeEngine : IDisposable
     private void LoadUsersFromDb()
     {
         using var cmd = _db.CreateCommand();
-        cmd.CommandText = "SELECT user_id,total_seconds,last_seen,last_seen_location,display_name,image FROM user_tracking";
+        cmd.CommandText = "SELECT user_id,total_seconds,last_seen,display_name,image FROM user_tracking";
         using var r = cmd.ExecuteReader();
         while (r.Read())
             Users[r.GetString(0)] = new UserRecord
             {
                 TotalSeconds     = r.GetInt64(1),
                 LastSeen         = r.GetString(2),
-                LastSeenLocation = r.GetString(3),
-                DisplayName      = r.GetString(4),
-                Image            = r.GetString(5),
+                DisplayName      = r.GetString(3),
+                Image            = r.GetString(4),
             };
     }
 
@@ -2875,7 +2871,7 @@ public class UnifiedTimeEngine : IDisposable
         tx.Commit();
     }
 
-    private void PersistUserLocked(string userId, DateTime now)
+    private void PersistUserLocked(string userId, DateTime now, string location)
     {
         if (!Users.TryGetValue(userId, out var rec)) return;
         try
@@ -2885,13 +2881,13 @@ public class UnifiedTimeEngine : IDisposable
                 VALUES($uid,$ts,$ls,$lsl,$dn,$img)
                 ON CONFLICT(user_id) DO UPDATE SET
                     total_seconds=excluded.total_seconds, last_seen=excluded.last_seen,
-                    last_seen_location=excluded.last_seen_location,
+                    last_seen_location=CASE WHEN excluded.last_seen_location!='' THEN excluded.last_seen_location ELSE user_tracking.last_seen_location END,
                     display_name=CASE WHEN excluded.display_name!='' THEN excluded.display_name ELSE user_tracking.display_name END,
                     image=CASE WHEN excluded.image!='' THEN excluded.image ELSE user_tracking.image END";
             cmd.Parameters.AddWithValue("$uid", userId);
             cmd.Parameters.AddWithValue("$ts",  rec.TotalSeconds);
             cmd.Parameters.AddWithValue("$ls",  now.ToString("o"));
-            cmd.Parameters.AddWithValue("$lsl", rec.LastSeenLocation);
+            cmd.Parameters.AddWithValue("$lsl", location);
             cmd.Parameters.AddWithValue("$dn",  rec.DisplayName);
             cmd.Parameters.AddWithValue("$img", rec.Image);
             cmd.ExecuteNonQuery();
@@ -2899,7 +2895,7 @@ public class UnifiedTimeEngine : IDisposable
         catch { }
     }
 
-    private void PersistAllUsersLocked(IEnumerable<string> userIds, DateTime now)
+    private void PersistAllUsersLocked(IEnumerable<string> userIds, DateTime now, HashSet<string>? locationUserIds = null)
     {
         try
         {
@@ -2910,7 +2906,7 @@ public class UnifiedTimeEngine : IDisposable
                 VALUES($uid,$ts,$ls,$lsl,$dn,$img)
                 ON CONFLICT(user_id) DO UPDATE SET
                     total_seconds=excluded.total_seconds, last_seen=excluded.last_seen,
-                    last_seen_location=excluded.last_seen_location,
+                    last_seen_location=CASE WHEN excluded.last_seen_location!='' THEN excluded.last_seen_location ELSE user_tracking.last_seen_location END,
                     display_name=CASE WHEN excluded.display_name!='' THEN excluded.display_name ELSE user_tracking.display_name END,
                     image=CASE WHEN excluded.image!='' THEN excluded.image ELSE user_tracking.image END";
             var pUid = cmd.Parameters.Add("$uid", SqliteType.Text);
@@ -2924,7 +2920,7 @@ public class UnifiedTimeEngine : IDisposable
             {
                 if (!Users.TryGetValue(userId, out var rec)) continue;
                 pUid.Value = userId; pTs.Value = rec.TotalSeconds;
-                pLs.Value = nowStr;  pLsl.Value = rec.LastSeenLocation;
+                pLs.Value = nowStr;  pLsl.Value = locationUserIds != null && locationUserIds.Contains(userId) ? _currentLocation : "";
                 pDn.Value = rec.DisplayName; pImg.Value = rec.Image;
                 cmd.ExecuteNonQuery();
             }
@@ -3069,7 +3065,13 @@ public class UnifiedTimeEngine : IDisposable
         _db.Dispose();
     }
 
-    private class UserLegacy { public Dictionary<string, UserRecord>? Users { get; set; } }
+    private class UserLegacy { public Dictionary<string, UserLegacyRecord>? Users { get; set; } }
+    private class UserLegacyRecord
+    {
+        public long TotalSeconds { get; set; }
+        public string LastSeen { get; set; } = "";
+        public string LastSeenLocation { get; set; } = "";
+    }
     private class WorldLegacy { public Dictionary<string, WorldRecord>? Worlds { get; set; } }
 
     private const int PngHeadBytes = 16384;

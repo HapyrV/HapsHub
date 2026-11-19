@@ -1,4 +1,34 @@
-﻿function _selfInstanceMember() {
+﻿function _instanceOptionSlug(name) {
+    return String(name || '').toLowerCase().replace(/\+/g, ' plus').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
+
+function _instanceOptionFallback(name) {
+    const text = String(name || '');
+    return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function instanceCategoryLabel(name) {
+    return t(`worlds.instances.category_options.${_instanceOptionSlug(name)}`, _instanceOptionFallback(name));
+}
+
+function instanceVibeLabel(title) {
+    return t(`worlds.instances.vibe_options.${_instanceOptionSlug(title)}`, _instanceOptionFallback(title));
+}
+
+function instanceMetaHtml(meta) {
+    if (!meta) return '';
+    const badge = (icon, text) => `<span class="vrcn-badge">${icon ? `<span class="msi" style="font-size:10px;">${icon}</span>` : ''}${esc(text)}</span>`;
+    const tags = [];
+    if (meta.categoryName) tags.push(badge('category', instanceCategoryLabel(meta.categoryName)));
+    (meta.vibes || []).forEach(vibe => tags.push(badge('', instanceVibeLabel(vibe))));
+    (meta.languages || []).forEach(code => tags.push(badge('translate', LANG_MAP['language_' + code] || code.toUpperCase())));
+    if (!meta.description && !tags.length) return '';
+    const description = meta.description ? `<div class="inst-meta-desc">${esc(meta.description)}</div>` : '';
+    const tagRow = tags.length ? `<div class="inst-meta-tags">${tags.join('')}</div>` : '';
+    return `<div class="inst-meta">${description}${tagRow}</div>`;
+}
+
+function _selfInstanceMember() {
     const self = (typeof currentVrcUser !== 'undefined') ? currentVrcUser : null;
     if (!self || !self.id) return null;
     let loc = self.location || '';
