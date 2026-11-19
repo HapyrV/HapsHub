@@ -12,6 +12,7 @@ The first release of HapsHub, built on VRCNext 2027.2.0. HapsHub is heavily base
 - Rearrange the sidebar by dragging; rename groups by double-clicking them.
 - From VRCNext 2027.2.0: Space Walk, My Reports, Purchase History, reporting users, reward codes, instance descriptions and vibes, Worlds Discover, Ukrainian, Linux support, and faster loading and tab switching.
 - From VRCX, off until you turn them on: a chime and a flashing taskbar button when a queued instance has a place for you (Settings > Sounds), and a clock beside friends you invited in the last hour (Settings > Sidebar).
+- Worlds > Explore replaces Discover and Search: browse all public worlds by Active now, Discover, Hot, Trending, Popular, New, Community Labs, Most favorited or Random, and search from the same bar.
 
 **Fixed**
 - Scrolling in Settings dropped half its frames.

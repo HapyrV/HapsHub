@@ -4610,5 +4610,18 @@
   "hub.queue.ready": "Votre place dans la file d'attente est prête. Rejoignez avant qu'elle expire.",
   "hub.set.hub.vrcx-extras.recent_invites": "Afficher une horloge à côté des amis invités dans la dernière heure",
   "hub.modules.info.hub.vrcx-extras": "Petites fonctions reprises de VRCX, chacune désactivée tant que vous ne l'activez pas. L'alarme de file d'attente joue un son et fait clignoter le bouton de la barre des tâches quand une file rejointe pour une instance pleine a une place pour vous, même si les sons de notification sont coupés ; le message dans HapsHub s'affiche dans tous les cas. L'horloge marque les amis invités, ou à qui vous avez demandé une invitation, dans la dernière heure, pour éviter de demander deux fois.",
-  "hub.recent_invite": "Invité, ou invitation demandée, dans la dernière heure"
+  "hub.recent_invite": "Invité, ou invitation demandée, dans la dernière heure",
+  "worlds.filters.explore": "Explorer",
+  "worlds.explore.placeholder": "Rechercher dans tous les mondes...",
+  "worlds.explore.views.relevance": "Meilleure correspondance",
+  "worlds.explore.views.active": "Actifs maintenant",
+  "worlds.explore.views.discover": "Découvrir",
+  "worlds.explore.views.hot": "Populaires du moment",
+  "worlds.explore.views.trending": "Tendances",
+  "worlds.explore.views.popular": "Populaires",
+  "worlds.explore.views.new": "Nouveaux",
+  "worlds.explore.views.labs": "Community Labs",
+  "worlds.explore.views.favorites": "Les plus favoris",
+  "worlds.explore.views.random": "Aléatoire",
+  "worlds.explore.note_live_filter": "Mondes actifs dont le nom, l'auteur ou les tags contiennent « {query} ». Appuyez sur Rechercher pour chercher dans tous les mondes."
 }

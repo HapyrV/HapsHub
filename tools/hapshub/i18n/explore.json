@@ -1,0 +1,62 @@
+{
+  "worlds.filters.explore": {
+    "en": "Explore", "de": "Erkunden", "es": "Explorar", "fr": "Explorer", "ja": "探索",
+    "ko": "탐색", "ru": "Исследовать", "zh-CN": "探索", "zh-TW": "瀏覽"
+  },
+  "worlds.explore.placeholder": {
+    "en": "Search all worlds...", "de": "Alle Welten durchsuchen...", "es": "Buscar en todos los mundos...",
+    "fr": "Rechercher dans tous les mondes...", "ja": "すべてのワールドを検索...", "ko": "모든 월드 검색...",
+    "ru": "Поиск по всем мирам...", "zh-CN": "搜索所有世界...", "zh-TW": "搜尋所有世界..."
+  },
+  "worlds.explore.views.relevance": {
+    "en": "Best match", "de": "Beste Treffer", "es": "Mejor coincidencia", "fr": "Meilleure correspondance",
+    "ja": "関連度順", "ko": "관련성 순", "ru": "Лучшее совпадение", "zh-CN": "最佳匹配", "zh-TW": "最佳符合"
+  },
+  "worlds.explore.views.active": {
+    "en": "Active now", "de": "Gerade aktiv", "es": "Activos ahora", "fr": "Actifs maintenant",
+    "ja": "今アクティブ", "ko": "지금 활동 중", "ru": "Активные сейчас", "zh-CN": "当前活跃", "zh-TW": "目前活躍"
+  },
+  "worlds.explore.views.discover": {
+    "en": "Discover", "de": "Entdecken", "es": "Descubrir", "fr": "Découvrir", "ja": "見つける",
+    "ko": "둘러보기", "ru": "Обзор", "zh-CN": "发现", "zh-TW": "發現"
+  },
+  "worlds.explore.views.hot": {
+    "en": "Hot", "de": "Angesagt", "es": "En auge", "fr": "Populaires du moment", "ja": "ホット",
+    "ko": "핫", "ru": "Горячие", "zh-CN": "热门", "zh-TW": "熱門"
+  },
+  "worlds.explore.views.trending": {
+    "en": "Trending", "de": "Im Trend", "es": "Tendencia", "fr": "Tendances", "ja": "トレンド",
+    "ko": "트렌딩", "ru": "В тренде", "zh-CN": "趋势", "zh-TW": "趨勢"
+  },
+  "worlds.explore.views.popular": {
+    "en": "Popular", "de": "Beliebt", "es": "Populares", "fr": "Populaires", "ja": "人気",
+    "ko": "인기", "ru": "Популярные", "zh-CN": "人气", "zh-TW": "人氣"
+  },
+  "worlds.explore.views.new": {
+    "en": "New", "de": "Neu", "es": "Nuevos", "fr": "Nouveaux", "ja": "新着",
+    "ko": "신규", "ru": "Новые", "zh-CN": "最新", "zh-TW": "最新"
+  },
+  "worlds.explore.views.labs": {
+    "en": "Community Labs", "de": "Community Labs", "es": "Community Labs", "fr": "Community Labs",
+    "ja": "Community Labs", "ko": "커뮤니티 랩스", "ru": "Community Labs", "zh-CN": "社区实验室", "zh-TW": "社群實驗室"
+  },
+  "worlds.explore.views.favorites": {
+    "en": "Most favorited", "de": "Meistfavorisiert", "es": "Más favoritos", "fr": "Les plus favoris",
+    "ja": "お気に入り数順", "ko": "즐겨찾기 많은 순", "ru": "Больше всего в избранном", "zh-CN": "最多收藏", "zh-TW": "最多收藏"
+  },
+  "worlds.explore.views.random": {
+    "en": "Random", "de": "Zufällig", "es": "Aleatorio", "fr": "Aléatoire", "ja": "ランダム",
+    "ko": "무작위", "ru": "Случайные", "zh-CN": "随机", "zh-TW": "隨機"
+  },
+  "worlds.explore.note_live_filter": {
+    "en": "Showing live worlds whose name, author or tags contain \"{query}\". Press Search to search all worlds.",
+    "de": "Zeigt aktive Welten, deren Name, Ersteller oder Tags \"{query}\" enthalten. Mit Suchen werden alle Welten durchsucht.",
+    "es": "Mostrando mundos activos cuyo nombre, autor o etiquetas contienen \"{query}\". Pulsa Buscar para buscar en todos los mundos.",
+    "fr": "Mondes actifs dont le nom, l'auteur ou les tags contiennent « {query} ». Appuyez sur Rechercher pour chercher dans tous les mondes.",
+    "ja": "名前・作者・タグに「{query}」を含むアクティブなワールドを表示中。すべてのワールドを探すには検索を押してください。",
+    "ko": "이름, 제작자 또는 태그에 \"{query}\"가 포함된 활동 중인 월드를 표시합니다. 모든 월드를 검색하려면 검색을 누르세요.",
+    "ru": "Показаны активные миры, где в названии, авторе или тегах есть «{query}». Нажмите «Поиск», чтобы искать по всем мирам.",
+    "zh-CN": "正在显示名称、作者或标签包含“{query}”的活跃世界。按搜索可搜索所有世界。",
+    "zh-TW": "正在顯示名稱、作者或標籤包含「{query}」的活躍世界。按搜尋可搜尋所有世界。"
+  }
+}

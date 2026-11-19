@@ -1080,6 +1080,9 @@ case 'vrcNews':
             case 'vrcWorldDiscover':
                 if (typeof onWorldDiscover === 'function') onWorldDiscover(payload);
                 break;
+            case 'vrcExploreResults':
+                if (typeof onExploreResults === 'function') onExploreResults(payload);
+                break;
             case 'recentSeenPlayers':
                 if (typeof renderRecentSeen === 'function') renderRecentSeen(payload.players);
                 break;

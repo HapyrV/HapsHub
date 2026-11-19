@@ -4610,5 +4610,18 @@
   "hub.queue.ready": "排隊已輪到你。請在過期前加入。",
   "hub.set.hub.vrcx-extras.recent_invites": "在過去一小時內邀請過的好友旁顯示時鐘",
   "hub.modules.info.hub.vrcx-extras": "來自 VRCX 的小功能，每項在你開啟前都是關閉的。排隊提醒會在你排隊等待的滿員房間有空位時播放提示音並閃爍工作列按鈕，即使通知音已關閉；HapsHub 內的訊息一律會顯示。時鐘會標記你在過去一小時內邀請過或請求過邀請的好友，免得重複請求。",
-  "hub.recent_invite": "你在過去一小時內邀請過或請求過邀請"
+  "hub.recent_invite": "你在過去一小時內邀請過或請求過邀請",
+  "worlds.filters.explore": "瀏覽",
+  "worlds.explore.placeholder": "搜尋所有世界...",
+  "worlds.explore.views.relevance": "最佳符合",
+  "worlds.explore.views.active": "目前活躍",
+  "worlds.explore.views.discover": "發現",
+  "worlds.explore.views.hot": "熱門",
+  "worlds.explore.views.trending": "趨勢",
+  "worlds.explore.views.popular": "人氣",
+  "worlds.explore.views.new": "最新",
+  "worlds.explore.views.labs": "社群實驗室",
+  "worlds.explore.views.favorites": "最多收藏",
+  "worlds.explore.views.random": "隨機",
+  "worlds.explore.note_live_filter": "正在顯示名稱、作者或標籤包含「{query}」的活躍世界。按搜尋可搜尋所有世界。"
 }

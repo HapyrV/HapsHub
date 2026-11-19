@@ -256,7 +256,6 @@ let notifications = [], notifPanelOpen = false, myGroups = [], myGroupsLoaded = 
 let currentInstanceData = null;
 // Pagination state for search
 let searchState = {
-    worlds: { query: '', offset: 0, results: [], hasMore: false },
     groups: { query: '', offset: 0, results: [], hasMore: false },
     people: { query: '', offset: 0, results: [], hasMore: false },
 };

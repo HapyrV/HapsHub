@@ -4610,5 +4610,18 @@
   "hub.queue.ready": "待機列の順番が来ました。期限が切れる前に参加してください。",
   "hub.set.hub.vrcx-extras.recent_invites": "1時間以内に招待したフレンドの横に時計を表示する",
   "hub.modules.info.hub.vrcx-extras": "VRCX から取り入れた小さな機能です。どれもオンにするまでオフです。待機列アラームは、満員のインスタンスの待機列で順番が来ると、通知音がオフでも音を鳴らしてタスクバーのボタンを点滅させます。HapsHub 内のメッセージはどちらの場合も表示されます。時計は、1時間以内に招待した、または招待をリクエストしたフレンドに付き、二重に頼むのを防ぎます。",
-  "hub.recent_invite": "1時間以内に招待、または招待をリクエストしました"
+  "hub.recent_invite": "1時間以内に招待、または招待をリクエストしました",
+  "worlds.filters.explore": "探索",
+  "worlds.explore.placeholder": "すべてのワールドを検索...",
+  "worlds.explore.views.relevance": "関連度順",
+  "worlds.explore.views.active": "今アクティブ",
+  "worlds.explore.views.discover": "見つける",
+  "worlds.explore.views.hot": "ホット",
+  "worlds.explore.views.trending": "トレンド",
+  "worlds.explore.views.popular": "人気",
+  "worlds.explore.views.new": "新着",
+  "worlds.explore.views.labs": "Community Labs",
+  "worlds.explore.views.favorites": "お気に入り数順",
+  "worlds.explore.views.random": "ランダム",
+  "worlds.explore.note_live_filter": "名前・作者・タグに「{query}」を含むアクティブなワールドを表示中。すべてのワールドを探すには検索を押してください。"
 }

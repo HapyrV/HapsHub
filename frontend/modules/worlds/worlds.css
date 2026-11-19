@@ -27,3 +27,9 @@
 /* Tag filter (issue 13) */
 .wd-tag-wrap { max-width: 190px; min-width: 120px; }
 .wd-tag-wrap .vn-select, .wd-tag-wrap select { width: 100%; }
+
+/* Explore (item 14): view chips under the search bar, the live-filter note and the load-more row */
+.explore-views { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+.explore-note { font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx3, rgba(255,255,255,.55)); margin: -4px 0 10px; }
+.explore-more { grid-column: 1 / -1; text-align: center; padding: 12px; }
+.explore-more .load-more-btn { padding: 8px 24px; }

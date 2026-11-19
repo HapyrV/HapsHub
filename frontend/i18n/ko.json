@@ -4610,5 +4610,18 @@
   "hub.queue.ready": "대기열 차례가 왔습니다. 만료되기 전에 참가하세요.",
   "hub.set.hub.vrcx-extras.recent_invites": "지난 1시간 안에 초대한 친구 옆에 시계 표시",
   "hub.modules.info.hub.vrcx-extras": "VRCX에서 가져온 작은 기능들로, 켜기 전까지는 모두 꺼져 있습니다. 대기열 알람은 가득 찬 인스턴스의 대기열에서 차례가 오면 알림음이 꺼져 있어도 알림음을 울리고 작업 표시줄 버튼을 깜박입니다. HapsHub 안의 메시지는 항상 표시됩니다. 시계는 지난 1시간 안에 초대했거나 초대를 요청한 친구에게 표시되어 두 번 요청하지 않게 해 줍니다.",
-  "hub.recent_invite": "지난 1시간 안에 초대했거나 초대를 요청했습니다"
+  "hub.recent_invite": "지난 1시간 안에 초대했거나 초대를 요청했습니다",
+  "worlds.filters.explore": "탐색",
+  "worlds.explore.placeholder": "모든 월드 검색...",
+  "worlds.explore.views.relevance": "관련성 순",
+  "worlds.explore.views.active": "지금 활동 중",
+  "worlds.explore.views.discover": "둘러보기",
+  "worlds.explore.views.hot": "핫",
+  "worlds.explore.views.trending": "트렌딩",
+  "worlds.explore.views.popular": "인기",
+  "worlds.explore.views.new": "신규",
+  "worlds.explore.views.labs": "커뮤니티 랩스",
+  "worlds.explore.views.favorites": "즐겨찾기 많은 순",
+  "worlds.explore.views.random": "무작위",
+  "worlds.explore.note_live_filter": "이름, 제작자 또는 태그에 \"{query}\"가 포함된 활동 중인 월드를 표시합니다. 모든 월드를 검색하려면 검색을 누르세요."
 }

@@ -4614,5 +4614,18 @@
   "hub.queue.ready": "Ваша очередь подошла. Зайдите, пока место не истекло.",
   "hub.set.hub.vrcx-extras.recent_invites": "Показывать часы рядом с друзьями, которых вы пригласили за последний час",
   "hub.modules.info.hub.vrcx-extras": "Небольшие функции из VRCX, каждая выключена, пока вы её не включите. Сигнал очереди звучит и мигает кнопкой на панели задач, когда в очереди в заполненный инстанс для вас освобождается место, даже если звуки уведомлений выключены; сообщение в HapsHub показывается в любом случае. Часы отмечают друзей, которых вы пригласили или у которых попросили приглашение за последний час, чтобы не просить дважды.",
-  "hub.recent_invite": "Вы пригласили или попросили приглашение за последний час"
+  "hub.recent_invite": "Вы пригласили или попросили приглашение за последний час",
+  "worlds.filters.explore": "Исследовать",
+  "worlds.explore.placeholder": "Поиск по всем мирам...",
+  "worlds.explore.views.relevance": "Лучшее совпадение",
+  "worlds.explore.views.active": "Активные сейчас",
+  "worlds.explore.views.discover": "Обзор",
+  "worlds.explore.views.hot": "Горячие",
+  "worlds.explore.views.trending": "В тренде",
+  "worlds.explore.views.popular": "Популярные",
+  "worlds.explore.views.new": "Новые",
+  "worlds.explore.views.labs": "Community Labs",
+  "worlds.explore.views.favorites": "Больше всего в избранном",
+  "worlds.explore.views.random": "Случайные",
+  "worlds.explore.note_live_filter": "Показаны активные миры, где в названии, авторе или тегах есть «{query}». Нажмите «Поиск», чтобы искать по всем мирам."
 }

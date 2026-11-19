@@ -1,7 +1,7 @@
 ﻿/* === Search (Worlds, Groups, People) === */
 /* === World Tab: Favorites / Search filter === */
 document.documentElement.addEventListener('languagechange', () => {
-    document.getElementById('worldSortSelect')?._vnRefresh?.();
+    if (worldFilter === 'explore') { _exploreSyncUi(); renderExplore(); }
 });
 let _favRefreshTimer = null;
 let _favWorldsLoaded = false;
@@ -43,19 +43,18 @@ function getWorldVisitCountLabel(count) {
 
 function setWorldFilter(filter) {
     if (_worldEditMode) exitWorldEditMode();
+    if (filter === 'search' || filter === 'discover') filter = 'explore';   // both live in Explore now (item 14)
     worldFilter = filter;
     worldTagFilter = '';
     document.getElementById('worldFilterFav').classList.toggle('active', filter === 'favorites');
-    document.getElementById('worldFilterDiscover').classList.toggle('active', filter === 'discover');
+    document.getElementById('worldFilterExplore').classList.toggle('active', filter === 'explore');
     document.getElementById('worldFilterRecent').classList.toggle('active', filter === 'recent');
     document.getElementById('worldFilterMine').classList.toggle('active', filter === 'mine');
-    document.getElementById('worldFilterSearch').classList.toggle('active', filter === 'search');
-    document.getElementById('worldFavArea').style.display    = filter === 'favorites' ? '' : 'none';
-    document.getElementById('worldDiscoverArea').style.display = filter === 'discover' ? '' : 'none';
-    document.getElementById('worldRecentArea').style.display = filter === 'recent'    ? '' : 'none';
-    document.getElementById('worldMineArea').style.display   = filter === 'mine'      ? '' : 'none';
-    document.getElementById('worldSearchArea').style.display = filter === 'search'    ? '' : 'none';
-    document.getElementById('worldToolbar')?.classList.toggle('tt-split', filter === 'favorites' || filter === 'search' || filter === 'discover');
+    document.getElementById('worldFavArea').style.display     = filter === 'favorites' ? '' : 'none';
+    document.getElementById('worldExploreArea').style.display = filter === 'explore'   ? '' : 'none';
+    document.getElementById('worldRecentArea').style.display  = filter === 'recent'    ? '' : 'none';
+    document.getElementById('worldMineArea').style.display    = filter === 'mine'      ? '' : 'none';
+    document.getElementById('worldToolbar')?.classList.toggle('tt-split', filter === 'favorites' || filter === 'explore');
     const editBtn = document.getElementById('worldEditModeBtn');
     if (editBtn) editBtn.style.display = (filter === 'favorites' || filter === 'mine') ? '' : 'none';
     const wlBtn = document.getElementById('worldViewList');
@@ -69,7 +68,7 @@ function setWorldFilter(filter) {
         sendToCS({ action: 'vrcGetMyWorlds' });
     }
     if (filter === 'recent') sendToCS({ action: 'vrcGetVisitedWorlds' });
-    if (filter === 'discover' && !_worldDiscoverData[_worldDiscoverMode]) loadWorldDiscover();
+    if (filter === 'explore') { _exploreSyncUi(); _exploreEnsure(); }
 }
 
 let _visitedWorldsData = [];
@@ -126,7 +125,7 @@ function _wdUpdateCounts() {
 
 function setWorldsViewMode(mode) {
     lvSetViewMode('worlds', mode);
-    _worldMinePage = 0; _favWorldsPage = 0; _worldRecentPage = 0; _worldDiscoverPage = 0;
+    _worldMinePage = 0; _favWorldsPage = 0; _worldRecentPage = 0; _explore.page = 0;
     _worldsSyncViewBtns();
     renderWorldsListView();
 }
@@ -193,19 +192,15 @@ function setWorldTagFilter(tag) {
 function renderWorldsListView() {
     if (worldFilter === 'mine') renderMyWorlds(_myWorldsData);
     else if (worldFilter === 'recent') renderVisitedWorlds();
-    else if (worldFilter === 'discover') renderWorldDiscover();
-    else if (worldFilter === 'search') {
-        const st = searchState?.worlds;
-        if (st && st.results && st.results.length) renderSearchResults('worlds', st.results, 0, st.hasMore);
-    }
+    else if (worldFilter === 'explore') renderExplore();
     else filterFavWorlds();
 }
 
-function setWorldsListPageSize(v) { lvSetPageSize('worlds', v, () => { _worldMinePage = 0; _favWorldsPage = 0; _worldRecentPage = 0; _worldDiscoverPage = 0; renderWorldsListView(); }); }
+function setWorldsListPageSize(v) { lvSetPageSize('worlds', v, () => { _worldMinePage = 0; _favWorldsPage = 0; _worldRecentPage = 0; _explore.page = 0; renderWorldsListView(); }); }
 function worldMineGoPage(p) { if (p < 0) return; _worldMinePage = p; renderMyWorlds(_myWorldsData); document.getElementById('worldMineGrid')?.scrollTo(0, 0); }
 function favWorldsGoPage(p) { if (p < 0) return; _favWorldsPage = p; filterFavWorlds(); document.getElementById('favWorldsGrid')?.scrollTo(0, 0); }
 function worldRecentGoPage(p) { if (p < 0) return; _worldRecentPage = p; renderVisitedWorlds(); document.getElementById('worldRecentGrid')?.scrollTo(0, 0); }
-function worldDiscoverGoPage(p) { if (p < 0) return; _worldDiscoverPage = p; renderWorldDiscover(); document.getElementById('worldDiscoverGrid')?.scrollTo(0, 0); }
+function exploreGoPage(p) { if (p < 0) return; _explore.page = p; renderExplore(); document.getElementById('searchWorldsResults')?.scrollTo(0, 0); }
 
 function _wlAuthorTags(w) {
     return (w.tags || []).filter(x => x.startsWith('author_tag_')).map(x => x.replace('author_tag_', ''));
@@ -302,80 +297,178 @@ function renderMyWorlds(worlds) {
     el.innerHTML = list.map(w => renderWorldCard(w)).join('');
 }
 
-let _worldDiscoverMode = 'popular';
-let _worldDiscoverPage = 0;
-const _worldDiscoverData = { popular: null, discover: null };
-const _worldDiscoverLoading = { popular: false, discover: false };
-const _worldDiscoverFailed = { popular: false, discover: false };
+// ---- Explore (item 14): every public world, replacing the old Discover and Search sub-tabs ----
+// Live views ("Active now", "Discover") are VRChat's instance lists grouped by world (vrcGetWorldDiscover); the other
+// views are pages of GET /worlds (vrcExploreWorlds). Search text searches VRChat in the API views and only narrows
+// the loaded list in the live views. Pages are kept a few minutes, so going back to a view does not call VRChat again.
+const _EXPLORE_LIVE = { active: 'popular', discover: 'discover' };   // view -> vrcGetWorldDiscover mode
+const _EXPLORE_TTL_MS = 5 * 60 * 1000;
+const _explore = { view: 'active', query: '', page: 0, entries: {}, shown: [] };
 
-function setWorldDiscoverMode(mode) {
-    _worldDiscoverMode = mode;
-    _worldDiscoverPage = 0;
-    document.getElementById('worldDiscoverPopular').classList.toggle('active', mode === 'popular');
-    document.getElementById('worldDiscoverWorlds').classList.toggle('active', mode === 'discover');
-    _wdSyncDiscoverButton();
-    renderWorldDiscover();
-    if (!_worldDiscoverData[mode]) loadWorldDiscover();
+function _exploreKey(view, query) { return _EXPLORE_LIVE[view] ? view : view + '|' + String(query || '').toLowerCase(); }
+
+function _exploreEntry(view = _explore.view, query = _explore.query) {
+    const key = _exploreKey(view, query);
+    return _explore.entries[key]
+        || (_explore.entries[key] = { worlds: null, offset: 0, hasMore: false, loading: false, failed: false, at: 0 });
 }
 
-function loadWorldDiscover() {
-    const mode = _worldDiscoverMode;
-    if (_worldDiscoverLoading[mode]) return;
-    _worldDiscoverLoading[mode] = true;
-    _worldDiscoverFailed[mode] = false;
-    _wdSyncDiscoverButton();
-    renderWorldDiscover();
-    sendToCS({ action: 'vrcGetWorldDiscover', mode });
+function _exploreReadQuery() {
+    const input = document.getElementById('searchWorldsInput');
+    if (input) _explore.query = input.value.trim();
+    if (!_explore.query && _explore.view === 'relevance') _explore.view = 'active';
 }
 
+function _exploreFetch(view, query, offset, fresh) {
+    const e = _exploreEntry(view, query);
+    e.loading = true;
+    e.failed = false;
+    if (_EXPLORE_LIVE[view]) sendToCS({ action: 'vrcGetWorldDiscover', mode: _EXPLORE_LIVE[view] });
+    else sendToCS({ action: 'vrcExploreWorlds', view, query, offset, fresh: !!fresh });
+    _exploreSyncUi();
+    if (worldFilter === 'explore') renderExplore();
+}
+
+/** Loads the current view if it has nothing yet (or an API page went stale); fresh = the Refresh button. */
+function _exploreEnsure(fresh) {
+    const e = _exploreEntry();
+    if (e.loading) return;
+    const stale = !Array.isArray(e.worlds) || (!_EXPLORE_LIVE[_explore.view] && Date.now() - e.at > _EXPLORE_TTL_MS);
+    if (fresh || stale) _exploreFetch(_explore.view, _explore.query, 0, fresh);
+}
+
+function setExploreView(view) {
+    _exploreReadQuery();
+    if (view === 'relevance' && !_explore.query) return;
+    _explore.view = view;
+    _explore.page = 0;
+    _exploreSyncUi();
+    _exploreEnsure();
+    renderExplore();
+    document.getElementById('searchWorldsResults')?.scrollTo(0, 0);
+}
+
+/** Search button / Enter. In a live view a search means "all worlds", so it moves to Best match. */
+function exploreSearch() {
+    if (worldFilter !== 'explore') setWorldFilter('explore');
+    _exploreReadQuery();
+    if (_explore.query && _EXPLORE_LIVE[_explore.view]) _explore.view = 'relevance';
+    _explore.page = 0;
+    _exploreSyncUi();
+    _exploreEnsure();
+    renderExplore();
+}
+
+function exploreRefresh() { _exploreReadQuery(); _exploreEnsure(true); }
+
+function exploreLoadMore() {
+    const e = _exploreEntry();
+    if (e.loading || !e.hasMore || _EXPLORE_LIVE[_explore.view]) return;
+    _exploreFetch(_explore.view, _explore.query, e.offset, false);
+}
+
+function _exploreAfterLoad(view, query) {
+    if (_exploreKey(view, query) !== _exploreKey(_explore.view, _explore.query)) return;
+    _exploreSyncUi();
+    if (worldFilter === 'explore') renderExplore();
+}
+
+function _exploreLoadFailed(e) {
+    if (Array.isArray(e.worlds)) showToast(false, t('worlds.discover.load_failed', 'Could not load worlds'));
+    else e.failed = true;
+}
+
+/** Live views (instance lists). */
 function onWorldDiscover(payload) {
-    const mode = payload.mode;
-    _worldDiscoverLoading[mode] = false;
+    const view = payload.mode === 'discover' ? 'discover' : 'active';
+    const e = _exploreEntry(view, '');
+    e.loading = false;
+    if (payload.ok) { e.worlds = payload.worlds || []; e.at = Date.now(); e.hasMore = false; }
+    else _exploreLoadFailed(e);
+    _exploreAfterLoad(view, '');
+}
+
+/** API views (GET /worlds pages). Offset 0 replaces the list, later pages add worlds not shown yet. */
+function onExploreResults(payload) {
+    const query = payload.query || '';
+    const e = _exploreEntry(payload.view, query);
+    e.loading = false;
     if (payload.ok) {
-        _worldDiscoverData[mode] = payload.worlds || [];
-    } else if (_worldDiscoverData[mode]) {
-        showToast(false, t('worlds.discover.load_failed', 'Could not load worlds'));
-    } else {
-        _worldDiscoverFailed[mode] = true;
+        const add = Array.isArray(payload.worlds) ? payload.worlds : [];
+        if (payload.offset > 0 && Array.isArray(e.worlds)) {
+            const seen = new Set(e.worlds.map(w => w.id));
+            e.worlds = e.worlds.concat(add.filter(w => !seen.has(w.id)));
+        } else {
+            e.worlds = add;
+            e.at = Date.now();
+        }
+        e.offset = (payload.offset || 0) + add.length;
+        e.hasMore = !!payload.hasMore;
+    } else _exploreLoadFailed(e);
+    _exploreAfterLoad(payload.view, query);
+}
+
+function _exploreSyncUi() {
+    const live = !!_EXPLORE_LIVE[_explore.view];
+    document.querySelectorAll('#exploreViewBtns [id^="exploreView_"]')
+        .forEach(b => b.classList.toggle('active', b.id === 'exploreView_' + _explore.view));
+    const rel = document.getElementById('exploreView_relevance');
+    if (rel) rel.style.display = _explore.query ? '' : 'none';
+    const loading = _exploreEntry().loading;
+    const btn = document.getElementById('exploreRefreshBtn');
+    if (btn) {
+        btn.disabled = loading;
+        const ico = btn.querySelector('.msi');
+        if (ico) ico.textContent = loading ? 'hourglass_empty' : 'refresh';
     }
-    if (mode !== _worldDiscoverMode) return;
-    _worldDiscoverPage = 0;
-    _wdSyncDiscoverButton();
-    if (worldFilter === 'discover') renderWorldDiscover();
+    const note = document.getElementById('exploreNote');
+    if (note) {
+        const text = live && _explore.query
+            ? tf('worlds.explore.note_live_filter', { query: _explore.query }, 'Showing live worlds whose name, author or tags contain "{query}". Press Search to search all worlds.')
+            : '';
+        note.textContent = text;
+        note.style.display = text ? '' : 'none';
+    }
 }
 
-function _wdSyncDiscoverButton() {
-    const btn = document.getElementById('worldDiscoverRefreshBtn');
-    const label = document.getElementById('worldDiscoverRefreshLabel');
-    if (!btn || !label) return;
-    const loading = _worldDiscoverLoading[_worldDiscoverMode];
-    const shuffle = _worldDiscoverMode === 'discover';
-    btn.disabled = loading;
-    btn.querySelector('.msi').textContent = loading ? 'hourglass_empty' : (shuffle ? 'shuffle' : 'refresh');
-    label.dataset.i18n = shuffle ? 'worlds.search.sort.shuffle' : 'common.refresh';
-    label.textContent = t(label.dataset.i18n, shuffle ? 'Shuffle' : 'Refresh');
+/** The loaded worlds of the current view; live views are narrowed by the search text. */
+function _exploreVisible() {
+    const list = _exploreEntry().worlds;
+    if (!Array.isArray(list)) return null;
+    const q = _explore.query.toLowerCase();
+    if (!q || !_EXPLORE_LIVE[_explore.view]) return list;
+    return list.filter(w => (w.name || '').toLowerCase().includes(q)
+        || (w.authorName || '').toLowerCase().includes(q)
+        || _wlAuthorTags(w).some(tag => tag.toLowerCase().includes(q)));
 }
 
-function renderWorldDiscover() {
-    const el = document.getElementById('worldDiscoverGrid');
+function renderExplore() {
+    const el = document.getElementById('searchWorldsResults');
     if (!el) return;
-    const mode = _worldDiscoverMode;
-    const list = _worldDiscoverData[mode];
-    if (!Array.isArray(list) || list.length === 0) {
-        setPaginator('worldDiscoverPaginatorBar', '');
+    const e = _exploreEntry();
+    const list = _exploreVisible();
+    _explore.shown = list || [];
+    if (!list || list.length === 0) {
+        setPaginator('worldExplorePaginatorBar', '');
         el.classList.add('search-grid');
-        if (Array.isArray(list)) el.innerHTML = emptyStateHtml('public', t('worlds.discover.empty', 'No worlds to show'));
-        else if (_worldDiscoverFailed[mode]) el.innerHTML = emptyStateHtml('error', t('worlds.discover.load_failed', 'Could not load worlds'));
-        else el.innerHTML = `<div class="empty-msg">${esc(t('common.loading', 'Loading...'))}</div>`;
+        if (Array.isArray(list)) el.innerHTML = _explore.query
+            ? emptyStateHtml('search', t('search.no_results', 'No results found'))
+            : emptyStateHtml('public', t('worlds.discover.empty', 'No worlds to show'));
+        else if (e.failed) el.innerHTML = emptyStateHtml('error', t('worlds.discover.load_failed', 'Could not load worlds'));
+        else el.innerHTML = sk('world', 3);
         return;
     }
+    const more = e.hasMore && !_EXPLORE_LIVE[_explore.view]
+        ? `<div class="explore-more"><button class="vrcn-button load-more-btn" onclick="exploreLoadMore()"${e.loading ? ' disabled' : ''}><span class="msi" style="font-size:16px;">expand_more</span> ${esc(e.loading ? searchLoadingText() : searchLoadMoreText())}</button></div>`
+        : '';
     if (lvViewMode('worlds') === 'list' && lvReady()) {
-        lvKeepScroll(el, () => _worldsListPage(el, list, _worldDiscoverPage, 'worldDiscoverPaginatorBar', 'worldDiscoverGoPage', p => { _worldDiscoverPage = p; }));
+        lvKeepScroll(el, () => _worldsListPage(el, list, _explore.page, 'worldExplorePaginatorBar', 'exploreGoPage', p => { _explore.page = p; }));
+        if (more) el.insertAdjacentHTML('beforeend', more);
         return;
     }
-    setPaginator('worldDiscoverPaginatorBar', '');
+    setPaginator('worldExplorePaginatorBar', '');
     el.classList.add('search-grid');
-    el.innerHTML = list.map(w => renderWorldCard(w)).join('');
+    el.innerHTML = list.map(w => renderWorldCard(w)).join('') + more;
 }
 
 function _wdGroupOptionLabel(g) {

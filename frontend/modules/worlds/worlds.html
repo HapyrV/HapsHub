@@ -1,10 +1,9 @@
                 <div class="tab-toolbar tt-split" id="worldToolbar" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:nowrap;gap:8px;">
                     <div id="worldFilterBtns" class="tt-scroll">
                         <button class="vrcn-button sub-tab-btn active" id="worldFilterFav" onclick="setWorldFilter('favorites')"><span class="msi" style="font-size:16px;">favorite</span> <span data-i18n="worlds.filters.favorites">Favorites</span> <span class="vrcn-badge fd-tab-badge" id="worldFilterFavCount">X</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="worldFilterDiscover" onclick="setWorldFilter('discover')"><span class="msi" style="font-size:16px;">explore</span> <span data-i18n="worlds.filters.discover">Discover</span></button>
+                        <button class="vrcn-button sub-tab-btn" id="worldFilterExplore" onclick="setWorldFilter('explore')"><span class="msi" style="font-size:16px;">explore</span> <span data-i18n="worlds.filters.explore">Explore</span></button>
                         <button class="vrcn-button sub-tab-btn" id="worldFilterRecent" onclick="setWorldFilter('recent')"><span class="msi" style="font-size:16px;">history</span> <span data-i18n="worlds.filters.recent">Recently Visited</span> <span class="vrcn-badge fd-tab-badge" id="worldFilterRecentCount">X</span></button>
                         <button class="vrcn-button sub-tab-btn" id="worldFilterMine" onclick="setWorldFilter('mine')"><span class="msi" style="font-size:16px;">cloud_upload</span> <span data-i18n="worlds.filters.mine">My Worlds</span> <span class="vrcn-badge fd-tab-badge" id="worldFilterMineCount">X</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="worldFilterSearch" onclick="setWorldFilter('search')"><span class="msi" style="font-size:16px;">search</span> <span data-i18n="worlds.filters.search">Search</span></button>
                     </div>
                     <div style="display:flex;gap:4px;align-items:center;flex-shrink:0;">
                         <span id="worldTagWrap" class="wd-tag-wrap" style="display:none;"><select id="worldTagFilter" class="vrcn-dropdown" onchange="setWorldTagFilter(this.value)" title="Filter by tag" data-i18n-title="worlds.tags.filter_title"><option value="" data-i18n="worlds.tags.all">All tags</option></select></span>
@@ -18,36 +17,33 @@
                     <div id="worldMineGrid" class="search-grid"><div class="empty-msg" data-i18n="worlds.mine.loading">Loading your worlds...</div></div>
                     <div id="worldMinePaginatorBar" class="tl-paginator-bar"></div>
                 </div>
-                <div id="worldDiscoverArea" style="display:none;">
+                <div id="worldExploreArea" style="display:none;">
                     <div class="tab-toolbar-body">
-                    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
-                        <button class="vrcn-button sub-tab-btn active" id="worldDiscoverPopular" onclick="setWorldDiscoverMode('popular')"><span class="msi" style="font-size:16px;">local_fire_department</span> <span data-i18n="worlds.discover.popular">Popular Worlds</span></button>
-                        <button class="vrcn-button sub-tab-btn" id="worldDiscoverWorlds" onclick="setWorldDiscoverMode('discover')"><span class="msi" style="font-size:16px;">travel_explore</span> <span data-i18n="worlds.discover.discover">Discover Worlds</span></button>
-                        <button id="worldDiscoverRefreshBtn" class="vrcn-button" style="margin-left:auto;" onclick="loadWorldDiscover()"><span class="msi" style="font-size:16px;">refresh</span> <span id="worldDiscoverRefreshLabel" data-i18n="common.refresh">Refresh</span></button>
+                    <div class="search-bar-row">
+                        <div style="position:relative;flex:1;display:flex;align-items:center;"><span class="msi search-ico">search</span><input type="text" id="searchWorldsInput" class="vrcn-input" style="width:100%;" placeholder="Search all worlds..." data-i18n-placeholder="worlds.explore.placeholder" onkeydown="if(event.key==='Enter')exploreSearch()"></div>
+                        <button class="vrcn-button" onclick="exploreSearch()" data-i18n="common.search">Search</button>
                     </div>
+                    <div id="exploreViewBtns" class="explore-views">
+                        <button class="vrcn-button sub-tab-btn" id="exploreView_relevance" onclick="setExploreView('relevance')" style="display:none;"><span class="msi" style="font-size:16px;">manage_search</span> <span data-i18n="worlds.explore.views.relevance">Best match</span></button>
+                        <button class="vrcn-button sub-tab-btn active" id="exploreView_active" onclick="setExploreView('active')"><span class="msi" style="font-size:16px;">groups</span> <span data-i18n="worlds.explore.views.active">Active now</span></button>
+                        <button class="vrcn-button sub-tab-btn" id="exploreView_discover" onclick="setExploreView('discover')"><span class="msi" style="font-size:16px;">travel_explore</span> <span data-i18n="worlds.explore.views.discover">Discover</span></button>
+                        <button class="vrcn-button sub-tab-btn" id="exploreView_hot" onclick="setExploreView('hot')"><span class="msi" style="font-size:16px;">local_fire_department</span> <span data-i18n="worlds.explore.views.hot">Hot</span></button>
+                        <button class="vrcn-button sub-tab-btn" id="exploreView_trending" onclick="setExploreView('trending')"><span class="msi" style="font-size:16px;">trending_up</span> <span data-i18n="worlds.explore.views.trending">Trending</span></button>
+                        <button class="vrcn-button sub-tab-btn" id="exploreView_popular" onclick="setExploreView('popular')"><span class="msi" style="font-size:16px;">star</span> <span data-i18n="worlds.explore.views.popular">Popular</span></button>
+                        <button class="vrcn-button sub-tab-btn" id="exploreView_new" onclick="setExploreView('new')"><span class="msi" style="font-size:16px;">fiber_new</span> <span data-i18n="worlds.explore.views.new">New</span></button>
+                        <button class="vrcn-button sub-tab-btn" id="exploreView_labs" onclick="setExploreView('labs')"><span class="msi" style="font-size:16px;">science</span> <span data-i18n="worlds.explore.views.labs">Community Labs</span></button>
+                        <button class="vrcn-button sub-tab-btn" id="exploreView_favorites" onclick="setExploreView('favorites')"><span class="msi" style="font-size:16px;">favorite</span> <span data-i18n="worlds.explore.views.favorites">Most favorited</span></button>
+                        <button class="vrcn-button sub-tab-btn" id="exploreView_random" onclick="setExploreView('random')"><span class="msi" style="font-size:16px;">casino</span> <span data-i18n="worlds.explore.views.random">Random</span></button>
+                        <button id="exploreRefreshBtn" class="vrcn-button" style="margin-left:auto;" onclick="exploreRefresh()"><span class="msi" style="font-size:16px;">refresh</span> <span data-i18n="common.refresh">Refresh</span></button>
                     </div>
-                    <div id="worldDiscoverGrid" class="search-grid"><div class="empty-msg" data-i18n="common.loading">Loading...</div></div>
-                    <div id="worldDiscoverPaginatorBar" class="tl-paginator-bar"></div>
+                    <div id="exploreNote" class="explore-note" style="display:none;"></div>
+                    </div>
+                    <div id="searchWorldsResults" class="search-grid"><div class="empty-msg" data-i18n="common.loading">Loading...</div></div>
+                    <div id="worldExplorePaginatorBar" class="tl-paginator-bar"></div>
                 </div>
                 <div id="worldRecentArea" style="display:none;">
                     <div id="worldRecentGrid" class="search-grid"><div class="empty-msg" data-i18n="common.loading">Loading...</div></div>
                     <div id="worldRecentPaginatorBar" class="tl-paginator-bar"></div>
-                </div>
-                <div id="worldSearchArea" style="display:none;">
-                    <div class="tab-toolbar-body">
-                    <div class="search-bar-row">
-                        <select id="worldSortSelect" class="vrcn-dropdown" style="flex-shrink:0;">
-                            <option value="relevance" data-i18n="worlds.search.sort.relevance">Relevance</option>
-                            <option value="popularity" data-i18n="worlds.search.sort.popularity">Popularity</option>
-                            <option value="updated" data-i18n="worlds.search.sort.updated">Updated</option>
-                            <option value="created" data-i18n="worlds.search.sort.created">Created</option>
-                            <option value="shuffle" data-i18n="worlds.search.sort.shuffle">Shuffle</option>
-                        </select>
-                        <div style="position:relative;flex:1;display:flex;align-items:center;"><span class="msi search-ico">search</span><input type="text" id="searchWorldsInput" class="vrcn-input" style="width:100%;" placeholder="Search worlds..." data-i18n-placeholder="worlds.search.placeholder" onkeydown="if(event.key==='Enter')doSearch('worlds')"></div>
-                        <button class="vrcn-button" onclick="doSearch('worlds')" data-i18n="common.search">Search</button>
-                    </div>
-                    </div>
-                    <div id="searchWorldsResults" class="search-grid"><div class="empty-msg"><div class="empty-msg-icon"><span class="msi">travel_explore</span></div><div class="empty-msg-title" data-i18n="worlds.search.empty_prompt">Find a world</div><div class="empty-msg-desc" data-i18n="worlds.search.empty_prompt_desc">Search by name to discover somewhere new.</div></div></div>
                 </div>
                 <div id="worldFavArea">
                     <div class="tab-toolbar-body">

@@ -4610,5 +4610,18 @@
   "hub.queue.ready": "Tu sitio en la cola está listo. Únete antes de que caduque.",
   "hub.set.hub.vrcx-extras.recent_invites": "Mostrar un reloj junto a los amigos que invitaste en la última hora",
   "hub.modules.info.hub.vrcx-extras": "Pequeñas funciones de VRCX, cada una desactivada hasta que la actives. La alarma de cola suena y hace parpadear el botón de la barra de tareas cuando una cola a la que te uniste para una instancia llena tiene sitio para ti, aunque los sonidos de notificación estén desactivados; el mensaje en HapsHub aparece igualmente. El reloj marca a los amigos que invitaste, o a quienes pediste invitación, en la última hora, para que no lo pidas dos veces.",
-  "hub.recent_invite": "Lo invitaste, o le pediste invitación, en la última hora"
+  "hub.recent_invite": "Lo invitaste, o le pediste invitación, en la última hora",
+  "worlds.filters.explore": "Explorar",
+  "worlds.explore.placeholder": "Buscar en todos los mundos...",
+  "worlds.explore.views.relevance": "Mejor coincidencia",
+  "worlds.explore.views.active": "Activos ahora",
+  "worlds.explore.views.discover": "Descubrir",
+  "worlds.explore.views.hot": "En auge",
+  "worlds.explore.views.trending": "Tendencia",
+  "worlds.explore.views.popular": "Populares",
+  "worlds.explore.views.new": "Nuevos",
+  "worlds.explore.views.labs": "Community Labs",
+  "worlds.explore.views.favorites": "Más favoritos",
+  "worlds.explore.views.random": "Aleatorio",
+  "worlds.explore.note_live_filter": "Mostrando mundos activos cuyo nombre, autor o etiquetas contienen \"{query}\". Pulsa Buscar para buscar en todos los mundos."
 }

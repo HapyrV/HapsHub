@@ -562,9 +562,9 @@ const SmartSearch = (() => {
 
         if (key === 'worlds') {
             if (typeof showTab === 'function') showTab(1);
-            if (typeof setWorldFilter === 'function') setWorldFilter('search');
+            if (typeof setWorldFilter === 'function') setWorldFilter('explore');
             const input = _setSearchInputValue('searchWorldsInput', q);
-            if (typeof doSearch === 'function') doSearch('worlds');
+            if (typeof exploreSearch === 'function') exploreSearch();
             setTimeout(() => input?.focus(), 80);
         } else if (key === 'groups') {
             if (typeof showTab === 'function') showTab(2);

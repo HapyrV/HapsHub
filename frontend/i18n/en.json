@@ -4610,5 +4610,18 @@
   "hub.queue.ready": "Your place in the queue is ready. Join before it runs out.",
   "hub.set.hub.vrcx-extras.recent_invites": "Show a clock beside friends you invited in the last hour",
   "hub.modules.info.hub.vrcx-extras": "Small features from VRCX, each off until you turn it on. The queue alarm chimes and flashes the taskbar button when a queue you joined for a full instance has a place for you, even with notification sounds off; the message in HapsHub shows either way. The clock marks friends you invited, or asked for an invite, in the last hour, so you don't ask twice.",
-  "hub.recent_invite": "You invited them, or asked for an invite, in the last hour"
+  "hub.recent_invite": "You invited them, or asked for an invite, in the last hour",
+  "worlds.filters.explore": "Explore",
+  "worlds.explore.placeholder": "Search all worlds...",
+  "worlds.explore.views.relevance": "Best match",
+  "worlds.explore.views.active": "Active now",
+  "worlds.explore.views.discover": "Discover",
+  "worlds.explore.views.hot": "Hot",
+  "worlds.explore.views.trending": "Trending",
+  "worlds.explore.views.popular": "Popular",
+  "worlds.explore.views.new": "New",
+  "worlds.explore.views.labs": "Community Labs",
+  "worlds.explore.views.favorites": "Most favorited",
+  "worlds.explore.views.random": "Random",
+  "worlds.explore.note_live_filter": "Showing live worlds whose name, author or tags contain \"{query}\". Press Search to search all worlds."
 }

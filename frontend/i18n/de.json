@@ -4610,5 +4610,18 @@
   "hub.queue.ready": "Dein Platz in der Warteschlange ist bereit. Tritt bei, bevor er verfällt.",
   "hub.set.hub.vrcx-extras.recent_invites": "Uhr neben Freunden zeigen, die du in der letzten Stunde eingeladen hast",
   "hub.modules.info.hub.vrcx-extras": "Kleine Funktionen aus VRCX, jede aus, bis du sie einschaltest. Der Warteschlangen-Alarm spielt einen Ton und lässt die Taskleiste blinken, wenn in einer Warteschlange für eine volle Instanz ein Platz für dich frei wird, auch wenn Benachrichtigungstöne aus sind; die Meldung in HapsHub erscheint immer. Die Uhr markiert Freunde, die du in der letzten Stunde eingeladen oder um eine Einladung gebeten hast, damit du nicht doppelt fragst.",
-  "hub.recent_invite": "In der letzten Stunde eingeladen oder um eine Einladung gebeten"
+  "hub.recent_invite": "In der letzten Stunde eingeladen oder um eine Einladung gebeten",
+  "worlds.filters.explore": "Erkunden",
+  "worlds.explore.placeholder": "Alle Welten durchsuchen...",
+  "worlds.explore.views.relevance": "Beste Treffer",
+  "worlds.explore.views.active": "Gerade aktiv",
+  "worlds.explore.views.discover": "Entdecken",
+  "worlds.explore.views.hot": "Angesagt",
+  "worlds.explore.views.trending": "Im Trend",
+  "worlds.explore.views.popular": "Beliebt",
+  "worlds.explore.views.new": "Neu",
+  "worlds.explore.views.labs": "Community Labs",
+  "worlds.explore.views.favorites": "Meistfavorisiert",
+  "worlds.explore.views.random": "Zufällig",
+  "worlds.explore.note_live_filter": "Zeigt aktive Welten, deren Name, Ersteller oder Tags \"{query}\" enthalten. Mit Suchen werden alle Welten durchsucht."
 }

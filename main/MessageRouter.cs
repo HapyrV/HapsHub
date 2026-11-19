@@ -1547,35 +1547,27 @@ public partial class AppShell
                     });
                     break;
 
-                case "vrcSearchWorlds":
-                    var wQ = msg["query"]?.ToString() ?? "";
-                    var wOff = msg["offset"]?.Value<int>() ?? 0;
-                    var wSort = msg["sort"]?.ToString() ?? "relevance";
+                case "vrcExploreWorlds":
+                {
+                    // Explore tab, API views (the live views use vrcGetWorldDiscover). Only known views are sent on.
+                    var exView = msg["view"]?.ToString() ?? "";
+                    var exQuery = (msg["query"]?.ToString() ?? "").Trim();
+                    var exOffset = Math.Max(0, msg["offset"]?.Value<int>() ?? 0);
+                    var exFresh = msg["fresh"]?.Value<bool>() ?? false;
+                    if (!ExploreViews.TryGetValue(exView, out var exSpec)) break;
+                    if (exView == "relevance" && exQuery.Length == 0) break;
                     _ = Task.Run(async () =>
                     {
-                        var res = await _core.World.SearchWorldsAsync(wQ, 20, wOff, wSort);
-                        var list = res.Cast<JObject>().Select(w => {
-                            var wid2 = w["id"]?.ToString() ?? "";
-                            var wurl = ImageCacheHelper.GetWorldUrl(wid2, w["imageUrl"]?.ToString() ?? w["thumbnailImageUrl"]?.ToString());
-                            var wStats = _core.TimeEngine.GetWorldStats(wid2);
-                            EnrichWorldDatesFromCache(_core.TimeEngine, w, wid2);
-                            return new {
-                            id = wid2, name = w["name"]?.ToString() ?? "",
-                            imageUrl = wurl, thumbnailImageUrl = wurl,
-                            authorName = w["authorName"]?.ToString() ?? "", occupants = w["occupants"]?.Value<int>() ?? 0,
-                            capacity = w["capacity"]?.Value<int>() ?? 0, favorites = w["favorites"]?.Value<int>() ?? 0,
-                            visits = w["visits"]?.Value<int>() ?? 0, description = w["description"]?.ToString() ?? "",
-                            tags = w["tags"]?.ToObject<List<string>>() ?? new(),
-                            created_at = DateTimeHelper.Iso(w["created_at"]),
-                            updated_at = DateTimeHelper.Iso(w["updated_at"]),
-                            worldTimeSeconds = wStats.totalSeconds,
-                            worldVisitCount  = wStats.visitCount,
-                            worldLastVisited = wStats.lastVisited,
-                            };
-                        }).ToList();
-                        Invoke(() => SendToJS("vrcSearchResults", new { type = "worlds", results = list, offset = wOff, hasMore = list.Count >= 20 }));
+                        var rows = await _core.World.ExploreWorldsAsync(exQuery, exSpec.sort, exSpec.tag, ExplorePageSize, exOffset, exFresh);
+                        var list = (rows ?? new JArray()).OfType<JObject>().Select(ExploreRow).ToList();
+                        Invoke(() => SendToJS("vrcExploreResults", new
+                        {
+                            view = exView, query = exQuery, offset = exOffset, ok = rows != null,
+                            hasMore = list.Count >= ExplorePageSize, worlds = list,
+                        }));
                     });
                     break;
+                }
 
                 case "vrcSearchGroups":
                     await _groups.HandleMessage(action, msg);
@@ -4777,6 +4769,45 @@ public partial class AppShell
             w["heat"]?.Value<int>() ?? 0, w["popularity"]?.Value<int>() ?? 0,
             w["publicOccupants"]?.Value<int>() ?? 0, w["privateOccupants"]?.Value<int>() ?? 0,
             w["version"]?.Value<int>() ?? 0);
+    }
+
+    // Explore tab views backed by GET /worlds: view -> (sort, tag). Live views (active, discover) are instance lists.
+    private const int ExplorePageSize = 40;
+    private static readonly Dictionary<string, (string sort, string? tag)> ExploreViews = new()
+    {
+        ["relevance"] = ("relevance", null),
+        ["hot"]       = ("heat", null),
+        ["trending"]  = ("trending", null),
+        ["popular"]   = ("popularity", null),
+        ["new"]       = ("publicationDate", null),
+        ["labs"]      = ("labsPublicationDate", "system_labs"),
+        ["favorites"] = ("favorites", null),
+        ["random"]    = ("shuffle", null),
+    };
+
+    /// <summary>The world card fields the Explore tab shows, plus the user's own visit stats.</summary>
+    private object ExploreRow(JObject w)
+    {
+        var id = w["id"]?.ToString() ?? "";
+        var url = ImageCacheHelper.GetWorldUrl(id, w["imageUrl"]?.ToString() ?? w["thumbnailImageUrl"]?.ToString());
+        var stats = _core.TimeEngine.GetWorldStats(id);
+        EnrichWorldDatesFromCache(_core.TimeEngine, w, id);
+        return new
+        {
+            id, name = w["name"]?.ToString() ?? "",
+            imageUrl = url, thumbnailImageUrl = url,
+            authorName = w["authorName"]?.ToString() ?? "", authorId = w["authorId"]?.ToString() ?? "",
+            occupants = w["occupants"]?.Value<int>() ?? 0,
+            capacity = w["capacity"]?.Value<int>() ?? 0, favorites = w["favorites"]?.Value<int>() ?? 0,
+            visits = w["visits"]?.Value<int>() ?? 0, description = w["description"]?.ToString() ?? "",
+            tags = w["tags"]?.ToObject<List<string>>() ?? new(),
+            created_at = DateTimeHelper.Iso(w["created_at"]),
+            updated_at = DateTimeHelper.Iso(w["updated_at"]),
+            publicationDate = DateTimeHelper.Iso(w["publicationDate"]),
+            worldTimeSeconds = stats.totalSeconds,
+            worldVisitCount  = stats.visitCount,
+            worldLastVisited = stats.lastVisited,
+        };
     }
 
     internal static void EnrichWorldDatesFromCache(UnifiedTimeEngine engine, JObject w, string worldId)

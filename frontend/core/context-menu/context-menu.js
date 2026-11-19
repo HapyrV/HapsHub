@@ -885,7 +885,7 @@
             if (id) return buildWorldItems(id);
         }
 
-        const worldCard = el.closest('#favWorldsGrid .vrcn-content-card, #worldSearchArea .vrcn-content-card, #worldMineGrid .vrcn-content-card, #worldRecentGrid .vrcn-content-card, #worldDiscoverGrid .vrcn-content-card, #fdContentWorlds .vrcn-content-card, #fdTabFavs .vrcn-world-card-small, .tl-list-table[data-tl-list="worldsList"] .tl-list-row');
+        const worldCard = el.closest('#favWorldsGrid .vrcn-content-card, #worldExploreArea .vrcn-content-card, #worldMineGrid .vrcn-content-card, #worldRecentGrid .vrcn-content-card, #fdContentWorlds .vrcn-content-card, #fdTabFavs .vrcn-world-card-small, .tl-list-table[data-tl-list="worldsList"] .tl-list-row');
         if (worldCard) {
             const id = extractWorldId(worldCard);
             if (id) return buildWorldItems(id);

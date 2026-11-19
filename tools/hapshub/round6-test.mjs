@@ -87,7 +87,7 @@ section('world tags (issue 13)', async main => {
         const horror = document.getElementById('worldRecentGrid').textContent;
         setWorldTagFilter('author_tag_none');
         const none = document.getElementById('worldRecentGrid').textContent;
-        setWorldFilter('search');
+        setWorldFilter('explore');
         const hiddenOnSearch = document.getElementById('worldTagWrap').style.display === 'none';
         setWorldFilter('favorites');
         return { options, all, horror, none, hiddenOnSearch, reset: worldTagFilter === '' };
@@ -96,7 +96,86 @@ section('world tags (issue 13)', async main => {
         got.options[1]?.startsWith('author_tag_chill=') && got.options[2]?.startsWith('author_tag_horror=') && !got.options.some(o => o.startsWith('system_')), got.options.join(' | '));
     check('picking a tag shows only worlds with it', got.horror.includes('Alpha') && got.horror.includes('Beta') && !got.horror.includes('Gamma'), got.horror.slice(0, 120));
     check('a tag no world has says so', /tag/i.test(got.none), got.none.slice(0, 120));
-    check('Search hides the tag filter and switching clears it', got.hiddenOnSearch && got.reset, JSON.stringify(got));
+    check('Explore hides the tag filter and switching clears it', got.hiddenOnSearch && got.reset, JSON.stringify(got));
+});
+
+section('explore', async main => {
+    // Item 14: Explore replaces the Discover and Search sub-tabs. Requests are caught here (no login, no traffic) and
+    // VRChat's answers are played in, so this checks what is asked for and what is shown.
+    const got = await main.json(`(() => {
+        const sent = [];
+        const realSend = sendToCS;
+        window.sendToCS = m => { sent.push(m); };
+        const input = document.getElementById('searchWorldsInput');
+        const grid = () => document.getElementById('searchWorldsResults').textContent;
+        const rows = (n, p) => Array.from({ length: n }, (_, i) => ({ id: 'wrld_' + p + i, name: p + ' world ' + i, tags: [] }));
+        try {
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = ''; input.value = '';
+            showTab(NAV_ITEMS_DEF.worlds?.tab ?? 1);
+            const btns = [...document.querySelectorAll('#worldFilterBtns button')].map(b => b.id);
+            setWorldFilter('search');
+            const opened = worldFilter === 'explore' && document.getElementById('worldExploreArea').style.display === '';
+            const firstAsk = sent.find(m => m.action === 'vrcGetWorldDiscover')?.mode;
+            _handleBackendMessage('vrcWorldDiscover', { mode: 'popular', ok: true, worlds: [
+                { id: 'wrld_a', name: 'Lounge One', authorName: 'Ann', tags: ['author_tag_chill'] },
+                { id: 'wrld_b', name: 'Night Club', authorName: 'Bob', tags: ['author_tag_dance'] } ] });
+            const live = grid();
+
+            input.value = 'chill';
+            sent.length = 0;
+            setExploreView('active');
+            const narrowed = grid();
+            const note = document.getElementById('exploreNote').style.display !== 'none';
+            const liveAsked = sent.length;
+
+            exploreSearch();
+            const rel = { view: _explore.view, ask: sent.find(m => m.action === 'vrcExploreWorlds') || null,
+                shown: document.getElementById('exploreView_relevance').style.display !== 'none' };
+            _handleBackendMessage('vrcExploreResults', { view: 'relevance', query: 'chill', offset: 0, ok: true, hasMore: true, worlds: rows(40, 'r') });
+            const more = !!document.querySelector('#searchWorldsResults .explore-more button');
+            sent.length = 0;
+            exploreLoadMore();
+            const moreAsk = sent.find(m => m.action === 'vrcExploreWorlds') || null;
+            _handleBackendMessage('vrcExploreResults', { view: 'relevance', query: 'chill', offset: 40, ok: true, hasMore: false,
+                worlds: [{ id: 'wrld_r0', name: 'r world 0', tags: [] }, { id: 'wrld_new', name: 'Fresh One', tags: [] }] });
+            const after = { count: _explore.shown.length, more: !!document.querySelector('#searchWorldsResults .explore-more'), fresh: grid().includes('Fresh One') };
+
+            input.value = '';
+            sent.length = 0;
+            setExploreView('new');
+            const newAsk = sent.filter(m => m.action === 'vrcExploreWorlds').map(m => m.view + ':' + m.offset + ':' + m.query);
+            _handleBackendMessage('vrcExploreResults', { view: 'new', query: '', offset: 0, ok: true, hasMore: false, worlds: rows(3, 'n') });
+            setExploreView('active'); setExploreView('new');
+            const again = sent.filter(m => m.action === 'vrcExploreWorlds').length;
+            const relGone = document.getElementById('exploreView_relevance').style.display === 'none';
+            sent.length = 0;
+            exploreRefresh();
+            const refreshAsk = sent.find(m => m.action === 'vrcExploreWorlds') || null;
+
+            setExploreView('labs');
+            _handleBackendMessage('vrcExploreResults', { view: 'labs', query: '', offset: 0, ok: false, hasMore: false, worlds: [] });
+            const failed = /could not load/i.test(grid());
+            return { btns, opened, firstAsk, live, narrowed, note, liveAsked, rel, more, moreAsk, after, newAsk, again, relGone, refreshAsk, failed };
+        } finally {
+            window.sendToCS = realSend;
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = ''; input.value = '';
+            setWorldFilter('favorites');
+        }
+    })()`);
+    check('Explore: one Explore sub-tab, no Search or Discover sub-tab, and old links open it',
+        got.btns.includes('worldFilterExplore') && !got.btns.some(id => /Search|Discover/.test(id)) && got.opened, JSON.stringify(got.btns));
+    check('Explore: opens on Active now (the old Popular list) and shows its worlds',
+        got.firstAsk === 'popular' && got.live.includes('Lounge One') && got.live.includes('Night Club'), got.firstAsk + ' ' + got.live.slice(0, 80));
+    check('Explore: text in a live view narrows it here, says so, and asks VRChat nothing',
+        got.narrowed.includes('Lounge One') && !got.narrowed.includes('Night Club') && got.note && got.liveAsked === 0, JSON.stringify({ n: got.narrowed.slice(0, 80), note: got.note, asked: got.liveAsked }));
+    check('Explore: Search in a live view searches all worlds by best match',
+        got.rel.view === 'relevance' && got.rel.shown && got.rel.ask?.view === 'relevance' && got.rel.ask?.query === 'chill' && got.rel.ask?.offset === 0, JSON.stringify(got.rel));
+    check('Explore: Load more asks for the next page and adds only worlds not shown yet',
+        got.more && got.moreAsk?.offset === 40 && got.after.count === 41 && got.after.fresh && !got.after.more, JSON.stringify({ ask: got.moreAsk, after: got.after }));
+    check('Explore: a view asks once, then comes from memory; Best match hides without text',
+        got.newAsk.join() === 'new:0:' && got.again === 1 && got.relGone, JSON.stringify({ newAsk: got.newAsk, again: got.again, relGone: got.relGone }));
+    check('Explore: Refresh asks VRChat again, past the cache', got.refreshAsk?.fresh === true && got.refreshAsk?.offset === 0, JSON.stringify(got.refreshAsk));
+    check('Explore: a view that fails to load says so', got.failed);
 });
 
 section('avatar filters (issue 10)', async main => {

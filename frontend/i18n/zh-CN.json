@@ -4610,5 +4610,18 @@
   "hub.queue.ready": "排队已轮到你。请在过期前加入。",
   "hub.set.hub.vrcx-extras.recent_invites": "在过去一小时内邀请过的好友旁显示时钟",
   "hub.modules.info.hub.vrcx-extras": "来自 VRCX 的小功能，每项在你开启前都是关闭的。排队提醒会在你排队等待的满员实例有空位时播放提示音并闪烁任务栏按钮，即使通知音已关闭；HapsHub 内的消息总会显示。时钟会标记你在过去一小时内邀请过或请求过邀请的好友，免得重复请求。",
-  "hub.recent_invite": "你在过去一小时内邀请过或请求过邀请"
+  "hub.recent_invite": "你在过去一小时内邀请过或请求过邀请",
+  "worlds.filters.explore": "探索",
+  "worlds.explore.placeholder": "搜索所有世界...",
+  "worlds.explore.views.relevance": "最佳匹配",
+  "worlds.explore.views.active": "当前活跃",
+  "worlds.explore.views.discover": "发现",
+  "worlds.explore.views.hot": "热门",
+  "worlds.explore.views.trending": "趋势",
+  "worlds.explore.views.popular": "人气",
+  "worlds.explore.views.new": "最新",
+  "worlds.explore.views.labs": "社区实验室",
+  "worlds.explore.views.favorites": "最多收藏",
+  "worlds.explore.views.random": "随机",
+  "worlds.explore.note_live_filter": "正在显示名称、作者或标签包含“{query}”的活跃世界。按搜索可搜索所有世界。"
 }
