@@ -101,6 +101,10 @@ public class TimelineController
                 HandleGetTimelineForWorld(msg);
                 break;
 
+            case "getTimelineForGroup":
+                HandleGetTimelineForGroup(msg);
+                break;
+
             case "getProfileInsights":
                 HandleGetProfileInsights(msg);
                 break;
@@ -554,13 +558,7 @@ public class TimelineController
                 foreach (var (evId, worldId) in _core.Timeline.GetEventsMissingWorldName())
                 {
                     if (_core.TimeEngine.Worlds.TryGetValue(worldId, out var wRec) && !string.IsNullOrEmpty(wRec.WorldName))
-                    {
-                        _core.Timeline.UpdateEvent(evId, e =>
-                        {
-                            e.WorldName = wRec.WorldName;
-                            if (string.IsNullOrEmpty(e.WorldThumb)) e.WorldThumb = wRec.WorldThumb;
-                        });
-                    }
+                        _core.Timeline.UpdateEventWorldName(evId, wRec.WorldName, wRec.WorldThumb ?? "");
                 }
 
                 // 0b) Backfill moderation user names the same way - older rows were written
@@ -1140,7 +1138,8 @@ public class TimelineController
                 if (anyFtdResolved && !ftlCt.IsCancellationRequested)
                 {
                     var updated = fevents.Select(e => _friends.BuildFriendTimelinePayload(e)).ToList();
-                    _core.SendToJS("friendTimelineData", new { events = updated, hasMore = false, offset = 0, total = ftdTotal, type = typeFilter, date = dateStr });
+                    if (Newtonsoft.Json.JsonConvert.SerializeObject(updated) != Newtonsoft.Json.JsonConvert.SerializeObject(fpayload))
+                        _core.SendToJS("friendTimelineData", new { events = updated, hasMore = false, offset = 0, total = ftdTotal, type = typeFilter, date = dateStr });
                 }
             }
             catch { }
@@ -1681,6 +1680,18 @@ public class TimelineController
                 };
             }).ToList();
             _core.SendToJS("meetNetworkWorlds", new { userId, worlds });
+        });
+    }
+
+    private void HandleGetTimelineForGroup(JObject msg)
+    {
+        var groupId = msg["groupId"]?.ToString() ?? "";
+        if (string.IsNullOrEmpty(groupId)) return;
+        _ = Task.Run(() =>
+        {
+            var events  = _core.Timeline.GetInstanceVisitsForGroup(groupId, 10);
+            var payload = events.Select(e => _instance.BuildTimelinePayload(e)).ToList();
+            _core.SendToJS("timelineForGroup", new { groupId, events = payload });
         });
     }
 

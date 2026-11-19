@@ -395,9 +395,9 @@ function onBackendMessage(e) {
                 // Page 4: VRChat path — Linux uses steam command, no browse needed
                 var vrcInput = document.getElementById('vrcPathInput');
                 if (vrcInput) {
-                    vrcInput.value = 'steam steam://rungameid/438100';
-                    vrcInput.readOnly = true;
-                    vrcInput.placeholder = 'steam steam://rungameid/438100';
+                    vrcInput.value = '';
+                    vrcInput.readOnly = false;
+                    vrcInput.placeholder = '/home/<username>/.local/share/Steam/steamapps/common/VRChat/VRChat.exe';
                 }
                 var browseBtn = document.getElementById('vrcBrowseBtn');
                 if (browseBtn) browseBtn.style.display = 'none';
@@ -458,7 +458,13 @@ function onBackendMessage(e) {
 })();
 
 // Init
-window.external.receiveMessage(rawMsg => { onBackendMessage({ data: JSON.parse(rawMsg) }); });
+window.external.receiveMessage(rawMsg => {
+    var msg = JSON.parse(rawMsg);
+    if (msg.type !== '__batch') { onBackendMessage({ data: msg }); return; }
+    msg.payload.forEach(function (m) {
+        try { onBackendMessage({ data: m }); } catch (e) { console.error('[setup] ' + m.type, e); }
+    });
+});
 
 document.addEventListener('DOMContentLoaded', function() {
     var bar = document.getElementById('titlebar');

@@ -831,7 +831,7 @@ public class FriendsController
                 var uid = msg["userId"]?.ToString() ?? _core.VrcApi.CurrentUserId;
                 if (!string.IsNullOrEmpty(uid))
                 {
-                    var msgs = await _core.Invite.GetInviteMessagesAsync(uid);
+                    var msgs = await _core.Invite.GetInviteMessagesAsync(uid, msg["messageType"]?.ToString() ?? "message");
                     _core.SendToJS("vrcInviteMessages", msgs ?? new JArray());
                 }
                 break;
@@ -844,7 +844,7 @@ public class FriendsController
                 var text = msg["message"]?.ToString() ?? "";
                 if (!string.IsNullOrEmpty(uid) && slot >= 0 && !string.IsNullOrEmpty(text))
                 {
-                    var (ok, arr, cooldown) = await _core.Invite.UpdateInviteMessageAsync(uid, slot, text);
+                    var (ok, arr, cooldown) = await _core.Invite.UpdateInviteMessageAsync(uid, slot, text, msg["messageType"]?.ToString() ?? "message");
                     if (ok && arr != null)
                         _core.SendToJS("vrcInviteMessages", arr);
                     else
@@ -856,13 +856,33 @@ public class FriendsController
             case "vrcRequestInvite":
             {
                 var uid = msg["userId"]?.ToString();
+                var slot = msg["requestSlot"]?.Value<int?>();
                 if (!string.IsNullOrEmpty(uid))
                 {
-                    var ok = await _core.Invite.RequestInviteAsync(uid);
+                    var ok = await _core.Invite.RequestInviteAsync(uid, slot);
                     _core.SendToJS("vrcActionResult", new
                     {
                         action = "requestInvite", success = ok,
-                        message = ok ? "Invite request sent!" : "Failed to request invite."
+                        message = ok ? "Invite request sent!" : "Failed to request invite.",
+                        messageKey = ok ? "profiles.request_invite.sent" : "profiles.request_invite.failed"
+                    });
+                }
+                break;
+            }
+
+            case "vrcRequestInviteWithPhoto":
+            {
+                var uid = msg["userId"]?.ToString();
+                var fileUrl = msg["fileUrl"]?.ToString();
+                var slot = msg["requestSlot"]?.Value<int?>();
+                if (!string.IsNullOrEmpty(uid) && !string.IsNullOrEmpty(fileUrl))
+                {
+                    var ok = await _core.Invite.RequestInviteWithPhotoAsync(uid, fileUrl, slot);
+                    _core.SendToJS("vrcActionResult", new
+                    {
+                        action = "requestInvite", success = ok,
+                        message = ok ? "Invite request sent!" : "Failed to request invite.",
+                        messageKey = ok ? "profiles.request_invite.sent" : "profiles.request_invite.failed"
                     });
                 }
                 break;
@@ -2541,8 +2561,44 @@ public class FriendsController
 
         // Backgrounds/banner live on their own endpoint, /users/{id} does not have them.
         var isSelfProfile = userId == _core.VrcApi.CurrentUserId;
-        var appearance = await _core.Users.GetProfileAppearanceAsync(userId, isSelfProfile);
-        var activeTheme = ResolveActiveTheme(appearance);
+        var appearanceTask = _core.Users.GetProfileAppearanceAsync(userId, isSelfProfile);
+
+        var profileTtl = TimeSpan.FromDays(1);
+        var dbCache = _core.TimeEngine.GetUserProfileCache(userId);
+        JObject? cachedContent    = IsDbCacheFresh(dbCache?.ContentCachedAt,      profileTtl)           ? TryParseJObject(dbCache!.ContentJson)    : null;
+        JArray? cachedWorlds      = cachedContent?["worlds"] as JArray;
+
+        Task<JArray> grpsTask = null!;
+        Task<JArray> worldsTask = null!;
+        Task<(JArray, bool)> mutualsTask = null!;
+        Task<JArray> mutualGroupsTask = null!;
+        Task<JObject?> repGroupTask = null!;
+        Task<JObject?> instTask = null!;
+        var sideStarted = false;
+        var instStarted = false;
+        void StartSideRequests()
+        {
+            sideStarted = true;
+            grpsTask         = _core.Users.GetUserGroupsByIdAsync(userId);
+            worldsTask       = cachedWorlds != null ? Task.FromResult(cachedWorlds) : _core.World.GetUserWorldsAsync(userId);
+            mutualsTask      = _core.Users.GetUserMutualsAsync(userId);
+            mutualGroupsTask = _core.Users.GetUserMutualGroupsAsync(userId);
+            repGroupTask     = _core.Users.GetUserRepresentedGroupAsync(userId);
+        }
+        Task<JObject?> StartInstance(string loc)
+        {
+            var (wid, _, _) = VRChatApiService.ParseLocation(loc);
+            return !string.IsNullOrEmpty(wid) && wid.StartsWith("wrld_")
+                ? _core.Instances.GetInstanceAsync(loc)
+                : Task.FromResult<JObject?>(null);
+        }
+
+        var storeLoc = storeSnapshot?["location"]?.ToString();
+        if (storeSnapshot != null)
+        {
+            StartSideRequests();
+            if (storeLoc != null) { instTask = StartInstance(storeLoc); instStarted = true; }
+        }
 
         user = storeSnapshot;
         if (forceFresh || user == null || user["date_joined"] == null || user["note"] == null)
@@ -2565,19 +2621,11 @@ public class FriendsController
         var (worldId, instanceId, instanceType) = VRChatApiService.ParseLocation(location);
         bool hasWorld = !string.IsNullOrEmpty(worldId) && worldId.StartsWith("wrld_");
 
-        var profileTtl = TimeSpan.FromDays(1);
-        var dbCache = _core.TimeEngine.GetUserProfileCache(userId);
-        JObject? cachedContent    = IsDbCacheFresh(dbCache?.ContentCachedAt,      profileTtl)           ? TryParseJObject(dbCache!.ContentJson)    : null;
-        JArray? cachedWorlds      = cachedContent?["worlds"] as JArray;
+        if (!sideStarted) StartSideRequests();
+        if (!instStarted) instTask = StartInstance(location);
 
-        var instTask           = hasWorld ? _core.Instances.GetInstanceAsync(location) : Task.FromResult<JObject?>(null);
-        var grpsTask           = _core.Users.GetUserGroupsByIdAsync(userId);
-        var worldsTask         = cachedWorlds != null
-            ? Task.FromResult(cachedWorlds)
-            : _core.World.GetUserWorldsAsync(userId);
-        var mutualsTask        = _core.Users.GetUserMutualsAsync(userId);
-        var mutualGroupsTask   = _core.Users.GetUserMutualGroupsAsync(userId);
-        var repGroupTask       = _core.Users.GetUserRepresentedGroupAsync(userId);
+        var appearance = await appearanceTask;
+        var activeTheme = ResolveActiveTheme(appearance);
 
         await Task.WhenAll(new Task[] { instTask, grpsTask, worldsTask, mutualsTask, mutualGroupsTask, repGroupTask }
             .Select(t => t.ContinueWith(_ => { })));
@@ -2837,10 +2885,19 @@ public class FriendsController
             {
                 if (_lastSeenMap == null || (DateTime.UtcNow - _lastSeenMapAt).TotalSeconds > 30)
                 {
-                    _lastSeenMap = _core.Timeline.GetLastSeenTogetherMap();
+                    List<string> friendIds;
+                    lock (_friendStore) friendIds = _friendStore.Keys.ToList();
+                    var map = _core.Timeline.GetLastSeenTogether(friendIds);
+                    foreach (var id in friendIds) map.TryAdd(id, "");
+                    _lastSeenMap = map;
                     _lastSeenMapAt = DateTime.UtcNow;
                 }
-                return _lastSeenMap.TryGetValue(userId, out var v) ? v : "";
+                if (!_lastSeenMap.TryGetValue(userId, out var v))
+                {
+                    v = _core.Timeline.GetLastSeenTogether(new[] { userId }).GetValueOrDefault(userId, "");
+                    _lastSeenMap[userId] = v;
+                }
+                return v;
             }
         }
         catch { return ""; }

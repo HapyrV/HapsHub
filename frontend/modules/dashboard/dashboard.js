@@ -150,7 +150,16 @@ function _dashGreetingHtml(name) {
 
 function renderDashboard() {
     const _tab0 = document.getElementById('tab0');
-    if (_tab0 && !_tab0.classList.contains('active')) return;
+    const diagnostic = window.__vrcnStartupDiagnostic;
+    const record = state => {
+        window.__vrcnStartupRenderDashboardState = state;
+        if (typeof diagnostic === 'function') diagnostic(`renderDashboard ${state}`);
+    };
+    record(`entered tab0=${_tab0 ? 'exists' : 'missing'} active=${!!_tab0?.classList.contains('active')}`);
+    if (_tab0 && !_tab0.classList.contains('active')) {
+        record('skipped inactive-tab');
+        return;
+    }
     const name = currentVrcUser?.displayName;
     document.getElementById('dashWelcome').innerHTML = name
         ? _dashGreetingHtml(name)
@@ -181,6 +190,7 @@ function renderDashboard() {
         _dashOnlineCountLastFetch = now;
         sendToCS({ action: 'vrcGetOnlineCount' });
     }
+    record('completed');
 }
 
 const DASH_FRIEND_SECTIONS_THROTTLE_MS = 300;

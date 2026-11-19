@@ -13,6 +13,8 @@
     transition: margin-left .22s ease, margin-right .22s ease;
 }
 
+body.tab0-active .content { background: var(--bg-base); }
+
 body.sb-l-collapsed .dash-hero,
 body.sb-l-collapsing .dash-hero { margin-left:  calc(-1 * (var(--sidebar-c)  + 14px)); }
 body.sb-r-collapsed .dash-hero { margin-right: calc(-1 * (var(--rsidebar-c) + 14px)); }
@@ -1425,6 +1427,13 @@ body.sb-r-collapsed .dash-hero-content { padding-right: calc(var(--rsidebar-c) +
     flex: 1;
 }
 
+html.vrcn-linux .dash-hero-widgets .dash-hw-card,
+html.vrcn-linux .dash-hero-slot .dash-flocs-card,
+html.vrcn-linux .dash-hero-widgets .dash-hw-event,
+html.vrcn-linux .dash-hero-widgets .dash-hw-news {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
 
 .dash-hw-empty {
     padding: 18px 14px;

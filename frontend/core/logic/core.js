@@ -1,4 +1,4 @@
-﻿// Global date/time format (received from Windows system via C#)
+// Global date/time format (received from Windows system via C#)
 let _dtShortPattern = 'dd.MM.yyyy'; // e.g. "dd.MM.yyyy", "M/d/yyyy", "yyyy-MM-dd"
 let _dtIs24Hour = true;
 
@@ -117,16 +117,39 @@ function applyDecorationsSetting() {
     cls.toggle('deco-dashboard-on', any('showDecorationsOnDashboard'));
     cls.toggle('profile-cards-transparent', any('transparentProfileCards'));
 }
+function _decoImgHtml(cls, url, animated, thumbSize) {
+    if (!url) return '';
+    if (animated) return `<img class="${cls}" src="${url}" loading="lazy" decoding="async" alt="" aria-hidden="true">`;
+    const still = _thumbUrl(url, thumbSize);
+    if (still === url) return `<img class="${cls}" src="${url}" loading="lazy" decoding="async" alt="" aria-hidden="true">`;
+    return `<img class="${cls}" src="${still}" data-still-src="${still}" data-anim-src="${url}" loading="lazy" decoding="async" alt="" aria-hidden="true">`;
+}
 function iconFrameHtml(frameUrl, animated) {
-    if (!frameUrl) return '';
-    const src = (animated || !vrcPlusOptimizeEnabled) ? frameUrl : _thumbUrl(frameUrl, 96);
-    return `<img class="user-frame-deco" src="${src}" loading="lazy" decoding="async" alt="" aria-hidden="true">`;
+    return _decoImgHtml('user-frame-deco', frameUrl, animated, 96);
 }
 function nameplateDecoHtml(url, animated) {
-    if (!url) return '';
-    const src = (animated || !vrcPlusOptimizeEnabled) ? url : _thumbUrl(url, 256);
-    return `<img class="nameplate-deco" src="${src}" loading="lazy" decoding="async" alt="" aria-hidden="true">`;
+    return _decoImgHtml('nameplate-deco', url, animated, 256);
 }
+const _DECO_HOVER_HOSTS = '.vrc-friend-card, .vrc-profile, .vrcn-user-item, .dash-flocs-card';
+let _decoHoverHost = null;
+function _decoSetAnimated(host, on) {
+    host.querySelectorAll('img[data-anim-src]').forEach(img => {
+        const next = on ? img.dataset.animSrc : img.dataset.stillSrc;
+        if (next && img.getAttribute('src') !== next) img.setAttribute('src', next);
+    });
+}
+function _decoHoverTo(host) {
+    if (host === _decoHoverHost) return;
+    if (_decoHoverHost) _decoSetAnimated(_decoHoverHost, false);
+    _decoHoverHost = host;
+    if (host) _decoSetAnimated(host, true);
+}
+document.addEventListener('mouseover', e => {
+    const host = e.target instanceof Element ? e.target.closest(_DECO_HOVER_HOSTS) : null;
+    _decoHoverTo(host && host.querySelector('img[data-anim-src]') ? host : null);
+});
+document.documentElement.addEventListener('mouseleave', () => _decoHoverTo(null));
+window.addEventListener('blur', () => _decoHoverTo(null));
 function profileEffectHtml(url) {
     if (!url) return '';
     return `<img class="profile-effect-deco" src="${url}" loading="lazy" decoding="async" alt="" aria-hidden="true">`;
@@ -437,6 +460,7 @@ function getCreatorBadgeHtml(u) {
 let sfConnected = false;
 // Space Turn
 let stConnected = false;
+let swConnected = false;
 // FrameShot
 let fsConnected = false;
 // Custom Chatbox OSC
@@ -1067,8 +1091,8 @@ function _navPageTitle(i) {
 }
 
 let _pageTitleFrame = 0, _pageTitleW = 0;
-function updateCurrentPageTitle() {
-    const activeTab = document.querySelector('.tab.active');
+function updateCurrentPageTitle(tabEl) {
+    const activeTab = tabEl || document.querySelector('.tab.active');
     if (!activeTab) return;
     const match = activeTab.id.match(/^tab(\d+)$/);
     if (!match) return;
@@ -1719,12 +1743,19 @@ function _releaseAudio(a) {
 function _playAudio(a) {
     if (!a || a._failed) return;
     if (a.readyState > 0) a.currentTime = 0;
-    a.play().catch(() => {});
+    a.play().catch(err => {
+        if (window._isLinuxUi && a._soundSlot)
+            sendToCS({ action: 'playNotificationSound', slot: a._soundSlot, file: a._soundFile || '', volume: a.volume });
+        console.warn('[Sound] Browser playback failed:', err);
+    });
 }
 
 function _initSlotAudio(slot) {
     const cfg = SOUND_SLOTS[slot];
-    return _initAudio(soundFileUrl(settings?.[cfg.fileKey], cfg.def), soundSlotVolume(slot));
+    const audio = _initAudio(soundFileUrl(settings?.[cfg.fileKey], cfg.def), soundSlotVolume(slot));
+    audio._soundSlot = slot;
+    audio._soundFile = settings?.[cfg.fileKey] || '';
+    return audio;
 }
 
 function tryInitNotifySound() {
@@ -1748,15 +1779,24 @@ let _sndPreviewAudio = null;
 function previewSound(slot, file) {
     const cfg = SOUND_SLOTS[slot];
     if (!cfg) return;
+    const normalizedFile = normalizeSoundFile(file);
+    if (window._isLinuxUi) {
+        sendToCS({ action: 'playNotificationSound', slot, file: normalizedFile, volume: soundSlotVolume(slot) });
+        return;
+    }
     if (_sndPreviewAudio) { try { _sndPreviewAudio.pause(); } catch {} }
-    _sndPreviewAudio = new Audio(soundFileUrl(file, cfg.def));
+    _sndPreviewAudio = new Audio(soundFileUrl(normalizedFile, cfg.def));
     _sndPreviewAudio.volume = soundSlotVolume(slot);
     _sndPreviewAudio.play().catch(() => {});
 }
 
-function playNotificationSound() {
+function playNotificationSound(eventId = '') {
     if (notifyAudio && settings.notifySoundEnabled) {
         notifyAudio.volume = soundSlotVolume('notify');
+        if (window._isLinuxUi) {
+            sendToCS({ action: 'playNotificationSound', slot: 'notify', file: notifyAudio._soundFile, volume: notifyAudio.volume, eventId });
+            return;
+        }
         _playAudio(notifyAudio);
     }
 }
@@ -1764,6 +1804,10 @@ function playNotificationSound() {
 function playMessageSound() {
     if (messageAudio && settings.messageSoundEnabled) {
         messageAudio.volume = soundSlotVolume('message');
+        if (window._isLinuxUi) {
+            sendToCS({ action: 'playNotificationSound', slot: 'message', file: messageAudio._soundFile, volume: messageAudio.volume });
+            return;
+        }
         _playAudio(messageAudio);
     }
 }
@@ -1771,6 +1815,10 @@ function playMessageSound() {
 function playMediaRelaySound() {
     if (mediaRelayAudio && settings.mediaRelaySoundEnabled) {
         mediaRelayAudio.volume = soundSlotVolume('mediaRelay');
+        if (window._isLinuxUi) {
+            sendToCS({ action: 'playNotificationSound', slot: 'mediaRelay', file: mediaRelayAudio._soundFile, volume: mediaRelayAudio.volume });
+            return;
+        }
         _playAudio(mediaRelayAudio);
     }
 }
@@ -1778,6 +1826,10 @@ function playMediaRelaySound() {
 function playSteamOverlaySound() {
     if (steamOverlayAudio && settings.steamOverlaySoundEnabled) {
         steamOverlayAudio.volume = soundSlotVolume('steamOverlay');
+        if (window._isLinuxUi) {
+            sendToCS({ action: 'playNotificationSound', slot: 'steamOverlay', file: steamOverlayAudio._soundFile, volume: steamOverlayAudio.volume });
+            return;
+        }
         _playAudio(steamOverlayAudio);
     }
 }
@@ -1917,6 +1969,7 @@ function showTab(i) {
     const _prevTabEl = (_prevTab >= 0 && _prevTab !== i) ? document.getElementById('tab' + _prevTab) : null;
     const _nextTabEl = document.getElementById('tab' + i);
 
+    updateCurrentPageTitle(_nextTabEl);
     if (_nextTabEl) _reloadTabImages(_nextTabEl);
 
     if (_prevTab === 7 && i !== 7) destroyLibrary();
@@ -1949,7 +2002,6 @@ function showTab(i) {
             }
         }
     });
-    updateCurrentPageTitle();
     if (i === 0) { if (typeof _dashRollGreeting === 'function') _dashRollGreeting(); renderDashboard(); }
     if (i === 1 && favWorldsData.length === 0) sendToCS({ action: 'vrcGetFavoriteWorlds' });
     if (i === 2 && !myGroupsLoaded) loadMyGroups();
@@ -2228,6 +2280,7 @@ function handleVcState(d) {
     if (bdYt) bdYt.classList.toggle('tb-active', !!d.running);
     const running    = !!d.running;
     const installed  = !!d.installed;
+    const linux      = document.documentElement.classList.contains('vrcn-linux');
     const dot        = document.getElementById('vcDot');
     const txt        = document.getElementById('vcStatusText');
     const btn        = document.getElementById('btnVc');
@@ -2254,10 +2307,14 @@ function handleVcState(d) {
     if (txt) txt.style.color = '';
 
     if (btn) {
-        btn.disabled = !installed;
-        btn.innerHTML = running
-            ? `<span class="msi" style="font-size:16px;">stop</span> ${t('common.stop', 'Stop')}`
-            : `<span class="msi" style="font-size:16px;">play_arrow</span> ${t('common.start', 'Start')}`;
+        btn.disabled = linux ? running : !installed;
+        btn.innerHTML = linux
+            ? (running
+                ? '<span class="msi" style="font-size:16px;">check_circle</span> Connected'
+                : '<span class="msi" style="font-size:16px;">link</span> Connect')
+            : (running
+                ? `<span class="msi" style="font-size:16px;">stop</span> ${t('common.stop', 'Stop')}`
+                : `<span class="msi" style="font-size:16px;">play_arrow</span> ${t('common.start', 'Start')}`);
     }
     if (dot) dot.className = 'sf-dot ' + (running ? 'online' : 'offline');
     if (txt) txt.textContent = running
@@ -2452,7 +2509,6 @@ function cssUrl(s) {
 }
 
 let imgThumbsEnabled = true;
-let vrcPlusOptimizeEnabled = true;
 
 function _thumbUrl(url, size) {
     if (!url || url.indexOf('/imgcache/') === -1 || url.indexOf('thumb=') !== -1) return url;
@@ -2879,5 +2935,3 @@ function animateModalBox(boxEl, doSwitch) {
         boxEl.style.transition = '';
     }, { once: true });
 }
-
-

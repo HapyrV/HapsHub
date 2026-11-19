@@ -35,6 +35,10 @@ public static class ImageCacheHelper
 
     private static readonly SemaphoreSlim _downloadSem = new(6, 6);
 
+    /// <summary>HapsHub asks the provider for the current client on every download, so a replaced client is
+    /// already picked up. Kept for VRCNext's caller.</summary>
+    public static void ReplaceHttpClient(HttpClient oldClient, HttpClient newClient) { }
+
     public static void Initialize(Func<HttpClient> http)
     {
         _baseDir = HubPaths.Data("Caches", "ImageCache");
@@ -101,13 +105,20 @@ public static class ImageCacheHelper
         });
     }
 
+    private static readonly ConcurrentDictionary<string, (string url, long at)> _localUrlMemo = new();
+
     public static string ToLocalUrl(string localPath)
     {
+        var now = Environment.TickCount64;
+        if (_localUrlMemo.TryGetValue(localPath, out var memo) && now - memo.at < 3000) return memo.url;
         var rel = Path.GetRelativePath(_baseDir, localPath).Replace('\\', '/');
         long v = 0;
         try { v = File.GetLastWriteTimeUtc(localPath).Ticks; } catch { }
         var url = $"http://localhost:{Port}/imgcache/{rel}?v={v}";
-        return DebugMode ? url + "&src=disk" : url;
+        if (DebugMode) url += "&src=disk";
+        if (_localUrlMemo.Count > 4096) _localUrlMemo.Clear();
+        _localUrlMemo[localPath] = (url, now);
+        return url;
     }
 
 // World
@@ -616,6 +627,7 @@ public static class ImageCacheHelper
             try
             {
                 File.Move(tmpPath, finalPath, overwrite: true);
+                _localUrlMemo.Clear();
             }
             catch
             {
@@ -808,6 +820,7 @@ public static class ImageCacheHelper
                     using var fs = File.Create(jpgPath);
                     data.SaveTo(fs);
                     try { File.Delete(pngPath); } catch { }
+                    _localUrlMemo.Clear();
                 }
             }
             catch { }

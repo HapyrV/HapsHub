@@ -139,14 +139,17 @@ public class CoreLibrary
     public Action<int>? OnChatboxPauseRequest { get; set; }
     public Action<string, string, string, string, List<(string, string)>>? WriteScreenshotDetails { get; set; }
 
-#if WINDOWS
+    // Shared subprocess host also provides Linux SteamVR Space Flight/Turn.
     public VRSubprocessHost? VrOverlay { get; set; }
+#if WINDOWS
     public Action<string, string, string>? SpeakToast { get; set; }
-    public Action<bool, bool>? OnTraySettingChanged { get; set; } // (enabled, autoHideNow)
+#endif
     public Action<string, string, string, string>? OnTrayUserUpdate { get; set; } // name, status, statusDesc, imageUrl
     public Action? OnTrayLoggedOut { get; set; }
+#if WINDOWS
     public Action<Dictionary<string, string>>? OnTrayThemeUpdate { get; set; }
 #endif
+    public Action<bool, bool>? OnTraySettingChanged { get; set; } // (enabled, autoHideNow)
 
     // Constructs API wrappers only, the DB services are populated later via LoadDatabaseServices.
     public CoreLibrary(

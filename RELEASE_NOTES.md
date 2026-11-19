@@ -1,6 +1,6 @@
 ﻿# HapsHub 1.0.0
 
-The first release of HapsHub, built on VRCNext 2026.62.3. HapsHub is heavily based on VRCNext: go support their work.
+The first release of HapsHub, built on VRCNext 2027.2.0. HapsHub is heavily based on VRCNext: go support their work.
 
 **New**
 - Plugins (Settings > Plugins): switch off what you don't use. The first run asks what you use and ticks what's installed.
@@ -10,6 +10,7 @@ The first release of HapsHub, built on VRCNext 2026.62.3. HapsHub is heavily bas
 - History, Friend Schedule, YouTube Tunnel, crash rejoin, screenshot details, VRCX import and archive.
 - Performance mode for slower PCs, and a setting to rename the app.
 - Rearrange the sidebar by dragging; rename groups by double-clicking them.
+- From VRCNext 2027.2.0: Space Walk, My Reports, Purchase History, reporting users, reward codes, instance descriptions and vibes, Worlds Discover, Ukrainian, Linux support, and faster loading and tab switching.
 
 **Fixed**
 - Scrolling in Settings dropped half its frames.
