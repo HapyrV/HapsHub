@@ -8,7 +8,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { Page, ROOT, checker, cleanUp, closeMain, crashes, freshData, hubLog, killTree, openMain, sleep, startApp, waitFor } from './lib/harness.mjs';
+import { Page, ROOT, checker, cleanUp, closeMain, crashDetail, crashes, freshData, hubLog, killTree, openMain, sleep, startApp, waitFor } from './lib/harness.mjs';
 
 const PORT = 9340;
 const { check, state } = checker();
@@ -412,7 +412,7 @@ try {
         catch (error) { check(`${name}: the section finished`, false, error.message); }
     }
     check('no page errors', main.errors.length === 0, main.errors.join(' | '));
-    check('no crash report', crashes(dir) === 0);
+    check('no crash report', crashes(dir) === 0, crashDetail(dir));
     const closed = await closeMain(main);
     check('the app closes cleanly', closed, hubLog(dir).trim().split(/\r?\n/).slice(-12).map(l => l.replace(/^\S+ /, '')).join(' | '));
 } catch (error) {

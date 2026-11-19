@@ -177,6 +177,19 @@ export const crashes = dir => {
     return existsSync(folder) ? readdirSync(folder).length : 0;
 };
 
+/** The source and exception lines of each crash report, so a failed check says what crashed. */
+export const crashDetail = dir => {
+    const folder = join(dir, 'Logs', 'Crashes');
+    if (!existsSync(folder)) return '';
+    return readdirSync(folder).map(name => {
+        const lines = readFileSync(join(folder, name), 'utf8').split(/\r?\n/);
+        const source = lines.find(l => l.startsWith('Source')) || '';
+        const at = lines.findIndex(l => l.startsWith('─── Exception'));
+        const exception = at < 0 ? [] : lines.slice(at + 1, at + 7).filter(l => l.trim());
+        return `${name}: ${source} | ${exception.join(' | ')}`;
+    }).join('\n');
+};
+
 /** A new data folder with the first-run setup already answered, so the main page opens straight away. */
 export function freshData(prefix = 'hapshub-test-', settings = {}) {
     const dir = mkdtempSync(join(tmpdir(), prefix));

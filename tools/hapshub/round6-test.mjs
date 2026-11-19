@@ -7,7 +7,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { writePng } from './lib/png.mjs';
-import { checker, cleanUp, closeMain, crashes, freshData, hubLog, openMain, seen, sleep, waitFor, waitSeen } from './lib/harness.mjs';
+import { checker, cleanUp, closeMain, crashDetail, crashes, freshData, hubLog, openMain, seen, sleep, waitFor, waitSeen } from './lib/harness.mjs';
 
 const PORT = 9341;
 const { check, state } = checker();
@@ -599,7 +599,7 @@ try {
         }
         await closeMain(main);
     }
-    check('no crash report', crashes(dir) === 0);
+    check('no crash report', crashes(dir) === 0, crashDetail(dir));
 } catch (error) {
     check('the run finished', false, error.stack || error.message);
 } finally {
