@@ -82,12 +82,12 @@ function hubCreditToggle() {
             panel.style.left = Math.max(8, Math.min(box.left + box.width / 2 - width / 2, window.innerWidth - width - 8)) + 'px';
         }
         requestAnimationFrame(() => panel.classList.add('panel-open'));
-        setTimeout(() => {
-            _hubCreditDismiss = event => {
-                if (!panel.contains(event.target) && !event.target.closest('#tbCredit')) hubCreditToggle();
-            };
-            document.addEventListener('click', _hubCreditDismiss);
-        }, 0);
+        // Added now, not in a timer: a throttled timer (window in the background) left a click elsewhere right after
+        // opening unheard. The opening click still bubbles to the document, but it lands on the pill, which is ignored.
+        _hubCreditDismiss = event => {
+            if (!panel.contains(event.target) && !event.target.closest('#tbCredit')) hubCreditToggle();
+        };
+        document.addEventListener('click', _hubCreditDismiss);
     } else {
         panel.classList.remove('panel-open');
         panel.style.display = 'none';
