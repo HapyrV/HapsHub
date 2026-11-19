@@ -28,6 +28,7 @@ const NAV_ITEMS_DEF = {
     'vrct':             { icon: 'translate',       tab: 37, i18n: 'nav.vrct',               label: 'VRCT',             defaultFolder: 'folder-tools', windowsOnly: true },
     'ovrtoolkit':       { icon: 'view_in_ar',      tab: 38, i18n: 'nav.ovrtoolkit',         label: 'OVR Toolkit',      defaultFolder: 'folder-tools', windowsOnly: true },
     'world-map':        { icon: 'public',          tab: 39, i18n: 'nav.world_map',          label: 'World Map',        defaultFolder: 'folder-tools' },
+    'hapsplorer':       { icon: 'storefront',      tab: 40, i18n: 'nav.hapsplorer',         label: 'Hapsplorer',       defaultFolder: 'folder-tools' },
     'time-spent':       { icon: 'schedule',        tab: 16, i18n: 'nav.time_spent',         label: 'Time Spent'       },
     'voice-fight':      { icon: 'mic',             tab: 18, i18n: 'nav.voice_fight',        label: 'Voice Fight',      windowsOnly: true },
     'discord-presence': { icon: 'sensors',         tab: 19, i18n: 'nav.discord_presence',   label: 'Discord Presence', windowsOnly: true },
@@ -100,7 +101,7 @@ const NAV_DEFAULT_LAYOUT = [
         type: 'folder', id: 'folder-tools', name: 'Tools', icon: 'adjust',
         items: [
             'chatbox','media-relay','frame-shot','osc-tool',
-            'activity-log','meet-network','friend-schedule','world-map','history','youtube-tunnel','oyasumi','ovr-advanced','spacecal','vrct','ovrtoolkit','voice-fight',
+            'activity-log','meet-network','friend-schedule','world-map','hapsplorer','history','youtube-tunnel','oyasumi','ovr-advanced','spacecal','vrct','ovrtoolkit','voice-fight',
             'discord-presence','vr-overlay','permini','kikitan-xd','event-snipe','avatar-scaling','action-flow',
             'status-schedule',
         ],

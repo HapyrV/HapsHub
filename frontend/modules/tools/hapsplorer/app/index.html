@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Hapsplorer</title>
+  <link rel="stylesheet" href="app.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23e8496a'/%3E%3Ctext x='16' y='23' font-size='19' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='700'%3EH%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="/" title="Hapsplorer">Hapsplorer</a>
+    <nav id="views" class="seg views" aria-label="Views">
+      <button data-view="items">Items</button>
+      <button data-view="avatars">Avatars</button>
+      <button data-view="shops">Shops</button>
+      <button data-view="bookmarks" title="Your bookmarked items and shops">Bookmarks</button>
+      <button data-view="tiers" title="Rank avatars in tiers">Tier list</button>
+    </nav>
+    <div class="search">
+      <input id="q" type="search" placeholder="Search tags, shops, titles…  ( / )" autocomplete="off" spellcheck="false">
+      <div id="mode" class="seg" hidden role="group" aria-label="Search mode">
+        <button data-mode="" title="Match the words you type (tags, shops, titles)">Words</button>
+        <button data-mode="meaning" title="Find items that mean the same thing, in any language (e.g. cat ears ≈ 猫耳)">Meaning</button>
+      </div>
+    </div>
+    <select id="sort" title="Sort">
+      <option value="relevance" hidden>Best match</option>
+      <option value="popular">Most liked</option>
+      <option value="newest">Newest</option>
+      <option value="oldest">Oldest</option>
+      <option value="price">Price: low to high</option>
+      <option value="price-desc">Price: high to low</option>
+      <option value="random">Random</option>
+      <option value="id">Item ID</option>
+    </select>
+    <button id="myAvatarsBtn" class="pill" title="Only show items for your avatars">My avatars</button>
+    <button id="updBadge" class="upd" hidden title="BOOTH updater"></button>
+    <select id="currency" title="Currency"></select>
+    <button id="themeBtn" class="icon" title="Theme">◐</button>
+    <button id="filtersBtn" class="icon mobile-only" title="Filters">☰</button>
+  </header>
+
+  <div class="layout">
+    <aside id="sidebar" class="sidebar" aria-label="Filters"></aside>
+    <main class="main">
+      <div id="itemsView">
+        <div id="tabs" class="tabs" role="toolbar" aria-label="Asset type"></div>
+        <div class="resultbar">
+          <span id="count" class="count"></span>
+          <div id="chips" class="chips"></div>
+        </div>
+        <div id="warnings" class="warnings" hidden></div>
+        <div id="grid" class="grid"></div>
+        <div id="sentinel" class="sentinel"></div>
+        <div id="empty" class="empty" hidden>No items match these filters.</div>
+      </div>
+      <div id="pageView" class="page" hidden></div>
+      <div id="pageSentinel" class="sentinel"></div>
+    </main>
+    <aside id="drawer" class="drawer" hidden aria-label="Item details"></aside>
+  </div>
+
+  <dialog id="login">
+    <form method="dialog" id="loginForm">
+      <h2>Hapsplorer</h2>
+      <p>Enter the access key you were given.</p>
+      <input id="loginKey" type="password" autocomplete="current-password" placeholder="hk_…" required>
+      <p id="loginError" class="error" hidden></p>
+      <button type="submit" class="primary">Sign in</button>
+    </form>
+  </dialog>
+
+  <dialog id="avatarsDialog">
+    <form method="dialog">
+      <h2>My avatars</h2>
+      <p>Pick the avatars you use. "My avatars" then shows only items that fit at least one of them.</p>
+      <input id="avatarsFilter" type="search" placeholder="Find an avatar…">
+      <div id="avatarsList" class="avatar-pick"></div>
+      <div class="dialog-actions"><button class="primary">Done</button></div>
+    </form>
+  </dialog>
+
+  <footer class="credit">
+    Item data: <a href="https://huggingface.co/datasets/vrcatalogue/vrcatalogue-open-data" target="_blank" rel="noopener">VRCatalogue open dataset</a> (CC BY 4.0) and BOOTH.
+    Not affiliated with BOOTH or pixiv.
+    · Your data in this browser: <a href="#" id="exportLink">Export</a> · <a href="#" id="importLink">Import</a>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>

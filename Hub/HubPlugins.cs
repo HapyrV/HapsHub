@@ -31,6 +31,7 @@ public sealed class HubPluginsModule : IHubModule
         new("oyasumi", Array.Empty<string>()),
         new("eagle", Array.Empty<string>()),
         new("vrct", new[] { "hub.vrct" }),
+        new("hapsplorer", new[] { "hub.hapsplorer" }),
         new("ovrtoolkit", Array.Empty<string>()),
         new("ovr-advanced", Array.Empty<string>()),
         new("friend-schedule", Array.Empty<string>()),

@@ -4316,6 +4316,7 @@
   "hub.nav.show_page": "Show {page}",
   "hub.nav.add_title": "Add a group or a header, or show a hidden page",
   "nav.world_map": "World Map",
+  "nav.hapsplorer": "Hapsplorer",
   "hub.map.summary": "{placed} friends in {countries} countries. {unplaced} more don't say where they are.",
   "hub.map.note": "Pins are guessed from profiles: flags, 'from …' and languages. Never from IP addresses.",
   "hub.map.empty": "None of your friends say where they are yet.",
