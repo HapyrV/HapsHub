@@ -1092,7 +1092,7 @@ function _navPageTitle(i) {
 
 let _pageTitleFrame = 0, _pageTitleW = 0;
 function updateCurrentPageTitle(tabEl) {
-    const activeTab = document.querySelector('.tab.active');
+    const activeTab = tabEl || document.querySelector('.tab.active');
     if (!activeTab) return;
     const match = activeTab.id.match(/^tab(\d+)$/);
     if (!match) return;
