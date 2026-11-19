@@ -277,7 +277,7 @@ section('explore filters', async main => {
 
             exploreToggleFilters(document.getElementById('exploreFilterBtn'));
             const panel = document.getElementById('exploreFilterPanel');
-            out.panel = { open: panel?.style.display === 'block', selects: panel?.querySelectorAll('select').length, boxes: panel?.querySelectorAll('input[type=checkbox]').length };
+            out.panel = { open: panel?.style.display === 'block', selects: panel?.querySelectorAll('select').length, boxes: panel?.querySelectorAll('.explore-cw-grid input[type=checkbox]').length };
             exploreAddTag('#Night Life');
             out.added = _exploreFilters.tagsIn.join();
             exploreAddTag('bad,tag');
@@ -318,6 +318,137 @@ section('explore filters', async main => {
     check('Explore filters: the panel opens with its controls, adds a typed tag, refuses a bad one, and closes',
         got.panel.open && got.panel.selects >= 3 && got.panel.boxes === 6 && got.added === 'author_tag_night_life' && got.badKept === 'author_tag_night_life' && got.closed,
         JSON.stringify({ panel: got.panel, added: got.added, bad: got.badKept, closed: got.closed }));
+});
+
+section('explore personal', async main => {
+    // Item 14 step 3. Visited badge and "hide visited", the hide list (a world, an author, a tag) and private like/dislike
+    // with a Liked view. Kept in localStorage only, never sent to VRChat; the right-click menu on Explore cards drives it.
+    const got = await main.json(`(() => {
+        const sent = [];
+        const realSend = sendToCS;
+        window.sendToCS = m => { sent.push(m); };
+        const ids = () => _explore.shown.map(w => w.id).join(',');
+        const real = { visited: _visitedWorldsData, loaded: _visitedWorldsLoaded, asked: _explore.askedVisited, store: localStorage.getItem('vrcn_explorePersonal') };
+        const out = {};
+        try {
+            exploreClearFilters();
+            Object.assign(_explorePersonal, { liked: {}, disliked: {}, worlds: {}, authors: {}, tags: [], showHidden: false });
+            _exploreSavePersonal();
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = ''; _explore.askedVisited = true;
+            document.getElementById('searchWorldsInput').value = '';
+            _visitedWorldsData = [{ id: 'wrld_b', tags: [] }]; _visitedWorldsLoaded = true;
+            showTab(NAV_ITEMS_DEF.worlds?.tab ?? 1);
+            setWorldFilter('explore');
+            setExploreView('popular');
+            const ask = sent.find(m => m.action === 'vrcExploreWorlds');
+            const W = (id, extra) => ({ id, name: 'World ' + id.slice(5), authorId: 'usr_x', authorName: 'Xan', tags: ['author_tag_chill'], capacity: 16, occupants: 3, favorites: 9, ...extra });
+            _handleBackendMessage('vrcExploreResults', { view: 'popular', query: '', offset: 0, ok: true, hasMore: false, sig: ask?.sig, worlds: [
+                W('wrld_a', { worldVisitCount: 4 }), W('wrld_b'), W('wrld_c', { authorId: 'usr_y', authorName: 'Yui' }),
+                W('wrld_d', { authorId: 'usr_y', authorName: 'Yui', tags: ['author_tag_horror'] }),
+                W('wrld_e', { authorId: 'usr_z', authorName: 'Zed', tags: ['author_tag_dance'] }) ] });
+            const before = sent.length;
+            const card = id => [...document.querySelectorAll('#searchWorldsResults .vrcn-content-card')].find(c => (c.getAttribute('onclick') || '').includes(id));
+            out.visitedBadges = ['wrld_a', 'wrld_b', 'wrld_c'].map(id => !!card(id)?.querySelector('.explore-badge.visited'));
+            out.visitTitle = card('wrld_a')?.querySelector('.explore-badge.visited')?.title || '';
+            exploreSetFilter('hideVisited', true);
+            out.hideVisited = ids();
+            out.count = document.querySelector('#exploreFilterBtn .explore-filter-count')?.textContent;
+            out.savedVisited = JSON.parse(localStorage.getItem('vrcn_exploreFilters') || '{}').hideVisited;
+            exploreSetFilter('hideVisited', false);
+
+            // Right-click an Explore card: the usual world items, then like, dislike and hide.
+            const menuFor = id => {
+                card(id)?.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 200, clientY: 200 }));
+                return document.getElementById('vn-ctx-menu');
+            };
+            const labels = menu => [...menu.querySelectorAll('.vn-ctx-item .vn-ctx-label')].map(x => x.textContent.trim());
+            const pick = (menu, text) => [...menu.querySelectorAll('.vn-ctx-item')].find(b => b.querySelector('.vn-ctx-label')?.textContent.trim() === text)?.click();
+            let menu = menuFor('wrld_c');
+            out.menu = labels(menu);
+            pick(menu, 'Hide all worlds by Yui');
+            out.afterAuthor = ids();
+            out.note = document.getElementById('exploreNote').textContent;
+            pick(menuFor('wrld_a'), 'Like');
+            pick(menuFor('wrld_e'), 'Dislike (hide)');
+            out.afterDislike = ids();
+            out.likedMenuChecked = !![...menuFor('wrld_a').querySelectorAll('.vn-ctx-item')].find(b => b.querySelector('.vn-ctx-label')?.textContent.trim() === 'Like')?.querySelector('.vn-ctx-check');
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+            exploreHideTag('author_tag_chill', true);
+            out.afterTag = ids();
+            exploreHideTag('author_tag_chill', false);
+            exploreHideWorld('wrld_b', true);
+            out.afterWorld = ids();
+
+            // Show hidden: all back, the hidden ones marked; the panel lists them and unhides an author.
+            exploreShowHidden(true);
+            out.shown = ids();
+            out.marked = document.querySelectorAll('#searchWorldsResults .explore-hidden').length;
+            out.dislikeBadge = !!card('wrld_e')?.querySelector('.explore-badge.hidden');
+            out.likedBadge = !!card('wrld_a')?.querySelector('.explore-badge.liked');
+            exploreToggleFilters(document.getElementById('exploreFilterBtn'));
+            const panel = document.getElementById('exploreFilterPanel');
+            out.panelSum = panel.querySelector('.explore-personal-sum')?.textContent || '';
+            out.panelChips = [...panel.querySelectorAll('.explore-personal-chips .explore-chip')].map(b => b.dataset.kind + ':' + b.dataset.key);
+            out.panelBoxes = ['exploreHideVisited', 'exploreShowHidden'].map(id => !!panel.querySelector('#' + id));
+            panel.querySelector('.explore-personal-chips [data-key="usr_y"]')?.click();
+            out.panelAfter = panel.querySelectorAll('.explore-personal-chips .explore-chip').length;
+            exploreToggleFilters(document.getElementById('exploreFilterBtn'));
+            exploreShowHidden(false);
+            out.afterUnhide = ids();
+
+            // Liked view: built from the copy kept at the like, asks nothing; search narrows it; unlike empties it.
+            setExploreView('liked');
+            out.liked = ids();
+            out.likedCard = document.getElementById('searchWorldsResults').textContent.includes('World a');
+            document.getElementById('searchWorldsInput').value = 'zzz';
+            exploreSearch();
+            out.likedSearch = _explore.view + '/' + ids();
+            document.getElementById('searchWorldsInput').value = '';
+            exploreSearch();
+            pick(menuFor('wrld_a'), 'Like');
+            out.likedEmpty = /No liked worlds/.test(document.getElementById('searchWorldsResults').textContent);
+            out.sentAfter = sent.slice(before).map(m => m.action);
+
+            // Stored on this computer only; bad entries are dropped when read back.
+            const stored = JSON.parse(localStorage.getItem('vrcn_explorePersonal') || '{}');
+            out.stored = [stored.disliked, stored.worlds, stored.authors, stored.liked].map(m => Object.keys(m || {}).join('+')).join('|');
+            localStorage.setItem('vrcn_explorePersonal', JSON.stringify({ liked: { wrld_ok: { name: 'Ok', at: 2 }, 'bad id!': { name: 'x' }, wrld_arr: [1] },
+                tags: ['author_tag_ok', 'nope tag'], showHidden: 'yes' }));
+            const re = _exploreLoadPersonal();
+            out.reload = Object.keys(re.liked).join() + '|' + re.tags.join() + '|' + re.showHidden;
+            return out;
+        } finally {
+            window.sendToCS = realSend;
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+            exploreClearFilters();
+            if (real.store == null) localStorage.removeItem('vrcn_explorePersonal'); else localStorage.setItem('vrcn_explorePersonal', real.store);
+            Object.assign(_explorePersonal, _exploreLoadPersonal());
+            _exploreLikedMemo = null;
+            _visitedWorldsData = real.visited; _visitedWorldsLoaded = real.loaded; _explore.askedVisited = real.asked;
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = '';
+            document.getElementById('searchWorldsInput').value = '';
+            setWorldFilter('favorites');
+        }
+    })()`);
+    check('Explore personal: cards show Visited from the visit count or the visited list; "hide visited" filters them and is saved',
+        got.visitedBadges.join() === 'true,true,false' && got.visitTitle === 'Visits: 4' && got.hideVisited === 'wrld_c,wrld_d,wrld_e' && got.count === '1' && got.savedVisited === true,
+        JSON.stringify({ badges: got.visitedBadges, title: got.visitTitle, hide: got.hideVisited, count: got.count, saved: got.savedVisited }));
+    check('Explore personal: right-clicking an Explore card adds Like, Dislike and the hide items under the world items',
+        ['Open Details', 'Like', 'Dislike (hide)', 'Hide this world', 'Hide all worlds by Yui', 'Hide a tag'].every(x => got.menu.includes(x)), JSON.stringify(got.menu));
+    check('Explore personal: hiding an author, a dislike, a tag and a world take worlds out; a like wins over a hidden tag',
+        got.afterAuthor === 'wrld_a,wrld_b,wrld_e' && /hide list hides 2/.test(got.note) && got.afterDislike === 'wrld_a,wrld_b' && got.likedMenuChecked
+            && got.afterTag === 'wrld_a' && got.afterWorld === 'wrld_a',
+        JSON.stringify({ author: got.afterAuthor, note: got.note, dislike: got.afterDislike, checked: got.likedMenuChecked, tag: got.afterTag, world: got.afterWorld }));
+    check('Explore personal: "Show hidden worlds" brings them back marked, and the Filters panel lists and unhides',
+        got.shown === 'wrld_a,wrld_b,wrld_c,wrld_d,wrld_e' && got.marked === 4 && got.dislikeBadge && got.likedBadge
+            && /1 worlds, 1 authors, 0 tags\. Disliked: 1/.test(got.panelSum) && got.panelChips.join() === 'author:usr_y' && got.panelBoxes.join() === 'true,true'
+            && got.panelAfter === 0 && got.afterUnhide === 'wrld_a,wrld_c,wrld_d',
+        JSON.stringify({ shown: got.shown, marked: got.marked, dis: got.dislikeBadge, liked: got.likedBadge, sum: got.panelSum, chips: got.panelChips, boxes: got.panelBoxes, after: got.panelAfter, unhide: got.afterUnhide }));
+    check('Explore personal: the Liked view lists liked worlds, search narrows it, unliking empties it, and nothing goes to VRChat',
+        got.liked === 'wrld_a' && got.likedCard && got.likedSearch === 'liked/' && got.likedEmpty && got.sentAfter.length === 0,
+        JSON.stringify({ liked: got.liked, card: got.likedCard, search: got.likedSearch, empty: got.likedEmpty, sent: got.sentAfter }));
+    check('Explore personal: the lists are kept in localStorage and bad entries are dropped when read back',
+        got.stored === 'wrld_e|wrld_b||' && got.reload === 'wrld_ok|author_tag_ok|false', JSON.stringify({ stored: got.stored, reload: got.reload }));
 });
 
 section('avatar filters (issue 10)', async main => {

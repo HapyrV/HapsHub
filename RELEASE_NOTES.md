@@ -14,6 +14,7 @@ The first release of HapsHub, built on VRCNext 2027.2.0. HapsHub is heavily base
 - From VRCX, off until you turn them on: a chime and a flashing taskbar button when a queued instance has a place for you (Settings > Sounds), and a clock beside friends you invited in the last hour (Settings > Sidebar).
 - Worlds > Explore replaces Discover and Search: browse all public worlds by Active now, Discover, Hot, Trending, Popular, New, Community Labs, Most favorited or Random, and search from the same bar.
 - Explore filters: platform (Quest/Android, PC only, iOS), hide content warnings, tag chips from your favorite and visited worlds (click to show only, again to hide), published within, capacity and language.
+- Explore, just for you: a Visited badge and "hide worlds I have visited", right-click a world to like or dislike it or hide it, its author or a tag, and a Liked view. Kept on your PC only, never sent to VRChat.
 
 **Fixed**
 - Scrolling in Settings dropped half its frames.

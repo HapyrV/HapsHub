@@ -139,7 +139,19 @@ VRChat has no AI label in the API and declined to add one (28 Oct 2026). HapsHub
    more. "New" stops paging once it is past the Published limit. Chips: the user's favorite and visited worlds'
    author tags, most common first (visited list asked for once when Explore opens). Filters persist
    (localStorage `vrcn_exploreFilters`). Not checked signed in: how VRChat combines several `tag` values.
-3. Local store + personal tools: visited badge, hide list, like/dislike.
+3. Local store + personal tools: visited badge, hide list, like/dislike. **Done 2026-11-19.**
+   Kept in localStorage `vrcn_explorePersonal` (liked, disliked, hidden worlds, authors, tags, "show hidden"), never
+   sent to VRChat. Cards carry badges: Visited (visit count on the row, or the visited list), Liked, and Hidden /
+   Disliked while hidden worlds are shown. "Hide worlds I have visited" is a filter (counts in the badge, cleared by
+   Clear filters, skipped in Liked). Right-click an Explore card: Like, Dislike (hide), Hide this world, Hide all
+   worlds by the author, Hide a tag (submenu of its author tags); each is a toggle. A like wins over a hidden author or
+   tag. The Filters panel has a Hide list part: counts, hidden authors and tags as chips (click to unhide), and "Show
+   hidden worlds", which brings them back marked so the menu can restore them. New view Liked: built from a copy of
+   each world kept at the like (newest first), no request; search narrows it. The hide list chains the next page like
+   the filters do. Caps: 1000 liked, 5000 disliked/hidden worlds, 1000 authors, 200 tags (oldest go first).
+   Icons: the icon font is a subset, so missing ones were swapped for ones it has (Trending `moving`, New
+   `new_releases`, Labs `emoji_objects`, Random `shuffle`, Liked `mood`, Dislike `do_not_disturb`, empty filters
+   `tune`). `python tools/fetch-fonts.py` would add the originals but downloads every font again.
 4. Active now (people in the world, friends there).
 5. VRChat rows from `/config`, saved searches, default view.
 6. AI filter.

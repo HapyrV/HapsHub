@@ -303,18 +303,21 @@ function renderMyWorlds(worlds) {
 // views are pages of GET /worlds (vrcExploreWorlds). Search text searches VRChat in the API views and only narrows
 // the loaded list in the live views. Pages are kept a few minutes, so going back to a view does not call VRChat again.
 const _EXPLORE_LIVE = { active: 'popular', discover: 'discover' };   // view -> vrcGetWorldDiscover mode
+const _EXPLORE_LOCAL = { liked: true };                              // views built here from the user's own lists
 const _EXPLORE_TTL_MS = 5 * 60 * 1000;
 const _explore = { view: 'active', query: '', page: 0, entries: {}, shown: [] };
 
-// API pages are keyed by view, text and the filters VRChat applies (sig); live views by view only.
+// API pages are keyed by view, text and the filters VRChat applies (sig); live and local views by view only.
 function _exploreKey(view, query, sig = _exploreServerSig()) {
-    return _EXPLORE_LIVE[view] ? view : view + '|' + String(query || '').toLowerCase() + '|' + sig;
+    return _EXPLORE_LIVE[view] || _EXPLORE_LOCAL[view] ? view : view + '|' + String(query || '').toLowerCase() + '|' + sig;
 }
 
 function _exploreEntry(view = _explore.view, query = _explore.query, sig) {
     const key = _exploreKey(view, query, sig);
-    return _explore.entries[key]
+    const e = _explore.entries[key]
         || (_explore.entries[key] = { worlds: null, offset: 0, hasMore: false, loading: false, failed: false, at: 0 });
+    if (_EXPLORE_LOCAL[view]) { e.worlds = _exploreLikedList(); e.at = Date.now(); }
+    return e;
 }
 
 function _exploreReadQuery() {
@@ -338,6 +341,7 @@ function _exploreFetch(view, query, offset, fresh, chain = 0) {
 
 /** Loads the current view if it has nothing yet (or an API page went stale); fresh = the Refresh button. */
 function _exploreEnsure(fresh) {
+    if (_EXPLORE_LOCAL[_explore.view]) { if (fresh && worldFilter === 'explore') renderExplore(); return; }
     const e = _exploreEntry();
     if (e.loading) return;
     const stale = !Array.isArray(e.worlds) || (!_EXPLORE_LIVE[_explore.view] && Date.now() - e.at > _EXPLORE_TTL_MS);
@@ -369,8 +373,9 @@ function exploreSearch() {
 function exploreRefresh() { _exploreReadQuery(); _exploreEnsure(true); }
 
 function exploreLoadMore() {
+    if (_EXPLORE_LIVE[_explore.view] || _EXPLORE_LOCAL[_explore.view]) return;
     const e = _exploreEntry();
-    if (e.loading || !e.hasMore || _EXPLORE_LIVE[_explore.view]) return;
+    if (e.loading || !e.hasMore) return;
     _exploreFetch(_explore.view, _explore.query, e.offset, false);
 }
 
@@ -443,26 +448,34 @@ function _exploreSyncUi() {
     _exploreRenderChips();
     const note = document.getElementById('exploreNote');
     if (note) {
+        const view = _explore.view;
         const all = _exploreEntry().worlds;
-        const hidden = count && Array.isArray(all) ? all.length - all.filter(w => _explorePasses(w, _explore.view)).length : 0;
+        const passing = count && Array.isArray(all) ? all.filter(w => _explorePasses(w, view)) : all;
+        const hidden = count && Array.isArray(all) ? all.length - passing.length : 0;
+        const personal = Array.isArray(passing) && _explorePersonalHiding(view) ? passing.filter(w => _exploreHiddenWhy(w)).length : 0;
         const text = [
             live && _explore.query
                 ? tf('worlds.explore.note_live_filter', { query: _explore.query }, 'Showing live worlds whose name, author or tags contain "{query}". Press Search to search all worlds.')
                 : '',
+            _EXPLORE_LOCAL[view] && _explore.query
+                ? tf('worlds.explore.personal.note_liked_filter', { query: _explore.query }, 'Showing liked worlds whose name, author or tags contain "{query}".')
+                : '',
             hidden > 0 ? tf('worlds.explore.filters.note_hidden', { hidden, total: all.length }, 'Filters hide {hidden} of {total} loaded worlds.') : '',
+            personal > 0 ? tf('worlds.explore.personal.note_hidden', { n: personal }, 'Your hide list hides {n}.') : '',
         ].filter(Boolean).join(' ');
         note.textContent = text;
         note.style.display = text ? '' : 'none';
     }
 }
 
-/** The loaded worlds of a view that pass the filters; live views are also narrowed by the search text. */
+/** The loaded worlds of a view that pass the filters and the hide list; live and local views are also narrowed by the search text. */
 function _exploreVisible(e = _exploreEntry(), view = _explore.view) {
     const all = e.worlds;
     if (!Array.isArray(all)) return null;
-    const list = _exploreFilterCount() ? all.filter(w => _explorePasses(w, view)) : all;
+    let list = _exploreFilterCount() ? all.filter(w => _explorePasses(w, view)) : all;
+    if (_explorePersonalHiding(view)) list = list.filter(w => !_exploreHiddenWhy(w));
     const q = _explore.query.toLowerCase();
-    if (!q || !_EXPLORE_LIVE[view]) return list;
+    if (!q || !(_EXPLORE_LIVE[view] || _EXPLORE_LOCAL[view])) return list;
     return list.filter(w => (w.name || '').toLowerCase().includes(q)
         || (w.authorName || '').toLowerCase().includes(q)
         || _wlAuthorTags(w).some(tag => tag.toLowerCase().includes(q)));
@@ -481,8 +494,11 @@ function renderExplore() {
     if (!list || list.length === 0) {
         setPaginator('worldExplorePaginatorBar', '');
         el.classList.add('search-grid');
-        if (Array.isArray(list) && _exploreFilterCount()) el.innerHTML = emptyStateHtml('filter_alt', t('worlds.explore.filters.none_match', 'No worlds match your filters'))
+        if (Array.isArray(list) && _EXPLORE_LOCAL[_explore.view] && !e.worlds.length) el.innerHTML = emptyStateHtml('mood', t('worlds.explore.personal.empty_liked', 'No liked worlds yet. Right-click a world in Explore and choose Like.'));
+        else if (Array.isArray(list) && _exploreFilterCount()) el.innerHTML = emptyStateHtml('tune', t('worlds.explore.filters.none_match', 'No worlds match your filters'))
             + `<div class="explore-more"><button class="vrcn-button" onclick="exploreClearFilters()">${esc(t('worlds.explore.filters.clear', 'Clear filters'))}</button> ${moreBtn}</div>`;
+        else if (Array.isArray(list) && e.worlds.length && _explorePersonalHiding(_explore.view)) el.innerHTML = emptyStateHtml('visibility_off', t('worlds.explore.personal.all_hidden', 'Every world loaded here is on your hide list.'))
+            + (more || '');
         else if (Array.isArray(list)) el.innerHTML = _explore.query
             ? emptyStateHtml('search', t('search.no_results', 'No results found'))
             : emptyStateHtml('public', t('worlds.discover.empty', 'No worlds to show'));
@@ -497,7 +513,7 @@ function renderExplore() {
     }
     setPaginator('worldExplorePaginatorBar', '');
     el.classList.add('search-grid');
-    el.innerHTML = list.map(w => renderWorldCard(w)).join('') + more;
+    el.innerHTML = list.map(w => renderWorldCard(w, _exploreCardOpts(w))).join('') + more;
 }
 
 // ---- Explore filters (item 14, step 2) ----
@@ -511,7 +527,7 @@ const _EXPLORE_VIEW_TAG = { labs: 'system_labs' };          // the tag a view it
 const _EXPLORE_CHAIN_MAX = 3;                               // requests one click may send when filters hide most of a page
 const _EXPLORE_MIN_GAIN = 12;                               // fewer new worlds than this after filtering: fetch the next page
 const _EXPLORE_TAG_MAX = 10;
-const _EXPLORE_FILTER_DEFAULT = { platform: 'any', hideContent: [], tagsIn: [], tagsOut: [], age: 0, capMin: 0, capMax: 0, lang: 'any' };
+const _EXPLORE_FILTER_DEFAULT = { platform: 'any', hideContent: [], tagsIn: [], tagsOut: [], age: 0, capMin: 0, capMax: 0, lang: 'any', hideVisited: false };
 const _EXPLORE_LANG_TAGS = {
     en: ['english', 'en', 'eng'],
     ja: ['japanese', 'japan', 'jp', 'ja', '日本語', '日本'],
@@ -551,6 +567,7 @@ function _exploreLoadFilters() {
         f.capMin = _exploreCap(s.capMin);
         f.capMax = _exploreCap(s.capMax);
         if (_EXPLORE_LANGS.includes(s.lang)) f.lang = s.lang;
+        f.hideVisited = s.hideVisited === true;
     } catch { }
     return f;
 }
@@ -572,7 +589,7 @@ function _exploreServerSig() { const p = _exploreServerParams(); return [p.platf
 function _exploreFilterCount() {
     const f = _exploreFilters;
     return [f.platform !== 'any', f.hideContent.length > 0, f.tagsIn.length > 0, f.tagsOut.length > 0, f.age > 0,
-        f.capMin > 0 || f.capMax > 0, f.lang !== 'any'].filter(Boolean).length;
+        f.capMin > 0 || f.capMax > 0, f.lang !== 'any', f.hideVisited].filter(Boolean).length;
 }
 
 function _explorePlatforms(w) {
@@ -638,12 +655,14 @@ function _explorePasses(w, view) {
     if (cap && f.capMin && cap < f.capMin) return false;
     if (cap && f.capMax && cap > f.capMax) return false;
     if (f.lang !== 'any' && !_exploreLangs(w).has(f.lang)) return false;
+    // Liked worlds are mostly visited ones, so the Liked view keeps them.
+    if (f.hideVisited && !_EXPLORE_LOCAL[view] && _exploreVisited(w)) return false;
     return true;
 }
 
-/** Filters hid most of what came in: fetch the next page too, up to _EXPLORE_CHAIN_MAX requests for one click. */
+/** Filters or the hide list hid most of what came in: fetch the next page too, up to _EXPLORE_CHAIN_MAX requests for one click. */
 function _exploreChainOn(e, view, query, sig) {
-    if (!e.hasMore || !_exploreFilterCount() || (e.chain || 0) + 1 >= _EXPLORE_CHAIN_MAX) return false;
+    if (!e.hasMore || !(_exploreFilterCount() || _explorePersonalHiding(view)) || (e.chain || 0) + 1 >= _EXPLORE_CHAIN_MAX) return false;
     if (_exploreKey(view, query, sig) !== _exploreKey(_explore.view, _explore.query)) return false;
     if ((_exploreVisible(e, view) || []).length - (e.shownBefore || 0) >= _EXPLORE_MIN_GAIN) return false;
     _exploreFetch(view, query, e.offset, false, (e.chain || 0) + 1);
@@ -665,6 +684,7 @@ function exploreSetFilter(key, value) {
     else if (key === 'age') f.age = _EXPLORE_AGES.includes(Number(value)) ? Number(value) : 0;
     else if (key === 'capMin' || key === 'capMax') f[key] = _exploreCap(value);
     else if (key === 'lang') f.lang = _EXPLORE_LANGS.includes(value) ? value : 'any';
+    else if (key === 'hideVisited') f.hideVisited = value === true || value === 'true';
     else return;
     _exploreFiltersChanged();
 }
@@ -787,7 +807,10 @@ function _exploreFilterHtml() {
             <select class="vrcn-dropdown" onchange="exploreSetFilter('lang', this.value)">${opt('any', t('worlds.explore.filters.lang_any', 'Any language'), f.lang)}${_EXPLORE_LANGS.map(c => opt(c, _exploreLangName(c), f.lang)).join('')}</select></div>
         <div class="av-more-row"><span>${L('add_tag', 'Add tag')}</span>
             <input id="exploreTagInput" type="text" class="vrcn-input" maxlength="64" placeholder="${L('tag_placeholder', 'e.g. chill, then Enter')}" onkeydown="if(event.key==='Enter')exploreAddTag(this.value)"></div>
+        <div class="av-more-row"><span>${L('visited', 'Visited')}</span>
+            <label class="explore-cw"><input type="checkbox" id="exploreHideVisited"${f.hideVisited ? ' checked' : ''} onchange="exploreSetFilter('hideVisited', this.checked)"> <span>${L('hide_visited', 'Hide worlds I have visited')}</span></label></div>
         <div class="explore-filter-hint">${L('hint', 'VRChat applies platform, warnings and tags to all worlds. Published, capacity and language check the worlds loaded so far; language is a best guess from tags and text.')}</div>
+        ${_explorePersonalHtml()}
         <div class="av-more-foot"><button class="vrcn-button" onclick="exploreClearFilters()">${L('clear', 'Clear filters')}</button></div>`;
 }
 
@@ -808,7 +831,247 @@ function exploreToggleFilters(btn) {
     const r = btn.getBoundingClientRect();
     panel.style.top = Math.round(r.bottom + 6) + 'px';
     panel.style.left = Math.round(Math.max(8, Math.min(r.right - 380, innerWidth - 388))) + 'px';
+    panel.style.maxHeight = Math.max(200, Math.round(innerHeight - r.bottom - 18)) + 'px';   // the hide list makes it tall
     panel.style.display = 'block';
+}
+
+// ---- Explore personal tools (item 14, step 3) ----
+// Likes, dislikes and the hide list are kept on this computer only (localStorage vrcn_explorePersonal), never sent to
+// VRChat. A dislike, or a hidden world, author or tag, takes worlds out of Explore; "Show hidden worlds" brings them
+// back, marked, so the right-click menu can restore them. A like wins over a hidden author or tag. Liked worlds have
+// their own view, from a copy of each world kept at the time of the like.
+const _EXPLORE_KEEP = { liked: 1000, disliked: 5000, worlds: 5000, authors: 1000, tags: 200 };
+const _EXPLORE_SNAPSHOT = ['name', 'authorName', 'authorId', 'thumbnailImageUrl', 'imageUrl', 'tags', 'capacity', 'favorites',
+    'occupants', 'visits', 'platforms', 'publicationDate', 'created_at', 'updated_at', 'description'];
+const _explorePersonal = _exploreLoadPersonal();
+let _exploreLikedMemo = null;
+let _exploreVisitedMemo = { src: null, ids: new Set() };
+
+function _exploreIdOk(id, prefix = '') { return typeof id === 'string' && id.length <= 80 && id.startsWith(prefix) && /^[\w-]+$/.test(id); }
+function _exploreHas(m) { for (const k in m) return true; return false; }
+
+function _exploreLoadPersonal() {
+    const p = { liked: {}, disliked: {}, worlds: {}, authors: {}, tags: [], showHidden: false };
+    try {
+        const s = JSON.parse(localStorage.getItem('vrcn_explorePersonal') || '{}') || {};
+        const map = (v, prefix, max) => Object.fromEntries(Object.entries(v && typeof v === 'object' && !Array.isArray(v) ? v : {})
+            .filter(([id, x]) => _exploreIdOk(id, prefix) && x && typeof x === 'object' && !Array.isArray(x))
+            .sort((a, b) => (Number(b[1].at) || 0) - (Number(a[1].at) || 0)).slice(0, max));
+        p.liked = map(s.liked, 'wrld_', _EXPLORE_KEEP.liked);
+        p.disliked = map(s.disliked, 'wrld_', _EXPLORE_KEEP.disliked);
+        p.worlds = map(s.worlds, 'wrld_', _EXPLORE_KEEP.worlds);
+        p.authors = map(s.authors, '', _EXPLORE_KEEP.authors);
+        p.tags = [...new Set(Array.isArray(s.tags) ? s.tags : [])].filter(_exploreTagOk).slice(0, _EXPLORE_KEEP.tags);
+        p.showHidden = s.showHidden === true;
+    } catch { }
+    return p;
+}
+
+function _exploreSavePersonal() {
+    _exploreLikedMemo = null;
+    try { localStorage.setItem('vrcn_explorePersonal', JSON.stringify(_explorePersonal)); } catch { }
+}
+
+/** Adds or refreshes an entry; past the limit the oldest entries go. */
+function _explorePut(name, id, value) {
+    const m = _explorePersonal[name];
+    delete m[id];
+    m[id] = { ...value, at: Date.now() };
+    const ids = Object.keys(m);
+    if (ids.length > _EXPLORE_KEEP[name])
+        ids.sort((a, b) => (m[a].at || 0) - (m[b].at || 0)).slice(0, ids.length - _EXPLORE_KEEP[name]).forEach(k => delete m[k]);
+}
+
+function _exploreSnapshot(w) {
+    const o = {};
+    for (const k of _EXPLORE_SNAPSHOT) if (w[k] != null && w[k] !== '') o[k] = k === 'description' ? String(w[k]).slice(0, 300) : w[k];
+    if (!o.platforms && Array.isArray(w.unityPackages)) o.platforms = _explorePlatforms(w);
+    return o;
+}
+
+/** The Liked view: newest like first. */
+function _exploreLikedList() {
+    if (_exploreLikedMemo) return _exploreLikedMemo;
+    const m = _explorePersonal.liked;
+    return (_exploreLikedMemo = Object.keys(m).sort((a, b) => (m[b].at || 0) - (m[a].at || 0))
+        .map(id => ({ occupants: 0, favorites: 0, ...m[id], id })));
+}
+
+/** Visited = HapsHub's own visit history: the count on the row, or the visited list asked for when Explore opens. */
+function _exploreVisited(w) {
+    if (!w) return false;
+    if (Number(w.worldVisitCount) > 0) return true;
+    const src = typeof _visitedWorldsData !== 'undefined' ? _visitedWorldsData : null;
+    if (_exploreVisitedMemo.src !== src)
+        _exploreVisitedMemo = { src, ids: new Set((Array.isArray(src) ? src : []).map(x => x && x.id).filter(Boolean)) };
+    return _exploreVisitedMemo.ids.has(w.id);
+}
+
+/** Why the hide list takes a world out: 'disliked', 'world', 'author', 'tag', or '' when it stays. */
+function _exploreHiddenWhy(w) {
+    const p = _explorePersonal;
+    if (!w || p.liked[w.id]) return '';
+    if (p.disliked[w.id]) return 'disliked';
+    if (p.worlds[w.id]) return 'world';
+    if (w.authorId && p.authors[w.authorId]) return 'author';
+    if (p.tags.length && Array.isArray(w.tags) && p.tags.some(x => w.tags.includes(x))) return 'tag';
+    return '';
+}
+
+/** Whether the hide list takes worlds out of this view: not in Liked, not while "Show hidden worlds" is on. */
+function _explorePersonalHiding(view = _explore.view) {
+    const p = _explorePersonal;
+    return !_EXPLORE_LOCAL[view] && !p.showHidden
+        && (p.tags.length > 0 || _exploreHas(p.disliked) || _exploreHas(p.worlds) || _exploreHas(p.authors));
+}
+
+/** Badges and an extra class for an Explore card: Liked, Hidden/Disliked (while shown), Visited. */
+function _exploreCardOpts(w) {
+    const P = (key, fallback) => esc(t('worlds.explore.personal.' + key, fallback));
+    const p = _explorePersonal;
+    const badges = [];
+    if (p.liked[w.id]) badges.push(`<span class="explore-badge liked" title="${P('badge_liked', 'Liked')}"><span class="msi">mood</span></span>`);
+    const why = p.showHidden && !_EXPLORE_LOCAL[_explore.view] ? _exploreHiddenWhy(w) : '';
+    if (why) badges.push(why === 'disliked'
+        ? `<span class="explore-badge hidden"><span class="msi">do_not_disturb</span>${P('badge_disliked', 'Disliked')}</span>`
+        : `<span class="explore-badge hidden"><span class="msi">visibility_off</span>${P('badge_hidden', 'Hidden')}</span>`);
+    if (_exploreVisited(w)) {
+        const n = Number(w.worldVisitCount) || 0;
+        const title = n ? esc(tf('worlds.explore.personal.visits', { n }, 'Visits: {n}')) : P('badge_visited', 'Visited');
+        badges.push(`<span class="explore-badge visited" title="${title}"><span class="msi">history</span>${P('badge_visited', 'Visited')}</span>`);
+    }
+    return { badges: badges.length ? `<div class="explore-badges">${badges.join('')}</div>` : '', cls: why ? ' explore-hidden' : '' };
+}
+
+function _exploreFindWorld(id) {
+    const hit = list => (Array.isArray(list) ? list : []).find(w => w && w.id === id);
+    let w = hit(_explore.shown);
+    if (w) return w;
+    for (const e of Object.values(_explore.entries)) if ((w = hit(e.worlds))) return w;
+    return _explorePersonal.liked[id] ? { ..._explorePersonal.liked[id], id } : null;
+}
+
+function _explorePersonalChanged() {
+    _exploreSavePersonal();
+    _exploreSyncUi();
+    const panel = document.getElementById('exploreFilterPanel');
+    if (panel && panel.style.display === 'block') panel.innerHTML = _exploreFilterHtml();
+    if (worldFilter === 'explore') renderExplore();
+}
+
+function exploreSetLike(id, on) {
+    if (!_exploreIdOk(id, 'wrld_')) return;
+    const p = _explorePersonal;
+    if (on) {
+        const w = _exploreFindWorld(id) || { id };
+        _explorePut('liked', id, _exploreSnapshot(w));
+        delete p.disliked[id];
+        delete p.worlds[id];
+        showToast(true, tf('worlds.explore.personal.toast_liked', { name: w.name || id }, '"{name}" added to Liked.'));
+    } else delete p.liked[id];
+    _explorePersonalChanged();
+}
+
+function exploreSetDislike(id, on) {
+    if (!_exploreIdOk(id, 'wrld_')) return;
+    const p = _explorePersonal;
+    if (on) {
+        const w = _exploreFindWorld(id) || { id };
+        const tags = (Array.isArray(w.tags) ? w.tags : []).filter(x => x.startsWith('author_tag_')).slice(0, 20);
+        _explorePut('disliked', id, { name: w.name || '', authorId: w.authorId || '', tags });
+        delete p.liked[id];
+        showToast(true, tf('worlds.explore.personal.toast_disliked', { name: w.name || id }, '"{name}" disliked and hidden.'));
+    } else delete p.disliked[id];
+    _explorePersonalChanged();
+}
+
+function exploreHideWorld(id, on) {
+    if (!_exploreIdOk(id, 'wrld_')) return;
+    const p = _explorePersonal;
+    if (on) {
+        const w = _exploreFindWorld(id) || { id };
+        _explorePut('worlds', id, { name: w.name || '', authorId: w.authorId || '' });
+        delete p.liked[id];
+        showToast(true, tf('worlds.explore.personal.toast_hidden', { name: w.name || id }, '"{name}" hidden. Filters > Show hidden worlds brings it back.'));
+    } else delete p.worlds[id];
+    _explorePersonalChanged();
+}
+
+function exploreHideAuthor(authorId, name, on) {
+    if (!_exploreIdOk(authorId)) return;
+    if (on) {
+        _explorePut('authors', authorId, { name: String(name || '').slice(0, 80) });
+        showToast(true, tf('worlds.explore.personal.toast_author', { name: name || authorId }, 'Worlds by {name} hidden. Filters lists hidden authors.'));
+    } else delete _explorePersonal.authors[authorId];
+    _explorePersonalChanged();
+}
+
+function exploreHideTag(tag, on) {
+    if (!_exploreTagOk(tag)) return;
+    const p = _explorePersonal;
+    p.tags = p.tags.filter(x => x !== tag);
+    if (on) {
+        if (p.tags.length >= _EXPLORE_KEEP.tags) return;
+        p.tags.push(tag);
+        showToast(true, tf('worlds.explore.personal.toast_tag', { tag: _wdTagLabel(tag) || tag }, 'Worlds tagged {tag} hidden. Filters lists hidden tags.'));
+    }
+    _explorePersonalChanged();
+}
+
+function exploreShowHidden(on) { _explorePersonal.showHidden = !!on; _explorePersonalChanged(); }
+
+function exploreUnhideChip(kind, key) {
+    if (kind === 'author') exploreHideAuthor(key, '', false);
+    else if (kind === 'tag') exploreHideTag(key, false);
+}
+
+/** Right-click items for an Explore card; context-menu.js adds them under the usual world items (`sub` = a submenu). */
+function exploreContextItems(id) {
+    if (!_exploreIdOk(id, 'wrld_')) return [];
+    const p = _explorePersonal;
+    const w = _exploreFindWorld(id) || { id };
+    const P = (key, fallback) => t('worlds.explore.personal.' + key, fallback);
+    const liked = !!p.liked[id], disliked = !!p.disliked[id], hidden = !!p.worlds[id];
+    const items = [
+        { icon: 'mood', filled: liked, checked: liked, label: P('like', 'Like'), action: () => exploreSetLike(id, !liked) },
+        { icon: 'do_not_disturb', filled: disliked, checked: disliked, label: P('dislike', 'Dislike (hide)'), action: () => exploreSetDislike(id, !disliked) },
+        { icon: 'visibility_off', checked: hidden, label: P('hide_world', 'Hide this world'), action: () => exploreHideWorld(id, !hidden) },
+    ];
+    if (_exploreIdOk(w.authorId)) {
+        const on = !!p.authors[w.authorId];
+        items.push({ icon: 'no_accounts', checked: on,
+            label: w.authorName ? tf('worlds.explore.personal.hide_author', { name: w.authorName }, 'Hide all worlds by {name}') : P('hide_author_unknown', 'Hide all worlds by this author'),
+            action: () => exploreHideAuthor(w.authorId, w.authorName || '', !on) });
+    }
+    const tags = (Array.isArray(w.tags) ? w.tags : []).filter(x => x.startsWith('author_tag_') && _exploreTagOk(x)).slice(0, 12);
+    if (tags.length) items.push({ icon: 'label', label: P('hide_tag', 'Hide a tag'), sub: tags.map(tag => {
+        const on = p.tags.includes(tag);
+        const name = _wdTagLabel(tag) || tag;
+        return { icon: on ? 'visibility' : 'visibility_off', label: on ? tf('worlds.explore.personal.unhide_tag', { tag: name }, 'Unhide {tag}') : tf('worlds.explore.personal.hide_tag_item', { tag: name }, 'Hide {tag}'),
+            action: () => exploreHideTag(tag, !on) };
+    }) });
+    return items;
+}
+
+/** The hide list part of the Filters panel: counts, hidden authors and tags (click to unhide), and "Show hidden worlds". */
+function _explorePersonalHtml() {
+    const p = _explorePersonal;
+    const P = (key, fallback) => esc(t('worlds.explore.personal.' + key, fallback));
+    const n = m => Object.keys(m).length;
+    const counts = { worlds: n(p.worlds), authors: n(p.authors), tags: p.tags.length, disliked: n(p.disliked) };
+    const sum = counts.worlds + counts.authors + counts.tags + counts.disliked
+        ? esc(tf('worlds.explore.personal.summary', counts, 'Hidden: {worlds} worlds, {authors} authors, {tags} tags. Disliked: {disliked}.'))
+        : P('summary_empty', 'Nothing hidden yet.');
+    const chip = (kind, key, label) => `<button class="explore-chip out" data-kind="${kind}" data-key="${esc(key)}" onclick="exploreUnhideChip(this.dataset.kind, this.dataset.key)" title="${P('unhide', 'Unhide')}"><span class="msi">close</span>${esc(label)}</button>`;
+    const chips = [
+        ...Object.entries(p.authors).map(([id, x]) => chip('author', id, x.name || id)),
+        ...p.tags.map(tag => chip('tag', tag, _wdTagLabel(tag) || tag)),
+    ].join('');
+    return `<div class="av-more-title explore-personal-title">${P('hide_list', 'Hide list')}</div>
+        <div class="explore-personal-sum">${sum}</div>
+        ${chips ? `<div class="explore-personal-chips">${chips}</div>` : ''}
+        <label class="explore-cw explore-personal-show"><input type="checkbox" id="exploreShowHidden"${p.showHidden ? ' checked' : ''} onchange="exploreShowHidden(this.checked)"> <span>${P('show_hidden', 'Show hidden worlds, marked, to bring them back')}</span></label>
+        <div class="explore-filter-hint">${P('hint', 'Right-click a world in Explore to like or dislike it, or to hide it, everything by its author, or one of its tags. Kept on this computer only, never sent to VRChat.')}</div>`;
 }
 
 function _wdGroupOptionLabel(g) {
@@ -966,7 +1229,8 @@ function wdCancelGroupName(btn) {
 }
 
 /* === Shared world card renderer (search + favorites) === */
-function renderWorldCard(w) {
+/** opts (Explore): { badges: html over the card, cls: extra classes }. */
+function renderWorldCard(w, opts) {
     const thumb = w.thumbnailImageUrl || w.imageUrl || '';
     const tags = (w.tags || []).filter(t => t.startsWith('author_tag_')).map(t => t.replace('author_tag_','')).slice(0,4);
     const tagsHtml = tags.length ? `<div class="cc-tags">${tags.map(t => `<span class="vrcn-badge">${esc(t)}</span>`).join('')}</div>` : '';
@@ -992,10 +1256,10 @@ function renderWorldCard(w) {
             </div>
             ${isSelected ? '<div class="wd-edit-sel-border"></div>' : ''}</div>`;
     }
-    return `<div class="vrcn-content-card" onclick="openWorldSearchDetail('${wid}')">
+    return `<div class="vrcn-content-card${opts?.cls || ''}" onclick="openWorldSearchDetail('${wid}')">
         <div class="cc-bg" style="background-image:url('${cssUrl(imgThumb(thumb, 256))}')"></div>
         <div class="cc-scrim"></div>
-        ${timeBadge}
+        ${timeBadge}${opts?.badges || ''}
         <div class="cc-content">
             <div class="cc-name">${esc(w.name)}</div>
             <div class="cc-bottom-row">

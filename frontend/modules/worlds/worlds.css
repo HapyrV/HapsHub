@@ -45,8 +45,21 @@
 .explore-chip.in { color: var(--tx0); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 22%, transparent); }
 .explore-chip.out { color: var(--tx2); border-color: rgba(239,83,80,.6); background: rgba(239,83,80,.12); text-decoration: line-through; }
 .explore-chip.in .msi, .explore-chip.out .msi { opacity: 1; }
-.explore-filter-panel { width: 380px; }
+.explore-filter-panel { width: 380px; overflow-y: auto; scrollbar-width: thin; }
 .explore-cw-row { align-items: flex-start; }
 .explore-cw-grid { flex: 1; min-width: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; }
 .explore-cw { display: flex; align-items: center; gap: 4px; font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx1, var(--tx0)); cursor: pointer; }
+/* Explore personal tools (item 14, step 3): card badges, hidden cards while shown, the hide list in the Filters panel */
+.vrcn-content-card .explore-badges { position: absolute; top: 12px; right: 12px; z-index: 3; display: flex; gap: 4px; pointer-events: none; }
+.explore-badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 999px; font-size: calc(10px + var(--fs-off, 0px));
+    font-weight: 600; color: #fff; background: rgba(0,0,0,.55); backdrop-filter: blur(4px); }
+.explore-badge .msi { font-size: 12px; }
+.explore-badge.liked { padding: 2px 5px; color: var(--accent-lt, #fff); }
+.explore-badge.hidden { background: rgba(239,83,80,.7); }
+.vrcn-content-card.explore-hidden .cc-bg { filter: grayscale(.8) brightness(.6); }
+.explore-personal-title { margin-top: 10px; }
+.explore-personal-sum { font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx2); margin-bottom: 6px; }
+.explore-personal-chips { display: flex; flex-wrap: wrap; gap: 4px; max-height: 96px; overflow-y: auto; margin-bottom: 6px; }
+.explore-personal-chips .explore-chip { text-decoration: none; text-transform: none; }
+.explore-personal-show { margin-bottom: 2px; }
 .explore-filter-hint { font-size: calc(11px + var(--fs-off, 0px)); color: var(--tx3, rgba(255,255,255,.55)); margin: 4px 0 8px; line-height: 1.4; }
