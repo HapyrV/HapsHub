@@ -68,7 +68,7 @@ function setWorldFilter(filter) {
         sendToCS({ action: 'vrcGetMyWorlds' });
     }
     if (filter === 'recent') sendToCS({ action: 'vrcGetVisitedWorlds' });
-    if (filter === 'explore') { _exploreSyncUi(); _exploreEnsure(); }
+    if (filter === 'explore') { _exploreSyncUi(); _exploreEnsure(); _exploreAskChipSources(); }
 }
 
 let _visitedWorldsData = [];
@@ -77,6 +77,7 @@ let _worldRecentPage = 0;
 function renderVisitedWorlds(worlds) {
     if (Array.isArray(worlds)) { _visitedWorldsData = worlds; _visitedWorldsLoaded = true; }
     _wdUpdateCounts();
+    if (worldFilter === 'explore') _exploreRenderChips();
     _wdRefreshTagOptions();
     const el = document.getElementById('worldRecentGrid');
     if (!el) return;
@@ -305,10 +306,13 @@ const _EXPLORE_LIVE = { active: 'popular', discover: 'discover' };   // view -> 
 const _EXPLORE_TTL_MS = 5 * 60 * 1000;
 const _explore = { view: 'active', query: '', page: 0, entries: {}, shown: [] };
 
-function _exploreKey(view, query) { return _EXPLORE_LIVE[view] ? view : view + '|' + String(query || '').toLowerCase(); }
+// API pages are keyed by view, text and the filters VRChat applies (sig); live views by view only.
+function _exploreKey(view, query, sig = _exploreServerSig()) {
+    return _EXPLORE_LIVE[view] ? view : view + '|' + String(query || '').toLowerCase() + '|' + sig;
+}
 
-function _exploreEntry(view = _explore.view, query = _explore.query) {
-    const key = _exploreKey(view, query);
+function _exploreEntry(view = _explore.view, query = _explore.query, sig) {
+    const key = _exploreKey(view, query, sig);
     return _explore.entries[key]
         || (_explore.entries[key] = { worlds: null, offset: 0, hasMore: false, loading: false, failed: false, at: 0 });
 }
@@ -319,12 +323,15 @@ function _exploreReadQuery() {
     if (!_explore.query && _explore.view === 'relevance') _explore.view = 'active';
 }
 
-function _exploreFetch(view, query, offset, fresh) {
+/** chain = how many requests this click already sent (filters that hide most of a page fetch the next one too). */
+function _exploreFetch(view, query, offset, fresh, chain = 0) {
     const e = _exploreEntry(view, query);
     e.loading = true;
     e.failed = false;
+    e.chain = chain;
+    if (!chain) e.shownBefore = (_exploreVisible(e, view) || []).length;
     if (_EXPLORE_LIVE[view]) sendToCS({ action: 'vrcGetWorldDiscover', mode: _EXPLORE_LIVE[view] });
-    else sendToCS({ action: 'vrcExploreWorlds', view, query, offset, fresh: !!fresh });
+    else sendToCS({ action: 'vrcExploreWorlds', view, query, offset, fresh: !!fresh, ..._exploreServerParams(), sig: _exploreServerSig() });
     _exploreSyncUi();
     if (worldFilter === 'explore') renderExplore();
 }
@@ -367,8 +374,8 @@ function exploreLoadMore() {
     _exploreFetch(_explore.view, _explore.query, e.offset, false);
 }
 
-function _exploreAfterLoad(view, query) {
-    if (_exploreKey(view, query) !== _exploreKey(_explore.view, _explore.query)) return;
+function _exploreAfterLoad(view, query, sig) {
+    if (_exploreKey(view, query, sig) !== _exploreKey(_explore.view, _explore.query)) return;
     _exploreSyncUi();
     if (worldFilter === 'explore') renderExplore();
 }
@@ -391,7 +398,8 @@ function onWorldDiscover(payload) {
 /** API views (GET /worlds pages). Offset 0 replaces the list, later pages add worlds not shown yet. */
 function onExploreResults(payload) {
     const query = payload.query || '';
-    const e = _exploreEntry(payload.view, query);
+    const sig = typeof payload.sig === 'string' ? payload.sig : _exploreServerSig();
+    const e = _exploreEntry(payload.view, query, sig);
     e.loading = false;
     if (payload.ok) {
         const add = Array.isArray(payload.worlds) ? payload.worlds : [];
@@ -404,8 +412,12 @@ function onExploreResults(payload) {
         }
         e.offset = (payload.offset || 0) + add.length;
         e.hasMore = !!payload.hasMore;
+        // "New" comes newest first: once a page reaches past the Published limit, later pages cannot match.
+        const lastAt = add.length ? _exploreWorldTime(add[add.length - 1]) : 0;
+        if (payload.view === 'new' && _exploreFilters.age && lastAt && Date.now() - lastAt > _exploreFilters.age * 86400000) e.hasMore = false;
+        if (_exploreChainOn(e, payload.view, query, sig)) return;
     } else _exploreLoadFailed(e);
-    _exploreAfterLoad(payload.view, query);
+    _exploreAfterLoad(payload.view, query, sig);
 }
 
 function _exploreSyncUi() {
@@ -421,22 +433,36 @@ function _exploreSyncUi() {
         const ico = btn.querySelector('.msi');
         if (ico) ico.textContent = loading ? 'hourglass_empty' : 'refresh';
     }
+    const count = _exploreFilterCount();
+    const fbtn = document.getElementById('exploreFilterBtn');
+    if (fbtn) {
+        fbtn.classList.toggle('active', count > 0);
+        const c = fbtn.querySelector('.explore-filter-count');
+        if (c) { c.textContent = count ? String(count) : ''; c.style.display = count ? '' : 'none'; }
+    }
+    _exploreRenderChips();
     const note = document.getElementById('exploreNote');
     if (note) {
-        const text = live && _explore.query
-            ? tf('worlds.explore.note_live_filter', { query: _explore.query }, 'Showing live worlds whose name, author or tags contain "{query}". Press Search to search all worlds.')
-            : '';
+        const all = _exploreEntry().worlds;
+        const hidden = count && Array.isArray(all) ? all.length - all.filter(w => _explorePasses(w, _explore.view)).length : 0;
+        const text = [
+            live && _explore.query
+                ? tf('worlds.explore.note_live_filter', { query: _explore.query }, 'Showing live worlds whose name, author or tags contain "{query}". Press Search to search all worlds.')
+                : '',
+            hidden > 0 ? tf('worlds.explore.filters.note_hidden', { hidden, total: all.length }, 'Filters hide {hidden} of {total} loaded worlds.') : '',
+        ].filter(Boolean).join(' ');
         note.textContent = text;
         note.style.display = text ? '' : 'none';
     }
 }
 
-/** The loaded worlds of the current view; live views are narrowed by the search text. */
-function _exploreVisible() {
-    const list = _exploreEntry().worlds;
-    if (!Array.isArray(list)) return null;
+/** The loaded worlds of a view that pass the filters; live views are also narrowed by the search text. */
+function _exploreVisible(e = _exploreEntry(), view = _explore.view) {
+    const all = e.worlds;
+    if (!Array.isArray(all)) return null;
+    const list = _exploreFilterCount() ? all.filter(w => _explorePasses(w, view)) : all;
     const q = _explore.query.toLowerCase();
-    if (!q || !_EXPLORE_LIVE[_explore.view]) return list;
+    if (!q || !_EXPLORE_LIVE[view]) return list;
     return list.filter(w => (w.name || '').toLowerCase().includes(q)
         || (w.authorName || '').toLowerCase().includes(q)
         || _wlAuthorTags(w).some(tag => tag.toLowerCase().includes(q)));
@@ -448,19 +474,22 @@ function renderExplore() {
     const e = _exploreEntry();
     const list = _exploreVisible();
     _explore.shown = list || [];
+    const moreBtn = e.hasMore && !_EXPLORE_LIVE[_explore.view]
+        ? `<button class="vrcn-button load-more-btn" onclick="exploreLoadMore()"${e.loading ? ' disabled' : ''}><span class="msi" style="font-size:16px;">expand_more</span> ${esc(e.loading ? searchLoadingText() : searchLoadMoreText())}</button>`
+        : '';
+    const more = moreBtn ? `<div class="explore-more">${moreBtn}</div>` : '';
     if (!list || list.length === 0) {
         setPaginator('worldExplorePaginatorBar', '');
         el.classList.add('search-grid');
-        if (Array.isArray(list)) el.innerHTML = _explore.query
+        if (Array.isArray(list) && _exploreFilterCount()) el.innerHTML = emptyStateHtml('filter_alt', t('worlds.explore.filters.none_match', 'No worlds match your filters'))
+            + `<div class="explore-more"><button class="vrcn-button" onclick="exploreClearFilters()">${esc(t('worlds.explore.filters.clear', 'Clear filters'))}</button> ${moreBtn}</div>`;
+        else if (Array.isArray(list)) el.innerHTML = _explore.query
             ? emptyStateHtml('search', t('search.no_results', 'No results found'))
             : emptyStateHtml('public', t('worlds.discover.empty', 'No worlds to show'));
         else if (e.failed) el.innerHTML = emptyStateHtml('error', t('worlds.discover.load_failed', 'Could not load worlds'));
         else el.innerHTML = sk('world', 3);
         return;
     }
-    const more = e.hasMore && !_EXPLORE_LIVE[_explore.view]
-        ? `<div class="explore-more"><button class="vrcn-button load-more-btn" onclick="exploreLoadMore()"${e.loading ? ' disabled' : ''}><span class="msi" style="font-size:16px;">expand_more</span> ${esc(e.loading ? searchLoadingText() : searchLoadMoreText())}</button></div>`
-        : '';
     if (lvViewMode('worlds') === 'list' && lvReady()) {
         lvKeepScroll(el, () => _worldsListPage(el, list, _explore.page, 'worldExplorePaginatorBar', 'exploreGoPage', p => { _explore.page = p; }));
         if (more) el.insertAdjacentHTML('beforeend', more);
@@ -469,6 +498,317 @@ function renderExplore() {
     setPaginator('worldExplorePaginatorBar', '');
     el.classList.add('search-grid');
     el.innerHTML = list.map(w => renderWorldCard(w)).join('') + more;
+}
+
+// ---- Explore filters (item 14, step 2) ----
+// Platform, content warnings and tag chips go to VRChat with the request (platform/noplatform, tag/notag), so they
+// cover all worlds, not one page. Published, capacity and language are checked here on the worlds already loaded; when
+// they hide most of a page, the next page is fetched too, at most three requests per click. Kept between runs.
+const _EXPLORE_CONTENT = ['content_sex', 'content_adult', 'content_violence', 'content_gore', 'content_horror', 'content_other'];
+const _EXPLORE_AGES = [7, 30, 90, 365, 730, 1095, 1825];   // days
+const _EXPLORE_LANGS = ['en', 'ja', 'ko', 'zh', 'ru', 'es', 'fr', 'de', 'pt', 'th'];
+const _EXPLORE_VIEW_TAG = { labs: 'system_labs' };          // the tag a view itself asks VRChat for
+const _EXPLORE_CHAIN_MAX = 3;                               // requests one click may send when filters hide most of a page
+const _EXPLORE_MIN_GAIN = 12;                               // fewer new worlds than this after filtering: fetch the next page
+const _EXPLORE_TAG_MAX = 10;
+const _EXPLORE_FILTER_DEFAULT = { platform: 'any', hideContent: [], tagsIn: [], tagsOut: [], age: 0, capMin: 0, capMax: 0, lang: 'any' };
+const _EXPLORE_LANG_TAGS = {
+    en: ['english', 'en', 'eng'],
+    ja: ['japanese', 'japan', 'jp', 'ja', '日本語', '日本'],
+    ko: ['korean', 'korea', 'kr', 'ko', '한국어', '한국'],
+    zh: ['chinese', 'china', 'cn', 'zh', 'mandarin', 'taiwan', '中文', '中国', '中國'],
+    ru: ['russian', 'russia', 'ru', 'русский'],
+    es: ['spanish', 'espanol', 'español', 'es', 'latino', 'latam'],
+    fr: ['french', 'francais', 'français', 'fr'],
+    de: ['german', 'deutsch', 'de'],
+    pt: ['portuguese', 'portugues', 'português', 'pt', 'brasil', 'brazil', 'br'],
+    th: ['thai', 'thailand', 'th', 'ไทย'],
+};
+// Common words that point to a language written in Latin letters; two or more in a name or description count.
+const _EXPLORE_LANG_WORDS = Object.fromEntries(Object.entries({
+    en: 'the and with this your you are for welcome enjoy please from have our',
+    es: 'el los las una para con por del mundo bienvenidos bienvenido que muy aquí',
+    fr: 'le les des une avec pour est et dans sur monde bienvenue cette vous nous',
+    de: 'der die das und ist mit für ein eine nicht welt willkommen auf ich wir',
+    pt: 'não você voce uma com muito olá isso sua seu nossa dos ao bem',
+}).map(([lang, words]) => [lang, new Set(words.split(' '))]));
+const _exploreLangMemo = new WeakMap();
+const _exploreFilters = _exploreLoadFilters();
+
+function _exploreTagOk(tag) { return typeof tag === 'string' && /^(author_tag_|content_)[^\s,&=?#]{1,64}$/.test(tag); }
+function _exploreCap(v) { const n = Math.floor(Number(v)); return Number.isFinite(n) && n > 0 ? Math.min(n, 999) : 0; }
+
+function _exploreLoadFilters() {
+    const f = { ..._EXPLORE_FILTER_DEFAULT, hideContent: [], tagsIn: [], tagsOut: [] };
+    try {
+        const s = JSON.parse(localStorage.getItem('vrcn_exploreFilters') || '{}') || {};
+        const list = (v, ok) => [...new Set(Array.isArray(v) ? v : [])].filter(ok).slice(0, _EXPLORE_TAG_MAX);
+        if (['quest', 'pc', 'ios'].includes(s.platform)) f.platform = s.platform;
+        f.hideContent = list(s.hideContent, x => _EXPLORE_CONTENT.includes(x));
+        f.tagsIn = list(s.tagsIn, _exploreTagOk);
+        f.tagsOut = list(s.tagsOut, x => _exploreTagOk(x) && !f.tagsIn.includes(x));
+        if (_EXPLORE_AGES.includes(s.age)) f.age = s.age;
+        f.capMin = _exploreCap(s.capMin);
+        f.capMax = _exploreCap(s.capMax);
+        if (_EXPLORE_LANGS.includes(s.lang)) f.lang = s.lang;
+    } catch { }
+    return f;
+}
+
+function _exploreSaveFilters() { try { localStorage.setItem('vrcn_exploreFilters', JSON.stringify(_exploreFilters)); } catch { } }
+
+/** What VRChat is asked to filter. Part of each page's cache key, so other filters never reuse a page. */
+function _exploreServerParams() {
+    const f = _exploreFilters;
+    return {
+        platform: f.platform === 'any' ? '' : f.platform,
+        tags: [...f.tagsIn].sort(),
+        notags: [...new Set([...f.hideContent, ...f.tagsOut])].sort(),
+    };
+}
+
+function _exploreServerSig() { const p = _exploreServerParams(); return [p.platform, p.tags.join(','), p.notags.join(',')].join('|'); }
+
+function _exploreFilterCount() {
+    const f = _exploreFilters;
+    return [f.platform !== 'any', f.hideContent.length > 0, f.tagsIn.length > 0, f.tagsOut.length > 0, f.age > 0,
+        f.capMin > 0 || f.capMax > 0, f.lang !== 'any'].filter(Boolean).length;
+}
+
+function _explorePlatforms(w) {
+    if (Array.isArray(w.platforms)) return w.platforms;
+    return Array.isArray(w.unityPackages) ? w.unityPackages.map(p => p?.platform).filter(Boolean) : [];
+}
+
+/** When the world was published (its created date when VRChat gives none), in ms; 0 = unknown. */
+function _exploreWorldTime(w) {
+    for (const v of [w.publicationDate, w.created_at]) {
+        const ms = Date.parse(v || '');
+        if (Number.isFinite(ms) && ms > 0) return ms;
+    }
+    return 0;
+}
+
+/** Best guess at the languages a world is in, from its author tags and the script and words of its name and description. */
+function _exploreLangs(w) {
+    let set = _exploreLangMemo.get(w);
+    if (set) return set;
+    set = new Set();
+    for (const tag of _wlAuthorTags(w)) {
+        const x = tag.toLowerCase();
+        for (const [lang, names] of Object.entries(_EXPLORE_LANG_TAGS)) if (names.includes(x)) set.add(lang);
+    }
+    const text = `${w.name || ''} ${w.description || ''}`;
+    if (/[぀-ヿ]/.test(text)) set.add('ja');
+    else if (/[一-鿿]/.test(text)) set.add('zh');
+    if (/[가-힯]/.test(text)) set.add('ko');
+    if (/[Ѐ-ӿ]/.test(text)) set.add('ru');
+    if (/[฀-๿]/.test(text)) set.add('th');
+    const words = text.toLowerCase().match(/\p{L}+/gu) || [];
+    for (const [lang, dict] of Object.entries(_EXPLORE_LANG_WORDS))
+        if (words.filter(x => dict.has(x)).length >= 2) set.add(lang);
+    // Latin letters and nothing else found: most such world names are English.
+    if (!set.size && /[a-z]/i.test(text)) set.add('en');
+    _exploreLangMemo.set(w, set);
+    return set;
+}
+
+/** Whether a world passes the filters. Lenient where a world lacks the data (no platform list, no date, no capacity). */
+function _explorePasses(w, view) {
+    const f = _exploreFilters;
+    const tags = Array.isArray(w.tags) ? w.tags : [];
+    if (f.tagsIn.length) {
+        if (!f.tagsIn.some(x => tags.includes(x))) return false;
+        // The view's own tag goes in the same "any of" list, so check the world really has it.
+        if (_EXPLORE_VIEW_TAG[view] && !tags.includes(_EXPLORE_VIEW_TAG[view])) return false;
+    }
+    if (f.tagsOut.some(x => tags.includes(x)) || f.hideContent.some(x => tags.includes(x))) return false;
+    if (f.platform !== 'any') {
+        const p = _explorePlatforms(w);
+        if (p.length) {
+            const quest = p.includes('android'), ios = p.includes('ios'), pc = p.includes('standalonewindows');
+            if (f.platform === 'quest' ? !quest : f.platform === 'ios' ? !ios : !(pc && !quest && !ios)) return false;
+        }
+    }
+    if (f.age) {
+        const at = _exploreWorldTime(w);
+        if (at && Date.now() - at > f.age * 86400000) return false;
+    }
+    const cap = Number(w.capacity) || 0;
+    if (cap && f.capMin && cap < f.capMin) return false;
+    if (cap && f.capMax && cap > f.capMax) return false;
+    if (f.lang !== 'any' && !_exploreLangs(w).has(f.lang)) return false;
+    return true;
+}
+
+/** Filters hid most of what came in: fetch the next page too, up to _EXPLORE_CHAIN_MAX requests for one click. */
+function _exploreChainOn(e, view, query, sig) {
+    if (!e.hasMore || !_exploreFilterCount() || (e.chain || 0) + 1 >= _EXPLORE_CHAIN_MAX) return false;
+    if (_exploreKey(view, query, sig) !== _exploreKey(_explore.view, _explore.query)) return false;
+    if ((_exploreVisible(e, view) || []).length - (e.shownBefore || 0) >= _EXPLORE_MIN_GAIN) return false;
+    _exploreFetch(view, query, e.offset, false, (e.chain || 0) + 1);
+    return true;
+}
+
+function _exploreFiltersChanged() {
+    _exploreSaveFilters();
+    _explore.page = 0;
+    _exploreSyncUi();
+    if (worldFilter !== 'explore') return;
+    _exploreEnsure();
+    renderExplore();
+}
+
+function exploreSetFilter(key, value) {
+    const f = _exploreFilters;
+    if (key === 'platform') f.platform = ['quest', 'pc', 'ios'].includes(value) ? value : 'any';
+    else if (key === 'age') f.age = _EXPLORE_AGES.includes(Number(value)) ? Number(value) : 0;
+    else if (key === 'capMin' || key === 'capMax') f[key] = _exploreCap(value);
+    else if (key === 'lang') f.lang = _EXPLORE_LANGS.includes(value) ? value : 'any';
+    else return;
+    _exploreFiltersChanged();
+}
+
+function exploreToggleContent(tag, on) {
+    if (!_EXPLORE_CONTENT.includes(tag)) return;
+    const f = _exploreFilters;
+    f.hideContent = f.hideContent.filter(x => x !== tag);
+    if (on) f.hideContent.push(tag);
+    _exploreFiltersChanged();
+}
+
+/** Tag chip click: off -> only worlds with the tag -> hide worlds with the tag -> off. */
+function exploreCycleTag(tag) {
+    if (!_exploreTagOk(tag)) return;
+    const f = _exploreFilters;
+    if (f.tagsIn.includes(tag)) {
+        f.tagsIn = f.tagsIn.filter(x => x !== tag);
+        if (f.tagsOut.length < _EXPLORE_TAG_MAX) f.tagsOut.push(tag);
+    } else if (f.tagsOut.includes(tag)) f.tagsOut = f.tagsOut.filter(x => x !== tag);
+    else if (f.tagsIn.length < _EXPLORE_TAG_MAX) f.tagsIn.push(tag);
+    else return;
+    _exploreFiltersChanged();
+}
+
+/** A tag typed in the filter panel ("chill", "#Flowers", "night life") becomes an "only worlds with" chip. */
+function exploreAddTag(text) {
+    let tag = String(text || '').trim().toLowerCase().replace(/^#+/, '').replace(/\s+/g, '_');
+    if (!tag) return;
+    if (!/^(author_tag_|content_)/.test(tag)) tag = 'author_tag_' + tag;
+    if (!_exploreTagOk(tag)) { showToast(false, t('worlds.explore.filters.bad_tag', 'A tag cannot contain , & = ? or #')); return; }
+    const f = _exploreFilters;
+    f.tagsOut = f.tagsOut.filter(x => x !== tag);
+    if (!f.tagsIn.includes(tag)) {
+        if (f.tagsIn.length >= _EXPLORE_TAG_MAX) return;
+        f.tagsIn.push(tag);
+    }
+    const input = document.getElementById('exploreTagInput');
+    if (input) input.value = '';
+    _exploreFiltersChanged();
+}
+
+function exploreClearFilters() {
+    Object.assign(_exploreFilters, _EXPLORE_FILTER_DEFAULT, { hideContent: [], tagsIn: [], tagsOut: [] });
+    const panel = document.getElementById('exploreFilterPanel');
+    if (panel && panel.style.display === 'block') panel.innerHTML = _exploreFilterHtml();
+    _exploreFiltersChanged();
+}
+
+/** Chips: the tags already picked, then the author tags most common in the user's favorite and visited worlds. */
+function _exploreChipTags() {
+    const f = _exploreFilters;
+    const counts = new Map();
+    const seen = new Set();
+    const lists = [typeof favWorldsData !== 'undefined' ? favWorldsData : [], _visitedWorldsData];
+    for (const list of lists) for (const w of (Array.isArray(list) ? list : [])) {
+        if (!w || !w.id || seen.has(w.id)) continue;
+        seen.add(w.id);
+        for (const tag of new Set(Array.isArray(w.tags) ? w.tags : []))
+            if (tag.startsWith('author_tag_') && _exploreTagOk(tag)) counts.set(tag, (counts.get(tag) || 0) + 1);
+    }
+    const top = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(x => x[0])
+        .filter(tag => !f.tagsIn.includes(tag) && !f.tagsOut.includes(tag)).slice(0, 16);
+    return [...f.tagsIn, ...f.tagsOut, ...top];
+}
+
+function _exploreRenderChips() {
+    const row = document.getElementById('exploreChips');
+    if (!row) return;
+    const f = _exploreFilters;
+    const tags = _exploreChipTags();
+    const hint = esc(t('worlds.explore.filters.chip_hint', 'Click: only worlds with this tag. Again: hide worlds with it. Again: off.'));
+    const html = tags.length
+        ? `<span class="explore-chips-label">${esc(t('worlds.explore.filters.tags', 'Tags'))}</span>` + tags.map(tag => {
+            const state = f.tagsIn.includes(tag) ? 'in' : f.tagsOut.includes(tag) ? 'out' : '';
+            const icon = state === 'in' ? 'check' : state === 'out' ? 'block' : 'add';
+            return `<button class="explore-chip${state ? ' ' + state : ''}" data-tag="${esc(tag)}" onclick="exploreCycleTag(this.dataset.tag)" title="${hint}"><span class="msi">${icon}</span>${esc(_wdTagLabel(tag) || tag)}</button>`;
+        }).join('')
+        : '';
+    row.style.display = html ? '' : 'none';
+    if (row._html === html) return;
+    row._html = html;
+    row.innerHTML = html;
+}
+
+/** The user's favorite worlds come with the Worlds tab; their visited worlds are asked for once, for the chips. */
+function _exploreAskChipSources() {
+    if (_explore.askedVisited || _visitedWorldsLoaded) return;
+    _explore.askedVisited = true;
+    sendToCS({ action: 'vrcGetVisitedWorlds' });
+}
+
+function _exploreLangName(code) {
+    try { return new Intl.DisplayNames([typeof getLanguageLocale === 'function' ? getLanguageLocale() : 'en-US'], { type: 'language' }).of(code) || code; }
+    catch { return code; }
+}
+
+function _exploreFilterHtml() {
+    const f = _exploreFilters;
+    const L = (key, fallback) => esc(t('worlds.explore.filters.' + key, fallback));
+    const opt = (v, label, cur) => `<option value="${v}"${String(v) === String(cur) ? ' selected' : ''}>${esc(label)}</option>`;
+    const ages = _EXPLORE_AGES.map(d => opt(d, d < 365 ? tf('worlds.explore.filters.age_days', { n: d }, 'Last {n} days')
+        : d === 365 ? t('worlds.explore.filters.age_year', 'Last year')
+        : tf('worlds.explore.filters.age_years', { n: Math.round(d / 365) }, 'Last {n} years'), f.age)).join('');
+    const cw = {
+        content_sex: 'Sexually suggestive', content_adult: 'Adult language and themes', content_violence: 'Graphic violence',
+        content_gore: 'Excessive gore', content_horror: 'Extreme horror', content_other: 'Other warnings',
+    };
+    const content = _EXPLORE_CONTENT.map(tag => `<label class="explore-cw"><input type="checkbox"${f.hideContent.includes(tag) ? ' checked' : ''} onchange="exploreToggleContent('${tag}', this.checked)"> <span>${L('cw_' + tag.slice(8), cw[tag])}</span></label>`).join('');
+    return `<div class="av-more-title">${L('title', 'Filters')}</div>
+        <div class="av-more-row"><span>${L('platform', 'Platform')}</span>
+            <select class="vrcn-dropdown" onchange="exploreSetFilter('platform', this.value)">${opt('any', t('worlds.explore.filters.platform_any', 'Any platform'), f.platform)}${opt('quest', t('worlds.explore.filters.platform_quest', 'Quest / Android'), f.platform)}${opt('pc', t('worlds.explore.filters.platform_pc', 'PC only'), f.platform)}${opt('ios', 'iOS', f.platform)}</select></div>
+        <div class="av-more-row explore-cw-row"><span>${L('content', 'Hide warnings')}</span><div class="explore-cw-grid">${content}</div></div>
+        <div class="av-more-row"><span>${L('published', 'Published')}</span>
+            <select class="vrcn-dropdown" onchange="exploreSetFilter('age', this.value)">${opt(0, t('worlds.explore.filters.age_any', 'Any time'), f.age)}${ages}</select></div>
+        <div class="av-more-row"><span>${L('capacity', 'Capacity')}</span>
+            <input type="number" min="1" max="999" class="vrcn-input" placeholder="${L('min', 'Min')}" value="${f.capMin || ''}" onchange="exploreSetFilter('capMin', this.value)">
+            <input type="number" min="1" max="999" class="vrcn-input" placeholder="${L('max', 'Max')}" value="${f.capMax || ''}" onchange="exploreSetFilter('capMax', this.value)"></div>
+        <div class="av-more-row"><span>${L('language', 'Language')}</span>
+            <select class="vrcn-dropdown" onchange="exploreSetFilter('lang', this.value)">${opt('any', t('worlds.explore.filters.lang_any', 'Any language'), f.lang)}${_EXPLORE_LANGS.map(c => opt(c, _exploreLangName(c), f.lang)).join('')}</select></div>
+        <div class="av-more-row"><span>${L('add_tag', 'Add tag')}</span>
+            <input id="exploreTagInput" type="text" class="vrcn-input" maxlength="64" placeholder="${L('tag_placeholder', 'e.g. chill, then Enter')}" onkeydown="if(event.key==='Enter')exploreAddTag(this.value)"></div>
+        <div class="explore-filter-hint">${L('hint', 'VRChat applies platform, warnings and tags to all worlds. Published, capacity and language check the worlds loaded so far; language is a best guess from tags and text.')}</div>
+        <div class="av-more-foot"><button class="vrcn-button" onclick="exploreClearFilters()">${L('clear', 'Clear filters')}</button></div>`;
+}
+
+function exploreToggleFilters(btn) {
+    let panel = document.getElementById('exploreFilterPanel');
+    if (panel && panel.style.display === 'block') { panel.style.display = 'none'; return; }
+    if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'exploreFilterPanel';
+        panel.className = 'av-more-panel explore-filter-panel';
+        document.body.appendChild(panel);
+        document.addEventListener('mousedown', e => {
+            if (panel.style.display !== 'block' || panel.contains(e.target) || e.target.closest?.('#exploreFilterBtn, .vn-select-panel, .vn-select')) return;
+            panel.style.display = 'none';
+        }, true);
+    }
+    panel.innerHTML = _exploreFilterHtml();
+    const r = btn.getBoundingClientRect();
+    panel.style.top = Math.round(r.bottom + 6) + 'px';
+    panel.style.left = Math.round(Math.max(8, Math.min(r.right - 380, innerWidth - 388))) + 'px';
+    panel.style.display = 'block';
 }
 
 function _wdGroupOptionLabel(g) {
@@ -489,6 +829,7 @@ function renderFavWorlds(payload) {
     favWorldsData = worlds;
     favWorldGroups = groups;
     _wdUpdateCounts();
+    if (worldFilter === 'explore') _exploreRenderChips();
     // Populate world info cache for library badges
     favWorldsData.forEach(w => {
         if (w.id) worldInfoCache[w.id] = { id: w.id, name: w.name, thumbnailImageUrl: w.thumbnailImageUrl || w.imageUrl };

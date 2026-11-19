@@ -178,6 +178,148 @@ section('explore', async main => {
     check('Explore: a view that fails to load says so', got.failed);
 });
 
+section('explore filters', async main => {
+    // Item 14 step 2. Platform, warnings and tag chips go to VRChat with the request and key the cache; published,
+    // capacity and language are checked on the loaded worlds, fetching at most three pages for one click.
+    const got = await main.json(`(() => {
+        const sent = [];
+        const realSend = sendToCS;
+        window.sendToCS = m => { sent.push(m); };
+        const asks = () => sent.filter(m => m.action === 'vrcExploreWorlds');
+        const ids = () => _explore.shown.map(w => w.id).join(',');
+        const grid = () => document.getElementById('searchWorldsResults').textContent;
+        const ago = d => new Date(Date.now() - d * 86400000).toISOString();
+        const real = { fav: favWorldsData, visited: _visitedWorldsData, loaded: _visitedWorldsLoaded };
+        const out = {};
+        try {
+            exploreClearFilters();
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = ''; _explore.askedVisited = false;
+            document.getElementById('searchWorldsInput').value = '';
+            favWorldsData = [{ id: 'wrld_f1', tags: ['author_tag_chill', 'author_tag_flowers'] }, { id: 'wrld_f2', tags: ['author_tag_chill', 'system_approved'] }];
+            _visitedWorldsData = [{ id: 'wrld_f1', tags: ['author_tag_chill'] }, { id: 'wrld_v1', tags: ['author_tag_photography', 'author_tag_chill'] }];
+            _visitedWorldsLoaded = false;
+            showTab(NAV_ITEMS_DEF.worlds?.tab ?? 1);
+            setWorldFilter('explore'); setWorldFilter('favorites'); setWorldFilter('explore');
+            out.visitedAsks = sent.filter(m => m.action === 'vrcGetVisitedWorlds').length;
+            out.chips = [...document.querySelectorAll('#exploreChips .explore-chip')].map(b => b.dataset.tag);
+
+            exploreCycleTag('author_tag_chill');
+            out.chipIn = document.querySelector('#exploreChips [data-tag="author_tag_chill"]')?.className || '';
+            exploreSetFilter('platform', 'quest');
+            exploreToggleContent('content_horror', true);
+            sent.length = 0;
+            setExploreView('new');
+            out.ask = asks()[0] || null;
+            const W = (id, extra) => ({ id, name: id, tags: ['author_tag_chill'], platforms: ['standalonewindows', 'android'], capacity: 16, publicationDate: ago(10), ...extra });
+            _handleBackendMessage('vrcExploreResults', { view: 'new', query: '', offset: 0, ok: true, hasMore: false, sig: out.ask?.sig, worlds: [
+                W('wrld_ok'), W('wrld_pconly', { platforms: ['standalonewindows'] }), W('wrld_horror', { tags: ['author_tag_chill', 'content_horror'] }),
+                W('wrld_dance', { tags: ['author_tag_dance'] }), W('wrld_old', { publicationDate: ago(800) }), W('wrld_big', { capacity: 80 }),
+                W('wrld_jp', { name: 'まったりカフェ' }) ] });
+            out.serverOnly = ids();
+            sent.length = 0;
+            exploreSetFilter('age', 365); exploreSetFilter('capMax', 32);
+            out.client = ids();
+            exploreSetFilter('lang', 'ja'); out.ja = ids();
+            exploreSetFilter('lang', 'en'); out.en = ids();
+            out.clientAsks = asks().length;
+            out.note = document.getElementById('exploreNote').textContent;
+            out.count = document.querySelector('#exploreFilterBtn .explore-filter-count')?.textContent;
+            out.saved = JSON.parse(localStorage.getItem('vrcn_exploreFilters') || '{}');
+            out.langs = [{ name: 'Bienvenidos al mundo', description: 'un lugar para relajarse con amigos' }, { name: '한국 카페' },
+                { name: 'Cozy Room', tags: ['author_tag_japanese'] }, { name: '夜の街' }, { name: '中文世界' }, { name: 'Midnight Rooftop' }]
+                .map(w => [..._exploreLangs(w)].sort().join('+'));
+
+            // Each set of server filters is its own page in the cache: in -> out -> off asks twice, back to "in" asks nothing.
+            sent.length = 0;
+            exploreCycleTag('author_tag_chill'); exploreCycleTag('author_tag_chill'); exploreCycleTag('author_tag_chill');
+            out.cycle = asks().map(m => (m.tags || []).join('+') + '/' + (m.notags || []).join('+'));
+            out.backShown = ids();
+
+            // Filters that hide a whole page fetch the next one, three requests at most for one click.
+            exploreClearFilters();
+            exploreSetFilter('capMin', 50);
+            sent.length = 0;
+            setExploreView('popular');
+            const small = p => Array.from({ length: 40 }, (_, i) => ({ id: 'wrld_' + p + i, name: p + i, tags: [], capacity: 10 }));
+            for (const [i, p] of ['p', 'q', 's'].entries()) {
+                const a = asks()[i];
+                if (a) _handleBackendMessage('vrcExploreResults', { view: 'popular', query: '', offset: a.offset, ok: true, hasMore: true, sig: a.sig, worlds: small(p) });
+            }
+            out.chain = asks().map(m => m.offset);
+            out.chainEmpty = /match your filters/i.test(grid());
+            out.chainMoreBtn = !!document.querySelector('#searchWorldsResults .explore-more .load-more-btn');
+            sent.length = 0;
+            exploreLoadMore();
+            out.nextClick = asks().map(m => m.offset);
+
+            // "New" with a Published limit stops paging once a page reaches past it.
+            exploreClearFilters();
+            exploreSetFilter('age', 30);
+            _explore.entries = {};
+            sent.length = 0;
+            setExploreView('new');
+            const na = asks()[0];
+            _handleBackendMessage('vrcExploreResults', { view: 'new', query: '', offset: 0, ok: true, hasMore: true, sig: na?.sig,
+                worlds: [W('wrld_n1', { publicationDate: ago(5) }), W('wrld_n2', { publicationDate: ago(20) }), W('wrld_n3', { publicationDate: ago(60) })] });
+            out.newStop = { asks: asks().length, shown: ids(), more: !!document.querySelector('#searchWorldsResults .load-more-btn') };
+
+            // Live views are filtered here too, and never ask GET /worlds.
+            exploreClearFilters();
+            exploreSetFilter('platform', 'pc');
+            sent.length = 0;
+            setExploreView('active');
+            _handleBackendMessage('vrcWorldDiscover', { mode: 'popular', ok: true, worlds: [
+                { id: 'wrld_l1', name: 'Quest Club', tags: [], unityPackages: [{ platform: 'standalonewindows' }, { platform: 'android' }] },
+                { id: 'wrld_l2', name: 'PC Lounge', tags: [], unityPackages: [{ platform: 'standalonewindows' }] },
+                { id: 'wrld_l3', name: 'Unknown', tags: [] } ] });
+            out.live = ids();
+            out.liveAsks = asks().length;
+
+            exploreToggleFilters(document.getElementById('exploreFilterBtn'));
+            const panel = document.getElementById('exploreFilterPanel');
+            out.panel = { open: panel?.style.display === 'block', selects: panel?.querySelectorAll('select').length, boxes: panel?.querySelectorAll('input[type=checkbox]').length };
+            exploreAddTag('#Night Life');
+            out.added = _exploreFilters.tagsIn.join();
+            exploreAddTag('bad,tag');
+            out.badKept = _exploreFilters.tagsIn.join();
+            exploreToggleFilters(document.getElementById('exploreFilterBtn'));
+            out.closed = panel?.style.display !== 'block';
+            return out;
+        } finally {
+            window.sendToCS = realSend;
+            exploreClearFilters();
+            favWorldsData = real.fav; _visitedWorldsData = real.visited; _visitedWorldsLoaded = real.loaded;
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = '';
+            setWorldFilter('favorites');
+        }
+    })()`);
+    check('Explore filters: chips are the author tags of favorite and visited worlds, most common first; visited worlds are asked for once',
+        got.chips.join() === 'author_tag_chill,author_tag_flowers,author_tag_photography' && got.visitedAsks === 1, JSON.stringify({ chips: got.chips, asks: got.visitedAsks }));
+    check('Explore filters: platform, warnings and tag chips go to VRChat with the request',
+        /\bin\b/.test(got.chipIn) && got.ask?.platform === 'quest' && got.ask?.tags?.join() === 'author_tag_chill' && got.ask?.notags?.join() === 'content_horror' && typeof got.ask?.sig === 'string',
+        JSON.stringify({ chip: got.chipIn, ask: got.ask }));
+    check('Explore filters: the page also checks those filters on what comes back',
+        got.serverOnly === 'wrld_ok,wrld_old,wrld_big,wrld_jp', got.serverOnly);
+    check('Explore filters: published, capacity and language filter the loaded worlds without asking VRChat',
+        got.client === 'wrld_ok,wrld_jp' && got.ja === 'wrld_jp' && got.en === 'wrld_ok' && got.clientAsks === 0, JSON.stringify({ client: got.client, ja: got.ja, en: got.en, asks: got.clientAsks }));
+    check('Explore filters: the count, the "hidden" note and saved filters follow the choices',
+        got.count === '6' && /6 of 7/.test(got.note) && got.saved.age === 365 && got.saved.capMax === 32 && got.saved.lang === 'en' && got.saved.platform === 'quest',
+        JSON.stringify({ count: got.count, note: got.note, saved: got.saved }));
+    check('Explore filters: language is guessed from tags, script and common words',
+        got.langs.join() === 'es,ko,ja,ja,zh,en', got.langs.join());
+    check('Explore filters: each set of VRChat filters is cached on its own',
+        got.cycle.join(' ') === '/author_tag_chill+content_horror /content_horror' && got.backShown === 'wrld_ok', JSON.stringify({ cycle: got.cycle, back: got.backShown }));
+    check('Explore filters: when filters hide a page, one click fetches at most three pages, then Load more goes on',
+        got.chain.join() === '0,40,80' && got.chainEmpty && got.chainMoreBtn && got.nextClick.join() === '120', JSON.stringify({ chain: got.chain, empty: got.chainEmpty, btn: got.chainMoreBtn, next: got.nextClick }));
+    check('Explore filters: New stops paging once it is past the Published limit',
+        got.newStop.asks === 1 && got.newStop.shown === 'wrld_n1,wrld_n2' && !got.newStop.more, JSON.stringify(got.newStop));
+    check('Explore filters: live views are filtered here and never ask GET /worlds',
+        got.live === 'wrld_l2,wrld_l3' && got.liveAsks === 0, JSON.stringify({ live: got.live, asks: got.liveAsks }));
+    check('Explore filters: the panel opens with its controls, adds a typed tag, refuses a bad one, and closes',
+        got.panel.open && got.panel.selects >= 3 && got.panel.boxes === 6 && got.added === 'author_tag_night_life' && got.badKept === 'author_tag_night_life' && got.closed,
+        JSON.stringify({ panel: got.panel, added: got.added, bad: got.badKept, closed: got.closed }));
+});
+
 section('avatar filters (issue 10)', async main => {
     const got = await main.json(`(() => {
         const mk = (id, extra) => ({ id, name: id, releaseStatus: 'public', authorName: 'Someone', tags: [], ...extra });

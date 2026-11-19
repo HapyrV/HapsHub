@@ -127,7 +127,18 @@ VRChat has no AI label in the API and declined to add one (28 Oct 2026). HapsHub
    view 5 min; Refresh skips both. Text in a live view narrows it locally; Search there moves to Best match.
    Not checked signed in yet: whether VRChat honours `sort=trending` and `sort=favorites` (a 400 shows
    "Could not load worlds").
-2. Filters: platform, content warnings, tag chips include/exclude, age, capacity, language.
+2. Filters: platform, content warnings, tag chips include/exclude, age, capacity, language. **Done 2026-11-19.**
+   Sent to VRChat (part of the cache key): platform (`platform=android`; PC only = `platform=standalonewindows`
+   + `noplatform=android`; `platform=ios`), `tag` = chips marked "only" (any of), `notag` = hidden warnings
+   (`content_sex/adult/violence/gore/horror/other`) + chips marked "hide". C# passes on only `author_tag_*` and
+   `content_*` tags, sorted, 20 at most. The page checks the same filters again on what comes back (and that Labs
+   results still carry `system_labs` when chips widen the tag list), so live views are filtered too.
+   Checked here only: published within 7/30/90 days or 1/2/3/5 years (`publicationDate`, else `created_at`),
+   capacity min/max, language (author tags, script, common words; Latin text with nothing else = English).
+   When filters hide most of a page, the next page is fetched too: three requests per click at most, then Load
+   more. "New" stops paging once it is past the Published limit. Chips: the user's favorite and visited worlds'
+   author tags, most common first (visited list asked for once when Explore opens). Filters persist
+   (localStorage `vrcn_exploreFilters`). Not checked signed in: how VRChat combines several `tag` values.
 3. Local store + personal tools: visited badge, hide list, like/dislike.
 4. Active now (people in the world, friends there).
 5. VRChat rows from `/config`, saved searches, default view.

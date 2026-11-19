@@ -33,3 +33,20 @@
 .explore-note { font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx3, rgba(255,255,255,.55)); margin: -4px 0 10px; }
 .explore-more { grid-column: 1 / -1; text-align: center; padding: 12px; }
 .explore-more .load-more-btn { padding: 8px 24px; }
+/* Explore filters (item 14, step 2): tag chips under the views and the Filters panel */
+.explore-filter-btn.active { color: var(--accent-lt); border-color: var(--accent); }
+.explore-filter-count { margin-left: 2px; }
+.explore-chips { display: flex; gap: 6px; align-items: center; margin: -4px 0 12px; overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; }
+.explore-chips-label { font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx3, rgba(255,255,255,.55)); flex-shrink: 0; }
+.explore-chip { display: inline-flex; align-items: center; gap: 3px; flex-shrink: 0; padding: 3px 10px 3px 6px; border-radius: 999px; cursor: pointer;
+    font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx2); background: var(--bg-input, rgba(255,255,255,.04)); border: 1px solid var(--brd-lt); text-transform: capitalize; }
+.explore-chip .msi { font-size: 14px; opacity: .7; }
+.explore-chip:hover { border-color: var(--accent); color: var(--tx0); }
+.explore-chip.in { color: var(--tx0); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 22%, transparent); }
+.explore-chip.out { color: var(--tx2); border-color: rgba(239,83,80,.6); background: rgba(239,83,80,.12); text-decoration: line-through; }
+.explore-chip.in .msi, .explore-chip.out .msi { opacity: 1; }
+.explore-filter-panel { width: 380px; }
+.explore-cw-row { align-items: flex-start; }
+.explore-cw-grid { flex: 1; min-width: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; }
+.explore-cw { display: flex; align-items: center; gap: 4px; font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx1, var(--tx0)); cursor: pointer; }
+.explore-filter-hint { font-size: calc(11px + var(--fs-off, 0px)); color: var(--tx3, rgba(255,255,255,.55)); margin: 4px 0 8px; line-height: 1.4; }

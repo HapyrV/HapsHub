@@ -1554,15 +1554,30 @@ public partial class AppShell
                     var exQuery = (msg["query"]?.ToString() ?? "").Trim();
                     var exOffset = Math.Max(0, msg["offset"]?.Value<int>() ?? 0);
                     var exFresh = msg["fresh"]?.Value<bool>() ?? false;
+                    var exSig = msg["sig"]?.ToString() ?? "";   // the page's filter key, sent back as is
                     if (!ExploreViews.TryGetValue(exView, out var exSpec)) break;
                     if (exView == "relevance" && exQuery.Length == 0) break;
+                    // Filters VRChat can apply itself (step 2): tags the world must have one of, tags it must not
+                    // have, and platform. Only author and content-warning tags and the three platforms are passed on.
+                    var exTags = ExploreTagList(msg["tags"]);
+                    if (exSpec.tag != null) exTags.Insert(0, exSpec.tag);
+                    var exNotags = ExploreTagList(msg["notags"]);
+                    var (exPlatform, exNoPlatform) = (msg["platform"]?.ToString() ?? "") switch
+                    {
+                        "quest" => ("android", (string?)null),
+                        "pc"    => ("standalonewindows", "android"),
+                        "ios"   => ("ios", (string?)null),
+                        _       => ((string?)null, (string?)null),
+                    };
                     _ = Task.Run(async () =>
                     {
-                        var rows = await _core.World.ExploreWorldsAsync(exQuery, exSpec.sort, exSpec.tag, ExplorePageSize, exOffset, exFresh);
+                        var rows = await _core.World.ExploreWorldsAsync(exQuery, exSpec.sort,
+                            exTags.Count > 0 ? string.Join(",", exTags) : null, ExplorePageSize, exOffset, exFresh,
+                            exNotags.Count > 0 ? string.Join(",", exNotags) : null, exPlatform, exNoPlatform);
                         var list = (rows ?? new JArray()).OfType<JObject>().Select(ExploreRow).ToList();
                         Invoke(() => SendToJS("vrcExploreResults", new
                         {
-                            view = exView, query = exQuery, offset = exOffset, ok = rows != null,
+                            view = exView, query = exQuery, offset = exOffset, ok = rows != null, sig = exSig,
                             hasMore = list.Count >= ExplorePageSize, worlds = list,
                         }));
                     });
@@ -4785,6 +4800,14 @@ public partial class AppShell
         ["random"]    = ("shuffle", null),
     };
 
+    // Explore filter tags: author tags (Chill, Photography, ...) and content warnings only, at most 20, sorted so the
+    // same filters always give the same URL (and so the same cache entry).
+    private static readonly System.Text.RegularExpressions.Regex ExploreTagRx =
+        new(@"^(author_tag_|content_)[^\s,&=?#]{1,64}$", System.Text.RegularExpressions.RegexOptions.Compiled);
+    private static List<string> ExploreTagList(JToken? token)
+        => (token as JArray ?? new JArray()).Select(t => t?.ToString().Trim().ToLowerInvariant() ?? "")
+            .Where(t => ExploreTagRx.IsMatch(t)).Distinct().OrderBy(t => t, StringComparer.Ordinal).Take(20).ToList();
+
     /// <summary>The world card fields the Explore tab shows, plus the user's own visit stats.</summary>
     private object ExploreRow(JObject w)
     {
@@ -4801,6 +4824,8 @@ public partial class AppShell
             capacity = w["capacity"]?.Value<int>() ?? 0, favorites = w["favorites"]?.Value<int>() ?? 0,
             visits = w["visits"]?.Value<int>() ?? 0, description = w["description"]?.ToString() ?? "",
             tags = w["tags"]?.ToObject<List<string>>() ?? new(),
+            platforms = (w["unityPackages"] as JArray ?? new JArray()).OfType<JObject>()
+                .Select(p => p["platform"]?.ToString() ?? "").Where(p => p.Length > 0).Distinct().ToList(),
             created_at = DateTimeHelper.Iso(w["created_at"]),
             updated_at = DateTimeHelper.Iso(w["updated_at"]),
             publicationDate = DateTimeHelper.Iso(w["publicationDate"]),

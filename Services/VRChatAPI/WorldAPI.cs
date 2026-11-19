@@ -415,13 +415,18 @@ public class WorldAPI
     private readonly object _exploreCacheLock = new();
     private readonly Dictionary<string, (DateTime at, JArray rows)> _exploreCache = new();
 
-    /// <summary>One page of public worlds; null when VRChat answered with an error.</summary>
-    public async Task<JArray?> ExploreWorldsAsync(string query, string sort, string? tag, int n, int offset, bool fresh)
+    /// <summary>One page of public worlds; null when VRChat answered with an error. tag / notag are comma lists
+    /// (worlds with any of / none of these tags); platform / noplatform pick worlds built for a platform or not.</summary>
+    public async Task<JArray?> ExploreWorldsAsync(string query, string sort, string? tag, int n, int offset, bool fresh,
+        string? notag = null, string? platform = null, string? noplatform = null)
     {
         if (!ctx.IsLoggedIn) return null;
         var url = $"{VRChatApiService.BASE}/worlds?sort={Uri.EscapeDataString(sort)}&order=descending&releaseStatus=public&n={n}&offset={offset}";
         if (!string.IsNullOrWhiteSpace(query)) url += $"&search={Uri.EscapeDataString(query.Trim())}";
         if (!string.IsNullOrEmpty(tag)) url += $"&tag={Uri.EscapeDataString(tag)}";
+        if (!string.IsNullOrEmpty(notag)) url += $"&notag={Uri.EscapeDataString(notag)}";
+        if (!string.IsNullOrEmpty(platform)) url += $"&platform={Uri.EscapeDataString(platform)}";
+        if (!string.IsNullOrEmpty(noplatform)) url += $"&noplatform={Uri.EscapeDataString(noplatform)}";
         if (!fresh)
         {
             lock (_exploreCacheLock)
