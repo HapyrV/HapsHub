@@ -36,3 +36,18 @@ Worth porting, in this order:
 Nothing to port: `0f748c7`, `3df81b1`, `76d8af2` (VRCX store/dev-only), `933e199`, `5a02fd2` (VRCX build), `46a6e70`,
 `8b06f6c`, `615bc89`, `a7e7dd1`, `fd9fff9`, `bfd9108`, `2f458f3` (VRCX-internal refactors and types), `03891bb`
 (VRCX translations), `20fe696` (VRCX version).
+
+## Reviewed 2026-11-19 (VRCX master still `e819c4e`)
+
+No new VRCX commits since 2026-11-18. The two that need no sign-in to test are ported (HapsHub `07be03aa`) as one
+plugin, "From VRCX" (`hub.vrcx-extras`), each off until turned on, as in VRCX:
+
+- `de1633f` queue alarm (Settings > Sounds): when VRChat says a queued instance has a place for you, HapsHub shows a
+  message naming the world; with the alarm on it also chimes and flashes the taskbar button.
+- `e819c4e` invite clock (Settings > Sidebar): a clock beside friends you invited, or asked for an invite, in the last
+  hour.
+
+Not needed: `2a6bf92` (HapsHub translates the bio text as shown, so VRCX's bug doesn't apply).
+
+Still waiting for a signed-in check: `232ec8e`, `a68c053` (like/dislike), `18f1b55`, `2e7cb09` (instance info),
+`f877f0d`, `555f9cb`, `2929696`, `a805e9c`, `27e9acf` (create-instance).
