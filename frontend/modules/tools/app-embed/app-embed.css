@@ -1,5 +1,5 @@
 /* A held app fills the whole page under a slim toolbar. The page never scrolls, so the app never has to chase it. */
-#tab33.active, #tab34.active, #tab36.active, #tab37.active, #tab38.active { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; }
+#tab33.active, #tab34.active, #tab36.active, #tab38.active { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; }
 .aemb-page { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; }
 .aemb-title { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .aemb-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
