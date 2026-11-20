@@ -256,7 +256,6 @@ let notifications = [], notifPanelOpen = false, myGroups = [], myGroupsLoaded = 
 let currentInstanceData = null;
 // Pagination state for search
 let searchState = {
-    worlds: { query: '', offset: 0, results: [], hasMore: false },
     groups: { query: '', offset: 0, results: [], hasMore: false },
     people: { query: '', offset: 0, results: [], hasMore: false },
 };
@@ -2860,6 +2859,9 @@ let _vnHoverTimer = null;
 function initAllVnSelects() {
     document.querySelectorAll('select:not([data-no-vn])').forEach(initVnSelect);
 }
+
+// After a language switch the options carry their new words; the shown labels follow them.
+document.documentElement.addEventListener('languagechange', () => document.querySelectorAll('select').forEach(s => s._vnRefresh?.()));
 
 // === Force FFC All ===
 function forceFfcAll() {

@@ -1080,6 +1080,21 @@ case 'vrcNews':
             case 'vrcWorldDiscover':
                 if (typeof onWorldDiscover === 'function') onWorldDiscover(payload);
                 break;
+            case 'vrcExploreResults':
+                if (typeof onExploreResults === 'function') onExploreResults(payload);
+                break;
+            case 'vrcExploreForYou':
+                if (typeof onExploreForYou === 'function') onExploreForYou(payload);
+                break;
+            case 'vrcExploreFill':
+                if (typeof onExploreFill === 'function') onExploreFill(payload);
+                break;
+            case 'exploreListFile':
+                if (typeof onExploreListFile === 'function') onExploreListFile(payload);
+                break;
+            case 'vrcExploreRows':
+                if (typeof onExploreRows === 'function') onExploreRows(payload);
+                break;
             case 'recentSeenPlayers':
                 if (typeof renderRecentSeen === 'function') renderRecentSeen(payload.players);
                 break;

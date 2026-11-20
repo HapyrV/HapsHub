@@ -87,7 +87,7 @@ section('world tags (issue 13)', async main => {
         const horror = document.getElementById('worldRecentGrid').textContent;
         setWorldTagFilter('author_tag_none');
         const none = document.getElementById('worldRecentGrid').textContent;
-        setWorldFilter('search');
+        setWorldFilter('explore');
         const hiddenOnSearch = document.getElementById('worldTagWrap').style.display === 'none';
         setWorldFilter('favorites');
         return { options, all, horror, none, hiddenOnSearch, reset: worldTagFilter === '' };
@@ -96,7 +96,818 @@ section('world tags (issue 13)', async main => {
         got.options[1]?.startsWith('author_tag_chill=') && got.options[2]?.startsWith('author_tag_horror=') && !got.options.some(o => o.startsWith('system_')), got.options.join(' | '));
     check('picking a tag shows only worlds with it', got.horror.includes('Alpha') && got.horror.includes('Beta') && !got.horror.includes('Gamma'), got.horror.slice(0, 120));
     check('a tag no world has says so', /tag/i.test(got.none), got.none.slice(0, 120));
-    check('Search hides the tag filter and switching clears it', got.hiddenOnSearch && got.reset, JSON.stringify(got));
+    check('Explore hides the tag filter and switching clears it', got.hiddenOnSearch && got.reset, JSON.stringify(got));
+});
+
+section('explore', async main => {
+    // Item 14: Explore replaces the Discover and Search sub-tabs. Requests are caught here (no login, no traffic) and
+    // VRChat's answers are played in, so this checks what is asked for and what is shown.
+    const got = await main.json(`(() => {
+        const sent = [];
+        const realSend = sendToCS;
+        window.sendToCS = m => { sent.push(m); };
+        const input = document.getElementById('searchWorldsInput');
+        const grid = () => document.getElementById('searchWorldsResults').textContent;
+        const rows = (n, p) => Array.from({ length: n }, (_, i) => ({ id: 'wrld_' + p + i, name: p + ' world ' + i, tags: [] }));
+        try {
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = ''; input.value = '';
+            showTab(NAV_ITEMS_DEF.worlds?.tab ?? 1);
+            const btns = [...document.querySelectorAll('#worldFilterBtns button')].map(b => b.id);
+            setWorldFilter('search');
+            const opened = worldFilter === 'explore' && document.getElementById('worldExploreArea').style.display === '';
+            const firstAsk = sent.find(m => m.action === 'vrcGetWorldDiscover')?.mode;
+            _handleBackendMessage('vrcWorldDiscover', { mode: 'popular', ok: true, worlds: [
+                { id: 'wrld_a', name: 'Lounge One', authorName: 'Ann', tags: ['author_tag_chill'] },
+                { id: 'wrld_b', name: 'Night Club', authorName: 'Bob', tags: ['author_tag_dance'] } ] });
+            const live = grid();
+
+            input.value = 'chill';
+            sent.length = 0;
+            setExploreView('active');
+            const narrowed = grid();
+            const note = document.getElementById('exploreNote').style.display !== 'none';
+            const liveAsked = sent.length;
+
+            exploreSearch();
+            const rel = { view: _explore.view, ask: sent.find(m => m.action === 'vrcExploreWorlds') || null,
+                shown: document.getElementById('exploreView_relevance').style.display !== 'none' };
+            _handleBackendMessage('vrcExploreResults', { view: 'relevance', query: 'chill', offset: 0, ok: true, hasMore: true, worlds: rows(40, 'r') });
+            const more = !!document.querySelector('#searchWorldsResults .explore-more button');
+            sent.length = 0;
+            exploreLoadMore();
+            const moreAsk = sent.find(m => m.action === 'vrcExploreWorlds') || null;
+            _handleBackendMessage('vrcExploreResults', { view: 'relevance', query: 'chill', offset: 40, ok: true, hasMore: false,
+                worlds: [{ id: 'wrld_r0', name: 'r world 0', tags: [] }, { id: 'wrld_new', name: 'Fresh One', tags: [] }] });
+            const after = { count: _explore.shown.length, more: !!document.querySelector('#searchWorldsResults .explore-more'), fresh: grid().includes('Fresh One') };
+
+            input.value = '';
+            sent.length = 0;
+            setExploreView('new');
+            const newAsk = sent.filter(m => m.action === 'vrcExploreWorlds').map(m => m.view + ':' + m.offset + ':' + m.query);
+            _handleBackendMessage('vrcExploreResults', { view: 'new', query: '', offset: 0, ok: true, hasMore: false, worlds: rows(3, 'n') });
+            setExploreView('active'); setExploreView('new');
+            const again = sent.filter(m => m.action === 'vrcExploreWorlds').length;
+            const relGone = document.getElementById('exploreView_relevance').style.display === 'none';
+            sent.length = 0;
+            exploreRefresh();
+            const refreshAsk = sent.find(m => m.action === 'vrcExploreWorlds') || null;
+
+            setExploreView('labs');
+            _handleBackendMessage('vrcExploreResults', { view: 'labs', query: '', offset: 0, ok: false, hasMore: false, worlds: [] });
+            const failed = /could not load/i.test(grid());
+            return { btns, opened, firstAsk, live, narrowed, note, liveAsked, rel, more, moreAsk, after, newAsk, again, relGone, refreshAsk, failed };
+        } finally {
+            window.sendToCS = realSend;
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = ''; input.value = '';
+            setWorldFilter('favorites');
+        }
+    })()`);
+    check('Explore: one Explore sub-tab, no Search or Discover sub-tab, and old links open it',
+        got.btns.includes('worldFilterExplore') && !got.btns.some(id => /Search|Discover/.test(id)) && got.opened, JSON.stringify(got.btns));
+    check('Explore: opens on Active now (the old Popular list) and shows its worlds',
+        got.firstAsk === 'popular' && got.live.includes('Lounge One') && got.live.includes('Night Club'), got.firstAsk + ' ' + got.live.slice(0, 80));
+    check('Explore: text in a live view narrows it here, says so, and asks VRChat nothing',
+        got.narrowed.includes('Lounge One') && !got.narrowed.includes('Night Club') && got.note && got.liveAsked === 0, JSON.stringify({ n: got.narrowed.slice(0, 80), note: got.note, asked: got.liveAsked }));
+    check('Explore: Search in a live view searches all worlds by best match',
+        got.rel.view === 'relevance' && got.rel.shown && got.rel.ask?.view === 'relevance' && got.rel.ask?.query === 'chill' && got.rel.ask?.offset === 0, JSON.stringify(got.rel));
+    check('Explore: Load more asks for the next page and adds only worlds not shown yet',
+        got.more && got.moreAsk?.offset === 40 && got.after.count === 41 && got.after.fresh && !got.after.more, JSON.stringify({ ask: got.moreAsk, after: got.after }));
+    check('Explore: a view asks once, then comes from memory; Best match hides without text',
+        got.newAsk.join() === 'new:0:' && got.again === 1 && got.relGone, JSON.stringify({ newAsk: got.newAsk, again: got.again, relGone: got.relGone }));
+    check('Explore: Refresh asks VRChat again, past the cache', got.refreshAsk?.fresh === true && got.refreshAsk?.offset === 0, JSON.stringify(got.refreshAsk));
+    check('Explore: a view that fails to load says so', got.failed);
+});
+
+section('explore filters', async main => {
+    // Item 14 step 2. Platform, warnings and tag chips go to VRChat with the request and key the cache; published,
+    // capacity and language are checked on the loaded worlds, fetching at most three pages for one click.
+    const got = await main.json(`(() => {
+        const sent = [];
+        const realSend = sendToCS;
+        window.sendToCS = m => { sent.push(m); };
+        const asks = () => sent.filter(m => m.action === 'vrcExploreWorlds');
+        const ids = () => _explore.shown.map(w => w.id).join(',');
+        const grid = () => document.getElementById('searchWorldsResults').textContent;
+        const ago = d => new Date(Date.now() - d * 86400000).toISOString();
+        const real = { fav: favWorldsData, visited: _visitedWorldsData, loaded: _visitedWorldsLoaded };
+        const out = {};
+        try {
+            exploreClearFilters();
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = ''; _explore.askedVisited = false;
+            document.getElementById('searchWorldsInput').value = '';
+            favWorldsData = [{ id: 'wrld_f1', tags: ['author_tag_chill', 'author_tag_flowers'] }, { id: 'wrld_f2', tags: ['author_tag_chill', 'system_approved'] }];
+            _visitedWorldsData = [{ id: 'wrld_f1', tags: ['author_tag_chill'] }, { id: 'wrld_v1', tags: ['author_tag_photography', 'author_tag_chill'] }];
+            _visitedWorldsLoaded = false;
+            showTab(NAV_ITEMS_DEF.worlds?.tab ?? 1);
+            setWorldFilter('explore'); setWorldFilter('favorites'); setWorldFilter('explore');
+            out.visitedAsks = sent.filter(m => m.action === 'vrcGetVisitedWorlds').length;
+            out.chips = [...document.querySelectorAll('#exploreChips .explore-chip')].map(b => b.dataset.tag);
+
+            exploreCycleTag('author_tag_chill');
+            out.chipIn = document.querySelector('#exploreChips [data-tag="author_tag_chill"]')?.className || '';
+            exploreSetFilter('platform', 'quest');
+            exploreToggleContent('content_horror', true);
+            sent.length = 0;
+            setExploreView('new');
+            out.ask = asks()[0] || null;
+            const W = (id, extra) => ({ id, name: id, tags: ['author_tag_chill'], platforms: ['standalonewindows', 'android'], capacity: 16, publicationDate: ago(10), ...extra });
+            _handleBackendMessage('vrcExploreResults', { view: 'new', query: '', offset: 0, ok: true, hasMore: false, sig: out.ask?.sig, worlds: [
+                W('wrld_ok'), W('wrld_pconly', { platforms: ['standalonewindows'] }), W('wrld_horror', { tags: ['author_tag_chill', 'content_horror'] }),
+                W('wrld_dance', { tags: ['author_tag_dance'] }), W('wrld_old', { publicationDate: ago(800) }), W('wrld_big', { capacity: 80 }),
+                W('wrld_jp', { name: 'まったりカフェ' }) ] });
+            out.serverOnly = ids();
+            sent.length = 0;
+            exploreSetFilter('age', 365); exploreSetFilter('capMax', 32);
+            out.client = ids();
+            exploreSetFilter('lang', 'ja'); out.ja = ids();
+            exploreSetFilter('lang', 'en'); out.en = ids();
+            out.clientAsks = asks().length;
+            out.note = document.getElementById('exploreNote').textContent;
+            out.count = document.querySelector('#exploreFilterBtn .explore-filter-count')?.textContent;
+            out.saved = JSON.parse(localStorage.getItem('vrcn_exploreFilters') || '{}');
+            out.langs = [{ name: 'Bienvenidos al mundo', description: 'un lugar para relajarse con amigos' }, { name: '한국 카페' },
+                { name: 'Cozy Room', tags: ['author_tag_japanese'] }, { name: '夜の街' }, { name: '中文世界' }, { name: 'Midnight Rooftop' }]
+                .map(w => [..._exploreLangs(w)].sort().join('+'));
+
+            // Each set of server filters is its own page in the cache: in -> out -> off asks twice, back to "in" asks nothing.
+            sent.length = 0;
+            exploreCycleTag('author_tag_chill'); exploreCycleTag('author_tag_chill'); exploreCycleTag('author_tag_chill');
+            out.cycle = asks().map(m => (m.tags || []).join('+') + '/' + (m.notags || []).join('+'));
+            out.backShown = ids();
+
+            // Filters that hide a whole page fetch the next one, three requests at most for one click.
+            exploreClearFilters();
+            exploreSetFilter('capMin', 50);
+            sent.length = 0;
+            setExploreView('popular');
+            const small = p => Array.from({ length: 40 }, (_, i) => ({ id: 'wrld_' + p + i, name: p + i, tags: [], capacity: 10 }));
+            for (const [i, p] of ['p', 'q', 's'].entries()) {
+                const a = asks()[i];
+                if (a) _handleBackendMessage('vrcExploreResults', { view: 'popular', query: '', offset: a.offset, ok: true, hasMore: true, sig: a.sig, worlds: small(p) });
+            }
+            out.chain = asks().map(m => m.offset);
+            out.chainEmpty = /match your filters/i.test(grid());
+            out.chainMoreBtn = !!document.querySelector('#searchWorldsResults .explore-more .load-more-btn');
+            sent.length = 0;
+            exploreLoadMore();
+            out.nextClick = asks().map(m => m.offset);
+
+            // "New" with a Published limit stops paging once a page reaches past it.
+            exploreClearFilters();
+            exploreSetFilter('age', 30);
+            _explore.entries = {};
+            sent.length = 0;
+            setExploreView('new');
+            const na = asks()[0];
+            _handleBackendMessage('vrcExploreResults', { view: 'new', query: '', offset: 0, ok: true, hasMore: true, sig: na?.sig,
+                worlds: [W('wrld_n1', { publicationDate: ago(5) }), W('wrld_n2', { publicationDate: ago(20) }), W('wrld_n3', { publicationDate: ago(60) })] });
+            out.newStop = { asks: asks().length, shown: ids(), more: !!document.querySelector('#searchWorldsResults .load-more-btn') };
+
+            // Live views are filtered here too, and never ask GET /worlds.
+            exploreClearFilters();
+            exploreSetFilter('platform', 'pc');
+            sent.length = 0;
+            setExploreView('active');
+            _handleBackendMessage('vrcWorldDiscover', { mode: 'popular', ok: true, worlds: [
+                { id: 'wrld_l1', name: 'Quest Club', tags: [], unityPackages: [{ platform: 'standalonewindows' }, { platform: 'android' }] },
+                { id: 'wrld_l2', name: 'PC Lounge', tags: [], unityPackages: [{ platform: 'standalonewindows' }] },
+                { id: 'wrld_l3', name: 'Unknown', tags: [] } ] });
+            out.live = ids();
+            out.liveAsks = asks().length;
+
+            exploreToggleFilters(document.getElementById('exploreFilterBtn'));
+            const panel = document.getElementById('exploreFilterPanel');
+            out.panel = { open: panel?.style.display === 'block', selects: panel?.querySelectorAll('select').length, boxes: panel?.querySelectorAll('.explore-cw-grid input[type=checkbox]').length };
+            exploreAddTag('#Night Life');
+            out.added = _exploreFilters.tagsIn.join();
+            exploreAddTag('bad,tag');
+            out.badKept = _exploreFilters.tagsIn.join();
+            exploreToggleFilters(document.getElementById('exploreFilterBtn'));
+            out.closed = panel?.style.display !== 'block';
+            return out;
+        } finally {
+            window.sendToCS = realSend;
+            exploreClearFilters();
+            favWorldsData = real.fav; _visitedWorldsData = real.visited; _visitedWorldsLoaded = real.loaded;
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = '';
+            setWorldFilter('favorites');
+        }
+    })()`);
+    check('Explore filters: chips are the author tags of favorite and visited worlds, most common first; visited worlds are asked for once',
+        got.chips.join() === 'author_tag_chill,author_tag_flowers,author_tag_photography' && got.visitedAsks === 1, JSON.stringify({ chips: got.chips, asks: got.visitedAsks }));
+    check('Explore filters: platform, warnings and tag chips go to VRChat with the request',
+        /\bin\b/.test(got.chipIn) && got.ask?.platform === 'quest' && got.ask?.tags?.join() === 'author_tag_chill' && got.ask?.notags?.join() === 'content_horror' && typeof got.ask?.sig === 'string',
+        JSON.stringify({ chip: got.chipIn, ask: got.ask }));
+    check('Explore filters: the page also checks those filters on what comes back',
+        got.serverOnly === 'wrld_ok,wrld_old,wrld_big,wrld_jp', got.serverOnly);
+    check('Explore filters: published, capacity and language filter the loaded worlds without asking VRChat',
+        got.client === 'wrld_ok,wrld_jp' && got.ja === 'wrld_jp' && got.en === 'wrld_ok' && got.clientAsks === 0, JSON.stringify({ client: got.client, ja: got.ja, en: got.en, asks: got.clientAsks }));
+    check('Explore filters: the count, the "hidden" note and saved filters follow the choices',
+        got.count === '6' && /6 of 7/.test(got.note) && got.saved.age === 365 && got.saved.capMax === 32 && got.saved.lang === 'en' && got.saved.platform === 'quest',
+        JSON.stringify({ count: got.count, note: got.note, saved: got.saved }));
+    check('Explore filters: language is guessed from tags, script and common words',
+        got.langs.join() === 'es,ko,ja,ja,zh,en', got.langs.join());
+    check('Explore filters: each set of VRChat filters is cached on its own',
+        got.cycle.join(' ') === '/author_tag_chill+content_horror /content_horror' && got.backShown === 'wrld_ok', JSON.stringify({ cycle: got.cycle, back: got.backShown }));
+    check('Explore filters: when filters hide a page, one click fetches at most three pages, then Load more goes on',
+        got.chain.join() === '0,40,80' && got.chainEmpty && got.chainMoreBtn && got.nextClick.join() === '120', JSON.stringify({ chain: got.chain, empty: got.chainEmpty, btn: got.chainMoreBtn, next: got.nextClick }));
+    check('Explore filters: New stops paging once it is past the Published limit',
+        got.newStop.asks === 1 && got.newStop.shown === 'wrld_n1,wrld_n2' && !got.newStop.more, JSON.stringify(got.newStop));
+    check('Explore filters: live views are filtered here and never ask GET /worlds',
+        got.live === 'wrld_l2,wrld_l3' && got.liveAsks === 0, JSON.stringify({ live: got.live, asks: got.liveAsks }));
+    check('Explore filters: the panel opens with its controls, adds a typed tag, refuses a bad one, and closes',
+        got.panel.open && got.panel.selects >= 3 && got.panel.boxes === 6 && got.added === 'author_tag_night_life' && got.badKept === 'author_tag_night_life' && got.closed,
+        JSON.stringify({ panel: got.panel, added: got.added, bad: got.badKept, closed: got.closed }));
+});
+
+section('explore personal', async main => {
+    // Item 14 step 3. Visited badge and "hide visited", the hide list (a world, an author, a tag) and private like/dislike
+    // with a Liked view. Kept in localStorage only, never sent to VRChat; the right-click menu on Explore cards drives it.
+    const got = await main.json(`(() => {
+        const sent = [];
+        const realSend = sendToCS;
+        window.sendToCS = m => { sent.push(m); };
+        const ids = () => _explore.shown.map(w => w.id).join(',');
+        const real = { visited: _visitedWorldsData, loaded: _visitedWorldsLoaded, asked: _explore.askedVisited, store: localStorage.getItem('vrcn_explorePersonal') };
+        const out = {};
+        try {
+            exploreClearFilters();
+            Object.assign(_explorePersonal, { liked: {}, disliked: {}, worlds: {}, authors: {}, tags: [], showHidden: false });
+            _exploreSavePersonal();
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = ''; _explore.askedVisited = true;
+            document.getElementById('searchWorldsInput').value = '';
+            _visitedWorldsData = [{ id: 'wrld_b', tags: [] }]; _visitedWorldsLoaded = true;
+            showTab(NAV_ITEMS_DEF.worlds?.tab ?? 1);
+            setWorldFilter('explore');
+            setExploreView('popular');
+            const ask = sent.find(m => m.action === 'vrcExploreWorlds');
+            const W = (id, extra) => ({ id, name: 'World ' + id.slice(5), authorId: 'usr_x', authorName: 'Xan', tags: ['author_tag_chill'], capacity: 16, occupants: 3, favorites: 9, ...extra });
+            _handleBackendMessage('vrcExploreResults', { view: 'popular', query: '', offset: 0, ok: true, hasMore: false, sig: ask?.sig, worlds: [
+                W('wrld_a', { worldVisitCount: 4 }), W('wrld_b'), W('wrld_c', { authorId: 'usr_y', authorName: 'Yui' }),
+                W('wrld_d', { authorId: 'usr_y', authorName: 'Yui', tags: ['author_tag_horror'] }),
+                W('wrld_e', { authorId: 'usr_z', authorName: 'Zed', tags: ['author_tag_dance'] }) ] });
+            const before = sent.length;
+            const card = id => [...document.querySelectorAll('#searchWorldsResults .vrcn-content-card')].find(c => (c.getAttribute('onclick') || '').includes(id));
+            out.visitedBadges = ['wrld_a', 'wrld_b', 'wrld_c'].map(id => !!card(id)?.querySelector('.explore-badge.visited'));
+            out.visitTitle = card('wrld_a')?.querySelector('.explore-badge.visited')?.title || '';
+            exploreSetFilter('hideVisited', true);
+            out.hideVisited = ids();
+            out.count = document.querySelector('#exploreFilterBtn .explore-filter-count')?.textContent;
+            out.savedVisited = JSON.parse(localStorage.getItem('vrcn_exploreFilters') || '{}').hideVisited;
+            exploreSetFilter('hideVisited', false);
+
+            // Right-click an Explore card: the usual world items, then like, dislike and hide.
+            const menuFor = id => {
+                card(id)?.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 200, clientY: 200 }));
+                return document.getElementById('vn-ctx-menu');
+            };
+            const labels = menu => [...menu.querySelectorAll('.vn-ctx-item .vn-ctx-label')].map(x => x.textContent.trim());
+            const pick = (menu, text) => [...menu.querySelectorAll('.vn-ctx-item')].find(b => b.querySelector('.vn-ctx-label')?.textContent.trim() === text)?.click();
+            let menu = menuFor('wrld_c');
+            out.menu = labels(menu);
+            pick(menu, 'Hide all worlds by Yui');
+            out.afterAuthor = ids();
+            out.note = document.getElementById('exploreNote').textContent;
+            pick(menuFor('wrld_a'), 'Like');
+            pick(menuFor('wrld_e'), 'Dislike (hide)');
+            out.afterDislike = ids();
+            out.likedMenuChecked = !![...menuFor('wrld_a').querySelectorAll('.vn-ctx-item')].find(b => b.querySelector('.vn-ctx-label')?.textContent.trim() === 'Like')?.querySelector('.vn-ctx-check');
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+            exploreHideTag('author_tag_chill', true);
+            out.afterTag = ids();
+            exploreHideTag('author_tag_chill', false);
+            exploreHideWorld('wrld_b', true);
+            out.afterWorld = ids();
+
+            // Show hidden: all back, the hidden ones marked; the panel lists them and unhides an author.
+            exploreShowHidden(true);
+            out.shown = ids();
+            out.marked = document.querySelectorAll('#searchWorldsResults .explore-hidden').length;
+            setWorldsViewMode('list');
+            out.listMarked = document.querySelectorAll('#searchWorldsResults [data-wid].explore-hidden').length;
+            setWorldsViewMode('grid');
+            out.dislikeBadge = !!card('wrld_e')?.querySelector('.explore-badge.hidden');
+            out.likedBadge = !!card('wrld_a')?.querySelector('.explore-badge.liked');
+            exploreToggleFilters(document.getElementById('exploreFilterBtn'));
+            const panel = document.getElementById('exploreFilterPanel');
+            out.panelSum = panel.querySelector('.explore-personal-sum')?.textContent || '';
+            out.panelChips = [...panel.querySelectorAll('.explore-personal-chips .explore-chip')].map(b => b.dataset.kind + ':' + b.dataset.key);
+            out.panelBoxes = ['exploreHideVisited', 'exploreShowHidden'].map(id => !!panel.querySelector('#' + id));
+            panel.querySelector('.explore-personal-chips [data-key="usr_y"]')?.click();
+            out.panelAfter = panel.querySelectorAll('.explore-personal-chips .explore-chip').length;
+            exploreToggleFilters(document.getElementById('exploreFilterBtn'));
+            exploreShowHidden(false);
+            out.afterUnhide = ids();
+
+            // Liked view: built from the copy kept at the like, asks nothing; search narrows it; unlike empties it.
+            setExploreView('liked');
+            out.liked = ids();
+            out.likedCard = document.getElementById('searchWorldsResults').textContent.includes('World a');
+            document.getElementById('searchWorldsInput').value = 'zzz';
+            exploreSearch();
+            out.likedSearch = _explore.view + '/' + ids();
+            document.getElementById('searchWorldsInput').value = '';
+            exploreSearch();
+            pick(menuFor('wrld_a'), 'Like');
+            out.likedEmpty = /No liked worlds/.test(document.getElementById('searchWorldsResults').textContent);
+            out.sentAfter = sent.slice(before).map(m => m.action);
+
+            // Stored on this computer only; bad entries are dropped when read back.
+            const stored = JSON.parse(localStorage.getItem('vrcn_explorePersonal') || '{}');
+            out.stored = [stored.disliked, stored.worlds, stored.authors, stored.liked].map(m => Object.keys(m || {}).join('+')).join('|');
+            localStorage.setItem('vrcn_explorePersonal', JSON.stringify({ liked: { wrld_ok: { name: 'Ok', at: 2 }, 'bad id!': { name: 'x' }, wrld_arr: [1] },
+                tags: ['author_tag_ok', 'nope tag'], showHidden: 'yes' }));
+            const re = _exploreLoadPersonal();
+            out.reload = Object.keys(re.liked).join() + '|' + re.tags.join() + '|' + re.showHidden;
+            return out;
+        } finally {
+            window.sendToCS = realSend;
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+            exploreClearFilters();
+            if (real.store == null) localStorage.removeItem('vrcn_explorePersonal'); else localStorage.setItem('vrcn_explorePersonal', real.store);
+            Object.assign(_explorePersonal, _exploreLoadPersonal());
+            _exploreLikedMemo = null;
+            _visitedWorldsData = real.visited; _visitedWorldsLoaded = real.loaded; _explore.askedVisited = real.asked;
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = '';
+            document.getElementById('searchWorldsInput').value = '';
+            setWorldFilter('favorites');
+        }
+    })()`);
+    check('Explore personal: cards show Visited from the visit count or the visited list; "hide visited" filters them and is saved',
+        got.visitedBadges.join() === 'true,true,false' && got.visitTitle === 'Visits: 4' && got.hideVisited === 'wrld_c,wrld_d,wrld_e' && got.count === '1' && got.savedVisited === true,
+        JSON.stringify({ badges: got.visitedBadges, title: got.visitTitle, hide: got.hideVisited, count: got.count, saved: got.savedVisited }));
+    check('Explore personal: right-clicking an Explore card adds Like, Dislike and the hide items under the world items',
+        ['Open Details', 'Like', 'Dislike (hide)', 'Hide this world', 'Hide all worlds by Yui', 'Hide a tag'].every(x => got.menu.includes(x)), JSON.stringify(got.menu));
+    check('Explore personal: hiding an author, a dislike, a tag and a world take worlds out; a like wins over a hidden tag',
+        got.afterAuthor === 'wrld_a,wrld_b,wrld_e' && /hide list hides 2/.test(got.note) && got.afterDislike === 'wrld_a,wrld_b' && got.likedMenuChecked
+            && got.afterTag === 'wrld_a' && got.afterWorld === 'wrld_a',
+        JSON.stringify({ author: got.afterAuthor, note: got.note, dislike: got.afterDislike, checked: got.likedMenuChecked, tag: got.afterTag, world: got.afterWorld }));
+    check('Explore personal: "Show hidden worlds" brings them back marked, and the Filters panel lists and unhides',
+        got.shown === 'wrld_a,wrld_b,wrld_c,wrld_d,wrld_e' && got.marked === 4 && got.listMarked === 4 && got.dislikeBadge && got.likedBadge
+            && /1 worlds, 1 authors, 0 tags\. Disliked: 1/.test(got.panelSum) && got.panelChips.join() === 'author:usr_y' && got.panelBoxes.join() === 'true,true'
+            && got.panelAfter === 0 && got.afterUnhide === 'wrld_a,wrld_c,wrld_d',
+        JSON.stringify({ shown: got.shown, marked: got.marked, listMarked: got.listMarked, dis: got.dislikeBadge, liked: got.likedBadge, sum: got.panelSum, chips: got.panelChips, boxes: got.panelBoxes, after: got.panelAfter, unhide: got.afterUnhide }));
+    check('Explore personal: the Liked view lists liked worlds, search narrows it, unliking empties it, and nothing goes to VRChat',
+        got.liked === 'wrld_a' && got.likedCard && got.likedSearch === 'liked/' && got.likedEmpty && got.sentAfter.length === 0,
+        JSON.stringify({ liked: got.liked, card: got.likedCard, search: got.likedSearch, empty: got.likedEmpty, sent: got.sentAfter }));
+    check('Explore personal: the lists are kept in localStorage and bad entries are dropped when read back',
+        got.stored === 'wrld_e|wrld_b||' && got.reload === 'wrld_ok|author_tag_ok|false', JSON.stringify({ stored: got.stored, reload: got.reload }));
+});
+
+section('explore active', async main => {
+    // Item 14 step 4. Cards say which friends are in the world now (from the friends list, no request); the loaded worlds
+    // can be ordered by people there now or friends first, and narrowed to worlds where friends are.
+    const got = await main.json(`(() => {
+        const sent = [];
+        const realSend = sendToCS;
+        window.sendToCS = m => { sent.push(m); };
+        const ids = () => _explore.shown.map(w => w.id).join(',');
+        const real = { friends: vrcFriendsData, order: localStorage.getItem('vrcn_exploreOrder') };
+        const out = {};
+        try {
+            exploreClearFilters();
+            exploreSetOrder('default');
+            vrcFriendsData = [{ id: 'usr_1', displayName: 'Ann', location: 'wrld_b:123~region(eu)' }, { id: 'usr_2', displayName: 'Bob', location: 'wrld_b:999' },
+                { id: 'usr_3', displayName: 'Cy', location: 'wrld_c:1' }, { id: 'usr_4', displayName: 'Dee', location: 'private' }, { id: 'usr_5', displayName: 'Eve', location: 'offline' }];
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = ''; _explore.askedVisited = true;
+            document.getElementById('searchWorldsInput').value = '';
+            showTab(NAV_ITEMS_DEF.worlds?.tab ?? 1);
+            setWorldFilter('explore');
+            setExploreView('popular');
+            const ask = sent.find(m => m.action === 'vrcExploreWorlds');
+            const W = (id, occupants) => ({ id, name: 'World ' + id.slice(5), authorId: 'usr_x', authorName: 'Xan', tags: [], capacity: 16, occupants, favorites: 1 });
+            _handleBackendMessage('vrcExploreResults', { view: 'popular', query: '', offset: 0, ok: true, hasMore: false, sig: ask?.sig,
+                worlds: [W('wrld_a', 5), W('wrld_b', 2), W('wrld_c', 9), W('wrld_d', 0)] });
+            const before = sent.length;
+            const card = id => [...document.querySelectorAll('#searchWorldsResults .vrcn-content-card')].find(c => (c.getAttribute('onclick') || '').includes(id));
+            out.badges = ['wrld_a', 'wrld_b', 'wrld_c'].map(id => card(id)?.querySelector('.explore-badge.friends')?.lastChild?.textContent.trim() || '');
+            out.title = card('wrld_b')?.querySelector('.explore-badge.friends')?.title || '';
+            exploreSetOrder('people'); out.people = ids();
+            exploreSetOrder('friends'); out.friends = ids();
+            out.savedOrder = localStorage.getItem('vrcn_exploreOrder');
+            exploreSetOrder('default'); out.plain = ids();
+            exploreSetFilter('friendsOnly', true);
+            out.only = ids();
+            out.count = document.querySelector('#exploreFilterBtn .explore-filter-count')?.textContent;
+            out.saved = JSON.parse(localStorage.getItem('vrcn_exploreFilters') || '{}').friendsOnly;
+            exploreToggleFilters(document.getElementById('exploreFilterBtn'));
+            const panel = document.getElementById('exploreFilterPanel');
+            out.panel = [!!panel.querySelector('#exploreFriendsOnly:checked'), panel.querySelector('#exploreOrder')?.options.length || 0];
+            exploreToggleFilters(document.getElementById('exploreFilterBtn'));
+            out.sent = sent.slice(before).map(m => m.action);
+            return out;
+        } finally {
+            window.sendToCS = realSend;
+            exploreClearFilters();
+            vrcFriendsData = real.friends;
+            if (real.order == null) localStorage.removeItem('vrcn_exploreOrder'); else localStorage.setItem('vrcn_exploreOrder', real.order);
+            _exploreOrder = 'default';
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = '';
+            setWorldFilter('favorites');
+        }
+    })()`);
+    check('Explore active: cards count the friends in each world now, names in the tooltip',
+        got.badges.join() === ',2,1' && got.title === 'Friends here now: Ann, Bob', JSON.stringify({ badges: got.badges, title: got.title }));
+    check('Explore active: order by people now or friends first, saved; VRChat order back',
+        got.people === 'wrld_c,wrld_a,wrld_b,wrld_d' && got.friends === 'wrld_b,wrld_c,wrld_a,wrld_d' && got.savedOrder === 'friends' && got.plain === 'wrld_a,wrld_b,wrld_c,wrld_d',
+        JSON.stringify({ people: got.people, friends: got.friends, saved: got.savedOrder, plain: got.plain }));
+    check('Explore active: "only worlds where friends are" filters, counts, is saved, sits in the panel, and sends nothing',
+        got.only === 'wrld_b,wrld_c' && got.count === '1' && got.saved === true && got.panel.join() === 'true,3' && got.sent.length === 0,
+        JSON.stringify({ only: got.only, count: got.count, saved: got.saved, panel: got.panel, sent: got.sent }));
+});
+
+section('explore rows saved', async main => {
+    // Item 14 step 5. VRChat's own rows (asked for once, when the menu first opens), saved searches (view, text and
+    // filters under a name) and the view Explore opens on. Saved searches stay in localStorage.
+    const got = await main.json(`(() => {
+        const sent = [];
+        const realSend = sendToCS;
+        window.sendToCS = m => { sent.push(m); };
+        const ids = () => _explore.shown.map(w => w.id).join(',');
+        const real = { saved: localStorage.getItem('vrcn_exploreSaved'), rows: { ..._exploreRowsState }, started: _explore.started };
+        const out = {};
+        try {
+            exploreClearFilters();
+            Object.assign(_exploreRowsState, { list: null, loading: false, failed: false });
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = ''; _explore.askedVisited = true;
+            document.getElementById('searchWorldsInput').value = '';
+            showTab(NAV_ITEMS_DEF.worlds?.tab ?? 1);
+            setWorldFilter('explore');
+            const rowsBtn = document.getElementById('exploreRowsBtn');
+            exploreToggleRows(rowsBtn);
+            const panel = document.getElementById('exploreRowsPanel');
+            out.ask = sent.filter(m => m.action === 'vrcExploreRows').length;
+            out.loading = /Asking VRChat/.test(panel.textContent);
+            _handleBackendMessage('vrcExploreRows', { ok: true, rows: [{ id: 'row:0', name: 'Spotlight', tag: 'admin_spotlight' }, { id: 'row:4', name: 'Games', tag: '' }, { id: 'bad', name: 'x' }] });
+            out.items = [...panel.querySelectorAll('.explore-row-item')].map(b => b.textContent.trim() + '=' + b.dataset.view);
+            exploreToggleRows(rowsBtn); exploreToggleRows(rowsBtn);
+            out.askAgain = sent.filter(m => m.action === 'vrcExploreRows').length;
+            panel.querySelector('[data-view="row:0"]').click();
+            out.panelClosed = panel.style.display === 'none';
+            const ask = sent.filter(m => m.action === 'vrcExploreWorlds').pop();
+            out.rowAsk = ask ? ask.view : '';
+            out.rowActive = rowsBtn.classList.contains('active');
+            out.note = document.getElementById('exploreNote').textContent;
+            // A row's own tag is checked again when chips widen the "any of" list.
+            exploreCycleTag('author_tag_chill');
+            const ask2 = sent.filter(m => m.action === 'vrcExploreWorlds').pop();
+            _handleBackendMessage('vrcExploreResults', { view: 'row:0', query: '', offset: 0, ok: true, hasMore: false, sig: ask2?.sig, worlds: [
+                { id: 'wrld_s', name: 'S', tags: ['admin_spotlight', 'author_tag_chill'], occupants: 1, favorites: 1 },
+                { id: 'wrld_t', name: 'T', tags: ['author_tag_chill'], occupants: 1, favorites: 1 } ] });
+            out.rowWorlds = ids();
+            exploreClearFilters();
+
+            // Saved searches.
+            setExploreView('hot');
+            document.getElementById('searchWorldsInput').value = 'cozy';
+            exploreSetFilter('platform', 'quest');
+            const savedBtn = document.getElementById('exploreSavedBtn');
+            exploreToggleSaved(savedBtn);
+            const sp = document.getElementById('exploreSavedPanel');
+            out.savedEmpty = /Nothing saved yet/.test(sp.textContent);
+            sp.querySelector('#exploreSavedName').value = 'Cozy Quest';
+            exploreSaveCurrent();
+            out.savedItems = [...sp.querySelectorAll('.explore-saved-name')].map(b => b.textContent.trim());
+            const stored = JSON.parse(localStorage.getItem('vrcn_exploreSaved') || '{}');
+            out.stored = (stored.list || []).map(x => [x.name, x.view, x.query, x.filters?.platform].join('/')).join();
+            exploreClearFilters();
+            document.getElementById('searchWorldsInput').value = '';
+            setExploreView('active');
+            sp.querySelector('.explore-saved-name').click();
+            out.applied = [_explore.view, _explore.query, _exploreFilters.platform, document.getElementById('searchWorldsInput').value, sp.style.display].join('/');
+            // Explore opens on the pinned saved search the next time it opens in a run.
+            exploreToggleSaved(savedBtn);
+            sp.querySelector('.explore-saved-pin').click();
+            out.pinned = JSON.parse(localStorage.getItem('vrcn_exploreSaved')).start + '|' + sp.querySelector('#exploreStartSel').value;
+            exploreToggleSaved(savedBtn);
+            exploreClearFilters();
+            document.getElementById('searchWorldsInput').value = '';
+            _explore.view = 'active'; _explore.query = ''; _explore.started = false;
+            setWorldFilter('favorites'); setWorldFilter('explore');
+            out.started = [_explore.view, _explore.query, _exploreFilters.platform].join('/');
+            exploreSetStart('trending');
+            _explore.started = false; setWorldFilter('favorites'); setWorldFilter('explore');
+            out.startView = _explore.view;
+            exploreDeleteSaved(0);
+            out.afterDelete = _exploreSaved.list.length + '|' + _exploreSaved.start;
+            exploreSetStart('saved:nope');
+            out.badStart = _exploreSaved.start;
+            localStorage.setItem('vrcn_exploreSaved', JSON.stringify({ list: [{ name: 'Ok', view: 'new', query: 'x', filters: { platform: 'pc', age: 3 } }, { name: 'ok', view: 'hot' },
+                { name: 'Bad view', view: 'evil' }, { name: '', view: 'hot' }, { name: 'Row', view: 'row:12' }], start: 'saved:Gone' }));
+            const re = _exploreLoadSaved();
+            out.reload = re.list.map(x => x.name + ':' + x.view + ':' + x.filters.platform + ':' + x.filters.age).join() + '|' + re.start;
+            return out;
+        } finally {
+            window.sendToCS = realSend;
+            exploreClearFilters();
+            _exploreClosePanel('exploreRowsPanel'); _exploreClosePanel('exploreSavedPanel');
+            if (real.saved == null) localStorage.removeItem('vrcn_exploreSaved'); else localStorage.setItem('vrcn_exploreSaved', real.saved);
+            Object.assign(_exploreSaved, _exploreLoadSaved());
+            Object.assign(_exploreRowsState, real.rows);
+            _explore.started = real.started;
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = '';
+            document.getElementById('searchWorldsInput').value = '';
+            setWorldFilter('favorites');
+        }
+    })()`);
+    check('Explore rows: the menu asks VRChat once, lists its rows, and a row opens as a view',
+        got.ask === 1 && got.loading && got.items.join() === 'Spotlight=row:0,Games=row:4' && got.askAgain === 1 && got.panelClosed
+            && got.rowAsk === 'row:0' && got.rowActive && /VRChat row: Spotlight/.test(got.note),
+        JSON.stringify({ ask: got.ask, loading: got.loading, items: got.items, again: got.askAgain, closed: got.panelClosed, view: got.rowAsk, active: got.rowActive, note: got.note }));
+    check('Explore rows: a row keeps only worlds with its own tag when tag chips widen the request', got.rowWorlds === 'wrld_s', got.rowWorlds);
+    check('Explore saved: saving keeps view, text and filters; clicking one puts them back',
+        got.savedEmpty && got.savedItems.join() === 'Cozy Quest' && got.stored === 'Cozy Quest/hot/cozy/quest' && got.applied === 'hot/cozy/quest/cozy/none',
+        JSON.stringify({ empty: got.savedEmpty, items: got.savedItems, stored: got.stored, applied: got.applied }));
+    check('Explore saved: Explore opens on the pinned search or view; deleting it falls back to Active now',
+        got.pinned === 'saved:Cozy Quest|saved:Cozy Quest' && got.started === 'hot/cozy/quest' && got.startView === 'trending' && got.afterDelete === '0|trending' && got.badStart === 'active',
+        JSON.stringify({ pinned: got.pinned, started: got.started, startView: got.startView, del: got.afterDelete, bad: got.badStart }));
+    check('Explore saved: bad saved searches are dropped when read back',
+        got.reload === 'Ok:new:pc:0,Row:row:12:any:0|active', got.reload);
+});
+
+section('explore ai', async main => {
+    // Item 14 step 6. "Maybe AI" is a local guess from tags and text ("no AI" counts against); the user's own marks
+    // (a world or an author) sit with the hide list. The filter shows all, hides guesses and marks, or only marks.
+    const got = await main.json(`(() => {
+        const sent = [];
+        const realSend = sendToCS;
+        window.sendToCS = m => { sent.push(m); };
+        const ids = () => _explore.shown.map(w => w.id).join(',');
+        const real = { store: localStorage.getItem('vrcn_explorePersonal') };
+        const out = {};
+        try {
+            exploreClearFilters();
+            Object.assign(_explorePersonal, { liked: {}, disliked: {}, worlds: {}, authors: {}, tags: [], showHidden: false, ai: {}, aiAuthors: {} });
+            _exploreSavePersonal();
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = ''; _explore.askedVisited = true;
+            document.getElementById('searchWorldsInput').value = '';
+            showTab(NAV_ITEMS_DEF.worlds?.tab ?? 1);
+            setWorldFilter('explore');
+            setExploreView('popular');
+            const ask = sent.find(m => m.action === 'vrcExploreWorlds');
+            const W = (id, extra) => ({ id, name: 'World ' + id.slice(5), authorId: 'usr_x', authorName: 'Xan', tags: [], capacity: 16, occupants: 1, favorites: 1, ...extra });
+            _handleBackendMessage('vrcExploreResults', { view: 'popular', query: '', offset: 0, ok: true, hasMore: false, sig: ask?.sig, worlds: [
+                W('wrld_a', { description: 'Skybox made with Midjourney.' }), W('wrld_b', { tags: ['author_tag_AI'] }),
+                W('wrld_c', { description: 'Handmade, no AI generated art here.' }), W('wrld_d', { name: 'Aiko house' }),
+                W('wrld_e', { authorId: 'usr_z', authorName: 'Zed' }) ] });
+            const before = sent.length;
+            const card = id => [...document.querySelectorAll('#searchWorldsResults .vrcn-content-card')].find(c => (c.getAttribute('onclick') || '').includes(id));
+            out.maybe = ['wrld_a', 'wrld_b', 'wrld_c', 'wrld_d', 'wrld_e'].map(id => card(id)?.querySelector('.explore-badge.ai.maybe') ? 1 : 0).join('');
+            out.tip = card('wrld_a')?.querySelector('.explore-badge.ai')?.title || '';
+            exploreSetFilter('ai', 'hide');
+            out.hide = ids();
+            out.count = document.querySelector('#exploreFilterBtn .explore-filter-count')?.textContent;
+            const menuFor = id => {
+                card(id)?.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 200, clientY: 200 }));
+                return document.getElementById('vn-ctx-menu');
+            };
+            const labels = menu => [...menu.querySelectorAll('.vn-ctx-item .vn-ctx-label')].map(x => x.textContent.trim());
+            const pick = (menu, text) => [...menu.querySelectorAll('.vn-ctx-item')].find(b => b.querySelector('.vn-ctx-label')?.textContent.trim() === text)?.click();
+            const menu = menuFor('wrld_d');
+            out.menu = labels(menu);
+            pick(menu, 'Mark as AI');
+            out.afterMark = ids();
+            exploreSetFilter('ai', 'marks');
+            out.marks = ids();
+            pick(menuFor('wrld_e'), 'Mark all worlds by Zed as AI');
+            out.afterAuthor = ids();
+            exploreSetFilter('ai', 'all');
+            out.all = ids();
+            out.markBadge = !!card('wrld_d')?.querySelector('.explore-badge.ai:not(.maybe)') && !!card('wrld_e')?.querySelector('.explore-badge.ai:not(.maybe)');
+            exploreToggleFilters(document.getElementById('exploreFilterBtn'));
+            const panel = document.getElementById('exploreFilterPanel');
+            out.panel = [panel.querySelector('#exploreAiSel')?.options.length || 0, /1 worlds, 1 authors/.test(panel.textContent)].join();
+            panel.querySelector('.explore-chip[data-kind="aiauthor"]')?.click();
+            out.unmarked = Object.keys(_explorePersonal.aiAuthors).length;
+            exploreToggleFilters(document.getElementById('exploreFilterBtn'));
+            const stored = JSON.parse(localStorage.getItem('vrcn_explorePersonal') || '{}');
+            out.stored = Object.keys(stored.ai || {}).join() + '|' + Object.keys(stored.aiAuthors || {}).join();
+            out.sent = sent.slice(before).map(m => m.action);
+            return out;
+        } finally {
+            window.sendToCS = realSend;
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+            exploreClearFilters();
+            if (real.store == null) localStorage.removeItem('vrcn_explorePersonal'); else localStorage.setItem('vrcn_explorePersonal', real.store);
+            Object.assign(_explorePersonal, _exploreLoadPersonal());
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = '';
+            setWorldFilter('favorites');
+        }
+    })()`);
+    check('Explore AI: "Maybe AI" comes from tags or words in the text, "no AI" counts against, names like Aiko do not',
+        got.maybe === '11000' && /Not a fact/.test(got.tip), JSON.stringify({ maybe: got.maybe, tip: got.tip }));
+    check('Explore AI: right-click marks a world or an author; the filter hides guesses and marks, or only marks',
+        got.hide === 'wrld_c,wrld_d,wrld_e' && got.count === '1' && got.menu.includes('Mark as AI') && got.menu.includes('Mark all worlds by Xan as AI')
+            && got.afterMark === 'wrld_c,wrld_e' && got.marks === 'wrld_a,wrld_b,wrld_c,wrld_e' && got.afterAuthor === 'wrld_a,wrld_b,wrld_c',
+        JSON.stringify({ hide: got.hide, count: got.count, menu: got.menu, mark: got.afterMark, marks: got.marks, author: got.afterAuthor }));
+    check('Explore AI: marked cards say AI, the panel counts marks and unmarks an author, kept locally and nothing sent',
+        got.all === 'wrld_a,wrld_b,wrld_c,wrld_d,wrld_e' && got.markBadge && got.panel === '3,true' && got.unmarked === 0 && got.stored === 'wrld_d|' && got.sent.length === 0,
+        JSON.stringify({ all: got.all, badge: got.markBadge, panel: got.panel, unmarked: got.unmarked, stored: got.stored, sent: got.sent }));
+});
+
+section('explore for you', async main => {
+    // Item 14 step 7. For You: a tag profile from visits (time and recency), favorites and likes; dislikes and hidden
+    // tags count against. One request per top tag, scored and mixed here; visited worlds out unless switched on;
+    // Trending when the history is too thin; waits for the visit history; kept 30 minutes.
+    const got = await main.json(`(() => {
+        const sent = [];
+        const realSend = sendToCS;
+        window.sendToCS = m => { sent.push(m); };
+        const ids = () => _explore.shown.map(w => w.id).join(',');
+        const real = { visited: _visitedWorldsData, loaded: _visitedWorldsLoaded, asked: _explore.askedVisited, fav: favWorldsData, store: localStorage.getItem('vrcn_explorePersonal') };
+        const out = {};
+        const day = 86400000, now = Date.now();
+        const iso = d => new Date(now - d * day).toISOString();
+        const V = (id, tags, secs, ago) => ({ id, name: id, tags, worldTimeSeconds: secs, worldLastVisited: iso(ago) });
+        const visits = [V('wrld_v1', ['author_tag_chill', 'author_tag_photo'], 7200, 1), V('wrld_v2', ['author_tag_chill'], 3600, 2),
+            V('wrld_v3', ['author_tag_chill', 'author_tag_dance'], 600, 5), V('wrld_v4', ['author_tag_photo'], 1800, 3),
+            V('wrld_v5', ['author_tag_horror'], 60, 400), V('wrld_v6', ['author_tag_chill'], 100, 10)];
+        try {
+            exploreClearFilters();
+            Object.assign(_explorePersonal, { liked: {}, disliked: { wrld_zz: { tags: ['author_tag_horror'], at: 1 } }, worlds: {}, authors: {},
+                tags: ['author_tag_dance'], showHidden: false, ai: {}, aiAuthors: {}, feedVisited: false });
+            _exploreSavePersonal();
+            favWorldsData = [];
+            _visitedWorldsData = visits; _visitedWorldsLoaded = true; _explore.askedVisited = true;
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = '';
+            document.getElementById('searchWorldsInput').value = '';
+            showTab(NAV_ITEMS_DEF.worlds?.tab ?? 1);
+            setWorldFilter('explore');
+            setExploreView('foryou');
+            const ask = sent.filter(m => m.action === 'vrcExploreForYou').pop();
+            out.ask = ask ? ask.profileTags.join() : 'none';
+            out.btn = document.getElementById('exploreView_foryou').classList.contains('active');
+            const W = (id, authorId, tags, ago, favorites = 1) => ({ id, name: 'W ' + id.slice(5), authorId, authorName: authorId, tags, occupants: 1, favorites,
+                publicationDate: ago == null ? '' : iso(ago) });
+            _handleBackendMessage('vrcExploreForYou', { key: 'stale', sig: ask?.sig, ok: true, fallback: false, results: [{ tag: 'x', worlds: [W('wrld_old', 'usr_o', [], 1)] }] });
+            out.staleIgnored = _explore.shown.length === 0;
+            _handleBackendMessage('vrcExploreForYou', { key: ask?.key, sig: ask?.sig, ok: true, fallback: false, results: [
+                { tag: 'author_tag_chill', worlds: [W('wrld_f1', 'usr_a', ['author_tag_chill', 'author_tag_photo'], 10, 100), W('wrld_f2', 'usr_a', ['author_tag_chill'], 1000, 5000),
+                    W('wrld_f3', 'usr_a', ['author_tag_chill'], 100, 10), W('wrld_v2', 'usr_b', ['author_tag_chill'], 20),
+                    W('wrld_f5', 'usr_c', ['author_tag_chill', 'author_tag_horror'], 5)] },
+                { tag: 'author_tag_photo', worlds: [W('wrld_f6', 'usr_d', ['author_tag_photo'], 1), W('wrld_f1', 'usr_a', ['author_tag_chill', 'author_tag_photo'], 10, 100),
+                    W('wrld_f7', 'usr_e', ['author_tag_photo'], null), W('wrld_f8', 'usr_f', ['author_tag_dance'], 2)] } ] });
+            out.feed = ids();
+            const card = id => [...document.querySelectorAll('#searchWorldsResults .vrcn-content-card')].find(c => (c.getAttribute('onclick') || '').includes(id));
+            out.why1 = card('wrld_f1')?.querySelector('.explore-why')?.textContent.trim() || '';
+            out.why6 = card('wrld_f6')?.querySelector('.explore-why')?.textContent.trim() || '';
+            out.note = document.getElementById('exploreNote').textContent;
+            exploreFeedVisited(true);
+            out.withVisited = ids();
+            exploreFeedVisited(false);
+            setExploreView('hot'); setExploreView('foryou');
+            out.asks = sent.filter(m => m.action === 'vrcExploreForYou').length;
+
+            // Too little history: Trending, said so.
+            _visitedWorldsData = visits.slice(0, 2);
+            exploreRefresh();
+            const ask2 = sent.filter(m => m.action === 'vrcExploreForYou').pop();
+            out.ask2 = (ask2?.profileTags || ['?']).join() + '|' + ask2?.fresh;
+            _handleBackendMessage('vrcExploreForYou', { key: ask2?.key, sig: ask2?.sig, ok: true, fallback: true, results: [{ tag: '', worlds: [W('wrld_t1', 'usr_t', [], 3), W('wrld_t2', 'usr_t', [], 4)] }] });
+            out.fallback = ids() + '|' + /Trending/.test(document.getElementById('exploreNote').textContent) + '|' + document.querySelectorAll('#searchWorldsResults .explore-why').length;
+
+            // It waits for the visit history before asking.
+            _explore.entries = {}; _visitedWorldsLoaded = false;
+            setExploreView('hot'); setExploreView('foryou');
+            const before = sent.filter(m => m.action === 'vrcExploreForYou').length;
+            renderVisitedWorlds(visits);
+            out.waited = before + '>' + sent.filter(m => m.action === 'vrcExploreForYou').length;
+            out.stored = JSON.parse(localStorage.getItem('vrcn_explorePersonal') || '{}').feedVisited;
+            return out;
+        } finally {
+            window.sendToCS = realSend;
+            exploreClearFilters();
+            if (real.store == null) localStorage.removeItem('vrcn_explorePersonal'); else localStorage.setItem('vrcn_explorePersonal', real.store);
+            Object.assign(_explorePersonal, _exploreLoadPersonal());
+            _exploreLikedMemo = null;
+            favWorldsData = real.fav;
+            _visitedWorldsData = real.visited; _visitedWorldsLoaded = real.loaded; _explore.askedVisited = real.asked;
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = '';
+            setWorldFilter('favorites');
+        }
+    })()`);
+    check('Explore For You: asks about the top tags of visits, favorites and likes; dislikes and hidden tags stay out',
+        got.ask === 'author_tag_chill,author_tag_photo' && got.btn && got.staleIgnored, JSON.stringify({ ask: got.ask, btn: got.btn, stale: got.staleIgnored }));
+    check('Explore For You: scored and mixed (two per author, a new world every fifth card), visited and hidden out, each card says why',
+        got.feed === 'wrld_f1,wrld_f3,wrld_f5,wrld_f6,wrld_f7' && /Because you like/.test(got.why1) && /,/.test(got.why1) && /Something new/.test(got.why6)
+            && /Picked from the tags/.test(got.note),
+        JSON.stringify({ feed: got.feed, why1: got.why1, why6: got.why6, note: got.note }));
+    check('Explore For You: visited worlds can be switched on; going back within 30 minutes asks nothing',
+        got.withVisited === 'wrld_f1,wrld_v2,wrld_f3,wrld_f5,wrld_f6,wrld_f7' && got.asks === 1 && got.stored === false,
+        JSON.stringify({ visited: got.withVisited, asks: got.asks, stored: got.stored }));
+    check('Explore For You: too little history shows Trending and says so; it waits for the visit history',
+        got.ask2 === '|true' && got.fallback === 'wrld_t1,wrld_t2|true|0' && got.waited === '2>3',
+        JSON.stringify({ ask2: got.ask2, fallback: got.fallback, waited: got.waited }));
+});
+
+section('explore lists', async main => {
+    // Item 14 step 8. Liked worlds go out as a code or a file (AI marks if ticked); imported lists open as views,
+    // pictures only from VRChat's own hosts, missing ones asked for once. Kept in localStorage vrcn_exploreLists.
+    const got = JSON.parse(await main.eval(`(async () => {
+        const sent = [];
+        const realSend = sendToCS;
+        window.sendToCS = m => { sent.push(m); };
+        const clip = navigator.clipboard.writeText;
+        let copied = '';
+        navigator.clipboard.writeText = async text => { copied = text; };
+        const ids = () => _explore.shown.map(w => w.id).join(',');
+        const real = { store: localStorage.getItem('vrcn_explorePersonal'), lists: localStorage.getItem('vrcn_exploreLists') };
+        const out = {};
+        try {
+            exploreClearFilters();
+            Object.assign(_explorePersonal, { liked: {
+                wrld_l1: { name: 'Lake', authorId: 'usr_a', authorName: 'Ann', tags: ['author_tag_chill', 'system_approved'], capacity: 20, at: 2,
+                    thumbnailImageUrl: 'https://api.vrchat.cloud/api/1/image/file_1/1/256' },
+                wrld_l2: { name: 'Café', authorId: 'usr_b', authorName: 'Bo', tags: [], at: 1, thumbnailImageUrl: 'http://localhost:5000/img/x.png' } },
+                disliked: {}, worlds: {}, authors: {}, tags: [], showHidden: false, ai: { wrld_l1: { name: 'Lake', at: 1 } }, aiAuthors: {}, feedVisited: false });
+            _exploreSavePersonal();
+            for (const id of Object.keys(_exploreLists.lists)) delete _exploreLists.lists[id];
+            _exploreSaveLists();
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = '';
+            document.getElementById('searchWorldsInput').value = '';
+            showTab(NAV_ITEMS_DEF.worlds?.tab ?? 1);
+            setWorldFilter('explore');
+            const btn = document.getElementById('exploreSavedBtn');
+            exploreToggleSaved(btn);
+            const panel = document.getElementById('exploreSavedPanel');
+            out.panel = /Share your Liked worlds \\(2\\)/.test(panel.textContent) && /No lists imported yet/.test(panel.textContent);
+            panel.querySelector('#exploreListName').value = 'Cozy';
+            panel.querySelector('#exploreListGiveAi').checked = true;
+            exploreCopyList();
+            await new Promise(r => setTimeout(r, 30));
+            out.code = copied.slice(0, 10);
+            const back = _exploreParseList(copied);
+            out.parsed = back ? [back.name, back.worlds.map(w => w.id + ':' + (w.thumbnailImageUrl ? 'img' : '-') + ':' + w.tags.join('+')).join(' '), back.ai.join()].join('|') : 'null';
+            exploreSaveListFile();
+            const save = sent.find(m => m.action === 'exploreListSave');
+            out.file = !!save && JSON.parse(save.text).v === 1 && JSON.parse(save.text).worlds.length === 2;
+
+            // Import: the code, with its AI marks; the list opens as a view and asks for the missing picture once.
+            _explorePersonal.ai = {};
+            panel.querySelector('#exploreListCode').value = copied;
+            panel.querySelector('#exploreListTakeAi').checked = true;
+            exploreImportList();
+            const listIds = Object.keys(_exploreLists.lists);
+            out.imported = listIds.length + '|' + Object.keys(_explorePersonal.ai).join() + '|' + panel.querySelectorAll('.explore-saved-list .explore-saved-name').length;
+            exploreOpenList(listIds[0]);
+            out.view = _explore.view === 'list:' + listIds[0];
+            out.shown = ids();
+            out.note = document.getElementById('exploreNote').textContent;
+            out.savedActive = btn.classList.contains('active');
+            const fill = sent.filter(m => m.action === 'vrcExploreFillWorlds');
+            out.fill = fill.map(m => m.ids.join()).join('/');
+            _handleBackendMessage('vrcExploreFill', { worlds: [{ id: 'wrld_l2', name: 'Café', thumbnailImageUrl: 'http://localhost:5000/img/x2.png', occupants: 4, favorites: 7 }] });
+            const card = [...document.querySelectorAll('#searchWorldsResults .vrcn-content-card')].find(c => (c.getAttribute('onclick') || '').includes('wrld_l2'));
+            out.filled = (card?.querySelector('.cc-bg')?.getAttribute('style') || '').includes('x2.png');
+            setExploreView('hot'); setExploreView('list:' + listIds[0]);
+            out.fillOnce = sent.filter(m => m.action === 'vrcExploreFillWorlds').length;
+
+            // A file's JSON imports too; junk does not; pictures from other hosts are dropped.
+            _handleBackendMessage('exploreListFile', { kind: 'opened', text: JSON.stringify({ v: 1, name: 'Friend picks', worlds: [
+                { id: 'wrld_x1', name: 'X', thumbnailImageUrl: 'https://evil.example/p.png' }, { id: 'bad id' }, { id: 'wrld_x1' }] }) });
+            const friend = Object.values(_exploreLists.lists).find(x => x.name === 'Friend picks');
+            out.json = friend ? friend.worlds.map(w => w.id + ':' + (w.thumbnailImageUrl || '-')).join() : 'none';
+            const n = Object.keys(_exploreLists.lists).length;
+            exploreOpenListFile();
+            out.openAsk = sent.some(m => m.action === 'exploreListOpen');
+            panel.querySelector('#exploreListCode').value = 'HAPSLIST1.notbase64!!';
+            exploreImportList();
+            _handleBackendMessage('exploreListFile', { kind: 'opened', text: '{"v":2}' });
+            out.junk = Object.keys(_exploreLists.lists).length === n;
+
+            // Deleting the open list goes back to Active now; bad stored lists are dropped when read back.
+            exploreOpenList(listIds[0]);
+            exploreDeleteList(listIds[0]);
+            out.afterDelete = _explore.view + '|' + Object.keys(_exploreLists.lists).length;
+            localStorage.setItem('vrcn_exploreLists', JSON.stringify({ lists: { ok1: { name: 'Ok', at: 1, worlds: [{ id: 'wrld_o' }, { id: 'nope' }] }, 'BAD!': { name: 'x', worlds: [] }, nolist: { name: 'y' } } }));
+            const re = _exploreLoadLists();
+            out.reload = Object.entries(re.lists).map(([id, x]) => id + ':' + x.worlds.map(w => w.id).join('+')).join();
+            out.sentVrc = sent.filter(m => /^vrcExplore/.test(m.action) && m.action !== 'vrcExploreFillWorlds' && m.action !== 'vrcExploreWorlds').map(m => m.action);
+            return JSON.stringify(out);
+        } finally {
+            window.sendToCS = realSend;
+            navigator.clipboard.writeText = clip;
+            exploreClearFilters();
+            _exploreClosePanel('exploreSavedPanel');
+            if (real.store == null) localStorage.removeItem('vrcn_explorePersonal'); else localStorage.setItem('vrcn_explorePersonal', real.store);
+            if (real.lists == null) localStorage.removeItem('vrcn_exploreLists'); else localStorage.setItem('vrcn_exploreLists', real.lists);
+            Object.assign(_explorePersonal, _exploreLoadPersonal());
+            _exploreLikedMemo = null;
+            _exploreLists.lists = _exploreLoadLists().lists;
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = '';
+            setWorldFilter('favorites');
+        }
+    })()`));
+    check('Explore lists: Liked worlds go out as a code (and a file) with names, creators, author tags, VRChat pictures only, AI marks if ticked',
+        got.panel && got.code === 'HAPSLIST1.' && got.parsed === 'Cozy|wrld_l1:img:author_tag_chill wrld_l2:-:|wrld_l1' && got.file,
+        JSON.stringify({ panel: got.panel, code: got.code, parsed: got.parsed, file: got.file }));
+    check('Explore lists: importing a code adds the list and its AI marks; it opens as a view and fills a missing picture once',
+        got.imported === '1|wrld_l1|1' && got.view && got.shown === 'wrld_l1,wrld_l2' && /List: Cozy, 2 worlds/.test(got.note) && got.savedActive
+            && got.fill === 'wrld_l2' && got.filled && got.fillOnce === 1,
+        JSON.stringify({ imported: got.imported, view: got.view, shown: got.shown, note: got.note, active: got.savedActive, fill: got.fill, filled: got.filled, once: got.fillOnce }));
+    check('Explore lists: a file imports, junk does not, other picture hosts are dropped, deleting the open list goes back, bad stored lists are dropped',
+        got.json === 'wrld_x1:-' && got.openAsk && got.junk && got.afterDelete === 'active|1' && got.reload === 'ok1:wrld_o' && got.sentVrc.length === 0,
+        JSON.stringify({ json: got.json, open: got.openAsk, junk: got.junk, del: got.afterDelete, reload: got.reload, sent: got.sentVrc }));
 });
 
 section('avatar filters (issue 10)', async main => {

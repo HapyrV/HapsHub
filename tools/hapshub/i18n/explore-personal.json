@@ -1,0 +1,178 @@
+{
+  "worlds.explore.views.liked": {
+    "en": "Liked", "de": "Gefällt mir", "es": "Me gusta", "fr": "J'aime", "ja": "いいね",
+    "ko": "좋아요", "ru": "Понравившиеся", "zh-CN": "已赞", "zh-TW": "已按讚"
+  },
+  "worlds.explore.filters.visited": {
+    "en": "Visited", "de": "Besucht", "es": "Visitados", "fr": "Visités", "ja": "訪問済み",
+    "ko": "방문함", "ru": "Посещённые", "zh-CN": "已访问", "zh-TW": "已造訪"
+  },
+  "worlds.explore.filters.hide_visited": {
+    "en": "Hide worlds I have visited", "de": "Besuchte Welten ausblenden", "es": "Ocultar mundos que ya visité",
+    "fr": "Masquer les mondes déjà visités", "ja": "訪問済みのワールドを隠す", "ko": "방문한 월드 숨기기",
+    "ru": "Скрыть посещённые миры", "zh-CN": "隐藏我去过的世界", "zh-TW": "隱藏我去過的世界"
+  },
+  "worlds.explore.personal.note_liked_filter": {
+    "en": "Showing liked worlds whose name, author or tags contain \"{query}\".",
+    "de": "Gezeigt werden Welten mit „Gefällt mir“, deren Name, Autor oder Tags „{query}“ enthalten.",
+    "es": "Mostrando mundos que te gustan cuyo nombre, autor o etiquetas contienen \"{query}\".",
+    "fr": "Mondes aimés dont le nom, l'auteur ou les tags contiennent « {query} ».",
+    "ja": "名前・作者・タグに「{query}」を含む、いいねしたワールドを表示中。",
+    "ko": "이름, 제작자 또는 태그에 \"{query}\"가 들어간 좋아요한 월드를 표시합니다.",
+    "ru": "Понравившиеся миры, в названии, авторе или тегах которых есть «{query}».",
+    "zh-CN": "显示名称、作者或标签包含“{query}”的已赞世界。",
+    "zh-TW": "顯示名稱、作者或標籤包含「{query}」的已按讚世界。"
+  },
+  "worlds.explore.personal.note_hidden": {
+    "en": "Your hide list hides {n}.", "de": "Deine Ausblendliste blendet {n} aus.", "es": "Tu lista de ocultos oculta {n}.",
+    "fr": "Ta liste de masquage en masque {n}.", "ja": "非表示リストで{n}件を隠しています。", "ko": "숨김 목록이 {n}개를 숨겼습니다.",
+    "ru": "Список скрытого скрывает {n}.", "zh-CN": "隐藏列表隐藏了 {n} 个。", "zh-TW": "隱藏清單隱藏了 {n} 個。"
+  },
+  "worlds.explore.personal.empty_liked": {
+    "en": "No liked worlds yet. Right-click a world in Explore and choose Like.",
+    "de": "Noch keine Welten mit „Gefällt mir“. Rechtsklick auf eine Welt in Erkunden, dann „Gefällt mir“.",
+    "es": "Aún no te gusta ningún mundo. Haz clic derecho en un mundo de Explorar y elige Me gusta.",
+    "fr": "Aucun monde aimé pour l'instant. Clic droit sur un monde dans Explorer, puis J'aime.",
+    "ja": "いいねしたワールドはまだありません。探索でワールドを右クリックし「いいね」を選んでください。",
+    "ko": "아직 좋아요한 월드가 없습니다. 탐색에서 월드를 우클릭하고 좋아요를 고르세요.",
+    "ru": "Понравившихся миров пока нет. Щёлкните мир в «Обзоре» правой кнопкой и выберите «Нравится».",
+    "zh-CN": "还没有已赞的世界。在探索中右键点击世界并选择“赞”。",
+    "zh-TW": "還沒有已按讚的世界。在探索中右鍵點擊世界並選擇「讚」。"
+  },
+  "worlds.explore.personal.all_hidden": {
+    "en": "Every world loaded here is on your hide list.", "de": "Alle hier geladenen Welten stehen auf deiner Ausblendliste.",
+    "es": "Todos los mundos cargados aquí están en tu lista de ocultos.", "fr": "Tous les mondes chargés ici sont dans ta liste de masquage.",
+    "ja": "ここに読み込まれたワールドはすべて非表示リストに入っています。", "ko": "여기 불러온 월드가 모두 숨김 목록에 있습니다.",
+    "ru": "Все загруженные здесь миры в вашем списке скрытого.", "zh-CN": "这里加载的世界都在你的隐藏列表中。", "zh-TW": "這裡載入的世界都在你的隱藏清單中。"
+  },
+  "worlds.explore.personal.badge_liked": {
+    "en": "Liked", "de": "Gefällt mir", "es": "Me gusta", "fr": "Aimé", "ja": "いいね済み",
+    "ko": "좋아요함", "ru": "Нравится", "zh-CN": "已赞", "zh-TW": "已按讚"
+  },
+  "worlds.explore.personal.badge_disliked": {
+    "en": "Disliked", "de": "Gefällt nicht", "es": "No me gusta", "fr": "Pas aimé", "ja": "よくない",
+    "ko": "싫어요", "ru": "Не нравится", "zh-CN": "已踩", "zh-TW": "已倒讚"
+  },
+  "worlds.explore.personal.badge_hidden": {
+    "en": "Hidden", "de": "Ausgeblendet", "es": "Oculto", "fr": "Masqué", "ja": "非表示",
+    "ko": "숨김", "ru": "Скрыт", "zh-CN": "已隐藏", "zh-TW": "已隱藏"
+  },
+  "worlds.explore.personal.badge_visited": {
+    "en": "Visited", "de": "Besucht", "es": "Visitado", "fr": "Visité", "ja": "訪問済み",
+    "ko": "방문함", "ru": "Посещён", "zh-CN": "去过", "zh-TW": "去過"
+  },
+  "worlds.explore.personal.visits": {
+    "en": "Visits: {n}", "de": "Besuche: {n}", "es": "Visitas: {n}", "fr": "Visites : {n}", "ja": "訪問回数: {n}",
+    "ko": "방문 횟수: {n}", "ru": "Посещений: {n}", "zh-CN": "访问次数：{n}", "zh-TW": "造訪次數：{n}"
+  },
+  "worlds.explore.personal.toast_liked": {
+    "en": "\"{name}\" added to Liked.", "de": "„{name}“ zu „Gefällt mir“ hinzugefügt.", "es": "\"{name}\" añadido a Me gusta.",
+    "fr": "« {name} » ajouté à J'aime.", "ja": "「{name}」をいいねに追加しました。", "ko": "\"{name}\"을(를) 좋아요에 추가했습니다.",
+    "ru": "«{name}» добавлен в понравившиеся.", "zh-CN": "已将“{name}”加入已赞。", "zh-TW": "已將「{name}」加入已按讚。"
+  },
+  "worlds.explore.personal.toast_disliked": {
+    "en": "\"{name}\" disliked and hidden.", "de": "„{name}“ gefällt dir nicht und ist ausgeblendet.", "es": "\"{name}\" marcado como No me gusta y oculto.",
+    "fr": "« {name} » marqué Pas aimé et masqué.", "ja": "「{name}」をよくないにして非表示にしました。", "ko": "\"{name}\"을(를) 싫어요로 표시하고 숨겼습니다.",
+    "ru": "«{name}» отмечен как «Не нравится» и скрыт.", "zh-CN": "已踩并隐藏“{name}”。", "zh-TW": "已倒讚並隱藏「{name}」。"
+  },
+  "worlds.explore.personal.toast_hidden": {
+    "en": "\"{name}\" hidden. Filters > Show hidden worlds brings it back.",
+    "de": "„{name}“ ausgeblendet. Filter > Ausgeblendete Welten zeigen holt sie zurück.",
+    "es": "\"{name}\" oculto. Filtros > Mostrar mundos ocultos lo recupera.",
+    "fr": "« {name} » masqué. Filtres > Afficher les mondes masqués le fait revenir.",
+    "ja": "「{name}」を非表示にしました。フィルター >「非表示のワールドを表示」で戻せます。",
+    "ko": "\"{name}\"을(를) 숨겼습니다. 필터 > 숨긴 월드 표시로 되돌릴 수 있습니다.",
+    "ru": "«{name}» скрыт. Вернуть: Фильтры > Показать скрытые миры.",
+    "zh-CN": "已隐藏“{name}”。在 筛选 > 显示已隐藏的世界 中可恢复。",
+    "zh-TW": "已隱藏「{name}」。在 篩選 > 顯示已隱藏的世界 中可恢復。"
+  },
+  "worlds.explore.personal.toast_author": {
+    "en": "Worlds by {name} hidden. Filters lists hidden authors.", "de": "Welten von {name} ausgeblendet. Unter Filter stehen ausgeblendete Autoren.",
+    "es": "Mundos de {name} ocultos. Filtros muestra los autores ocultos.", "fr": "Mondes de {name} masqués. Filtres liste les auteurs masqués.",
+    "ja": "{name}のワールドを非表示にしました。非表示の作者はフィルターに表示されます。", "ko": "{name}의 월드를 숨겼습니다. 숨긴 제작자는 필터에 나옵니다.",
+    "ru": "Миры {name} скрыты. Скрытые авторы перечислены в фильтрах.", "zh-CN": "已隐藏 {name} 的世界。已隐藏的作者列在筛选中。",
+    "zh-TW": "已隱藏 {name} 的世界。已隱藏的作者列在篩選中。"
+  },
+  "worlds.explore.personal.toast_tag": {
+    "en": "Worlds tagged {tag} hidden. Filters lists hidden tags.", "de": "Welten mit dem Tag {tag} ausgeblendet. Unter Filter stehen ausgeblendete Tags.",
+    "es": "Mundos con la etiqueta {tag} ocultos. Filtros muestra las etiquetas ocultas.", "fr": "Mondes avec le tag {tag} masqués. Filtres liste les tags masqués.",
+    "ja": "タグ「{tag}」のワールドを非表示にしました。非表示のタグはフィルターに表示されます。", "ko": "{tag} 태그 월드를 숨겼습니다. 숨긴 태그는 필터에 나옵니다.",
+    "ru": "Миры с тегом {tag} скрыты. Скрытые теги перечислены в фильтрах.", "zh-CN": "已隐藏带 {tag} 标签的世界。已隐藏的标签列在筛选中。",
+    "zh-TW": "已隱藏帶 {tag} 標籤的世界。已隱藏的標籤列在篩選中。"
+  },
+  "worlds.explore.personal.like": {
+    "en": "Like", "de": "Gefällt mir", "es": "Me gusta", "fr": "J'aime", "ja": "いいね",
+    "ko": "좋아요", "ru": "Нравится", "zh-CN": "赞", "zh-TW": "讚"
+  },
+  "worlds.explore.personal.dislike": {
+    "en": "Dislike (hide)", "de": "Gefällt nicht (ausblenden)", "es": "No me gusta (ocultar)", "fr": "Je n'aime pas (masquer)", "ja": "よくない（非表示）",
+    "ko": "싫어요 (숨기기)", "ru": "Не нравится (скрыть)", "zh-CN": "踩（隐藏）", "zh-TW": "倒讚（隱藏）"
+  },
+  "worlds.explore.personal.hide_world": {
+    "en": "Hide this world", "de": "Diese Welt ausblenden", "es": "Ocultar este mundo", "fr": "Masquer ce monde", "ja": "このワールドを隠す",
+    "ko": "이 월드 숨기기", "ru": "Скрыть этот мир", "zh-CN": "隐藏这个世界", "zh-TW": "隱藏這個世界"
+  },
+  "worlds.explore.personal.hide_author": {
+    "en": "Hide all worlds by {name}", "de": "Alle Welten von {name} ausblenden", "es": "Ocultar todos los mundos de {name}",
+    "fr": "Masquer tous les mondes de {name}", "ja": "{name}のワールドをすべて隠す", "ko": "{name}의 모든 월드 숨기기",
+    "ru": "Скрыть все миры {name}", "zh-CN": "隐藏 {name} 的所有世界", "zh-TW": "隱藏 {name} 的所有世界"
+  },
+  "worlds.explore.personal.hide_author_unknown": {
+    "en": "Hide all worlds by this author", "de": "Alle Welten dieses Autors ausblenden", "es": "Ocultar todos los mundos de este autor",
+    "fr": "Masquer tous les mondes de cet auteur", "ja": "この作者のワールドをすべて隠す", "ko": "이 제작자의 모든 월드 숨기기",
+    "ru": "Скрыть все миры этого автора", "zh-CN": "隐藏该作者的所有世界", "zh-TW": "隱藏該作者的所有世界"
+  },
+  "worlds.explore.personal.hide_tag": {
+    "en": "Hide a tag", "de": "Ein Tag ausblenden", "es": "Ocultar una etiqueta", "fr": "Masquer un tag", "ja": "タグを隠す",
+    "ko": "태그 숨기기", "ru": "Скрыть тег", "zh-CN": "隐藏标签", "zh-TW": "隱藏標籤"
+  },
+  "worlds.explore.personal.hide_tag_item": {
+    "en": "Hide {tag}", "de": "{tag} ausblenden", "es": "Ocultar {tag}", "fr": "Masquer {tag}", "ja": "{tag}を隠す",
+    "ko": "{tag} 숨기기", "ru": "Скрыть {tag}", "zh-CN": "隐藏 {tag}", "zh-TW": "隱藏 {tag}"
+  },
+  "worlds.explore.personal.unhide_tag": {
+    "en": "Unhide {tag}", "de": "{tag} wieder zeigen", "es": "Mostrar {tag} de nuevo", "fr": "Réafficher {tag}", "ja": "{tag}を再表示",
+    "ko": "{tag} 다시 보이기", "ru": "Снова показывать {tag}", "zh-CN": "取消隐藏 {tag}", "zh-TW": "取消隱藏 {tag}"
+  },
+  "worlds.explore.personal.hide_list": {
+    "en": "Hide list", "de": "Ausblendliste", "es": "Lista de ocultos", "fr": "Liste de masquage", "ja": "非表示リスト",
+    "ko": "숨김 목록", "ru": "Список скрытого", "zh-CN": "隐藏列表", "zh-TW": "隱藏清單"
+  },
+  "worlds.explore.personal.summary": {
+    "en": "Hidden: {worlds} worlds, {authors} authors, {tags} tags. Disliked: {disliked}.",
+    "de": "Ausgeblendet: {worlds} Welten, {authors} Autoren, {tags} Tags. Gefällt nicht: {disliked}.",
+    "es": "Ocultos: {worlds} mundos, {authors} autores, {tags} etiquetas. No me gusta: {disliked}.",
+    "fr": "Masqués : {worlds} mondes, {authors} auteurs, {tags} tags. Pas aimés : {disliked}.",
+    "ja": "非表示: ワールド {worlds}、作者 {authors}、タグ {tags}。よくない: {disliked}。",
+    "ko": "숨김: 월드 {worlds}개, 제작자 {authors}명, 태그 {tags}개. 싫어요: {disliked}개.",
+    "ru": "Скрыто: миров {worlds}, авторов {authors}, тегов {tags}. Не нравится: {disliked}.",
+    "zh-CN": "已隐藏：{worlds} 个世界、{authors} 位作者、{tags} 个标签。已踩：{disliked}。",
+    "zh-TW": "已隱藏：{worlds} 個世界、{authors} 位作者、{tags} 個標籤。已倒讚：{disliked}。"
+  },
+  "worlds.explore.personal.summary_empty": {
+    "en": "Nothing hidden yet.", "de": "Noch nichts ausgeblendet.", "es": "Aún no hay nada oculto.", "fr": "Rien de masqué pour l'instant.",
+    "ja": "まだ何も隠していません。", "ko": "아직 숨긴 항목이 없습니다.", "ru": "Пока ничего не скрыто.", "zh-CN": "还没有隐藏任何内容。", "zh-TW": "還沒有隱藏任何內容。"
+  },
+  "worlds.explore.personal.unhide": {
+    "en": "Unhide", "de": "Wieder zeigen", "es": "Mostrar de nuevo", "fr": "Réafficher", "ja": "再表示",
+    "ko": "다시 보이기", "ru": "Показать снова", "zh-CN": "取消隐藏", "zh-TW": "取消隱藏"
+  },
+  "worlds.explore.personal.show_hidden": {
+    "en": "Show hidden worlds, marked, to bring them back", "de": "Ausgeblendete Welten markiert zeigen, um sie zurückzuholen",
+    "es": "Mostrar los mundos ocultos, marcados, para recuperarlos", "fr": "Afficher les mondes masqués, marqués, pour les récupérer",
+    "ja": "非表示のワールドを印付きで表示（戻すため）", "ko": "숨긴 월드를 표시와 함께 보여 주기 (되돌리기용)",
+    "ru": "Показывать скрытые миры с пометкой, чтобы вернуть их", "zh-CN": "显示已隐藏的世界（带标记），以便恢复",
+    "zh-TW": "顯示已隱藏的世界（帶標記），以便恢復"
+  },
+  "worlds.explore.personal.hint": {
+    "en": "Right-click a world in Explore to like or dislike it, or to hide it, everything by its author, or one of its tags. Kept on this computer only, never sent to VRChat.",
+    "de": "Rechtsklick auf eine Welt in Erkunden: Gefällt mir oder nicht, oder die Welt, alles vom Autor oder eines ihrer Tags ausblenden. Nur auf diesem Computer gespeichert, nie an VRChat gesendet.",
+    "es": "Haz clic derecho en un mundo de Explorar para darle Me gusta o No me gusta, u ocultarlo, todo lo de su autor o una de sus etiquetas. Solo se guarda en este equipo y nunca se envía a VRChat.",
+    "fr": "Clic droit sur un monde dans Explorer pour l'aimer ou non, ou pour le masquer, tout ce que fait son auteur ou un de ses tags. Gardé sur cet ordinateur uniquement, jamais envoyé à VRChat.",
+    "ja": "探索でワールドを右クリックすると、いいね・よくない、またはそのワールド・作者の全作品・タグの非表示ができます。このPCにだけ保存され、VRChatには送信されません。",
+    "ko": "탐색에서 월드를 우클릭해 좋아요/싫어요를 하거나, 그 월드, 제작자의 모든 월드, 태그 하나를 숨길 수 있습니다. 이 컴퓨터에만 저장되며 VRChat에 보내지 않습니다.",
+    "ru": "Щёлкните мир в «Обзоре» правой кнопкой, чтобы отметить «Нравится» или «Не нравится» или скрыть его, все миры автора или один из тегов. Хранится только на этом компьютере и не отправляется в VRChat.",
+    "zh-CN": "在探索中右键点击世界，可以赞或踩，或者隐藏该世界、该作者的所有世界或它的某个标签。只保存在这台电脑上，绝不发送给 VRChat。",
+    "zh-TW": "在探索中右鍵點擊世界，可以按讚或倒讚，或隱藏該世界、該作者的所有世界或它的某個標籤。只儲存在這台電腦上，絕不傳送給 VRChat。"
+  }
+}

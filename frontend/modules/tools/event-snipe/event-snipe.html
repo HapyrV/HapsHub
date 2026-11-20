@@ -68,10 +68,10 @@
                                 <div class="vrcn-panel-card-header"><span class="msi">lock_open</span> <span data-i18n="snipe.access_types.title">Access Types</span></div>
                                 <div style="font-size:calc(10px + var(--fs-off, 0px));color:var(--tx3);margin:4px 0 8px;" data-i18n="snipe.access_types.hint">Leave all off = any type</div>
                                 <div style="display:flex;flex-direction:column;gap:8px;">
-                                    <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);">Public</span><label class="toggle"><input type="checkbox" id="snipeAt_public"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
-                                    <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);">Group</span><label class="toggle"><input type="checkbox" id="snipeAt_group"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
-                                    <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);">Group+</span><label class="toggle"><input type="checkbox" id="snipeAt_groupPlus"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
-                                    <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);">Group Public</span><label class="toggle"><input type="checkbox" id="snipeAt_groupPublic"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+                                    <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);" data-i18n="instance.badge.public">Public</span><label class="toggle"><input type="checkbox" id="snipeAt_public"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+                                    <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);" data-i18n="instance.badge.group">Group</span><label class="toggle"><input type="checkbox" id="snipeAt_group"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+                                    <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);" data-i18n="instance.badge.group_plus">Group+</span><label class="toggle"><input type="checkbox" id="snipeAt_groupPlus"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
+                                    <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:calc(12px + var(--fs-off, 0px));color:var(--tx2);" data-i18n="instance.badge.group_public">Group Public</span><label class="toggle"><input type="checkbox" id="snipeAt_groupPublic"><div class="toggle-track"><div class="toggle-knob"></div></div></label></div>
                                 </div>
                             </div>
 
@@ -82,7 +82,7 @@
                     <div class="vrcn-panel-card">
                         <div class="vrcn-panel-card-header" style="justify-content:space-between;">
                             <div style="display:flex;align-items:center;gap:6px;"><span class="msi">radar</span> <span data-i18n="snipe.log.title">Found Instances</span></div>
-                            <button class="vrcn-button" onclick="document.getElementById('snipeLog').innerHTML=''" title="Clear">
+                            <button class="vrcn-button" onclick="document.getElementById('snipeLog').innerHTML=''" title="Clear" data-i18n-title="common.clear">
                                 <span class="msi" style="font-size:14px;">delete_sweep</span>
                             </button>
                         </div>

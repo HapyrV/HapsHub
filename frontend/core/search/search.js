@@ -20,10 +20,9 @@ function doSearch(type, loadMore) {
     let action = '';
     const sType = type === 'people' ? 'people' : type;
 
-    if (type === 'worlds') {
-        query = document.getElementById('searchWorldsInput').value.trim();
-        targetEl = 'searchWorldsResults';
-        action = 'vrcSearchWorlds';
+    if (type === 'worlds') {   // worlds are searched in the Worlds tab's Explore view (item 14)
+        if (typeof exploreSearch === 'function') exploreSearch();
+        return;
     } else if (type === 'groups') {
         query = document.getElementById('searchGroupsInput').value.trim();
         targetEl = 'searchGroupsResults';
@@ -46,13 +45,11 @@ function doSearch(type, loadMore) {
         if (btn) btn.textContent = searchLoadingText();
     }
 
-    const sort = type === 'worlds' ? (document.getElementById('worldSortSelect')?.value || 'relevance') : undefined;
-    sendToCS({ action, query: searchState[sType].query, offset: searchState[sType].offset, ...(sort !== undefined ? { sort } : {}) });
+    sendToCS({ action, query: searchState[sType].query, offset: searchState[sType].offset });
 }
 
 function _searchListMode(type) {
     if (typeof tlTableHtml !== 'function' || typeof tlTableRow !== 'function') return false;
-    if (type === 'worlds') return typeof lvViewMode === 'function' && lvViewMode('worlds') === 'list';
     if (type === 'groups') return typeof lvViewMode === 'function' && lvViewMode('groups') === 'list';
     if (type === 'users')  return typeof _peopleListMode === 'function' && _peopleListMode();
     return false;
@@ -61,10 +58,7 @@ function _searchListMode(type) {
 function renderSearchResults(type, results, offset, hasMore) {
     let targetEl = '';
     let sType = '';
-    if (type === 'worlds') {
-        targetEl = 'searchWorldsResults';
-        sType = 'worlds';
-    } else if (type === 'groups') {
+    if (type === 'groups') {
         targetEl = 'searchGroupsResults';
         sType = 'groups';
     } else if (type === 'users') {
@@ -91,8 +85,7 @@ function renderSearchResults(type, results, offset, hasMore) {
 
     if (listMode) {
         let table = '';
-        if (type === 'worlds') table = buildWorldsListHtml(state.results, true);
-        else if (type === 'groups') table = buildGroupsListHtml(state.results, true);
+        if (type === 'groups') table = buildGroupsListHtml(state.results, true);
         else if (type === 'users') table = buildPeopleListHtml(state.results, true);
         const more = state.hasMore
             ? `<div class="lv-more"><button class="vrcn-button load-more-btn" onclick="doSearch('${sType === 'people' ? 'people' : sType}',true)"><span class="msi" style="font-size:16px;">expand_more</span> ${esc(searchLoadMoreText())}</button></div>`
@@ -102,9 +95,7 @@ function renderSearchResults(type, results, offset, hasMore) {
     }
 
     let html = '';
-    if (type === 'worlds') {
-        html = state.results.map(w => renderWorldCard(w)).join('');
-    } else if (type === 'groups') {
+    if (type === 'groups') {
         html = state.results.map(g => `<div class="vrcn-content-card" onclick="openGroupDetail('${esc(g.id)}')">
             <div class="cc-bg"><img src="${imgThumb(g.bannerUrl, 256)||'fallback_cover.png'}" onerror="this.src='fallback_cover.png'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></div>
             <div class="cc-scrim"></div>
@@ -139,9 +130,6 @@ function openUserDetail(userId) {
 
 
 function rerenderSearchTranslations() {
-    if (searchState.worlds.query) {
-        renderSearchResults('worlds', searchState.worlds.results, 0, searchState.worlds.hasMore);
-    }
     if (searchState.groups.query) {
         renderSearchResults('groups', searchState.groups.results, 0, searchState.groups.hasMore);
     }

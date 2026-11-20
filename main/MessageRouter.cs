@@ -1547,33 +1547,135 @@ public partial class AppShell
                     });
                     break;
 
-                case "vrcSearchWorlds":
-                    var wQ = msg["query"]?.ToString() ?? "";
-                    var wOff = msg["offset"]?.Value<int>() ?? 0;
-                    var wSort = msg["sort"]?.ToString() ?? "relevance";
+                case "vrcExploreWorlds":
+                {
+                    // Explore tab, API views (the live views use vrcGetWorldDiscover). Only known views are sent on.
+                    var exView = msg["view"]?.ToString() ?? "";
+                    var exQuery = (msg["query"]?.ToString() ?? "").Trim();
+                    var exOffset = Math.Max(0, msg["offset"]?.Value<int>() ?? 0);
+                    var exFresh = msg["fresh"]?.Value<bool>() ?? false;
+                    var exSig = msg["sig"]?.ToString() ?? "";   // the page's filter key, sent back as is
+                    // "row:N" = one of VRChat's own rows (step 5), looked up in /config when the page is asked for.
+                    var exIsRow = ExploreRowIdRx.IsMatch(exView);
+                    if (!exIsRow && !ExploreViews.ContainsKey(exView)) break;
+                    if (exView == "relevance" && exQuery.Length == 0) break;
+                    // Filters VRChat can apply itself (step 2): tags the world must have one of, tags it must not
+                    // have, and platform. Only author and content-warning tags and the three platforms are passed on.
+                    var exTags = ExploreTagList(msg["tags"]);
+                    var exNotags = ExploreTagList(msg["notags"]);
+                    var (exPlatform, exNoPlatform) = ExplorePlatformArgs(msg["platform"]?.ToString());
                     _ = Task.Run(async () =>
                     {
-                        var res = await _core.World.SearchWorldsAsync(wQ, 20, wOff, wSort);
-                        var list = res.Cast<JObject>().Select(w => {
-                            var wid2 = w["id"]?.ToString() ?? "";
-                            var wurl = ImageCacheHelper.GetWorldUrl(wid2, w["imageUrl"]?.ToString() ?? w["thumbnailImageUrl"]?.ToString());
-                            var wStats = _core.TimeEngine.GetWorldStats(wid2);
-                            EnrichWorldDatesFromCache(_core.TimeEngine, w, wid2);
-                            return new {
-                            id = wid2, name = w["name"]?.ToString() ?? "",
-                            imageUrl = wurl, thumbnailImageUrl = wurl,
-                            authorName = w["authorName"]?.ToString() ?? "", occupants = w["occupants"]?.Value<int>() ?? 0,
-                            capacity = w["capacity"]?.Value<int>() ?? 0, favorites = w["favorites"]?.Value<int>() ?? 0,
-                            visits = w["visits"]?.Value<int>() ?? 0, description = w["description"]?.ToString() ?? "",
-                            tags = w["tags"]?.ToObject<List<string>>() ?? new(),
-                            created_at = DateTimeHelper.Iso(w["created_at"]),
-                            updated_at = DateTimeHelper.Iso(w["updated_at"]),
-                            worldTimeSeconds = wStats.totalSeconds,
-                            worldVisitCount  = wStats.visitCount,
-                            worldLastVisited = wStats.lastVisited,
-                            };
-                        }).ToList();
-                        Invoke(() => SendToJS("vrcSearchResults", new { type = "worlds", results = list, offset = wOff, hasMore = list.Count >= 20 }));
+                        var exSpec = exIsRow ? await GetExploreRowAsync(exView)
+                            : new ExploreRowSpec(ExploreViews[exView].sort, ExploreViews[exView].tag, null, false, "");
+                        JArray? rows = null;
+                        if (exSpec != null)
+                        {
+                            if (exSpec.Tag != null) exTags.Insert(0, exSpec.Tag);
+                            rows = await _core.World.ExploreWorldsAsync(exQuery, exSpec.Sort,
+                                exTags.Count > 0 ? string.Join(",", exTags) : null, ExplorePageSize, exOffset, exFresh,
+                                exNotags.Count > 0 ? string.Join(",", exNotags) : null, exPlatform, exNoPlatform,
+                                exSpec.Featured, exSpec.Ascending);
+                        }
+                        var list = (rows ?? new JArray()).OfType<JObject>().Select(ExploreRow).ToList();
+                        Invoke(() => SendToJS("vrcExploreResults", new
+                        {
+                            view = exView, query = exQuery, offset = exOffset, ok = rows != null, sig = exSig,
+                            hasMore = list.Count >= ExplorePageSize, worlds = list,
+                        }));
+                    });
+                    break;
+                }
+
+                case "vrcExploreForYou":
+                {
+                    // Explore "For You" (step 7): one page of Hot worlds for each top tag of the user's own taste
+                    // profile (5 at most), or VRChat's Trending when the history is too thin. Same platform and
+                    // hidden-tag filters as the other views; stops at the first failed request (429 and the like).
+                    var fyTags = ExploreTagList(msg["profileTags"]).Where(t => t.StartsWith("author_tag_")).Take(5).ToList();
+                    var fyFresh = msg["fresh"]?.Value<bool>() ?? false;
+                    var fyKey = msg["key"]?.ToString() ?? "";
+                    if (fyKey.Length > 400) break;
+                    var fySig = msg["sig"]?.ToString() ?? "";
+                    var fyNotags = ExploreTagList(msg["notags"]);
+                    var (fyPlatform, fyNoPlatform) = ExplorePlatformArgs(msg["platform"]?.ToString());
+                    _ = Task.Run(async () =>
+                    {
+                        var fyResults = new List<object>();
+                        var fyFailed = false;
+                        foreach (var tag in fyTags.Count > 0 ? fyTags.Select(t => (string?)t).ToList() : new List<string?> { null })
+                        {
+                            var rows = await _core.World.ExploreWorldsAsync("", tag == null ? "popularity" : "heat", tag, ForYouPageSize, 0,
+                                fyFresh, fyNotags.Count > 0 ? string.Join(",", fyNotags) : null, fyPlatform, fyNoPlatform, featured: tag == null ? false : null);
+                            if (rows == null) { fyFailed = true; break; }
+                            fyResults.Add(new { tag = tag ?? "", worlds = rows.OfType<JObject>().Select(ExploreRow).ToList() });
+                        }
+                        Invoke(() => SendToJS("vrcExploreForYou", new
+                        {
+                            key = fyKey, sig = fySig, ok = !fyFailed || fyResults.Count > 0, fallback = fyTags.Count == 0, results = fyResults,
+                        }));
+                    });
+                    break;
+                }
+
+                case "vrcExploreFillWorlds":
+                {
+                    // Explore lists (step 8): pictures and numbers for imported worlds that came without them.
+                    var efIds = (msg["ids"] as JArray ?? new JArray()).Select(t => t?.ToString() ?? "")
+                        .Where(id => ExploreWorldIdRx.IsMatch(id)).Distinct().Take(50).ToList();
+                    if (efIds.Count == 0) break;
+                    _ = Task.Run(async () =>
+                    {
+                        var efRows = await _core.World.GetWorldsByIdsAsync(efIds);
+                        var efList = efRows.OfType<JObject>().Select(ExploreRow).ToList();
+                        Invoke(() => SendToJS("vrcExploreFill", new { worlds = efList }));
+                    });
+                    break;
+                }
+
+                case "exploreListSave":
+                {
+                    // Explore lists (step 8): the user's Liked worlds as a .json file they choose where to keep.
+                    var elText = msg["text"]?.ToString() ?? "";
+                    if (elText.Length == 0 || elText.Length > 5_000_000) break;
+                    var elDlg = Dialog.FileSave("json");
+                    if (!elDlg.IsOk) break;
+                    var elPath = elDlg.Path.EndsWith(".json", StringComparison.OrdinalIgnoreCase) ? elDlg.Path : elDlg.Path + ".json";
+                    var elOk = true;
+                    try { System.IO.File.WriteAllText(elPath, elText); }
+                    catch (Exception ex) { elOk = false; SendToJS("log", new { msg = $"Explore list save failed: {ex.Message}", color = "err" }); }
+                    SendToJS("exploreListFile", new { kind = "saved", ok = elOk });
+                    break;
+                }
+
+                case "exploreListOpen":
+                {
+                    var eoDlg = Dialog.FileOpen("json,txt");
+                    if (!eoDlg.IsOk) break;
+                    string eoText;
+                    try
+                    {
+                        if (new System.IO.FileInfo(eoDlg.Path).Length > 3_000_000) throw new InvalidOperationException("file is larger than 3 MB");
+                        eoText = System.IO.File.ReadAllText(eoDlg.Path);
+                    }
+                    catch (Exception ex)
+                    {
+                        SendToJS("log", new { msg = $"Explore list open failed: {ex.Message}", color = "err" });
+                        eoText = "";
+                    }
+                    SendToJS("exploreListFile", new { kind = "opened", text = eoText });
+                    break;
+                }
+
+                case "vrcExploreRows":
+                    // Explore: the rows VRChat itself shows in game, for the "VRChat rows" menu (step 5).
+                    _ = Task.Run(async () =>
+                    {
+                        var erOk = await LoadExploreRowsAsync();
+                        List<object> erList;
+                        lock (_exploreRowsLock)
+                            erList = _exploreRows.Select(kv => (object)new { id = kv.Key, name = kv.Value.Name, tag = kv.Value.Tag ?? "" }).ToList();
+                        Invoke(() => SendToJS("vrcExploreRows", new { ok = erOk, rows = erList }));
                     });
                     break;
 
@@ -4777,6 +4879,134 @@ public partial class AppShell
             w["heat"]?.Value<int>() ?? 0, w["popularity"]?.Value<int>() ?? 0,
             w["publicOccupants"]?.Value<int>() ?? 0, w["privateOccupants"]?.Value<int>() ?? 0,
             w["version"]?.Value<int>() ?? 0);
+    }
+
+    // Explore tab views backed by GET /worlds: view -> (sort, tag). Live views (active, discover) are instance lists.
+    private const int ExplorePageSize = 40;
+    private static readonly Dictionary<string, (string sort, string? tag)> ExploreViews = new()
+    {
+        ["relevance"] = ("relevance", null),
+        ["hot"]       = ("heat", null),
+        ["trending"]  = ("trending", null),
+        ["popular"]   = ("popularity", null),
+        ["new"]       = ("publicationDate", null),
+        ["labs"]      = ("labsPublicationDate", "system_labs"),
+        ["favorites"] = ("favorites", null),
+        ["random"]    = ("shuffle", null),
+    };
+
+    private const int ForYouPageSize = 50;
+
+    /// <summary>Explore's platform filter as GET /worlds platform / noplatform.</summary>
+    private static (string? platform, string? noplatform) ExplorePlatformArgs(string? choice) => choice switch
+    {
+        "quest" => ("android", null),
+        "pc"    => ("standalonewindows", "android"),
+        "ios"   => ("ios", null),
+        _       => (null, null),
+    };
+
+    // VRChat's own world rows (GET /config dynamicWorldRows) as Explore views "row:<index>". sortHeading becomes a
+    // GET /worlds sort the way VRChat's client and VRCX read it; rows about the user's own worlds or favorites are left out.
+    private sealed record ExploreRowSpec(string Sort, string? Tag, bool? Featured, bool Ascending, string Name);
+    private readonly object _exploreRowsLock = new();
+    private readonly SortedDictionary<int, (string id, ExploreRowSpec spec)> _exploreRowsByIndex = new();
+    private IEnumerable<KeyValuePair<string, ExploreRowSpec>> _exploreRows
+        => _exploreRowsByIndex.Values.Select(x => new KeyValuePair<string, ExploreRowSpec>(x.id, x.spec));
+    private static readonly System.Text.RegularExpressions.Regex ExploreWorldIdRx =
+        new(@"^wrld_[A-Za-z0-9-]{1,80}$", System.Text.RegularExpressions.RegexOptions.Compiled);
+    private static readonly System.Text.RegularExpressions.Regex ExploreRowIdRx =
+        new(@"^row:\d{1,3}$", System.Text.RegularExpressions.RegexOptions.Compiled);
+    private static readonly System.Text.RegularExpressions.Regex ExploreRowTagRx =
+        new(@"^[A-Za-z0-9_-]{1,64}$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    internal static (string sort, bool? featured)? ExploreRowSort(string heading) => heading switch
+    {
+        "featured"    => ("order", true),
+        "trending"    => ("popularity", false),
+        "heat"        => ("heat", false),
+        "updated"     => ("updated", null),
+        "created"     => ("created", null),
+        "publication" => ("publicationDate", null),
+        "labs"        => ("labsPublicationDate", null),
+        "shuffle"     => ("shuffle", null),
+        _             => null,
+    };
+
+    /// <summary>Reads /config's rows; false when VRChat could not be asked (the rows known so far are kept).</summary>
+    private async Task<bool> LoadExploreRowsAsync()
+    {
+        var rows = await _core.Users.GetDynamicWorldRowsAsync();
+        if (rows == null) return false;
+        var specs = new SortedDictionary<int, (string id, ExploreRowSpec spec)>();
+        var position = 0;
+        foreach (var r in rows.OfType<JObject>())
+        {
+            var index = r["index"]?.Type == JTokenType.Integer ? r["index"]!.Value<int>() : position;
+            position++;
+            var ownership = r["sortOwnership"]?.ToString() ?? "any";
+            var sort = ExploreRowSort(r["sortHeading"]?.ToString() ?? "");
+            var name = (r["name"]?.ToString() ?? "").Trim();
+            if (sort == null || (ownership != "any" && ownership != "") || name.Length == 0 || index < 0 || index > 999 || specs.ContainsKey(index)) continue;
+            var tags = (r["tag"]?.ToString() ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(t => ExploreRowTagRx.IsMatch(t)).Take(5).ToList();
+            specs[index] = ("row:" + index, new ExploreRowSpec(sort.Value.sort, tags.Count > 0 ? string.Join(",", tags) : null,
+                sort.Value.featured, r["sortOrder"]?.ToString() == "ascending", name.Length > 60 ? name[..60] : name));
+        }
+        lock (_exploreRowsLock)
+        {
+            _exploreRowsByIndex.Clear();
+            foreach (var kv in specs) _exploreRowsByIndex[kv.Key] = kv.Value;
+        }
+        return true;
+    }
+
+    private ExploreRowSpec? FindExploreRow(string id)
+    {
+        lock (_exploreRowsLock) return _exploreRowsByIndex.Values.Where(x => x.id == id).Select(x => x.spec).FirstOrDefault();
+    }
+
+    private async Task<ExploreRowSpec?> GetExploreRowAsync(string id)
+    {
+        var hit = FindExploreRow(id);
+        if (hit != null) return hit;
+        await LoadExploreRowsAsync();
+        return FindExploreRow(id);
+    }
+
+    // Explore filter tags: author tags (Chill, Photography, ...) and content warnings only, at most 20, sorted so the
+    // same filters always give the same URL (and so the same cache entry).
+    private static readonly System.Text.RegularExpressions.Regex ExploreTagRx =
+        new(@"^(author_tag_|content_)[^\s,&=?#]{1,64}$", System.Text.RegularExpressions.RegexOptions.Compiled);
+    private static List<string> ExploreTagList(JToken? token)
+        => (token as JArray ?? new JArray()).Select(t => t?.ToString().Trim().ToLowerInvariant() ?? "")
+            .Where(t => ExploreTagRx.IsMatch(t)).Distinct().OrderBy(t => t, StringComparer.Ordinal).Take(20).ToList();
+
+    /// <summary>The world card fields the Explore tab shows, plus the user's own visit stats.</summary>
+    private object ExploreRow(JObject w)
+    {
+        var id = w["id"]?.ToString() ?? "";
+        var url = ImageCacheHelper.GetWorldUrl(id, w["imageUrl"]?.ToString() ?? w["thumbnailImageUrl"]?.ToString());
+        var stats = _core.TimeEngine.GetWorldStats(id);
+        EnrichWorldDatesFromCache(_core.TimeEngine, w, id);
+        return new
+        {
+            id, name = w["name"]?.ToString() ?? "",
+            imageUrl = url, thumbnailImageUrl = url,
+            authorName = w["authorName"]?.ToString() ?? "", authorId = w["authorId"]?.ToString() ?? "",
+            occupants = w["occupants"]?.Value<int>() ?? 0,
+            capacity = w["capacity"]?.Value<int>() ?? 0, favorites = w["favorites"]?.Value<int>() ?? 0,
+            visits = w["visits"]?.Value<int>() ?? 0, description = w["description"]?.ToString() ?? "",
+            tags = w["tags"]?.ToObject<List<string>>() ?? new(),
+            platforms = (w["unityPackages"] as JArray ?? new JArray()).OfType<JObject>()
+                .Select(p => p["platform"]?.ToString() ?? "").Where(p => p.Length > 0).Distinct().ToList(),
+            created_at = DateTimeHelper.Iso(w["created_at"]),
+            updated_at = DateTimeHelper.Iso(w["updated_at"]),
+            publicationDate = DateTimeHelper.Iso(w["publicationDate"]),
+            worldTimeSeconds = stats.totalSeconds,
+            worldVisitCount  = stats.visitCount,
+            worldLastVisited = stats.lastVisited,
+        };
     }
 
     internal static void EnrichWorldDatesFromCache(UnifiedTimeEngine engine, JObject w, string worldId)

@@ -15,8 +15,9 @@
             if (queued) return;
             for (const r of records) for (const n of r.addedNodes) {
                 if (n.nodeType === 1 && (n.tagName === 'SELECT' || n.getElementsByTagName('select').length)) {
+                    // Right after this change, not on the next frame: frames wait while the window is hidden.
                     queued = true;
-                    requestAnimationFrame(upgrade);
+                    queueMicrotask(upgrade);
                     return;
                 }
             }
@@ -38,6 +39,7 @@
         const grip = document.createElement('div');
         grip.className = 'settings-nav-resizer';
         grip.title = typeof t === 'function' ? t('hub.settings.resize_nav', 'Drag to resize') : 'Drag to resize';
+        grip.setAttribute('data-i18n-title', 'hub.settings.resize_nav');
         grip.addEventListener('pointerdown', e => {
             e.preventDefault();
             grip.setPointerCapture(e.pointerId);

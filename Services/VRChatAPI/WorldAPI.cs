@@ -408,16 +408,57 @@ public class WorldAPI
         return new JArray();
     }
 
-    public async Task<JArray> SearchWorldsAsync(string query, int n = 20, int offset = 0, string sort = "relevance")
+    // Explore tab: one page of GET /worlds. Each page is kept a few minutes per URL, so going back to a view or a
+    // page does not ask VRChat again (VRChat's API rules: cache what changes slowly). fresh = the Refresh button.
+    private const int ExploreCacheMax = 40;
+    private static readonly TimeSpan ExploreCacheTtl = TimeSpan.FromMinutes(3);
+    private readonly object _exploreCacheLock = new();
+    private readonly Dictionary<string, (DateTime at, JArray rows)> _exploreCache = new();
+
+    /// <summary>One page of public worlds; null when VRChat answered with an error. tag / notag are comma lists
+    /// (worlds with any of / none of these tags); platform / noplatform pick worlds built for a platform or not.
+    /// featured and ascending come from VRChat's own rows (/config dynamicWorldRows).</summary>
+    public async Task<JArray?> ExploreWorldsAsync(string query, string sort, string? tag, int n, int offset, bool fresh,
+        string? notag = null, string? platform = null, string? noplatform = null, bool? featured = null, bool ascending = false)
     {
-        if (!ctx.IsLoggedIn || string.IsNullOrEmpty(query)) return new JArray();
+        if (!ctx.IsLoggedIn) return null;
+        var url = $"{VRChatApiService.BASE}/worlds?sort={Uri.EscapeDataString(sort)}&order={(ascending ? "ascending" : "descending")}&releaseStatus=public&n={n}&offset={offset}";
+        if (featured != null) url += $"&featured={(featured.Value ? "true" : "false")}";
+        if (!string.IsNullOrWhiteSpace(query)) url += $"&search={Uri.EscapeDataString(query.Trim())}";
+        if (!string.IsNullOrEmpty(tag)) url += $"&tag={Uri.EscapeDataString(tag)}";
+        if (!string.IsNullOrEmpty(notag)) url += $"&notag={Uri.EscapeDataString(notag)}";
+        if (!string.IsNullOrEmpty(platform)) url += $"&platform={Uri.EscapeDataString(platform)}";
+        if (!string.IsNullOrEmpty(noplatform)) url += $"&noplatform={Uri.EscapeDataString(noplatform)}";
+        if (!fresh)
+        {
+            lock (_exploreCacheLock)
+                if (_exploreCache.TryGetValue(url, out var hit) && DateTime.UtcNow - hit.at < ExploreCacheTtl)
+                    return (JArray)hit.rows.DeepClone();
+        }
         try
         {
-            var resp = await ctx._http.GetAsync($"{VRChatApiService.BASE}/worlds?search={Uri.EscapeDataString(query)}&n={n}&offset={offset}&sort={Uri.EscapeDataString(sort)}");
-            if (resp.IsSuccessStatusCode) return JArray.Parse(await resp.Content.ReadAsStringAsync());
+            var resp = await ctx._http.GetAsync(url);
+            var body = await resp.Content.ReadAsStringAsync();
+            if (!resp.IsSuccessStatusCode)
+            {
+                ctx.Log($"ExploreWorlds {(int)resp.StatusCode}: {body[..Math.Min(200, body.Length)]}");
+                return null;
+            }
+            var rows = JArray.Parse(body);
+            lock (_exploreCacheLock)
+            {
+                if (_exploreCache.Count >= ExploreCacheMax)
+                {
+                    var oldest = _exploreCache.OrderBy(kv => kv.Value.at).Take(_exploreCache.Count - ExploreCacheMax + 1)
+                        .Select(kv => kv.Key).ToList();
+                    foreach (var key in oldest) _exploreCache.Remove(key);
+                }
+                _exploreCache[url] = (DateTime.UtcNow, rows);
+            }
+            return (JArray)rows.DeepClone();
         }
-        catch (Exception ex) { ctx.Log($"SearchWorlds exception: {ex.Message}"); }
-        return new JArray();
+        catch (Exception ex) { ctx.Log($"ExploreWorlds exception: {ex.Message}"); }
+        return null;
     }
 
     public async Task<(bool canPublish, bool hasPersistentData)> GetWorldManageInfoAsync(string worldId, bool ownWorld)

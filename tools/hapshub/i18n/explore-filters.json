@@ -1,0 +1,148 @@
+{
+  "worlds.explore.filters.button": {
+    "en": "Filters", "de": "Filter", "es": "Filtros", "fr": "Filtres", "ja": "フィルター",
+    "ko": "필터", "ru": "Фильтры", "zh-CN": "筛选", "zh-TW": "篩選"
+  },
+  "worlds.explore.filters.title": {
+    "en": "Filters", "de": "Filter", "es": "Filtros", "fr": "Filtres", "ja": "フィルター",
+    "ko": "필터", "ru": "Фильтры", "zh-CN": "筛选", "zh-TW": "篩選"
+  },
+  "worlds.explore.filters.platform": {
+    "en": "Platform", "de": "Plattform", "es": "Plataforma", "fr": "Plateforme", "ja": "プラットフォーム",
+    "ko": "플랫폼", "ru": "Платформа", "zh-CN": "平台", "zh-TW": "平台"
+  },
+  "worlds.explore.filters.platform_any": {
+    "en": "Any platform", "de": "Jede Plattform", "es": "Cualquier plataforma", "fr": "Toutes les plateformes",
+    "ja": "すべてのプラットフォーム", "ko": "모든 플랫폼", "ru": "Любая платформа", "zh-CN": "任意平台", "zh-TW": "任何平台"
+  },
+  "worlds.explore.filters.platform_quest": {
+    "en": "Quest / Android", "de": "Quest / Android", "es": "Quest / Android", "fr": "Quest / Android",
+    "ja": "Quest / Android", "ko": "Quest / Android", "ru": "Quest / Android", "zh-CN": "Quest / 安卓", "zh-TW": "Quest / Android"
+  },
+  "worlds.explore.filters.platform_pc": {
+    "en": "PC only", "de": "Nur PC", "es": "Solo PC", "fr": "PC uniquement", "ja": "PCのみ",
+    "ko": "PC 전용", "ru": "Только ПК", "zh-CN": "仅 PC", "zh-TW": "僅限 PC"
+  },
+  "worlds.explore.filters.content": {
+    "en": "Hide warnings", "de": "Warnungen ausblenden", "es": "Ocultar advertencias", "fr": "Masquer les avertissements",
+    "ja": "警告を隠す", "ko": "경고 숨기기", "ru": "Скрыть предупреждения", "zh-CN": "隐藏警告", "zh-TW": "隱藏警告"
+  },
+  "worlds.explore.filters.cw_sex": {
+    "en": "Sexually suggestive", "de": "Sexuell anzüglich", "es": "Contenido sexual sugerente", "fr": "Contenu suggestif",
+    "ja": "性的な示唆", "ko": "선정적인 내용", "ru": "Сексуальный подтекст", "zh-CN": "性暗示", "zh-TW": "性暗示"
+  },
+  "worlds.explore.filters.cw_adult": {
+    "en": "Adult language and themes", "de": "Erwachsenensprache und -themen", "es": "Lenguaje y temas adultos",
+    "fr": "Langage et thèmes adultes", "ja": "成人向けの言葉や題材", "ko": "성인 언어 및 주제",
+    "ru": "Взрослые темы и лексика", "zh-CN": "成人语言与主题", "zh-TW": "成人語言與主題"
+  },
+  "worlds.explore.filters.cw_violence": {
+    "en": "Graphic violence", "de": "Drastische Gewalt", "es": "Violencia gráfica", "fr": "Violence graphique",
+    "ja": "過激な暴力", "ko": "폭력적인 묘사", "ru": "Жестокое насилие", "zh-CN": "暴力画面", "zh-TW": "暴力畫面"
+  },
+  "worlds.explore.filters.cw_gore": {
+    "en": "Excessive gore", "de": "Übermäßig blutig", "es": "Gore excesivo", "fr": "Gore excessif",
+    "ja": "過度な流血表現", "ko": "과도한 고어", "ru": "Чрезмерная жестокость", "zh-CN": "过度血腥", "zh-TW": "過度血腥"
+  },
+  "worlds.explore.filters.cw_horror": {
+    "en": "Extreme horror", "de": "Extremer Horror", "es": "Terror extremo", "fr": "Horreur extrême",
+    "ja": "過激なホラー", "ko": "극단적인 공포", "ru": "Сильный хоррор", "zh-CN": "极度恐怖", "zh-TW": "極度恐怖"
+  },
+  "worlds.explore.filters.cw_other": {
+    "en": "Other warnings", "de": "Andere Warnungen", "es": "Otras advertencias", "fr": "Autres avertissements",
+    "ja": "その他の警告", "ko": "기타 경고", "ru": "Другие предупреждения", "zh-CN": "其他警告", "zh-TW": "其他警告"
+  },
+  "worlds.explore.filters.published": {
+    "en": "Published", "de": "Veröffentlicht", "es": "Publicado", "fr": "Publié", "ja": "公開日",
+    "ko": "공개일", "ru": "Опубликован", "zh-CN": "发布时间", "zh-TW": "發布時間"
+  },
+  "worlds.explore.filters.age_any": {
+    "en": "Any time", "de": "Jederzeit", "es": "Cualquier fecha", "fr": "N'importe quand", "ja": "すべての期間",
+    "ko": "전체 기간", "ru": "За всё время", "zh-CN": "任何时间", "zh-TW": "任何時間"
+  },
+  "worlds.explore.filters.age_days": {
+    "en": "Last {n} days", "de": "Letzte {n} Tage", "es": "Últimos {n} días", "fr": "{n} derniers jours",
+    "ja": "過去{n}日", "ko": "최근 {n}일", "ru": "Последние {n} дн.", "zh-CN": "最近 {n} 天", "zh-TW": "最近 {n} 天"
+  },
+  "worlds.explore.filters.age_year": {
+    "en": "Last year", "de": "Letztes Jahr", "es": "Último año", "fr": "Dernière année", "ja": "過去1年",
+    "ko": "최근 1년", "ru": "Последний год", "zh-CN": "最近一年", "zh-TW": "最近一年"
+  },
+  "worlds.explore.filters.age_years": {
+    "en": "Last {n} years", "de": "Letzte {n} Jahre", "es": "Últimos {n} años", "fr": "{n} dernières années",
+    "ja": "過去{n}年", "ko": "최근 {n}년", "ru": "Последние {n} г.", "zh-CN": "最近 {n} 年", "zh-TW": "最近 {n} 年"
+  },
+  "worlds.explore.filters.capacity": {
+    "en": "Capacity", "de": "Kapazität", "es": "Capacidad", "fr": "Capacité", "ja": "定員",
+    "ko": "수용 인원", "ru": "Вместимость", "zh-CN": "容量", "zh-TW": "容量"
+  },
+  "worlds.explore.filters.min": {
+    "en": "Min", "de": "Min.", "es": "Mín.", "fr": "Min", "ja": "最小", "ko": "최소", "ru": "Мин.", "zh-CN": "最小", "zh-TW": "最小"
+  },
+  "worlds.explore.filters.max": {
+    "en": "Max", "de": "Max.", "es": "Máx.", "fr": "Max", "ja": "最大", "ko": "최대", "ru": "Макс.", "zh-CN": "最大", "zh-TW": "最大"
+  },
+  "worlds.explore.filters.language": {
+    "en": "Language", "de": "Sprache", "es": "Idioma", "fr": "Langue", "ja": "言語",
+    "ko": "언어", "ru": "Язык", "zh-CN": "语言", "zh-TW": "語言"
+  },
+  "worlds.explore.filters.lang_any": {
+    "en": "Any language", "de": "Jede Sprache", "es": "Cualquier idioma", "fr": "Toutes les langues", "ja": "すべての言語",
+    "ko": "모든 언어", "ru": "Любой язык", "zh-CN": "任意语言", "zh-TW": "任何語言"
+  },
+  "worlds.explore.filters.add_tag": {
+    "en": "Add tag", "de": "Tag hinzufügen", "es": "Añadir etiqueta", "fr": "Ajouter un tag", "ja": "タグを追加",
+    "ko": "태그 추가", "ru": "Добавить тег", "zh-CN": "添加标签", "zh-TW": "新增標籤"
+  },
+  "worlds.explore.filters.tag_placeholder": {
+    "en": "e.g. chill, then Enter", "de": "z. B. chill, dann Enter", "es": "p. ej. chill y Enter", "fr": "ex. chill, puis Entrée",
+    "ja": "例: chill のあと Enter", "ko": "예: chill 입력 후 Enter", "ru": "напр. chill, затем Enter", "zh-CN": "例如 chill，然后按回车", "zh-TW": "例如 chill，然後按 Enter"
+  },
+  "worlds.explore.filters.hint": {
+    "en": "VRChat applies platform, warnings and tags to all worlds. Published, capacity and language check the worlds loaded so far; language is a best guess from tags and text.",
+    "de": "VRChat wendet Plattform, Warnungen und Tags auf alle Welten an. Veröffentlicht, Kapazität und Sprache prüfen die bisher geladenen Welten; die Sprache wird aus Tags und Text geschätzt.",
+    "es": "VRChat aplica la plataforma, las advertencias y las etiquetas a todos los mundos. Publicado, capacidad e idioma revisan los mundos ya cargados; el idioma se estima a partir de etiquetas y texto.",
+    "fr": "VRChat applique la plateforme, les avertissements et les tags à tous les mondes. Publié, capacité et langue vérifient les mondes déjà chargés ; la langue est estimée d'après les tags et le texte.",
+    "ja": "プラットフォーム・警告・タグは VRChat が全ワールドに適用します。公開日・定員・言語は読み込み済みのワールドを確認します。言語はタグと文章からの推測です。",
+    "ko": "플랫폼, 경고, 태그는 VRChat이 모든 월드에 적용합니다. 공개일, 수용 인원, 언어는 지금까지 불러온 월드를 확인하며, 언어는 태그와 글로 추정합니다.",
+    "ru": "Платформу, предупреждения и теги VRChat применяет ко всем мирам. Дата, вместимость и язык проверяются у уже загруженных миров; язык угадывается по тегам и тексту.",
+    "zh-CN": "平台、警告和标签由 VRChat 应用于所有世界。发布时间、容量和语言只检查已加载的世界；语言根据标签和文字推测。",
+    "zh-TW": "平台、警告與標籤由 VRChat 套用到所有世界。發布時間、容量與語言只檢查已載入的世界；語言依標籤與文字推測。"
+  },
+  "worlds.explore.filters.clear": {
+    "en": "Clear filters", "de": "Filter zurücksetzen", "es": "Quitar filtros", "fr": "Effacer les filtres", "ja": "フィルターをクリア",
+    "ko": "필터 지우기", "ru": "Сбросить фильтры", "zh-CN": "清除筛选", "zh-TW": "清除篩選"
+  },
+  "worlds.explore.filters.tags": {
+    "en": "Tags", "de": "Tags", "es": "Etiquetas", "fr": "Tags", "ja": "タグ", "ko": "태그", "ru": "Теги", "zh-CN": "标签", "zh-TW": "標籤"
+  },
+  "worlds.explore.filters.chip_hint": {
+    "en": "Click: only worlds with this tag. Again: hide worlds with it. Again: off.",
+    "de": "Klick: nur Welten mit diesem Tag. Nochmal: Welten damit ausblenden. Nochmal: aus.",
+    "es": "Clic: solo mundos con esta etiqueta. Otra vez: ocultarlos. Otra vez: desactivar.",
+    "fr": "Clic : seulement les mondes avec ce tag. Encore : les masquer. Encore : désactivé.",
+    "ja": "クリック: このタグのワールドだけ表示。もう一度: 非表示。もう一度: 解除。",
+    "ko": "클릭: 이 태그가 있는 월드만. 다시: 숨기기. 다시: 해제.",
+    "ru": "Клик: только миры с этим тегом. Ещё раз: скрыть их. Ещё раз: выкл.",
+    "zh-CN": "点击：只显示有此标签的世界。再点：隐藏它们。再点：关闭。",
+    "zh-TW": "點擊：只顯示有此標籤的世界。再點：隱藏它們。再點：關閉。"
+  },
+  "worlds.explore.filters.bad_tag": {
+    "en": "A tag cannot contain , & = ? or #", "de": "Ein Tag darf , & = ? oder # nicht enthalten",
+    "es": "Una etiqueta no puede contener , & = ? ni #", "fr": "Un tag ne peut pas contenir , & = ? ou #",
+    "ja": "タグに , & = ? # は使えません", "ko": "태그에는 , & = ? #를 쓸 수 없습니다", "ru": "Тег не может содержать , & = ? или #",
+    "zh-CN": "标签不能包含 , & = ? 或 #", "zh-TW": "標籤不能包含 , & = ? 或 #"
+  },
+  "worlds.explore.filters.note_hidden": {
+    "en": "Filters hide {hidden} of {total} loaded worlds.", "de": "Filter blenden {hidden} von {total} geladenen Welten aus.",
+    "es": "Los filtros ocultan {hidden} de {total} mundos cargados.", "fr": "Les filtres masquent {hidden} des {total} mondes chargés.",
+    "ja": "フィルターで読み込み済み {total} 件中 {hidden} 件を非表示にしています。", "ko": "필터가 불러온 월드 {total}개 중 {hidden}개를 숨깁니다.",
+    "ru": "Фильтры скрывают {hidden} из {total} загруженных миров.", "zh-CN": "筛选隐藏了已加载的 {total} 个世界中的 {hidden} 个。",
+    "zh-TW": "篩選隱藏了已載入的 {total} 個世界中的 {hidden} 個。"
+  },
+  "worlds.explore.filters.none_match": {
+    "en": "No worlds match your filters", "de": "Keine Welten passen zu deinen Filtern", "es": "Ningún mundo coincide con tus filtros",
+    "fr": "Aucun monde ne correspond à vos filtres", "ja": "フィルターに合うワールドがありません", "ko": "필터에 맞는 월드가 없습니다",
+    "ru": "Нет миров под ваши фильтры", "zh-CN": "没有符合筛选条件的世界", "zh-TW": "沒有符合篩選條件的世界"
+  }
+}

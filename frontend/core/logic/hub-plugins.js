@@ -177,7 +177,14 @@ function hubPluginSet(id, on) {
 // ---- The Plugins page (Settings > Plugins) ----
 
 function _hubPluginText(plugin, field) {
-    return t(`hub.plugin.${plugin.id}.${field}`, field === 'name' ? plugin.name : plugin.desc);
+    const own = t(`hub.plugin.${plugin.id}.${field}`, '');
+    if (own) return own;
+    // A plugin with one page is named like its sidebar entry, which is translated.
+    if (field === 'name' && plugin.nav && plugin.nav.length === 1) {
+        const nav = t('nav.' + plugin.nav[0].replace(/-/g, '_'), '');
+        if (nav) return nav;
+    }
+    return field === 'name' ? plugin.name : plugin.desc;
 }
 
 function hubPluginsRender() {

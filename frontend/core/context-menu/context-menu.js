@@ -885,10 +885,10 @@
             if (id) return buildWorldItems(id);
         }
 
-        const worldCard = el.closest('#favWorldsGrid .vrcn-content-card, #worldSearchArea .vrcn-content-card, #worldMineGrid .vrcn-content-card, #worldRecentGrid .vrcn-content-card, #worldDiscoverGrid .vrcn-content-card, #fdContentWorlds .vrcn-content-card, #fdTabFavs .vrcn-world-card-small, .tl-list-table[data-tl-list="worldsList"] .tl-list-row');
+        const worldCard = el.closest('#favWorldsGrid .vrcn-content-card, #worldExploreArea .vrcn-content-card, #worldMineGrid .vrcn-content-card, #worldRecentGrid .vrcn-content-card, #fdContentWorlds .vrcn-content-card, #fdTabFavs .vrcn-world-card-small, .tl-list-table[data-tl-list="worldsList"] .tl-list-row');
         if (worldCard) {
             const id = extractWorldId(worldCard);
-            if (id) return buildWorldItems(id);
+            if (id) return buildWorldItems(id, { explore: !!worldCard.closest('#worldExploreArea') });
         }
 
         const tsWorld = el.closest('.ts-item[data-world-id]');
@@ -1612,7 +1612,7 @@
         positionSubmenu(parentBtn);
     }
 
-    function buildWorldItems(id) {
+    function buildWorldItems(id, opts) {
         // Edit mode: auto-select right-clicked world and show only batch-action items
         if (typeof _worldEditMode !== 'undefined' && _worldEditMode) {
             if (!_worldEditSelected.has(id)) {
@@ -1646,6 +1646,10 @@
         tools.push(copyItem('world', id, 'https://vrchat.com/home/world/' + id, 'Copy World ID', 'Copy World Link', 'World ID copied to clipboard', 'World link copied to clipboard'));
         const _pinWorld = (typeof pinsContextItem === 'function') ? pinsContextItem('world', id) : null;
         if (_pinWorld) tools.push(_pinWorld);
+        // Explore (item 14, step 3): like, dislike and the hide list, kept on this computer only.
+        if (opts?.explore && typeof exploreContextItems === 'function') {
+            items.push('sep', ...exploreContextItems(id).map(it => it.sub ? { ...it, submenuFn: btn => showCopySubmenu(it.sub, btn) } : it));
+        }
         return [{ toolbar: tools }, ...items];
     }
 

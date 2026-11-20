@@ -1,0 +1,113 @@
+{
+  "worlds.explore.rows.button": {
+    "en": "VRChat rows", "de": "VRChat-Reihen", "es": "Filas de VRChat", "fr": "Rangées VRChat", "ja": "VRChatの列",
+    "ko": "VRChat 목록", "ru": "Ряды VRChat", "uk": "Ряди VRChat", "zh-CN": "VRChat 栏目", "zh-TW": "VRChat 欄目"
+  },
+  "worlds.explore.rows.title": {
+    "en": "Rows VRChat shows in game", "de": "Reihen, die VRChat im Spiel zeigt", "es": "Filas que VRChat muestra en el juego",
+    "fr": "Rangées affichées par VRChat en jeu", "ja": "VRChatがゲーム内で表示する列", "ko": "VRChat이 게임 안에서 보여 주는 목록",
+    "ru": "Ряды, которые VRChat показывает в игре", "uk": "Ряди, які VRChat показує в грі", "zh-CN": "VRChat 游戏内显示的栏目",
+    "zh-TW": "VRChat 遊戲內顯示的欄目"
+  },
+  "worlds.explore.rows.loading": {
+    "en": "Asking VRChat for its rows...", "de": "VRChat wird nach seinen Reihen gefragt...", "es": "Pidiendo las filas a VRChat...",
+    "fr": "Demande des rangées à VRChat...", "ja": "VRChatに列を問い合わせ中...", "ko": "VRChat에 목록을 요청하는 중...",
+    "ru": "Запрашиваем ряды у VRChat...", "uk": "Запитуємо ряди у VRChat...", "zh-CN": "正在向 VRChat 获取栏目...", "zh-TW": "正在向 VRChat 取得欄目..."
+  },
+  "worlds.explore.rows.failed": {
+    "en": "Could not load VRChat's rows. Open this again to retry.", "de": "VRChats Reihen konnten nicht geladen werden. Zum erneuten Versuch noch einmal öffnen.",
+    "es": "No se pudieron cargar las filas de VRChat. Ábrelo otra vez para reintentar.", "fr": "Impossible de charger les rangées de VRChat. Rouvrez pour réessayer.",
+    "ja": "VRChatの列を読み込めませんでした。もう一度開くと再試行します。", "ko": "VRChat 목록을 불러오지 못했습니다. 다시 열면 재시도합니다.",
+    "ru": "Не удалось загрузить ряды VRChat. Откройте снова, чтобы повторить.", "uk": "Не вдалося завантажити ряди VRChat. Відкрийте знову, щоб повторити.",
+    "zh-CN": "无法加载 VRChat 的栏目。再次打开即可重试。", "zh-TW": "無法載入 VRChat 的欄目。再次開啟即可重試。"
+  },
+  "worlds.explore.rows.empty": {
+    "en": "VRChat lists no rows HapsHub can show.", "de": "VRChat nennt keine Reihen, die HapsHub zeigen kann.",
+    "es": "VRChat no tiene filas que HapsHub pueda mostrar.", "fr": "VRChat ne propose aucune rangée que HapsHub peut afficher.",
+    "ja": "HapsHubで表示できる列がVRChatにありません。", "ko": "HapsHub에서 보여 줄 수 있는 VRChat 목록이 없습니다.",
+    "ru": "У VRChat нет рядов, которые HapsHub может показать.", "uk": "У VRChat немає рядів, які HapsHub може показати.",
+    "zh-CN": "VRChat 没有 HapsHub 可显示的栏目。", "zh-TW": "VRChat 沒有 HapsHub 可顯示的欄目。"
+  },
+  "worlds.explore.rows.hint": {
+    "en": "The same rows as VRChat's own world menu. Your filters still apply.", "de": "Dieselben Reihen wie im Weltenmenü von VRChat. Deine Filter gelten weiter.",
+    "es": "Las mismas filas que el menú de mundos de VRChat. Tus filtros siguen activos.", "fr": "Les mêmes rangées que le menu des mondes de VRChat. Vos filtres s'appliquent toujours.",
+    "ja": "VRChat自身のワールドメニューと同じ列です。フィルターはそのまま効きます。", "ko": "VRChat 월드 메뉴와 같은 목록입니다. 필터는 그대로 적용됩니다.",
+    "ru": "Те же ряды, что в меню миров VRChat. Ваши фильтры продолжают работать.", "uk": "Ті самі ряди, що в меню світів VRChat. Ваші фільтри й далі діють.",
+    "zh-CN": "与 VRChat 自己的世界菜单相同的栏目。筛选仍然生效。", "zh-TW": "與 VRChat 自己的世界選單相同的欄目。篩選仍然有效。"
+  },
+  "worlds.explore.rows.unknown": {
+    "en": "VRChat row", "de": "VRChat-Reihe", "es": "Fila de VRChat", "fr": "Rangée VRChat", "ja": "VRChatの列",
+    "ko": "VRChat 목록", "ru": "Ряд VRChat", "uk": "Ряд VRChat", "zh-CN": "VRChat 栏目", "zh-TW": "VRChat 欄目"
+  },
+  "worlds.explore.rows.note": {
+    "en": "VRChat row: {name}.", "de": "VRChat-Reihe: {name}.", "es": "Fila de VRChat: {name}.", "fr": "Rangée VRChat : {name}.",
+    "ja": "VRChatの列: {name}。", "ko": "VRChat 목록: {name}.", "ru": "Ряд VRChat: {name}.", "uk": "Ряд VRChat: {name}.",
+    "zh-CN": "VRChat 栏目：{name}。", "zh-TW": "VRChat 欄目：{name}。"
+  },
+  "worlds.explore.saved.button": {
+    "en": "Saved", "de": "Gespeichert", "es": "Guardadas", "fr": "Enregistrées", "ja": "保存済み", "ko": "저장됨",
+    "ru": "Сохранённые", "uk": "Збережені", "zh-CN": "已保存", "zh-TW": "已儲存"
+  },
+  "worlds.explore.saved.title": {
+    "en": "Saved searches", "de": "Gespeicherte Suchen", "es": "Búsquedas guardadas", "fr": "Recherches enregistrées",
+    "ja": "保存した検索", "ko": "저장한 검색", "ru": "Сохранённые поиски", "uk": "Збережені пошуки", "zh-CN": "已保存的搜索", "zh-TW": "已儲存的搜尋"
+  },
+  "worlds.explore.saved.empty": {
+    "en": "Nothing saved yet.", "de": "Noch nichts gespeichert.", "es": "Aún no hay nada guardado.", "fr": "Rien d'enregistré pour l'instant.",
+    "ja": "まだ何も保存していません。", "ko": "아직 저장한 것이 없습니다.", "ru": "Пока ничего не сохранено.", "uk": "Поки нічого не збережено.",
+    "zh-CN": "还没有保存任何内容。", "zh-TW": "還沒有儲存任何內容。"
+  },
+  "worlds.explore.saved.name_placeholder": {
+    "en": "Name this search", "de": "Name für diese Suche", "es": "Nombre de esta búsqueda", "fr": "Nom de cette recherche",
+    "ja": "この検索の名前", "ko": "이 검색의 이름", "ru": "Название поиска", "uk": "Назва пошуку", "zh-CN": "为此搜索命名", "zh-TW": "為此搜尋命名"
+  },
+  "worlds.explore.saved.save": {
+    "en": "Save", "de": "Speichern", "es": "Guardar", "fr": "Enregistrer", "ja": "保存", "ko": "저장",
+    "ru": "Сохранить", "uk": "Зберегти", "zh-CN": "保存", "zh-TW": "儲存"
+  },
+  "worlds.explore.saved.start": {
+    "en": "Explore opens on", "de": "Erkunden öffnet mit", "es": "Explorar abre en", "fr": "Explorer s'ouvre sur",
+    "ja": "探索を開いたときの表示", "ko": "탐색을 열 때", "ru": "«Исследовать» открывается на", "uk": "«Огляд» відкривається на",
+    "zh-CN": "探索打开时显示", "zh-TW": "瀏覽開啟時顯示"
+  },
+  "worlds.explore.saved.start_item": {
+    "en": "Saved: {name}", "de": "Gespeichert: {name}", "es": "Guardada: {name}", "fr": "Enregistrée : {name}", "ja": "保存済み: {name}",
+    "ko": "저장됨: {name}", "ru": "Сохранённый: {name}", "uk": "Збережений: {name}", "zh-CN": "已保存：{name}", "zh-TW": "已儲存：{name}"
+  },
+  "worlds.explore.saved.pin": {
+    "en": "Open Explore here", "de": "Erkunden hier öffnen", "es": "Abrir Explorar aquí", "fr": "Ouvrir Explorer ici",
+    "ja": "探索をここで開く", "ko": "탐색을 여기서 열기", "ru": "Открывать «Исследовать» здесь", "uk": "Відкривати «Огляд» тут",
+    "zh-CN": "探索从这里打开", "zh-TW": "瀏覽從這裡開啟"
+  },
+  "worlds.explore.saved.delete": {
+    "en": "Delete", "de": "Löschen", "es": "Eliminar", "fr": "Supprimer", "ja": "削除", "ko": "삭제",
+    "ru": "Удалить", "uk": "Видалити", "zh-CN": "删除", "zh-TW": "刪除"
+  },
+  "worlds.explore.saved.hint": {
+    "en": "Saves the view, the search text and the filters. Kept on this computer only.",
+    "de": "Speichert Ansicht, Suchtext und Filter. Bleibt nur auf diesem Computer.",
+    "es": "Guarda la vista, el texto de búsqueda y los filtros. Solo en este equipo.",
+    "fr": "Enregistre la vue, le texte recherché et les filtres. Gardé sur cet ordinateur uniquement.",
+    "ja": "表示、検索語、フィルターを保存します。このPCにのみ保存されます。", "ko": "보기, 검색어, 필터를 저장합니다. 이 컴퓨터에만 보관됩니다.",
+    "ru": "Сохраняет вид, текст поиска и фильтры. Хранится только на этом компьютере.",
+    "uk": "Зберігає вигляд, текст пошуку і фільтри. Лише на цьому комп'ютері.",
+    "zh-CN": "保存视图、搜索文字和筛选。只保存在这台电脑上。", "zh-TW": "儲存檢視、搜尋文字和篩選。只保存在這台電腦上。"
+  },
+  "worlds.explore.saved.toast_saved": {
+    "en": "\"{name}\" saved.", "de": "„{name}“ gespeichert.", "es": "\"{name}\" guardada.", "fr": "« {name} » enregistrée.",
+    "ja": "「{name}」を保存しました。", "ko": "\"{name}\" 저장됨.", "ru": "«{name}» сохранён.", "uk": "«{name}» збережено.",
+    "zh-CN": "已保存“{name}”。", "zh-TW": "已儲存「{name}」。"
+  },
+  "worlds.explore.saved.need_name": {
+    "en": "Type a name first.", "de": "Gib zuerst einen Namen ein.", "es": "Escribe un nombre primero.", "fr": "Saisissez d'abord un nom.",
+    "ja": "先に名前を入力してください。", "ko": "먼저 이름을 입력하세요.", "ru": "Сначала введите название.", "uk": "Спершу введіть назву.",
+    "zh-CN": "请先输入名称。", "zh-TW": "請先輸入名稱。"
+  },
+  "worlds.explore.saved.full": {
+    "en": "You can keep {n} saved searches. Delete one first.", "de": "Du kannst {n} Suchen speichern. Lösche zuerst eine.",
+    "es": "Puedes guardar {n} búsquedas. Elimina una primero.", "fr": "Vous pouvez garder {n} recherches. Supprimez-en une d'abord.",
+    "ja": "保存できる検索は{n}件までです。先に1件削除してください。", "ko": "검색은 {n}개까지 저장할 수 있습니다. 먼저 하나를 삭제하세요.",
+    "ru": "Можно хранить {n} поисков. Сначала удалите один.", "uk": "Можна зберігати {n} пошуків. Спершу видаліть один.",
+    "zh-CN": "最多可保存 {n} 个搜索。请先删除一个。", "zh-TW": "最多可儲存 {n} 個搜尋。請先刪除一個。"
+  }
+}

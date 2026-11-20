@@ -1,0 +1,37 @@
+{
+  "worlds.explore.active.friends": {
+    "en": "Friends", "de": "Freunde", "es": "Amigos", "fr": "Amis", "ja": "フレンド", "ko": "친구",
+    "ru": "Друзья", "uk": "Друзі", "zh-CN": "好友", "zh-TW": "好友"
+  },
+  "worlds.explore.active.friends_only": {
+    "en": "Only worlds where friends are now", "de": "Nur Welten, in denen gerade Freunde sind",
+    "es": "Solo mundos donde hay amigos ahora", "fr": "Seulement les mondes où sont des amis",
+    "ja": "フレンドが今いるワールドだけ", "ko": "지금 친구가 있는 월드만", "ru": "Только миры, где сейчас есть друзья",
+    "uk": "Лише світи, де зараз є друзі", "zh-CN": "只看现在有好友的世界", "zh-TW": "只看現在有好友的世界"
+  },
+  "worlds.explore.active.order": {
+    "en": "Order", "de": "Reihenfolge", "es": "Orden", "fr": "Ordre", "ja": "並び順", "ko": "정렬",
+    "ru": "Порядок", "uk": "Порядок", "zh-CN": "排序", "zh-TW": "排序"
+  },
+  "worlds.explore.active.order_default": {
+    "en": "VRChat's order", "de": "Wie bei VRChat", "es": "Orden de VRChat", "fr": "Ordre de VRChat",
+    "ja": "VRChatの順", "ko": "VRChat 순서", "ru": "Как в VRChat", "uk": "Як у VRChat",
+    "zh-CN": "VRChat 的顺序", "zh-TW": "VRChat 的順序"
+  },
+  "worlds.explore.active.order_people": {
+    "en": "People here now", "de": "Leute gerade dort", "es": "Gente ahora", "fr": "Personnes présentes",
+    "ja": "今いる人数", "ko": "지금 있는 인원", "ru": "Сейчас людей", "uk": "Зараз людей",
+    "zh-CN": "当前人数", "zh-TW": "目前人數"
+  },
+  "worlds.explore.active.order_friends": {
+    "en": "Friends here first", "de": "Freunde zuerst", "es": "Primero con amigos", "fr": "Amis présents d'abord",
+    "ja": "フレンドがいる順", "ko": "친구 있는 곳 먼저", "ru": "Сначала с друзьями", "uk": "Спершу з друзями",
+    "zh-CN": "有好友的优先", "zh-TW": "有好友的優先"
+  },
+  "worlds.explore.active.friends_here": {
+    "en": "Friends here now: {names}", "de": "Freunde gerade hier: {names}", "es": "Amigos aquí ahora: {names}",
+    "fr": "Amis présents : {names}", "ja": "今いるフレンド: {names}", "ko": "지금 있는 친구: {names}",
+    "ru": "Друзья здесь сейчас: {names}", "uk": "Друзі тут зараз: {names}", "zh-CN": "当前在此的好友：{names}",
+    "zh-TW": "目前在此的好友：{names}"
+  }
+}

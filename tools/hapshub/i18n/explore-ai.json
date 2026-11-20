@@ -1,0 +1,94 @@
+{
+  "worlds.explore.ai.title": {
+    "en": "AI", "de": "KI", "es": "IA", "fr": "IA", "ja": "AI", "ko": "AI", "ru": "ИИ", "uk": "ШІ", "zh-CN": "AI", "zh-TW": "AI"
+  },
+  "worlds.explore.ai.filter": {
+    "en": "Show", "de": "Zeigen", "es": "Mostrar", "fr": "Afficher", "ja": "表示", "ko": "표시",
+    "ru": "Показывать", "uk": "Показувати", "zh-CN": "显示", "zh-TW": "顯示"
+  },
+  "worlds.explore.ai.show_all": {
+    "en": "All worlds", "de": "Alle Welten", "es": "Todos los mundos", "fr": "Tous les mondes", "ja": "すべてのワールド",
+    "ko": "모든 월드", "ru": "Все миры", "uk": "Усі світи", "zh-CN": "所有世界", "zh-TW": "所有世界"
+  },
+  "worlds.explore.ai.hide_all": {
+    "en": "Hide \"Maybe AI\" and my marks", "de": "„Vielleicht KI“ und meine Markierungen ausblenden",
+    "es": "Ocultar \"Quizá IA\" y mis marcas", "fr": "Masquer « Peut-être IA » et mes marques",
+    "ja": "「AIかも」と自分の印を隠す", "ko": "\"AI일 수도\"와 내 표시 숨기기", "ru": "Скрыть «Возможно ИИ» и мои отметки",
+    "uk": "Сховати «Можливо ШІ» і мої позначки", "zh-CN": "隐藏“可能是 AI”和我的标记", "zh-TW": "隱藏「可能是 AI」和我的標記"
+  },
+  "worlds.explore.ai.hide_marks": {
+    "en": "Hide only my marks", "de": "Nur meine Markierungen ausblenden", "es": "Ocultar solo mis marcas",
+    "fr": "Masquer seulement mes marques", "ja": "自分の印だけ隠す", "ko": "내 표시만 숨기기", "ru": "Скрыть только мои отметки",
+    "uk": "Сховати лише мої позначки", "zh-CN": "只隐藏我的标记", "zh-TW": "只隱藏我的標記"
+  },
+  "worlds.explore.ai.badge_maybe": {
+    "en": "Maybe AI", "de": "Vielleicht KI", "es": "Quizá IA", "fr": "Peut-être IA", "ja": "AIかも", "ko": "AI일 수도",
+    "ru": "Возможно ИИ", "uk": "Можливо ШІ", "zh-CN": "可能是 AI", "zh-TW": "可能是 AI"
+  },
+  "worlds.explore.ai.badge_maybe_tip": {
+    "en": "Guessed from its tags, name and description. Not a fact.", "de": "Geraten aus Tags, Name und Beschreibung. Keine Tatsache.",
+    "es": "Deducido de sus etiquetas, nombre y descripción. No es un hecho.", "fr": "Deviné d'après ses tags, son nom et sa description. Ce n'est pas un fait.",
+    "ja": "タグ・名前・説明からの推測です。事実ではありません。", "ko": "태그, 이름, 설명으로 추측했습니다. 사실이 아닙니다.",
+    "ru": "Догадка по тегам, названию и описанию. Не факт.", "uk": "Здогадка за тегами, назвою й описом. Не факт.",
+    "zh-CN": "根据标签、名称和简介推测，并非事实。", "zh-TW": "根據標籤、名稱和簡介推測，並非事實。"
+  },
+  "worlds.explore.ai.badge_mark": {
+    "en": "AI", "de": "KI", "es": "IA", "fr": "IA", "ja": "AI", "ko": "AI", "ru": "ИИ", "uk": "ШІ", "zh-CN": "AI", "zh-TW": "AI"
+  },
+  "worlds.explore.ai.badge_mark_tip": {
+    "en": "You marked this as AI. Kept on this computer only.", "de": "Von dir als KI markiert. Nur auf diesem Computer gespeichert.",
+    "es": "La marcaste como IA. Solo en este equipo.", "fr": "Vous l'avez marqué comme IA. Gardé sur cet ordinateur uniquement.",
+    "ja": "あなたがAIと印を付けました。このPCにのみ保存されます。", "ko": "내가 AI로 표시했습니다. 이 컴퓨터에만 보관됩니다.",
+    "ru": "Вы отметили это как ИИ. Хранится только на этом компьютере.", "uk": "Ви позначили це як ШІ. Лише на цьому комп'ютері.",
+    "zh-CN": "你将其标记为 AI。只保存在这台电脑上。", "zh-TW": "你將其標記為 AI。只保存在這台電腦上。"
+  },
+  "worlds.explore.ai.mark": {
+    "en": "Mark as AI", "de": "Als KI markieren", "es": "Marcar como IA", "fr": "Marquer comme IA", "ja": "AIとして印を付ける",
+    "ko": "AI로 표시", "ru": "Отметить как ИИ", "uk": "Позначити як ШІ", "zh-CN": "标记为 AI", "zh-TW": "標記為 AI"
+  },
+  "worlds.explore.ai.mark_author": {
+    "en": "Mark all worlds by {name} as AI", "de": "Alle Welten von {name} als KI markieren", "es": "Marcar como IA todos los mundos de {name}",
+    "fr": "Marquer tous les mondes de {name} comme IA", "ja": "{name} のワールドすべてにAIの印を付ける", "ko": "{name}의 모든 월드를 AI로 표시",
+    "ru": "Отметить все миры {name} как ИИ", "uk": "Позначити всі світи {name} як ШІ", "zh-CN": "将 {name} 的所有世界标记为 AI",
+    "zh-TW": "將 {name} 的所有世界標記為 AI"
+  },
+  "worlds.explore.ai.mark_author_unknown": {
+    "en": "Mark all worlds by this author as AI", "de": "Alle Welten dieses Autors als KI markieren", "es": "Marcar como IA todos los mundos de este autor",
+    "fr": "Marquer tous les mondes de cet auteur comme IA", "ja": "この作者のワールドすべてにAIの印を付ける", "ko": "이 제작자의 모든 월드를 AI로 표시",
+    "ru": "Отметить все миры этого автора как ИИ", "uk": "Позначити всі світи цього автора як ШІ", "zh-CN": "将此作者的所有世界标记为 AI",
+    "zh-TW": "將此作者的所有世界標記為 AI"
+  },
+  "worlds.explore.ai.toast_marked": {
+    "en": "\"{name}\" marked as AI.", "de": "„{name}“ als KI markiert.", "es": "\"{name}\" marcado como IA.", "fr": "« {name} » marqué comme IA.",
+    "ja": "「{name}」にAIの印を付けました。", "ko": "\"{name}\"을(를) AI로 표시했습니다.", "ru": "«{name}» отмечен как ИИ.", "uk": "«{name}» позначено як ШІ.",
+    "zh-CN": "已将“{name}”标记为 AI。", "zh-TW": "已將「{name}」標記為 AI。"
+  },
+  "worlds.explore.ai.toast_author": {
+    "en": "Worlds by {name} marked as AI.", "de": "Welten von {name} als KI markiert.", "es": "Mundos de {name} marcados como IA.",
+    "fr": "Mondes de {name} marqués comme IA.", "ja": "{name} のワールドにAIの印を付けました。", "ko": "{name}의 월드를 AI로 표시했습니다.",
+    "ru": "Миры {name} отмечены как ИИ.", "uk": "Світи {name} позначено як ШІ.", "zh-CN": "已将 {name} 的世界标记为 AI。", "zh-TW": "已將 {name} 的世界標記為 AI。"
+  },
+  "worlds.explore.ai.summary": {
+    "en": "Your AI marks: {worlds} worlds, {authors} authors.", "de": "Deine KI-Markierungen: {worlds} Welten, {authors} Autoren.",
+    "es": "Tus marcas de IA: {worlds} mundos, {authors} autores.", "fr": "Vos marques IA : {worlds} mondes, {authors} auteurs.",
+    "ja": "あなたのAIの印: ワールド {worlds}、作者 {authors}", "ko": "내 AI 표시: 월드 {worlds}개, 제작자 {authors}명.",
+    "ru": "Ваши отметки ИИ: миров {worlds}, авторов {authors}.", "uk": "Ваші позначки ШІ: світів {worlds}, авторів {authors}.",
+    "zh-CN": "你的 AI 标记：{worlds} 个世界，{authors} 位作者。", "zh-TW": "你的 AI 標記：{worlds} 個世界，{authors} 位作者。"
+  },
+  "worlds.explore.ai.unmark": {
+    "en": "Remove the mark", "de": "Markierung entfernen", "es": "Quitar la marca", "fr": "Retirer la marque", "ja": "印を外す",
+    "ko": "표시 지우기", "ru": "Снять отметку", "uk": "Зняти позначку", "zh-CN": "移除标记", "zh-TW": "移除標記"
+  },
+  "worlds.explore.ai.hint": {
+    "en": "VRChat has no AI label. \"Maybe AI\" is a guess from the world's tags and text, so it can be wrong. Right-click a world to mark it or its author; marks stay on this computer.",
+    "de": "VRChat hat kein KI-Label. „Vielleicht KI“ ist aus Tags und Text der Welt geraten und kann falsch sein. Rechtsklick auf eine Welt markiert sie oder ihren Autor; Markierungen bleiben auf diesem Computer.",
+    "es": "VRChat no tiene etiqueta de IA. \"Quizá IA\" se deduce de las etiquetas y el texto del mundo, así que puede fallar. Haz clic derecho en un mundo para marcarlo a él o a su autor; las marcas quedan en este equipo.",
+    "fr": "VRChat n'a pas d'étiquette IA. « Peut-être IA » est deviné d'après les tags et le texte du monde, il peut se tromper. Clic droit sur un monde pour le marquer, lui ou son auteur ; les marques restent sur cet ordinateur.",
+    "ja": "VRChatにはAIのラベルがありません。「AIかも」はワールドのタグと文章からの推測なので、外れることがあります。ワールドを右クリックすると、そのワールドか作者に印を付けられます。印はこのPCにだけ残ります。",
+    "ko": "VRChat에는 AI 표시가 없습니다. \"AI일 수도\"는 월드의 태그와 글로 추측한 것이라 틀릴 수 있습니다. 월드를 우클릭해 월드나 제작자를 표시하세요. 표시는 이 컴퓨터에만 남습니다.",
+    "ru": "В VRChat нет метки ИИ. «Возможно ИИ» — догадка по тегам и тексту мира, она может ошибаться. Нажмите правой кнопкой на мир, чтобы отметить его или автора; отметки остаются на этом компьютере.",
+    "uk": "У VRChat немає мітки ШІ. «Можливо ШІ» — здогадка за тегами й текстом світу, вона може помилятися. Клацніть правою кнопкою на світ, щоб позначити його чи автора; позначки лишаються на цьому комп'ютері.",
+    "zh-CN": "VRChat 没有 AI 标签。“可能是 AI”是根据世界的标签和文字推测的，可能出错。右键点击世界可标记它或其作者；标记只保存在这台电脑上。",
+    "zh-TW": "VRChat 沒有 AI 標籤。「可能是 AI」是根據世界的標籤和文字推測的，可能出錯。右鍵點擊世界可標記它或其作者；標記只保存在這台電腦上。"
+  }
+}
