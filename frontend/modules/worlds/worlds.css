@@ -57,6 +57,8 @@
 .explore-badge.liked { padding: 2px 5px; color: var(--accent-lt, #fff); }
 .explore-badge.hidden { background: rgba(239,83,80,.7); }
 .explore-badge.friends { background: rgba(76,175,80,.75); }
+.explore-badge.ai { background: rgba(156,39,176,.75); }
+.explore-badge.ai.maybe { background: rgba(0,0,0,.55); border: 1px dashed rgba(206,147,216,.9); }
 .explore-row-list, .explore-saved-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; max-height: 45vh; overflow-y: auto; scrollbar-width: thin; }
 .explore-row-item, .explore-saved-name { justify-content: flex-start; text-align: left; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .explore-row-item.active, .explore-saved-pin.active { color: var(--accent-lt); border-color: var(--accent); }

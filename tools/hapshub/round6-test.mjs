@@ -625,6 +625,86 @@ section('explore rows saved', async main => {
         got.reload === 'Ok:new:pc:0,Row:row:12:any:0|active', got.reload);
 });
 
+section('explore ai', async main => {
+    // Item 14 step 6. "Maybe AI" is a local guess from tags and text ("no AI" counts against); the user's own marks
+    // (a world or an author) sit with the hide list. The filter shows all, hides guesses and marks, or only marks.
+    const got = await main.json(`(() => {
+        const sent = [];
+        const realSend = sendToCS;
+        window.sendToCS = m => { sent.push(m); };
+        const ids = () => _explore.shown.map(w => w.id).join(',');
+        const real = { store: localStorage.getItem('vrcn_explorePersonal') };
+        const out = {};
+        try {
+            exploreClearFilters();
+            Object.assign(_explorePersonal, { liked: {}, disliked: {}, worlds: {}, authors: {}, tags: [], showHidden: false, ai: {}, aiAuthors: {} });
+            _exploreSavePersonal();
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = ''; _explore.askedVisited = true;
+            document.getElementById('searchWorldsInput').value = '';
+            showTab(NAV_ITEMS_DEF.worlds?.tab ?? 1);
+            setWorldFilter('explore');
+            setExploreView('popular');
+            const ask = sent.find(m => m.action === 'vrcExploreWorlds');
+            const W = (id, extra) => ({ id, name: 'World ' + id.slice(5), authorId: 'usr_x', authorName: 'Xan', tags: [], capacity: 16, occupants: 1, favorites: 1, ...extra });
+            _handleBackendMessage('vrcExploreResults', { view: 'popular', query: '', offset: 0, ok: true, hasMore: false, sig: ask?.sig, worlds: [
+                W('wrld_a', { description: 'Skybox made with Midjourney.' }), W('wrld_b', { tags: ['author_tag_AI'] }),
+                W('wrld_c', { description: 'Handmade, no AI generated art here.' }), W('wrld_d', { name: 'Aiko house' }),
+                W('wrld_e', { authorId: 'usr_z', authorName: 'Zed' }) ] });
+            const before = sent.length;
+            const card = id => [...document.querySelectorAll('#searchWorldsResults .vrcn-content-card')].find(c => (c.getAttribute('onclick') || '').includes(id));
+            out.maybe = ['wrld_a', 'wrld_b', 'wrld_c', 'wrld_d', 'wrld_e'].map(id => card(id)?.querySelector('.explore-badge.ai.maybe') ? 1 : 0).join('');
+            out.tip = card('wrld_a')?.querySelector('.explore-badge.ai')?.title || '';
+            exploreSetFilter('ai', 'hide');
+            out.hide = ids();
+            out.count = document.querySelector('#exploreFilterBtn .explore-filter-count')?.textContent;
+            const menuFor = id => {
+                card(id)?.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 200, clientY: 200 }));
+                return document.getElementById('vn-ctx-menu');
+            };
+            const labels = menu => [...menu.querySelectorAll('.vn-ctx-item .vn-ctx-label')].map(x => x.textContent.trim());
+            const pick = (menu, text) => [...menu.querySelectorAll('.vn-ctx-item')].find(b => b.querySelector('.vn-ctx-label')?.textContent.trim() === text)?.click();
+            const menu = menuFor('wrld_d');
+            out.menu = labels(menu);
+            pick(menu, 'Mark as AI');
+            out.afterMark = ids();
+            exploreSetFilter('ai', 'marks');
+            out.marks = ids();
+            pick(menuFor('wrld_e'), 'Mark all worlds by Zed as AI');
+            out.afterAuthor = ids();
+            exploreSetFilter('ai', 'all');
+            out.all = ids();
+            out.markBadge = !!card('wrld_d')?.querySelector('.explore-badge.ai:not(.maybe)') && !!card('wrld_e')?.querySelector('.explore-badge.ai:not(.maybe)');
+            exploreToggleFilters(document.getElementById('exploreFilterBtn'));
+            const panel = document.getElementById('exploreFilterPanel');
+            out.panel = [panel.querySelector('#exploreAiSel')?.options.length || 0, /1 worlds, 1 authors/.test(panel.textContent)].join();
+            panel.querySelector('.explore-chip[data-kind="aiauthor"]')?.click();
+            out.unmarked = Object.keys(_explorePersonal.aiAuthors).length;
+            exploreToggleFilters(document.getElementById('exploreFilterBtn'));
+            const stored = JSON.parse(localStorage.getItem('vrcn_explorePersonal') || '{}');
+            out.stored = Object.keys(stored.ai || {}).join() + '|' + Object.keys(stored.aiAuthors || {}).join();
+            out.sent = sent.slice(before).map(m => m.action);
+            return out;
+        } finally {
+            window.sendToCS = realSend;
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+            exploreClearFilters();
+            if (real.store == null) localStorage.removeItem('vrcn_explorePersonal'); else localStorage.setItem('vrcn_explorePersonal', real.store);
+            Object.assign(_explorePersonal, _exploreLoadPersonal());
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = '';
+            setWorldFilter('favorites');
+        }
+    })()`);
+    check('Explore AI: "Maybe AI" comes from tags or words in the text, "no AI" counts against, names like Aiko do not',
+        got.maybe === '11000' && /Not a fact/.test(got.tip), JSON.stringify({ maybe: got.maybe, tip: got.tip }));
+    check('Explore AI: right-click marks a world or an author; the filter hides guesses and marks, or only marks',
+        got.hide === 'wrld_c,wrld_d,wrld_e' && got.count === '1' && got.menu.includes('Mark as AI') && got.menu.includes('Mark all worlds by Xan as AI')
+            && got.afterMark === 'wrld_c,wrld_e' && got.marks === 'wrld_a,wrld_b,wrld_c,wrld_e' && got.afterAuthor === 'wrld_a,wrld_b,wrld_c',
+        JSON.stringify({ hide: got.hide, count: got.count, menu: got.menu, mark: got.afterMark, marks: got.marks, author: got.afterAuthor }));
+    check('Explore AI: marked cards say AI, the panel counts marks and unmarks an author, kept locally and nothing sent',
+        got.all === 'wrld_a,wrld_b,wrld_c,wrld_d,wrld_e' && got.markBadge && got.panel === '3,true' && got.unmarked === 0 && got.stored === 'wrld_d|' && got.sent.length === 0,
+        JSON.stringify({ all: got.all, badge: got.markBadge, panel: got.panel, unmarked: got.unmarked, stored: got.stored, sent: got.sent }));
+});
+
 section('avatar filters (issue 10)', async main => {
     const got = await main.json(`(() => {
         const mk = (id, extra) => ({ id, name: id, releaseStatus: 'public', authorName: 'Someone', tags: [], ...extra });

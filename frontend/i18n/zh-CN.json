@@ -4838,5 +4838,22 @@
   "worlds.explore.saved.hint": "保存视图、搜索文字和筛选。只保存在这台电脑上。",
   "worlds.explore.saved.toast_saved": "已保存“{name}”。",
   "worlds.explore.saved.need_name": "请先输入名称。",
-  "worlds.explore.saved.full": "最多可保存 {n} 个搜索。请先删除一个。"
+  "worlds.explore.saved.full": "最多可保存 {n} 个搜索。请先删除一个。",
+  "worlds.explore.ai.title": "AI",
+  "worlds.explore.ai.filter": "显示",
+  "worlds.explore.ai.show_all": "所有世界",
+  "worlds.explore.ai.hide_all": "隐藏“可能是 AI”和我的标记",
+  "worlds.explore.ai.hide_marks": "只隐藏我的标记",
+  "worlds.explore.ai.badge_maybe": "可能是 AI",
+  "worlds.explore.ai.badge_maybe_tip": "根据标签、名称和简介推测，并非事实。",
+  "worlds.explore.ai.badge_mark": "AI",
+  "worlds.explore.ai.badge_mark_tip": "你将其标记为 AI。只保存在这台电脑上。",
+  "worlds.explore.ai.mark": "标记为 AI",
+  "worlds.explore.ai.mark_author": "将 {name} 的所有世界标记为 AI",
+  "worlds.explore.ai.mark_author_unknown": "将此作者的所有世界标记为 AI",
+  "worlds.explore.ai.toast_marked": "已将“{name}”标记为 AI。",
+  "worlds.explore.ai.toast_author": "已将 {name} 的世界标记为 AI。",
+  "worlds.explore.ai.summary": "你的 AI 标记：{worlds} 个世界，{authors} 位作者。",
+  "worlds.explore.ai.unmark": "移除标记",
+  "worlds.explore.ai.hint": "VRChat 没有 AI 标签。“可能是 AI”是根据世界的标签和文字推测的，可能出错。右键点击世界可标记它或其作者；标记只保存在这台电脑上。"
 }

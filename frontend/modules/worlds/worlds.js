@@ -529,7 +529,7 @@ const _EXPLORE_VIEW_TAG = { labs: 'system_labs' };          // the tag a view it
 const _EXPLORE_CHAIN_MAX = 3;                               // requests one click may send when filters hide most of a page
 const _EXPLORE_MIN_GAIN = 12;                               // fewer new worlds than this after filtering: fetch the next page
 const _EXPLORE_TAG_MAX = 10;
-const _EXPLORE_FILTER_DEFAULT = { platform: 'any', hideContent: [], tagsIn: [], tagsOut: [], age: 0, capMin: 0, capMax: 0, lang: 'any', hideVisited: false, friendsOnly: false };
+const _EXPLORE_FILTER_DEFAULT = { platform: 'any', hideContent: [], tagsIn: [], tagsOut: [], age: 0, capMin: 0, capMax: 0, lang: 'any', hideVisited: false, friendsOnly: false, ai: 'all' };
 const _EXPLORE_LANG_TAGS = {
     en: ['english', 'en', 'eng'],
     ja: ['japanese', 'japan', 'jp', 'ja', '日本語', '日本'],
@@ -577,6 +577,7 @@ function _exploreCleanFilters(s) {
         if (_EXPLORE_LANGS.includes(s.lang)) f.lang = s.lang;
         f.hideVisited = s.hideVisited === true;
         f.friendsOnly = s.friendsOnly === true;
+        if (['hide', 'marks'].includes(s.ai)) f.ai = s.ai;
     } catch { }
     return f;
 }
@@ -598,7 +599,7 @@ function _exploreServerSig() { const p = _exploreServerParams(); return [p.platf
 function _exploreFilterCount() {
     const f = _exploreFilters;
     return [f.platform !== 'any', f.hideContent.length > 0, f.tagsIn.length > 0, f.tagsOut.length > 0, f.age > 0,
-        f.capMin > 0 || f.capMax > 0, f.lang !== 'any', f.hideVisited, f.friendsOnly].filter(Boolean).length;
+        f.capMin > 0 || f.capMax > 0, f.lang !== 'any', f.hideVisited, f.friendsOnly, f.ai !== 'all'].filter(Boolean).length;
 }
 
 function _explorePlatforms(w) {
@@ -668,6 +669,10 @@ function _explorePasses(w, view) {
     // Liked worlds are mostly visited ones, so the Liked view keeps them.
     if (f.hideVisited && !_EXPLORE_LOCAL[view] && _exploreVisited(w)) return false;
     if (f.friendsOnly && !_exploreFriendsByWorld().has(w.id)) return false;
+    if (f.ai !== 'all') {
+        const ai = _exploreAiWhy(w);
+        if (ai === 'mark' || (ai === 'text' && f.ai === 'hide')) return false;
+    }
     return true;
 }
 
@@ -697,6 +702,7 @@ function exploreSetFilter(key, value) {
     else if (key === 'lang') f.lang = _EXPLORE_LANGS.includes(value) ? value : 'any';
     else if (key === 'hideVisited') f.hideVisited = value === true || value === 'true';
     else if (key === 'friendsOnly') f.friendsOnly = value === true || value === 'true';
+    else if (key === 'ai') f.ai = ['hide', 'marks'].includes(value) ? value : 'all';
     else return;
     _exploreFiltersChanged();
 }
@@ -828,6 +834,7 @@ function _exploreFilterHtml() {
             <select id="exploreOrder" class="vrcn-dropdown" onchange="exploreSetOrder(this.value)">${opt('default', t('worlds.explore.active.order_default', "VRChat's order"), _exploreOrder)}${opt('people', t('worlds.explore.active.order_people', 'People here now'), _exploreOrder)}${opt('friends', t('worlds.explore.active.order_friends', 'Friends here first'), _exploreOrder)}</select></div>
         <div class="explore-filter-hint">${L('hint', 'VRChat applies platform, warnings and tags to all worlds. Published, capacity and language check the worlds loaded so far; language is a best guess from tags and text.')}</div>
         ${_explorePersonalHtml()}
+        ${_exploreAiHtml()}
         <div class="av-more-foot"><button class="vrcn-button" onclick="exploreClearFilters()">${L('clear', 'Clear filters')}</button></div>`;
 }
 
@@ -897,7 +904,7 @@ function exploreSetOrder(value) {
 // VRChat. A dislike, or a hidden world, author or tag, takes worlds out of Explore; "Show hidden worlds" brings them
 // back, marked, so the right-click menu can restore them. A like wins over a hidden author or tag. Liked worlds have
 // their own view, from a copy of each world kept at the time of the like.
-const _EXPLORE_KEEP = { liked: 1000, disliked: 5000, worlds: 5000, authors: 1000, tags: 200 };
+const _EXPLORE_KEEP = { liked: 1000, disliked: 5000, worlds: 5000, authors: 1000, tags: 200, ai: 5000, aiAuthors: 1000 };
 const _EXPLORE_SNAPSHOT = ['name', 'authorName', 'authorId', 'thumbnailImageUrl', 'imageUrl', 'tags', 'capacity', 'favorites',
     'occupants', 'visits', 'platforms', 'publicationDate', 'created_at', 'updated_at', 'description'];
 const _explorePersonal = _exploreLoadPersonal();
@@ -908,7 +915,7 @@ function _exploreIdOk(id, prefix = '') { return typeof id === 'string' && id.len
 function _exploreHas(m) { for (const k in m) return true; return false; }
 
 function _exploreLoadPersonal() {
-    const p = { liked: {}, disliked: {}, worlds: {}, authors: {}, tags: [], showHidden: false };
+    const p = { liked: {}, disliked: {}, worlds: {}, authors: {}, tags: [], showHidden: false, ai: {}, aiAuthors: {} };
     try {
         const s = JSON.parse(localStorage.getItem('vrcn_explorePersonal') || '{}') || {};
         const map = (v, prefix, max) => Object.fromEntries(Object.entries(v && typeof v === 'object' && !Array.isArray(v) ? v : {})
@@ -920,6 +927,8 @@ function _exploreLoadPersonal() {
         p.authors = map(s.authors, '', _EXPLORE_KEEP.authors);
         p.tags = [...new Set(Array.isArray(s.tags) ? s.tags : [])].filter(_exploreTagOk).slice(0, _EXPLORE_KEEP.tags);
         p.showHidden = s.showHidden === true;
+        p.ai = map(s.ai, 'wrld_', _EXPLORE_KEEP.ai);
+        p.aiAuthors = map(s.aiAuthors, '', _EXPLORE_KEEP.aiAuthors);
     } catch { }
     return p;
 }
@@ -1005,6 +1014,10 @@ function _exploreCardOpts(w) {
     if (why) badges.push(why === 'disliked'
         ? `<span class="explore-badge hidden"><span class="msi">do_not_disturb</span>${P('badge_disliked', 'Disliked')}</span>`
         : `<span class="explore-badge hidden"><span class="msi">visibility_off</span>${P('badge_hidden', 'Hidden')}</span>`);
+    const ai = _exploreAiWhy(w);
+    if (ai) badges.push(ai === 'mark'
+        ? `<span class="explore-badge ai" title="${esc(t('worlds.explore.ai.badge_mark_tip', 'You marked this as AI. Kept on this computer only.'))}"><span class="msi">smart_toy</span>${esc(t('worlds.explore.ai.badge_mark', 'AI'))}</span>`
+        : `<span class="explore-badge ai maybe" title="${esc(t('worlds.explore.ai.badge_maybe_tip', 'Guessed from its tags, name and description. Not a fact.'))}"><span class="msi">smart_toy</span>${esc(t('worlds.explore.ai.badge_maybe', 'Maybe AI'))}</span>`);
     const friends = _exploreFriendsByWorld().get(w.id);
     if (friends) badges.push(`<span class="explore-badge friends" title="${esc(tf('worlds.explore.active.friends_here', { names: friends.join(', ') }, 'Friends here now: {names}'))}"><span class="msi">group</span>${friends.length}</span>`);
     if (_exploreVisited(w)) {
@@ -1095,6 +1108,7 @@ function exploreShowHidden(on) { _explorePersonal.showHidden = !!on; _explorePer
 function exploreUnhideChip(kind, key) {
     if (kind === 'author') exploreHideAuthor(key, '', false);
     else if (kind === 'tag') exploreHideTag(key, false);
+    else if (kind === 'aiauthor') exploreMarkAiAuthor(key, '', false);
 }
 
 /** Right-click items for an Explore card; context-menu.js adds them under the usual world items (`sub` = a submenu). */
@@ -1122,6 +1136,15 @@ function exploreContextItems(id) {
         return { icon: on ? 'visibility' : 'visibility_off', label: on ? tf('worlds.explore.personal.unhide_tag', { tag: name }, 'Unhide {tag}') : tf('worlds.explore.personal.hide_tag_item', { tag: name }, 'Hide {tag}'),
             action: () => exploreHideTag(tag, !on) };
     }) });
+    const A = (key, fallback) => t('worlds.explore.ai.' + key, fallback);
+    const aiOn = !!p.ai[id];
+    items.push({ icon: 'smart_toy', checked: aiOn, label: A('mark', 'Mark as AI'), action: () => exploreMarkAi(id, !aiOn) });
+    if (_exploreIdOk(w.authorId)) {
+        const on = !!p.aiAuthors[w.authorId];
+        items.push({ icon: 'smart_toy', checked: on,
+            label: w.authorName ? tf('worlds.explore.ai.mark_author', { name: w.authorName }, 'Mark all worlds by {name} as AI') : A('mark_author_unknown', 'Mark all worlds by this author as AI'),
+            action: () => exploreMarkAiAuthor(w.authorId, w.authorName || '', !on) });
+    }
     return items;
 }
 
@@ -1144,6 +1167,71 @@ function _explorePersonalHtml() {
         ${chips ? `<div class="explore-personal-chips">${chips}</div>` : ''}
         <label class="explore-cw explore-personal-show"><input type="checkbox" id="exploreShowHidden"${p.showHidden ? ' checked' : ''} onchange="exploreShowHidden(this.checked)"> <span>${P('show_hidden', 'Show hidden worlds, marked, to bring them back')}</span></label>
         <div class="explore-filter-hint">${P('hint', 'Right-click a world in Explore to like or dislike it, or to hide it, everything by its author, or one of its tags. Kept on this computer only, never sent to VRChat.')}</div>`;
+}
+
+// ---- Explore: AI filter (item 14, step 6) ----
+// VRChat has no AI label, so this stays local. "Maybe AI" is a guess from a world's author tags, name and description
+// (words such as "AI generated", "Midjourney"; "no AI" / "handmade" count against), never stated as fact. The user's
+// own marks (a world, or every world by an author) live with the hide list in vrcn_explorePersonal. The filter shows
+// all, hides guesses and marks, or hides only marks.
+const _EXPLORE_AI_TAGS = new Set(['ai', 'aiart', 'ai_art', 'aigenerated', 'ai_generated', 'generativeai', 'generative_ai',
+    'midjourney', 'stablediffusion', 'stable_diffusion', 'aiworld', 'ai_world']);
+const _EXPLORE_AI_YES = /\b(?:ai[\s_-]*(?:generated|made|art|assisted|created)|(?:made|generated|created) (?:with|using|by|in|through) (?:an? |the )?ai|midjourney|stable[\s-]?diffusion|dall[\s·-]?e|novelai|niji[\s-]?journey|meshy|tripo[\s-]?ai|luma[\s-]?ai)\b|AI生成|生成AI|AIイラスト|AI绘画|AI繪圖|AI ?생성|생성형 ?AI|ИИ[\s-]*(?:генер|арт)|сгенерирован\S* (?:ии|нейросет)/i;
+const _EXPLORE_AI_NO = /\b(?:no[\s-]+ai|not[\s-]+ai|non[\s-]ai|ai[\s-]free|without[\s-]+(?:any[\s-]+)?ai|human[\s-]made|hand[\s-]?made|no[\s-]+generative[\s-]+ai)\b|AI不使用|AI未使用|AI 미사용/i;
+const _exploreAiMemo = new WeakMap();
+
+/** Whether a world's own tags or text say it was made with AI. A tag counts even next to "no AI" text. */
+function _exploreAiGuess(w) {
+    let hit = _exploreAiMemo.get(w);
+    if (hit !== undefined) return hit;
+    const tagged = _wlAuthorTags(w).some(tag => _EXPLORE_AI_TAGS.has(tag.toLowerCase()));
+    const text = `${w.name || ''} ${w.description || ''}`;
+    hit = tagged || (_EXPLORE_AI_YES.test(text) && !_EXPLORE_AI_NO.test(text));
+    _exploreAiMemo.set(w, hit);
+    return hit;
+}
+
+/** 'mark' (the user marked it or its author), 'text' (the guess), or ''. */
+function _exploreAiWhy(w) {
+    if (!w) return '';
+    const p = _explorePersonal;
+    if (p.ai[w.id] || (w.authorId && p.aiAuthors[w.authorId])) return 'mark';
+    return _exploreAiGuess(w) ? 'text' : '';
+}
+
+function exploreMarkAi(id, on) {
+    if (!_exploreIdOk(id, 'wrld_')) return;
+    if (on) {
+        const w = _exploreFindWorld(id) || { id };
+        _explorePut('ai', id, { name: String(w.name || '').slice(0, 80), authorId: w.authorId || '' });
+        showToast(true, tf('worlds.explore.ai.toast_marked', { name: w.name || id }, '"{name}" marked as AI.'));
+    } else delete _explorePersonal.ai[id];
+    _explorePersonalChanged();
+}
+
+function exploreMarkAiAuthor(authorId, name, on) {
+    if (!_exploreIdOk(authorId)) return;
+    if (on) {
+        _explorePut('aiAuthors', authorId, { name: String(name || '').slice(0, 80) });
+        showToast(true, tf('worlds.explore.ai.toast_author', { name: name || authorId }, 'Worlds by {name} marked as AI.'));
+    } else delete _explorePersonal.aiAuthors[authorId];
+    _explorePersonalChanged();
+}
+
+/** The AI part of the Filters panel: what to hide, the marks so far (authors as chips, click to unmark). */
+function _exploreAiHtml() {
+    const p = _explorePersonal;
+    const f = _exploreFilters;
+    const A = (key, fallback) => esc(t('worlds.explore.ai.' + key, fallback));
+    const opt = (v, label) => `<option value="${v}"${f.ai === v ? ' selected' : ''}>${label}</option>`;
+    const counts = { worlds: Object.keys(p.ai).length, authors: Object.keys(p.aiAuthors).length };
+    const chips = Object.entries(p.aiAuthors).map(([id, x]) => `<button class="explore-chip out" data-kind="aiauthor" data-key="${esc(id)}" onclick="exploreUnhideChip(this.dataset.kind, this.dataset.key)" title="${A('unmark', 'Remove the mark')}"><span class="msi">close</span>${esc(x.name || id)}</button>`).join('');
+    return `<div class="av-more-title explore-personal-title">${A('title', 'AI')}</div>
+        <div class="av-more-row"><span>${A('filter', 'Show')}</span>
+            <select id="exploreAiSel" class="vrcn-dropdown" onchange="exploreSetFilter('ai', this.value)">${opt('all', A('show_all', 'All worlds'))}${opt('hide', A('hide_all', 'Hide "Maybe AI" and my marks'))}${opt('marks', A('hide_marks', 'Hide only my marks'))}</select></div>
+        <div class="explore-personal-sum">${esc(tf('worlds.explore.ai.summary', counts, 'Your AI marks: {worlds} worlds, {authors} authors.'))}</div>
+        ${chips ? `<div class="explore-personal-chips">${chips}</div>` : ''}
+        <div class="explore-filter-hint">${A('hint', 'VRChat has no AI label. "Maybe AI" is a guess from the world\'s tags and text, so it can be wrong. Right-click a world to mark it or its author; marks stay on this computer.')}</div>`;
 }
 
 // ---- Explore: VRChat's rows, saved searches, the view Explore opens on (item 14, step 5) ----

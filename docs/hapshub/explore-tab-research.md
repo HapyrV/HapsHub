@@ -169,7 +169,15 @@ VRChat has no AI label in the API and declined to add one (28 Oct 2026). HapsHub
    Saved: name the current view, search text and filters (30 at most, same name replaces); click to put them back;
    the pin or "Explore opens on" picks the view or saved search Explore opens on the first time in a run. localStorage
    `vrcn_exploreSaved`; malformed entries are dropped when read.
-6. AI filter.
+6. AI filter. **Done 2026-11-20.**
+   "Maybe AI" (dashed badge, tooltip "not a fact"): an author tag such as `ai`, `aiart`, `ai_generated`, `midjourney`,
+   `stablediffusion`, or words in the name or description ("AI generated", "made with AI", Midjourney, Stable
+   Diffusion, DALL-E, NovelAI, Meshy, a few Japanese, Chinese, Korean and Russian phrases). "No AI", "AI-free",
+   "handmade" and the like cancel the words but not a tag. Marks: right-click > Mark as AI, or Mark all worlds by the
+   author as AI; stored with the hide list (`ai`, `aiAuthors` in `vrcn_explorePersonal`, 5000 / 1000 kept), shown as a
+   solid AI badge. Filters panel, AI part: All worlds / Hide "Maybe AI" and my marks / Hide only my marks (a filter:
+   counted, saved, cleared), the mark counts, and marked authors as chips (click to unmark). Not done, as planned:
+   thumbnail guessing.
 7. For You.
 8. Share list export/import.
 

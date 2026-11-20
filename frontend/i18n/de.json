@@ -4838,5 +4838,22 @@
   "worlds.explore.saved.hint": "Speichert Ansicht, Suchtext und Filter. Bleibt nur auf diesem Computer.",
   "worlds.explore.saved.toast_saved": "„{name}“ gespeichert.",
   "worlds.explore.saved.need_name": "Gib zuerst einen Namen ein.",
-  "worlds.explore.saved.full": "Du kannst {n} Suchen speichern. Lösche zuerst eine."
+  "worlds.explore.saved.full": "Du kannst {n} Suchen speichern. Lösche zuerst eine.",
+  "worlds.explore.ai.title": "KI",
+  "worlds.explore.ai.filter": "Zeigen",
+  "worlds.explore.ai.show_all": "Alle Welten",
+  "worlds.explore.ai.hide_all": "„Vielleicht KI“ und meine Markierungen ausblenden",
+  "worlds.explore.ai.hide_marks": "Nur meine Markierungen ausblenden",
+  "worlds.explore.ai.badge_maybe": "Vielleicht KI",
+  "worlds.explore.ai.badge_maybe_tip": "Geraten aus Tags, Name und Beschreibung. Keine Tatsache.",
+  "worlds.explore.ai.badge_mark": "KI",
+  "worlds.explore.ai.badge_mark_tip": "Von dir als KI markiert. Nur auf diesem Computer gespeichert.",
+  "worlds.explore.ai.mark": "Als KI markieren",
+  "worlds.explore.ai.mark_author": "Alle Welten von {name} als KI markieren",
+  "worlds.explore.ai.mark_author_unknown": "Alle Welten dieses Autors als KI markieren",
+  "worlds.explore.ai.toast_marked": "„{name}“ als KI markiert.",
+  "worlds.explore.ai.toast_author": "Welten von {name} als KI markiert.",
+  "worlds.explore.ai.summary": "Deine KI-Markierungen: {worlds} Welten, {authors} Autoren.",
+  "worlds.explore.ai.unmark": "Markierung entfernen",
+  "worlds.explore.ai.hint": "VRChat hat kein KI-Label. „Vielleicht KI“ ist aus Tags und Text der Welt geraten und kann falsch sein. Rechtsklick auf eine Welt markiert sie oder ihren Autor; Markierungen bleiben auf diesem Computer."
 }

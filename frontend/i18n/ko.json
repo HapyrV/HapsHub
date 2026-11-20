@@ -4838,5 +4838,22 @@
   "worlds.explore.saved.hint": "보기, 검색어, 필터를 저장합니다. 이 컴퓨터에만 보관됩니다.",
   "worlds.explore.saved.toast_saved": "\"{name}\" 저장됨.",
   "worlds.explore.saved.need_name": "먼저 이름을 입력하세요.",
-  "worlds.explore.saved.full": "검색은 {n}개까지 저장할 수 있습니다. 먼저 하나를 삭제하세요."
+  "worlds.explore.saved.full": "검색은 {n}개까지 저장할 수 있습니다. 먼저 하나를 삭제하세요.",
+  "worlds.explore.ai.title": "AI",
+  "worlds.explore.ai.filter": "표시",
+  "worlds.explore.ai.show_all": "모든 월드",
+  "worlds.explore.ai.hide_all": "\"AI일 수도\"와 내 표시 숨기기",
+  "worlds.explore.ai.hide_marks": "내 표시만 숨기기",
+  "worlds.explore.ai.badge_maybe": "AI일 수도",
+  "worlds.explore.ai.badge_maybe_tip": "태그, 이름, 설명으로 추측했습니다. 사실이 아닙니다.",
+  "worlds.explore.ai.badge_mark": "AI",
+  "worlds.explore.ai.badge_mark_tip": "내가 AI로 표시했습니다. 이 컴퓨터에만 보관됩니다.",
+  "worlds.explore.ai.mark": "AI로 표시",
+  "worlds.explore.ai.mark_author": "{name}의 모든 월드를 AI로 표시",
+  "worlds.explore.ai.mark_author_unknown": "이 제작자의 모든 월드를 AI로 표시",
+  "worlds.explore.ai.toast_marked": "\"{name}\"을(를) AI로 표시했습니다.",
+  "worlds.explore.ai.toast_author": "{name}의 월드를 AI로 표시했습니다.",
+  "worlds.explore.ai.summary": "내 AI 표시: 월드 {worlds}개, 제작자 {authors}명.",
+  "worlds.explore.ai.unmark": "표시 지우기",
+  "worlds.explore.ai.hint": "VRChat에는 AI 표시가 없습니다. \"AI일 수도\"는 월드의 태그와 글로 추측한 것이라 틀릴 수 있습니다. 월드를 우클릭해 월드나 제작자를 표시하세요. 표시는 이 컴퓨터에만 남습니다."
 }

@@ -4838,5 +4838,22 @@
   "worlds.explore.saved.hint": "Guarda la vista, el texto de búsqueda y los filtros. Solo en este equipo.",
   "worlds.explore.saved.toast_saved": "\"{name}\" guardada.",
   "worlds.explore.saved.need_name": "Escribe un nombre primero.",
-  "worlds.explore.saved.full": "Puedes guardar {n} búsquedas. Elimina una primero."
+  "worlds.explore.saved.full": "Puedes guardar {n} búsquedas. Elimina una primero.",
+  "worlds.explore.ai.title": "IA",
+  "worlds.explore.ai.filter": "Mostrar",
+  "worlds.explore.ai.show_all": "Todos los mundos",
+  "worlds.explore.ai.hide_all": "Ocultar \"Quizá IA\" y mis marcas",
+  "worlds.explore.ai.hide_marks": "Ocultar solo mis marcas",
+  "worlds.explore.ai.badge_maybe": "Quizá IA",
+  "worlds.explore.ai.badge_maybe_tip": "Deducido de sus etiquetas, nombre y descripción. No es un hecho.",
+  "worlds.explore.ai.badge_mark": "IA",
+  "worlds.explore.ai.badge_mark_tip": "La marcaste como IA. Solo en este equipo.",
+  "worlds.explore.ai.mark": "Marcar como IA",
+  "worlds.explore.ai.mark_author": "Marcar como IA todos los mundos de {name}",
+  "worlds.explore.ai.mark_author_unknown": "Marcar como IA todos los mundos de este autor",
+  "worlds.explore.ai.toast_marked": "\"{name}\" marcado como IA.",
+  "worlds.explore.ai.toast_author": "Mundos de {name} marcados como IA.",
+  "worlds.explore.ai.summary": "Tus marcas de IA: {worlds} mundos, {authors} autores.",
+  "worlds.explore.ai.unmark": "Quitar la marca",
+  "worlds.explore.ai.hint": "VRChat no tiene etiqueta de IA. \"Quizá IA\" se deduce de las etiquetas y el texto del mundo, así que puede fallar. Haz clic derecho en un mundo para marcarlo a él o a su autor; las marcas quedan en este equipo."
 }

@@ -4844,5 +4844,22 @@
   "worlds.explore.saved.hint": "Зберігає вигляд, текст пошуку і фільтри. Лише на цьому комп'ютері.",
   "worlds.explore.saved.toast_saved": "«{name}» збережено.",
   "worlds.explore.saved.need_name": "Спершу введіть назву.",
-  "worlds.explore.saved.full": "Можна зберігати {n} пошуків. Спершу видаліть один."
+  "worlds.explore.saved.full": "Можна зберігати {n} пошуків. Спершу видаліть один.",
+  "worlds.explore.ai.title": "ШІ",
+  "worlds.explore.ai.filter": "Показувати",
+  "worlds.explore.ai.show_all": "Усі світи",
+  "worlds.explore.ai.hide_all": "Сховати «Можливо ШІ» і мої позначки",
+  "worlds.explore.ai.hide_marks": "Сховати лише мої позначки",
+  "worlds.explore.ai.badge_maybe": "Можливо ШІ",
+  "worlds.explore.ai.badge_maybe_tip": "Здогадка за тегами, назвою й описом. Не факт.",
+  "worlds.explore.ai.badge_mark": "ШІ",
+  "worlds.explore.ai.badge_mark_tip": "Ви позначили це як ШІ. Лише на цьому комп'ютері.",
+  "worlds.explore.ai.mark": "Позначити як ШІ",
+  "worlds.explore.ai.mark_author": "Позначити всі світи {name} як ШІ",
+  "worlds.explore.ai.mark_author_unknown": "Позначити всі світи цього автора як ШІ",
+  "worlds.explore.ai.toast_marked": "«{name}» позначено як ШІ.",
+  "worlds.explore.ai.toast_author": "Світи {name} позначено як ШІ.",
+  "worlds.explore.ai.summary": "Ваші позначки ШІ: світів {worlds}, авторів {authors}.",
+  "worlds.explore.ai.unmark": "Зняти позначку",
+  "worlds.explore.ai.hint": "У VRChat немає мітки ШІ. «Можливо ШІ» — здогадка за тегами й текстом світу, вона може помилятися. Клацніть правою кнопкою на світ, щоб позначити його чи автора; позначки лишаються на цьому комп'ютері."
 }

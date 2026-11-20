@@ -4838,5 +4838,22 @@
   "worlds.explore.saved.hint": "Saves the view, the search text and the filters. Kept on this computer only.",
   "worlds.explore.saved.toast_saved": "\"{name}\" saved.",
   "worlds.explore.saved.need_name": "Type a name first.",
-  "worlds.explore.saved.full": "You can keep {n} saved searches. Delete one first."
+  "worlds.explore.saved.full": "You can keep {n} saved searches. Delete one first.",
+  "worlds.explore.ai.title": "AI",
+  "worlds.explore.ai.filter": "Show",
+  "worlds.explore.ai.show_all": "All worlds",
+  "worlds.explore.ai.hide_all": "Hide \"Maybe AI\" and my marks",
+  "worlds.explore.ai.hide_marks": "Hide only my marks",
+  "worlds.explore.ai.badge_maybe": "Maybe AI",
+  "worlds.explore.ai.badge_maybe_tip": "Guessed from its tags, name and description. Not a fact.",
+  "worlds.explore.ai.badge_mark": "AI",
+  "worlds.explore.ai.badge_mark_tip": "You marked this as AI. Kept on this computer only.",
+  "worlds.explore.ai.mark": "Mark as AI",
+  "worlds.explore.ai.mark_author": "Mark all worlds by {name} as AI",
+  "worlds.explore.ai.mark_author_unknown": "Mark all worlds by this author as AI",
+  "worlds.explore.ai.toast_marked": "\"{name}\" marked as AI.",
+  "worlds.explore.ai.toast_author": "Worlds by {name} marked as AI.",
+  "worlds.explore.ai.summary": "Your AI marks: {worlds} worlds, {authors} authors.",
+  "worlds.explore.ai.unmark": "Remove the mark",
+  "worlds.explore.ai.hint": "VRChat has no AI label. \"Maybe AI\" is a guess from the world's tags and text, so it can be wrong. Right-click a world to mark it or its author; marks stay on this computer."
 }

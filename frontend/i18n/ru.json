@@ -4842,5 +4842,22 @@
   "worlds.explore.saved.hint": "Сохраняет вид, текст поиска и фильтры. Хранится только на этом компьютере.",
   "worlds.explore.saved.toast_saved": "«{name}» сохранён.",
   "worlds.explore.saved.need_name": "Сначала введите название.",
-  "worlds.explore.saved.full": "Можно хранить {n} поисков. Сначала удалите один."
+  "worlds.explore.saved.full": "Можно хранить {n} поисков. Сначала удалите один.",
+  "worlds.explore.ai.title": "ИИ",
+  "worlds.explore.ai.filter": "Показывать",
+  "worlds.explore.ai.show_all": "Все миры",
+  "worlds.explore.ai.hide_all": "Скрыть «Возможно ИИ» и мои отметки",
+  "worlds.explore.ai.hide_marks": "Скрыть только мои отметки",
+  "worlds.explore.ai.badge_maybe": "Возможно ИИ",
+  "worlds.explore.ai.badge_maybe_tip": "Догадка по тегам, названию и описанию. Не факт.",
+  "worlds.explore.ai.badge_mark": "ИИ",
+  "worlds.explore.ai.badge_mark_tip": "Вы отметили это как ИИ. Хранится только на этом компьютере.",
+  "worlds.explore.ai.mark": "Отметить как ИИ",
+  "worlds.explore.ai.mark_author": "Отметить все миры {name} как ИИ",
+  "worlds.explore.ai.mark_author_unknown": "Отметить все миры этого автора как ИИ",
+  "worlds.explore.ai.toast_marked": "«{name}» отмечен как ИИ.",
+  "worlds.explore.ai.toast_author": "Миры {name} отмечены как ИИ.",
+  "worlds.explore.ai.summary": "Ваши отметки ИИ: миров {worlds}, авторов {authors}.",
+  "worlds.explore.ai.unmark": "Снять отметку",
+  "worlds.explore.ai.hint": "В VRChat нет метки ИИ. «Возможно ИИ» — догадка по тегам и тексту мира, она может ошибаться. Нажмите правой кнопкой на мир, чтобы отметить его или автора; отметки остаются на этом компьютере."
 }

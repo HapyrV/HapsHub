@@ -4838,5 +4838,22 @@
   "worlds.explore.saved.hint": "表示、検索語、フィルターを保存します。このPCにのみ保存されます。",
   "worlds.explore.saved.toast_saved": "「{name}」を保存しました。",
   "worlds.explore.saved.need_name": "先に名前を入力してください。",
-  "worlds.explore.saved.full": "保存できる検索は{n}件までです。先に1件削除してください。"
+  "worlds.explore.saved.full": "保存できる検索は{n}件までです。先に1件削除してください。",
+  "worlds.explore.ai.title": "AI",
+  "worlds.explore.ai.filter": "表示",
+  "worlds.explore.ai.show_all": "すべてのワールド",
+  "worlds.explore.ai.hide_all": "「AIかも」と自分の印を隠す",
+  "worlds.explore.ai.hide_marks": "自分の印だけ隠す",
+  "worlds.explore.ai.badge_maybe": "AIかも",
+  "worlds.explore.ai.badge_maybe_tip": "タグ・名前・説明からの推測です。事実ではありません。",
+  "worlds.explore.ai.badge_mark": "AI",
+  "worlds.explore.ai.badge_mark_tip": "あなたがAIと印を付けました。このPCにのみ保存されます。",
+  "worlds.explore.ai.mark": "AIとして印を付ける",
+  "worlds.explore.ai.mark_author": "{name} のワールドすべてにAIの印を付ける",
+  "worlds.explore.ai.mark_author_unknown": "この作者のワールドすべてにAIの印を付ける",
+  "worlds.explore.ai.toast_marked": "「{name}」にAIの印を付けました。",
+  "worlds.explore.ai.toast_author": "{name} のワールドにAIの印を付けました。",
+  "worlds.explore.ai.summary": "あなたのAIの印: ワールド {worlds}、作者 {authors}",
+  "worlds.explore.ai.unmark": "印を外す",
+  "worlds.explore.ai.hint": "VRChatにはAIのラベルがありません。「AIかも」はワールドのタグと文章からの推測なので、外れることがあります。ワールドを右クリックすると、そのワールドか作者に印を付けられます。印はこのPCにだけ残ります。"
 }
