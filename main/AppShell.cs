@@ -909,7 +909,12 @@ public partial class AppShell
         }
 
         if (_settings.RegBackupEnabled &&
-            (DateTime.Now - _settings.LastRegBackup).TotalDays >= _settings.RegBackupDays)
+            (DateTime.Now - _settings.LastRegBackup).TotalDays >= _settings.RegBackupDays
+#if !WINDOWS
+            // No VRChat Proton prefix means nothing to back up yet, not a crash. The next start tries again.
+            && VRCNext.Services.Helpers.VrcPathsHelper.FindProtonPrefix() != null
+#endif
+            )
         {
             try
             {
