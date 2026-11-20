@@ -612,24 +612,12 @@ public class RelayController : IDisposable
                     UseShellExecute = false
                 });
 #else
-                bool isExecutable = false;
-                try { isExecutable = (File.GetUnixFileMode(path) & (UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute)) != 0; } catch { }
-                if (isExecutable)
+                // Linux: Steam copies start through Steam (Proton), other Windows programs with Wine.
+                var problem = VRCNext.Services.Helpers.LinuxLaunch.Start(path);
+                if (problem != null)
                 {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = path,
-                        WorkingDirectory = Path.GetDirectoryName(path) ?? "",
-                        UseShellExecute = false
-                    });
-                }
-                else
-                {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = path,
-                        UseShellExecute = true
-                    });
+                    _core.SendToJS("log", new { msg = problem, color = "warn" });
+                    continue;
                 }
 #endif
                 var exeName = ResolveTargetExeName(path);

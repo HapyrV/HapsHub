@@ -1,0 +1,81 @@
+# Builds HapsHub for Linux on Ubuntu, checks that it starts and keeps running, and keeps the tar.gz as an
+# artifact. It never publishes anything: a release gets the tar.gz by hand once the build is checked.
+name: Linux build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'translations/**', 'docs/**']
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install what HapsHub needs on Linux
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libwebkit2gtk-4.1-0 libgtk-3-0 libnotify4 xvfb dbus-x11 ffmpeg pulseaudio-utils
+
+      - name: Build linux-x64
+        run: |
+          # API keys stay out: anything compiled into a public download can be read back out.
+          dotnet publish VRCNext.csproj -c Release -r linux-x64 --self-contained true -o out/HapsHub -nologo \
+            -p:VRCNextHypeRateApiKey= -p:VRCNextVrcndbKey=
+          cd out/HapsHub
+          for f in HapsHub Photino.Native.so libnfd.so libe_sqlite3.so libSkiaSharp.so frontend/index.html; do
+            test -e "$f" || { echo "::error::The build is missing $f"; exit 1; }
+          done
+          # Windows-only leftovers.
+          rm -f *.exe openvr_api.dll e_sqlite3.dll nfd.dll libSkiaSharp.dll portable.txt source-commit.txt
+          rm -rf voice tray frameshot
+          chmod +x HapsHub
+          cp ../../LICENSE ../../README.md ../../tools/hapshub/linux/run-hapshub.sh .
+          chmod +x run-hapshub.sh
+
+      - name: Every library the app loads is there
+        run: |
+          missing=$(ldd out/HapsHub/Photino.Native.so out/HapsHub/libnfd.so | grep "not found" || true)
+          if [ -n "$missing" ]; then echo "::error::Missing libraries: $missing"; exit 1; fi
+
+      - name: Starts and keeps running for 45 seconds
+        run: |
+          export HAPSHUB_DATA_DIR="$RUNNER_TEMP/hapshub-data"
+          mkdir -p "$HAPSHUB_DATA_DIR"
+          set +e
+          dbus-run-session -- xvfb-run -a -s "-screen 0 1600x900x24" timeout 45 ./out/HapsHub/HapsHub > "$RUNNER_TEMP/run.log" 2>&1
+          code=$?
+          set -e
+          tail -n 60 "$RUNNER_TEMP/run.log"
+          # Handled errors (no network sign-in here, no VRChat) can leave entries too, so they're shown, not failed on.
+          for f in $(find "$HAPSHUB_DATA_DIR" "$HOME/.config/HapsHub" -path "*Crashes*" -type f 2>/dev/null); do
+            echo "::warning::Crash entry $(basename "$f")"; tail -n 40 "$f"
+          done
+          # 124 means timeout stopped it while it was still running, which is what should happen.
+          if [ "$code" -ne 124 ]; then echo "::error::HapsHub exited by itself with code $code"; exit 1; fi
+
+      - name: Hub self-test
+        run: |
+          set -o pipefail
+          dotnet run --project tools/hapshub/hub-selftest -c Release 2>&1 | tail -n 30
+
+      - name: Pack
+        run: |
+          version=$(grep -oP 'Version = "\K[^"]+' main/AppInfo.cs)
+          tar -czf "HapsHub-$version-linux-x64.tar.gz" -C out HapsHub
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HapsHub-${{ env.VERSION }}-linux-x64
+          path: HapsHub-*-linux-x64.tar.gz
+          retention-days: 30

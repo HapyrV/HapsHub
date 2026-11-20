@@ -182,7 +182,46 @@ public partial class AppShell
         }
     }
 #else
-    private bool HandleEmbedMessage(string action, JObject msg) => false;
+    // Linux: another program's window can't be held inside this one, so the page opens the app in its own window.
+    // Steam copies start through Steam (Proton), other Windows programs with Wine.
+    private bool HandleEmbedMessage(string action, JObject msg)
+    {
+        if (!action.StartsWith("hubEmbed", StringComparison.Ordinal)) return false;
+        var app = AppEmbedsModule.App(msg["app"]?.ToString());
+        if (app == null) return true;
+        if (action == "hubEmbedState") SendEmbedState(app, "");
+        else if (action == "hubEmbedStart")
+        {
+            var exe = HubModules.AppEmbeds.FindExe(app);
+            string message;
+            try { message = exe == null ? "" : VRCNext.Services.Helpers.LinuxLaunch.Start(exe) ?? $"{app.Name} is opening in its own window."; }
+            catch (Exception ex)
+            {
+                CrashHandler.WriteEntry("hubEmbedStart", ex);
+                message = $"{app.Name} didn't start: {ex.Message}";
+            }
+            SendEmbedState(app, message);
+        }
+        return true;
+    }
+
+    private void SendEmbedState(EmbedApp app, string message)
+    {
+        var module = HubModules.AppEmbeds;
+        SendToJS("hubEmbedState", new
+        {
+            app = app.Id,
+            name = app.Name,
+            state = "idle",
+            mode = module.Mode(app),
+            message = message.Length > 0 ? message : "On Linux the app opens in its own window.",
+            found = module.FindExe(app) != null,
+            enabled = module.Running,
+            result = "",
+            testing = false,
+            linux = true,
+        });
+    }
 
     private void ShutDownEmbeds() { }
 #endif

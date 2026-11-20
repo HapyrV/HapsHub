@@ -72,7 +72,11 @@ public partial class AppShell
             seconds = _tunnelSeconds;
         }
         (string Id, string Name)[] outputs;
+#if WINDOWS
         try { outputs = AudioDeviceManager.ListOutputs(); }
+#else
+        try { outputs = LinuxPulse.ListSinks(); }
+#endif
         catch (Exception ex)
         {
             CrashHandler.WriteEntry("hubTunnelDevices", ex);
@@ -106,6 +110,10 @@ public partial class AppShell
             return;
         }
         var sendDevice = module.Setting(YoutubeTunnelModule.SendDeviceKey);
+#if !WINDOWS
+        // Linux: without a choice the song goes to HapsHub's own virtual microphone.
+        if (sendDevice.Length == 0) sendDevice = LinuxPulse.TunnelSink;
+#endif
         if (sendDevice.Length == 0)
         {
             StopTunnel("Choose a Send to device first.");

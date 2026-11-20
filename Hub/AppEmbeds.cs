@@ -150,7 +150,7 @@ public sealed class AppEmbedsModule : IHubModule
     {
         var chosen = configured?.Trim().Trim('"') ?? "";
         if (chosen.Length > 0) return File.Exists(chosen) ? chosen : null;
-        var known = app.KnownPath == null ? null : Environment.ExpandEnvironmentVariables(app.KnownPath);
+        var known = app.KnownPath == null ? null : WinePrefix.Expand(app.KnownPath);
         if (known != null && File.Exists(known)) return known;
         if (app.SteamFolder == null) return null;
         return steamLibraries

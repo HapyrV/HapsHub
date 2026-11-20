@@ -137,6 +137,12 @@ function onHubEmbedState(payload) {
     } else if (open) {
         results.replaceChildren();
     }
+
+    // Linux can't hold another app's window in this page: the app opens in its own window instead.
+    if (payload.linux) {
+        for (const el of [mode, release, test, hint]) el.hidden = true;
+        start.disabled = !payload.found;
+    }
 }
 
 function aembStart(app) { sendToCS({ action: 'hubEmbedStart', app }); }

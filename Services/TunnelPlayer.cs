@@ -100,11 +100,97 @@ internal sealed class TunnelPlayer : IDisposable
         _hear = null;
     }
 #else
-    public TimeSpan Start(string path, string sendDeviceId, string hearDeviceId, float sendVolume, float hearVolume, Action ended) =>
-        throw new TunnelException("The YouTube tunnel only works on Windows for now.");
+    // Linux: ffmpeg plays the song into PulseAudio or PipeWire. The mic side goes to HapsHub's virtual speaker,
+    // whose "HapsHub Tunnel Mic" is what VRChat listens to, or to the speaker chosen under Send to.
+    private System.Diagnostics.Process? _send;
+    private System.Diagnostics.Process? _hear;
+    private volatile bool _stopping;
 
-    public void SetVolumes(float send, float hear) { }
+    public TimeSpan Start(string path, string sendDeviceId, string hearDeviceId, float sendVolume, float hearVolume, Action ended)
+    {
+        var ffmpeg = WinePrefix.OnPath("ffmpeg")
+            ?? throw new TunnelException("On Linux the YouTube tunnel needs ffmpeg. Install it with your package manager.");
+        var send = string.IsNullOrEmpty(sendDeviceId) ? LinuxPulse.TunnelSink : sendDeviceId;
+        if (send == LinuxPulse.TunnelSink) LinuxPulse.EnsureTunnel();
+        var length = Length(path);
 
-    public void Dispose() { }
+        _send = Play(ffmpeg, path, send);
+        _send.EnableRaisingEvents = true;
+        _send.Exited += (_, _) => { if (!_stopping) ended(); };
+        ApplyVolumeSoon(_send, sendVolume);
+        if (!string.IsNullOrEmpty(hearDeviceId) && hearDeviceId != send)
+        {
+            _hear = Play(ffmpeg, path, hearDeviceId);
+            ApplyVolumeSoon(_hear, hearVolume);
+        }
+        return length;
+    }
+
+    private static System.Diagnostics.Process Play(string ffmpeg, string path, string sink)
+    {
+        var info = new System.Diagnostics.ProcessStartInfo(ffmpeg) { UseShellExecute = false, CreateNoWindow = true };
+        foreach (var arg in new[] { "-nostdin", "-hide_banner", "-loglevel", "error", "-i", path, "-vn", "-f", "pulse" })
+            info.ArgumentList.Add(arg);
+        if (sink != LinuxPulse.DefaultSink)
+        {
+            info.ArgumentList.Add("-device");
+            info.ArgumentList.Add(sink);
+        }
+        info.ArgumentList.Add("HapsHub Tunnel");
+        return System.Diagnostics.Process.Start(info) ?? throw new TunnelException("ffmpeg didn't start.");
+    }
+
+    /// <summary>The stream shows up in pactl a moment after ffmpeg starts, so the volume is set once it's there.</summary>
+    private static void ApplyVolumeSoon(System.Diagnostics.Process process, float volume) => _ = Task.Run(async () =>
+    {
+        for (var attempt = 0; attempt < 15; attempt++)
+        {
+            await Task.Delay(200);
+            try { if (process.HasExited) return; } catch (InvalidOperationException) { return; }
+            if (LinuxPulse.SetStreamVolume(process.Id, volume)) return;
+        }
+    });
+
+    /// <summary>The song's length from ffprobe, or zero when it isn't installed.</summary>
+    private static TimeSpan Length(string path)
+    {
+        var ffprobe = WinePrefix.OnPath("ffprobe");
+        if (ffprobe == null) return TimeSpan.Zero;
+        var info = new System.Diagnostics.ProcessStartInfo(ffprobe) { UseShellExecute = false, RedirectStandardOutput = true, CreateNoWindow = true };
+        foreach (var arg in new[] { "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path })
+            info.ArgumentList.Add(arg);
+        try
+        {
+            using var probe = System.Diagnostics.Process.Start(info);
+            if (probe == null) return TimeSpan.Zero;
+            var text = probe.StandardOutput.ReadToEnd();
+            probe.WaitForExit(5000);
+            return double.TryParse(text.Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var seconds)
+                ? TimeSpan.FromSeconds(seconds) : TimeSpan.Zero;
+        }
+        catch (System.ComponentModel.Win32Exception) { return TimeSpan.Zero; }
+    }
+
+    public void SetVolumes(float send, float hear)
+    {
+        foreach (var (process, volume) in new[] { (_send, send), (_hear, hear) })
+        {
+            try { if (process is { HasExited: false }) LinuxPulse.SetStreamVolume(process.Id, volume); }
+            catch (InvalidOperationException) { }
+        }
+    }
+
+    public void Dispose()
+    {
+        _stopping = true;
+        foreach (var process in new[] { _send, _hear })
+        {
+            if (process == null) continue;
+            try { if (!process.HasExited) process.Kill(); } catch (InvalidOperationException) { } catch (System.ComponentModel.Win32Exception) { }
+            process.Dispose();
+        }
+        _send = null;
+        _hear = null;
+    }
 #endif
 }

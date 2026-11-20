@@ -16,8 +16,9 @@ public static class LaunchAddons
     public static List<string> Detect(string kind)
     {
         var steam = SteamHost.SteamLibraries().Select(l => Path.Combine(l, "steamapps", "common")).ToList();
-        var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var programs = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+        // On Linux, standalone Windows installs live in the Wine prefix.
+        var local = WinePrefix.Expand("%LOCALAPPDATA%");
+        var programs = WinePrefix.Expand("%ProgramFiles%");
         IEnumerable<string[]> groups = kind switch
         {
             // One entry per app; the first path found in each group wins.
@@ -67,7 +68,7 @@ public static class LaunchAddons
     public static List<KnownApp> KnownVrApps()
     {
         var steam = SteamHost.SteamLibraries().Select(l => Path.Combine(l, "steamapps", "common")).ToList();
-        var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var local = WinePrefix.Expand("%LOCALAPPDATA%");
         string? First(IEnumerable<string> paths) => paths.FirstOrDefault(File.Exists);
         string? StandableExe()
         {
@@ -89,7 +90,8 @@ public static class LaunchAddons
         {
             new("oyasumi", "OyasumiVR", First(steam.Select(c => Path.Combine(c, "OyasumiVR", "OyasumiVR.exe")))),
             new("standable", "Standable", StandableExe()),
-            new("ovr-advanced", "OVR Advanced Settings", First(steam.Select(c => Path.Combine(c, "OVR_AdvancedSettings", "AdvancedSettings.exe")))),
+            new("ovr-advanced", "OVR Advanced Settings", First(steam.SelectMany(c => new[]
+                { Path.Combine(c, "OVR_AdvancedSettings", "AdvancedSettings.exe"), Path.Combine(c, "OVR_AdvancedSettings", "AdvancedSettings") }))),
             new("vrct", "VRCT", First(new[] { Path.Combine(local, "VRCT", "VRCT.exe") })),
         };
     }

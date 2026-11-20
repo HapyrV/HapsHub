@@ -47,6 +47,23 @@ It needs Windows 10 or 11 with Microsoft's WebView2 runtime, which Windows norma
 **Updating**: HapsHub tells you when a new release is out. Close HapsHub, unzip the new release over the old folder
 (or into a new one), and start it again.
 
+### Linux (test build)
+
+1. Download `HapsHub-<version>-linux-x64.tar.gz` from [Releases](https://github.com/HapyrV/HapsHub/releases).
+2. Unpack it and start it: `tar -xzf HapsHub-*-linux-x64.tar.gz && ./HapsHub/run-hapshub.sh`
+3. If it doesn't open, `run-hapshub.sh` lists the missing system libraries and the command to install them
+   (WebKitGTK 4.1, GTK 3 and libnotify).
+
+Your data is kept in `~/.config/HapsHub`. On Linux a few things work differently:
+
+| Feature | On Linux |
+|---|---|
+| Pages for other apps | The app opens in its own window instead of inside HapsHub. Steam copies start through Steam (Proton), other Windows apps with Wine. |
+| VRCT built in | VRCT's engine runs with Wine. Point Settings at `VRCT.exe` if it isn't in `~/.wine`. |
+| YouTube Tunnel | Needs `ffmpeg` and `pactl`. HapsHub adds a **HapsHub Tunnel Mic**: choose it as your microphone in VRChat. |
+| Launch switches | Steam copies start through Steam (Proton), other Windows apps with Wine. |
+| Updating | Download the new tar.gz and unpack it over the old folder. |
+
 **Moving from VRCNext**: HapsHub keeps its own data and doesn't touch VRCNext's. Both can be installed side by side.
 
 ## System requirements

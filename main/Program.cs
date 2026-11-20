@@ -81,6 +81,8 @@ static class Program
         {
             // Throwaway test copies keep the version they were started as.
             if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("HAPSHUB_DATA_DIR"))) return false;
+            // The updater is a PowerShell script; Linux copies update from the Releases page.
+            if (!OperatingSystem.IsWindows()) return false;
             var dir = AppContext.BaseDirectory;
             var exe = Environment.ProcessPath;
             var repo = HapsHub.Core.SourceUpdate.RepositoryOf(dir);

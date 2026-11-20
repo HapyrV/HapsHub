@@ -82,7 +82,15 @@ public sealed class VrctEngine : IDisposable
             SetState("failed", "VRCT is already running on its own. Close it first: two copies would fight over the microphone.");
             return false;
         }
-        var info = new ProcessStartInfo(sidecar)
+        // Linux: VRCT is a Windows program, so its engine runs with Wine.
+        var viaWine = !OperatingSystem.IsWindows() && sidecar.EndsWith(".exe", StringComparison.OrdinalIgnoreCase);
+        var wine = viaWine ? HapsHub.Core.WinePrefix.OnPath("wine") : null;
+        if (viaWine && wine == null)
+        {
+            SetState("failed", "On Linux VRCT's engine runs with Wine. Install Wine and try again.");
+            return false;
+        }
+        var info = new ProcessStartInfo(wine ?? sidecar)
         {
             WorkingDirectory = Path.GetDirectoryName(sidecar) ?? "",
             UseShellExecute = false,
@@ -93,6 +101,7 @@ public sealed class VrctEngine : IDisposable
             StandardOutputEncoding = Encoding.UTF8,
             StandardInputEncoding = new UTF8Encoding(false),
         };
+        if (wine != null) info.ArgumentList.Add(sidecar);
         Process process;
         try
         {
