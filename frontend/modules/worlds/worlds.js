@@ -78,6 +78,7 @@ function renderVisitedWorlds(worlds) {
     if (Array.isArray(worlds)) { _visitedWorldsData = worlds; _visitedWorldsLoaded = true; }
     _wdUpdateCounts();
     if (worldFilter === 'explore') _exploreRenderChips();
+    if (worldFilter === 'explore' && _explore.view === 'foryou') { _exploreEnsure(); renderExplore(); }
     _wdRefreshTagOptions();
     const el = document.getElementById('worldRecentGrid');
     if (!el) return;
@@ -309,7 +310,9 @@ const _explore = { view: 'active', query: '', page: 0, entries: {}, shown: [] };
 
 // API pages are keyed by view, text and the filters VRChat applies (sig); live and local views by view only.
 function _exploreKey(view, query, sig = _exploreServerSig()) {
-    return _EXPLORE_LIVE[view] || _EXPLORE_LOCAL[view] ? view : view + '|' + String(query || '').toLowerCase() + '|' + sig;
+    if (_EXPLORE_LIVE[view] || _EXPLORE_LOCAL[view]) return view;
+    if (view === 'foryou') return view + '|' + sig;   // For You ignores the search text
+    return view + '|' + String(query || '').toLowerCase() + '|' + sig;
 }
 
 function _exploreEntry(view = _explore.view, query = _explore.query, sig) {
@@ -342,6 +345,7 @@ function _exploreFetch(view, query, offset, fresh, chain = 0) {
 /** Loads the current view if it has nothing yet (or an API page went stale); fresh = the Refresh button. */
 function _exploreEnsure(fresh) {
     if (_EXPLORE_LOCAL[_explore.view]) { if (fresh && worldFilter === 'explore') renderExplore(); return; }
+    if (_explore.view === 'foryou') { _exploreForYouEnsure(fresh); return; }
     const e = _exploreEntry();
     if (e.loading) return;
     const stale = !Array.isArray(e.worlds) || (!_EXPLORE_LIVE[_explore.view] && Date.now() - e.at > _EXPLORE_TTL_MS);
@@ -363,7 +367,7 @@ function setExploreView(view) {
 function exploreSearch() {
     if (worldFilter !== 'explore') setWorldFilter('explore');
     _exploreReadQuery();
-    if (_explore.query && _EXPLORE_LIVE[_explore.view]) _explore.view = 'relevance';
+    if (_explore.query && (_EXPLORE_LIVE[_explore.view] || _explore.view === 'foryou')) _explore.view = 'relevance';
     _explore.page = 0;
     _exploreSyncUi();
     _exploreEnsure();
@@ -373,7 +377,7 @@ function exploreSearch() {
 function exploreRefresh() { _exploreReadQuery(); _exploreEnsure(true); }
 
 function exploreLoadMore() {
-    if (_EXPLORE_LIVE[_explore.view] || _EXPLORE_LOCAL[_explore.view]) return;
+    if (_EXPLORE_LIVE[_explore.view] || _EXPLORE_LOCAL[_explore.view] || _explore.view === 'foryou') return;
     const e = _exploreEntry();
     if (e.loading || !e.hasMore) return;
     _exploreFetch(_explore.view, _explore.query, e.offset, false);
@@ -455,6 +459,7 @@ function _exploreSyncUi() {
         const hidden = count && Array.isArray(all) ? all.length - passing.length : 0;
         const personal = Array.isArray(passing) && _explorePersonalHiding(view) ? passing.filter(w => _exploreHiddenWhy(w)).length : 0;
         const text = [
+            view === 'foryou' ? _exploreForYouNote() : '',
             view.startsWith('row:') ? tf('worlds.explore.rows.note', { name: _exploreRowName(view) }, 'VRChat row: {name}.') : '',
             live && _explore.query
                 ? tf('worlds.explore.note_live_filter', { query: _explore.query }, 'Showing live worlds whose name, author or tags contain "{query}". Press Search to search all worlds.')
@@ -476,6 +481,7 @@ function _exploreVisible(e = _exploreEntry(), view = _explore.view) {
     if (!Array.isArray(all)) return null;
     let list = _exploreFilterCount() ? all.filter(w => _explorePasses(w, view)) : all;
     if (_explorePersonalHiding(view)) list = list.filter(w => !_exploreHiddenWhy(w));
+    if (view === 'foryou' && !_explorePersonal.feedVisited) list = list.filter(w => !_exploreVisited(w));
     const q = _explore.query.toLowerCase();
     if (q && (_EXPLORE_LIVE[view] || _EXPLORE_LOCAL[view])) list = list.filter(w => (w.name || '').toLowerCase().includes(q)
         || (w.authorName || '').toLowerCase().includes(q)
@@ -827,7 +833,8 @@ function _exploreFilterHtml() {
         <div class="av-more-row"><span>${L('add_tag', 'Add tag')}</span>
             <input id="exploreTagInput" type="text" class="vrcn-input" maxlength="64" placeholder="${L('tag_placeholder', 'e.g. chill, then Enter')}" onkeydown="if(event.key==='Enter')exploreAddTag(this.value)"></div>
         <div class="av-more-row"><span>${L('visited', 'Visited')}</span>
-            <label class="explore-cw"><input type="checkbox" id="exploreHideVisited"${f.hideVisited ? ' checked' : ''} onchange="exploreSetFilter('hideVisited', this.checked)"> <span>${L('hide_visited', 'Hide worlds I have visited')}</span></label></div>
+            <div class="explore-cw-stack"><label class="explore-cw"><input type="checkbox" id="exploreHideVisited"${f.hideVisited ? ' checked' : ''} onchange="exploreSetFilter('hideVisited', this.checked)"> <span>${L('hide_visited', 'Hide worlds I have visited')}</span></label>
+            <label class="explore-cw"><input type="checkbox" id="exploreFeedVisited"${_explorePersonal.feedVisited ? ' checked' : ''} onchange="exploreFeedVisited(this.checked)"> <span>${esc(t('worlds.explore.foryou.show_visited', 'Show visited worlds in For You'))}</span></label></div></div>
         <div class="av-more-row"><span>${A('friends', 'Friends')}</span>
             <label class="explore-cw"><input type="checkbox" id="exploreFriendsOnly"${f.friendsOnly ? ' checked' : ''} onchange="exploreSetFilter('friendsOnly', this.checked)"> <span>${A('friends_only', 'Only worlds where friends are now')}</span></label></div>
         <div class="av-more-row"><span>${A('order', 'Order')}</span>
@@ -915,7 +922,7 @@ function _exploreIdOk(id, prefix = '') { return typeof id === 'string' && id.len
 function _exploreHas(m) { for (const k in m) return true; return false; }
 
 function _exploreLoadPersonal() {
-    const p = { liked: {}, disliked: {}, worlds: {}, authors: {}, tags: [], showHidden: false, ai: {}, aiAuthors: {} };
+    const p = { liked: {}, disliked: {}, worlds: {}, authors: {}, tags: [], showHidden: false, ai: {}, aiAuthors: {}, feedVisited: false };
     try {
         const s = JSON.parse(localStorage.getItem('vrcn_explorePersonal') || '{}') || {};
         const map = (v, prefix, max) => Object.fromEntries(Object.entries(v && typeof v === 'object' && !Array.isArray(v) ? v : {})
@@ -927,6 +934,7 @@ function _exploreLoadPersonal() {
         p.authors = map(s.authors, '', _EXPLORE_KEEP.authors);
         p.tags = [...new Set(Array.isArray(s.tags) ? s.tags : [])].filter(_exploreTagOk).slice(0, _EXPLORE_KEEP.tags);
         p.showHidden = s.showHidden === true;
+        p.feedVisited = s.feedVisited === true;
         p.ai = map(s.ai, 'wrld_', _EXPLORE_KEEP.ai);
         p.aiAuthors = map(s.aiAuthors, '', _EXPLORE_KEEP.aiAuthors);
     } catch { }
@@ -1025,7 +1033,11 @@ function _exploreCardOpts(w) {
         const title = n ? esc(tf('worlds.explore.personal.visits', { n }, 'Visits: {n}')) : P('badge_visited', 'Visited');
         badges.push(`<span class="explore-badge visited" title="${title}"><span class="msi">history</span>${P('badge_visited', 'Visited')}</span>`);
     }
-    return { badges: badges.length ? `<div class="explore-badges">${badges.join('')}</div>` : '', cls: why ? ' explore-hidden' : '' };
+    const feed = _explore.view === 'foryou' ? _exploreFeedWhy.get(w.id) : null;
+    const reason = !feed ? '' : feed.kind === 'new' ? t('worlds.explore.foryou.why_new', 'Something new')
+        : feed.tags.length ? tf('worlds.explore.foryou.why', { tags: feed.tags.map(tag => _wdTagLabel(tag) || tag).join(', ') }, 'Because you like {tags}') : '';
+    return { badges: (badges.length ? `<div class="explore-badges">${badges.join('')}</div>` : '')
+        + (reason ? `<div class="explore-why" title="${esc(reason)}"><span class="msi">auto_awesome</span>${esc(reason)}</div>` : ''), cls: why ? ' explore-hidden' : '' };
 }
 
 function _exploreFindWorld(id) {
@@ -1234,14 +1246,146 @@ function _exploreAiHtml() {
         <div class="explore-filter-hint">${A('hint', 'VRChat has no AI label. "Maybe AI" is a guess from the world\'s tags and text, so it can be wrong. Right-click a world to mark it or its author; marks stay on this computer.')}</div>`;
 }
 
+// ---- Explore: For You (item 14, step 7) ----
+// A feed built from the user's own taste: the author tags of worlds they visit (weighted by time spent there and how
+// recently, half-life 30 days), favorite and like; dislikes count against and hidden tags never count. One request
+// per top tag (5 at most, Hot, 50 each), only when For You opens or Refresh is pressed; kept 30 minutes. Scored by
+// tag overlap times freshness plus a little for favorites; at most two worlds per author, every fifth card the newest
+// world not shown yet. Visited worlds stay out unless switched on. Too little history: VRChat's Trending, said so.
+const _EXPLORE_FEED_TTL_MS = 30 * 60 * 1000;
+const _EXPLORE_FEED_MIN = 5;        // visited worlds with author tags needed before For You uses the history
+const _EXPLORE_FEED_TAGS = 5;       // requests per refresh at most
+let _exploreFeedWhy = new Map();    // world id -> { kind: 'tags', tags } | { kind: 'new' }
+let _exploreFeedProfile = null;
+
+function _exploreTimeMs(v) {
+    const n = typeof v === 'number' ? v : Date.parse(v || '');
+    if (!Number.isFinite(n) || n <= 0) return 0;
+    return n < 1e12 ? n * 1000 : n;
+}
+
+/** Tag weights from visits, favorites, likes and dislikes; top = the tags to ask VRChat about. */
+function _exploreProfile() {
+    const weights = new Map();
+    const add = (w, k) => {
+        for (const tag of new Set(Array.isArray(w?.tags) ? w.tags : []))
+            if (typeof tag === 'string' && tag.startsWith('author_tag_') && _exploreTagOk(tag)) weights.set(tag, (weights.get(tag) || 0) + k);
+    };
+    const now = Date.now();
+    let tagged = 0;
+    for (const w of Array.isArray(_visitedWorldsData) ? _visitedWorldsData : []) {
+        if (!w || !(Array.isArray(w.tags) && w.tags.some(x => typeof x === 'string' && x.startsWith('author_tag_')))) continue;
+        tagged++;
+        const hours = Math.max(0, Number(w.worldTimeSeconds) || 0) / 3600;
+        const last = _exploreTimeMs(w.worldLastVisited);
+        const recency = last ? Math.pow(0.5, Math.max(0, now - last) / (30 * 86400000)) : 0.25;
+        add(w, (1 + Math.log1p(hours)) * (0.25 + recency));
+    }
+    for (const w of typeof favWorldsData !== 'undefined' && Array.isArray(favWorldsData) ? favWorldsData : []) add(w, 1);
+    const p = _explorePersonal;
+    for (const w of Object.values(p.liked)) add(w, 1.5);
+    for (const w of Object.values(p.disliked)) add(w, -1.5);
+    for (const tag of p.tags) weights.set(tag, -Infinity);
+    const top = [...weights].filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .slice(0, _EXPLORE_FEED_TAGS).map(x => x[0]);
+    return { weights, top, tagged, enough: tagged >= _EXPLORE_FEED_MIN && top.length > 0 };
+}
+
+/** Asks for the feed when For You has none yet, it is 30 minutes old, or Refresh was pressed. Waits for the visit history. */
+function _exploreForYouEnsure(fresh) {
+    const e = _exploreEntry('foryou', '');
+    if (e.loading) return;
+    if (!_visitedWorldsLoaded) { _exploreAskChipSources(); return; }
+    if (!fresh && Array.isArray(e.worlds) && Date.now() - e.at < _EXPLORE_FEED_TTL_MS) return;
+    const prof = _exploreProfile();
+    const tags = prof.enough ? prof.top : [];
+    e.loading = true;
+    e.failed = false;
+    e.reqKey = _exploreKey('foryou', '') + '|' + tags.join(',') + '|' + Date.now();
+    e.profile = prof;
+    sendToCS({ action: 'vrcExploreForYou', ..._exploreServerParams(), profileTags: tags, fresh: !!fresh, key: e.reqKey, sig: _exploreServerSig() });
+    _exploreSyncUi();
+    if (worldFilter === 'explore') renderExplore();
+}
+
+function onExploreForYou(payload) {
+    const sig = typeof payload?.sig === 'string' ? payload.sig : _exploreServerSig();
+    const e = _exploreEntry('foryou', '', sig);
+    if (!payload || payload.key !== e.reqKey) return;   // an older request
+    e.loading = false;
+    if (payload.ok) {
+        _exploreFeedProfile = e.profile || _exploreProfile();
+        e.fallback = !!payload.fallback;
+        e.worlds = _exploreForYouBuild(Array.isArray(payload.results) ? payload.results : [], _exploreFeedProfile, e.fallback);
+        e.at = Date.now();
+        e.hasMore = false;
+    } else _exploreLoadFailed(e);
+    _exploreAfterLoad('foryou', '', sig);
+}
+
+/** Scores and mixes what came back; fills _exploreFeedWhy with the reason each card shows. */
+function _exploreForYouBuild(results, prof, fallback) {
+    const byId = new Map();
+    for (const r of results) for (const w of Array.isArray(r?.worlds) ? r.worlds : []) if (w && w.id && !byId.has(w.id)) byId.set(w.id, w);
+    const why = new Map();
+    _exploreFeedWhy = why;
+    if (fallback) return [...byId.values()];
+    const now = Date.now();
+    const weight = tag => prof.weights.get(tag) || 0;
+    const maxW = Math.max(1e-9, ...prof.top.map(weight));
+    const scored = [...byId.values()].map(w => {
+        const tags = [...new Set((Array.isArray(w.tags) ? w.tags : []).filter(x => typeof x === 'string' && x.startsWith('author_tag_')))];
+        const hits = tags.filter(x => weight(x) > 0).sort((a, b) => weight(b) - weight(a));
+        const against = tags.some(x => weight(x) < 0);
+        const overlap = Math.min(1.5, hits.reduce((n, x) => n + weight(x), 0) / maxW);
+        const at = _exploreWorldTime(w);
+        const ageDays = at ? Math.max(0, (now - at) / 86400000) : 365;
+        const score = overlap * (0.5 + 1 / (1 + ageDays / 180)) + 0.08 * Math.log10(1 + (Number(w.favorites) || 0)) - (against ? 0.5 : 0);
+        return { w, score, hits, ageDays };
+    }).sort((a, b) => b.score - a.score);
+    const out = [];
+    const perAuthor = new Map();
+    const used = new Set();
+    const author = x => x.w.authorId || x.w.id;
+    const ok = x => !used.has(x.w.id) && (perAuthor.get(author(x)) || 0) < 2;
+    const take = x => { used.add(x.w.id); out.push(x.w); perAuthor.set(author(x), (perAuthor.get(author(x)) || 0) + 1); };
+    const newest = [...scored].sort((a, b) => a.ageDays - b.ageDays);
+    for (const x of scored) {
+        if (!ok(x)) continue;
+        if (out.length % 5 === 4) {
+            const pick = newest.find(ok);
+            if (pick) { take(pick); why.set(pick.w.id, { kind: 'new' }); }
+            if (!ok(x)) continue;
+        }
+        take(x);
+        why.set(x.w.id, { kind: 'tags', tags: x.hits.slice(0, 2) });
+    }
+    return out;
+}
+
+function _exploreForYouNote() {
+    const e = _exploreEntry('foryou', '');
+    if (!Array.isArray(e.worlds)) return '';
+    if (e.fallback) return tf('worlds.explore.foryou.note_fallback', { n: _EXPLORE_FEED_MIN }, 'Not enough visit history yet (fewer than {n} visited worlds with tags), so this is VRChat\'s Trending. It fills in as you visit worlds.');
+    const tags = (_exploreFeedProfile?.top || []).map(tag => _wdTagLabel(tag) || tag).join(', ');
+    return tf('worlds.explore.foryou.note', { tags }, 'Picked from the tags of worlds you visit, favorite and like: {tags}. Refresh for a new mix.');
+}
+
+function exploreFeedVisited(on) {
+    _explorePersonal.feedVisited = !!on;
+    _exploreSavePersonal();
+    _explore.page = 0;
+    if (worldFilter === 'explore') { _exploreSyncUi(); renderExplore(); }
+}
+
 // ---- Explore: VRChat's rows, saved searches, the view Explore opens on (item 14, step 5) ----
 // "VRChat rows" lists the rows VRChat shows in game (GET /config dynamicWorldRows, asked for the first time the menu
 // opens); each is a view "row:<index>" that C# turns into its GET /worlds sort and tag. A saved search keeps the view,
 // the search text and the filters under a name; one view or saved search can be where Explore opens. Kept in
 // localStorage vrcn_exploreSaved, on this computer only.
 const _EXPLORE_SAVED_MAX = 30;
-const _EXPLORE_START_VIEWS = ['active', 'discover', 'hot', 'trending', 'popular', 'new', 'labs', 'favorites', 'random', 'liked'];
-const _EXPLORE_VIEW_NAMES = { active: 'Active now', discover: 'Discover', hot: 'Hot', trending: 'Trending', popular: 'Popular', new: 'New',
+const _EXPLORE_START_VIEWS = ['active', 'foryou', 'discover', 'hot', 'trending', 'popular', 'new', 'labs', 'favorites', 'random', 'liked'];
+const _EXPLORE_VIEW_NAMES = { active: 'Active now', foryou: 'For You', discover: 'Discover', hot: 'Hot', trending: 'Trending', popular: 'Popular', new: 'New',
     labs: 'Community Labs', favorites: 'Most favorited', random: 'Random', liked: 'Liked', relevance: 'Best match' };
 const _exploreRowsState = { list: null, loading: false, failed: false };
 const _exploreSaved = _exploreLoadSaved();

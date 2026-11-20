@@ -4855,5 +4855,11 @@
   "worlds.explore.ai.toast_author": "{name}의 월드를 AI로 표시했습니다.",
   "worlds.explore.ai.summary": "내 AI 표시: 월드 {worlds}개, 제작자 {authors}명.",
   "worlds.explore.ai.unmark": "표시 지우기",
-  "worlds.explore.ai.hint": "VRChat에는 AI 표시가 없습니다. \"AI일 수도\"는 월드의 태그와 글로 추측한 것이라 틀릴 수 있습니다. 월드를 우클릭해 월드나 제작자를 표시하세요. 표시는 이 컴퓨터에만 남습니다."
+  "worlds.explore.ai.hint": "VRChat에는 AI 표시가 없습니다. \"AI일 수도\"는 월드의 태그와 글로 추측한 것이라 틀릴 수 있습니다. 월드를 우클릭해 월드나 제작자를 표시하세요. 표시는 이 컴퓨터에만 남습니다.",
+  "worlds.explore.views.foryou": "추천",
+  "worlds.explore.foryou.why": "{tags}을(를) 좋아해서",
+  "worlds.explore.foryou.why_new": "새로운 월드",
+  "worlds.explore.foryou.note": "방문하고 즐겨찾기하고 좋아한 월드의 태그로 골랐습니다: {tags}. 새로 고치면 새로 섞습니다.",
+  "worlds.explore.foryou.note_fallback": "방문 기록이 아직 부족해서(태그 있는 방문 월드 {n}개 미만) VRChat 트렌딩을 보여 줍니다. 월드를 방문할수록 채워집니다.",
+  "worlds.explore.foryou.show_visited": "추천에 방문한 월드도 표시"
 }

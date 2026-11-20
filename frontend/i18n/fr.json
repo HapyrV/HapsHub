@@ -4855,5 +4855,11 @@
   "worlds.explore.ai.toast_author": "Mondes de {name} marqués comme IA.",
   "worlds.explore.ai.summary": "Vos marques IA : {worlds} mondes, {authors} auteurs.",
   "worlds.explore.ai.unmark": "Retirer la marque",
-  "worlds.explore.ai.hint": "VRChat n'a pas d'étiquette IA. « Peut-être IA » est deviné d'après les tags et le texte du monde, il peut se tromper. Clic droit sur un monde pour le marquer, lui ou son auteur ; les marques restent sur cet ordinateur."
+  "worlds.explore.ai.hint": "VRChat n'a pas d'étiquette IA. « Peut-être IA » est deviné d'après les tags et le texte du monde, il peut se tromper. Clic droit sur un monde pour le marquer, lui ou son auteur ; les marques restent sur cet ordinateur.",
+  "worlds.explore.views.foryou": "Pour vous",
+  "worlds.explore.foryou.why": "Car vous aimez {tags}",
+  "worlds.explore.foryou.why_new": "Quelque chose de nouveau",
+  "worlds.explore.foryou.note": "Choisis d'après les tags des mondes que vous visitez, mettez en favori et aimez : {tags}. Actualisez pour un autre mélange.",
+  "worlds.explore.foryou.note_fallback": "Pas encore assez d'historique (moins de {n} mondes visités avec des tags), voici donc les Tendances de VRChat. Cela se remplit à mesure que vous visitez des mondes.",
+  "worlds.explore.foryou.show_visited": "Afficher les mondes visités dans Pour vous"
 }

@@ -4855,5 +4855,11 @@
   "worlds.explore.ai.toast_author": "Worlds by {name} marked as AI.",
   "worlds.explore.ai.summary": "Your AI marks: {worlds} worlds, {authors} authors.",
   "worlds.explore.ai.unmark": "Remove the mark",
-  "worlds.explore.ai.hint": "VRChat has no AI label. \"Maybe AI\" is a guess from the world's tags and text, so it can be wrong. Right-click a world to mark it or its author; marks stay on this computer."
+  "worlds.explore.ai.hint": "VRChat has no AI label. \"Maybe AI\" is a guess from the world's tags and text, so it can be wrong. Right-click a world to mark it or its author; marks stay on this computer.",
+  "worlds.explore.views.foryou": "For You",
+  "worlds.explore.foryou.why": "Because you like {tags}",
+  "worlds.explore.foryou.why_new": "Something new",
+  "worlds.explore.foryou.note": "Picked from the tags of worlds you visit, favorite and like: {tags}. Refresh for a new mix.",
+  "worlds.explore.foryou.note_fallback": "Not enough visit history yet (fewer than {n} visited worlds with tags), so this is VRChat's Trending. It fills in as you visit worlds.",
+  "worlds.explore.foryou.show_visited": "Show visited worlds in For You"
 }

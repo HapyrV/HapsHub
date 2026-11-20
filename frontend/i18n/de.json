@@ -4855,5 +4855,11 @@
   "worlds.explore.ai.toast_author": "Welten von {name} als KI markiert.",
   "worlds.explore.ai.summary": "Deine KI-Markierungen: {worlds} Welten, {authors} Autoren.",
   "worlds.explore.ai.unmark": "Markierung entfernen",
-  "worlds.explore.ai.hint": "VRChat hat kein KI-Label. „Vielleicht KI“ ist aus Tags und Text der Welt geraten und kann falsch sein. Rechtsklick auf eine Welt markiert sie oder ihren Autor; Markierungen bleiben auf diesem Computer."
+  "worlds.explore.ai.hint": "VRChat hat kein KI-Label. „Vielleicht KI“ ist aus Tags und Text der Welt geraten und kann falsch sein. Rechtsklick auf eine Welt markiert sie oder ihren Autor; Markierungen bleiben auf diesem Computer.",
+  "worlds.explore.views.foryou": "Für dich",
+  "worlds.explore.foryou.why": "Weil du {tags} magst",
+  "worlds.explore.foryou.why_new": "Etwas Neues",
+  "worlds.explore.foryou.note": "Ausgewählt nach den Tags der Welten, die du besuchst, favorisierst und magst: {tags}. Aktualisieren mischt neu.",
+  "worlds.explore.foryou.note_fallback": "Noch zu wenig Besuchsverlauf (weniger als {n} besuchte Welten mit Tags), daher VRChats „Im Trend“. Das füllt sich, während du Welten besuchst.",
+  "worlds.explore.foryou.show_visited": "Besuchte Welten in „Für dich“ zeigen"
 }

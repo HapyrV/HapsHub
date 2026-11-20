@@ -58,6 +58,12 @@
 .explore-badge.hidden { background: rgba(239,83,80,.7); }
 .explore-badge.friends { background: rgba(76,175,80,.75); }
 .explore-badge.ai { background: rgba(156,39,176,.75); }
+.vrcn-content-card .explore-why { position: absolute; top: 12px; left: 12px; z-index: 3; max-width: 58%; display: flex; align-items: center; gap: 3px;
+    padding: 2px 7px; border-radius: 999px; font-size: calc(10px + var(--fs-off, 0px)); font-weight: 600; color: #fff; background: rgba(0,0,0,.55);
+    backdrop-filter: blur(4px); pointer-events: none; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.vrcn-content-card .explore-why .msi { font-size: 12px; color: var(--accent-lt, #fff); }
+.vrcn-content-card .cc-time-top ~ .explore-why { top: 38px; }
+.explore-cw-stack { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .explore-badge.ai.maybe { background: rgba(0,0,0,.55); border: 1px dashed rgba(206,147,216,.9); }
 .explore-row-list, .explore-saved-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; max-height: 45vh; overflow-y: auto; scrollbar-width: thin; }
 .explore-row-item, .explore-saved-name { justify-content: flex-start; text-align: left; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

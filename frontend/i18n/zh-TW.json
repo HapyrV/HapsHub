@@ -4855,5 +4855,11 @@
   "worlds.explore.ai.toast_author": "已將 {name} 的世界標記為 AI。",
   "worlds.explore.ai.summary": "你的 AI 標記：{worlds} 個世界，{authors} 位作者。",
   "worlds.explore.ai.unmark": "移除標記",
-  "worlds.explore.ai.hint": "VRChat 沒有 AI 標籤。「可能是 AI」是根據世界的標籤和文字推測的，可能出錯。右鍵點擊世界可標記它或其作者；標記只保存在這台電腦上。"
+  "worlds.explore.ai.hint": "VRChat 沒有 AI 標籤。「可能是 AI」是根據世界的標籤和文字推測的，可能出錯。右鍵點擊世界可標記它或其作者；標記只保存在這台電腦上。",
+  "worlds.explore.views.foryou": "為你推薦",
+  "worlds.explore.foryou.why": "因為你喜歡 {tags}",
+  "worlds.explore.foryou.why_new": "新鮮內容",
+  "worlds.explore.foryou.note": "根據你造訪、收藏和按讚的世界的標籤挑選：{tags}。重新整理可換一批。",
+  "worlds.explore.foryou.note_fallback": "造訪記錄還不夠（有標籤的已造訪世界少於 {n} 個），所以這裡顯示 VRChat 的「趨勢」。隨著你造訪世界會逐漸豐富。",
+  "worlds.explore.foryou.show_visited": "在「為你推薦」中顯示已造訪的世界"
 }

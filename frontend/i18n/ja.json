@@ -4855,5 +4855,11 @@
   "worlds.explore.ai.toast_author": "{name} のワールドにAIの印を付けました。",
   "worlds.explore.ai.summary": "あなたのAIの印: ワールド {worlds}、作者 {authors}",
   "worlds.explore.ai.unmark": "印を外す",
-  "worlds.explore.ai.hint": "VRChatにはAIのラベルがありません。「AIかも」はワールドのタグと文章からの推測なので、外れることがあります。ワールドを右クリックすると、そのワールドか作者に印を付けられます。印はこのPCにだけ残ります。"
+  "worlds.explore.ai.hint": "VRChatにはAIのラベルがありません。「AIかも」はワールドのタグと文章からの推測なので、外れることがあります。ワールドを右クリックすると、そのワールドか作者に印を付けられます。印はこのPCにだけ残ります。",
+  "worlds.explore.views.foryou": "おすすめ",
+  "worlds.explore.foryou.why": "{tags} が好きなあなたに",
+  "worlds.explore.foryou.why_new": "新しいもの",
+  "worlds.explore.foryou.note": "訪れた・お気に入りにした・いいねしたワールドのタグから選んでいます: {tags}。更新すると組み合わせが変わります。",
+  "worlds.explore.foryou.note_fallback": "訪問履歴がまだ足りません（タグ付きの訪問ワールドが{n}件未満）。そのためVRChatのトレンドを表示しています。ワールドを訪れるほど充実します。",
+  "worlds.explore.foryou.show_visited": "おすすめに訪問済みのワールドも表示"
 }

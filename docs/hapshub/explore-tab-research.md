@@ -178,7 +178,17 @@ VRChat has no AI label in the API and declined to add one (28 Oct 2026). HapsHub
    solid AI badge. Filters panel, AI part: All worlds / Hide "Maybe AI" and my marks / Hide only my marks (a filter:
    counted, saved, cleared), the mark counts, and marked authors as chips (click to unmark). Not done, as planned:
    thumbnail guessing.
-7. For You.
+7. For You. **Done 2026-11-20.**
+   As designed above, with these numbers: visit weight (1 + ln(1 + hours there)) x (0.25 + 0.5^(days since / 30));
+   favorite +1, like +1.5, dislike -1.5 per author tag; hidden tags never count. Top 5 positive tags, asked in one
+   message (`vrcExploreForYou`): C# sends one GET /worlds per tag (heat, n=50, the user's platform and hidden-tag
+   filters) and stops at the first failure; the page keeps the feed 30 minutes, Refresh asks again (fresh). Score =
+   overlap (tag weights / top weight, max 1.5) x (0.5 + 1 / (1 + age days / 180)) + 0.08 log10(1 + favorites), -0.5
+   if a tag counts against. Two per author; every fifth card the newest world not shown yet ("Something new"); other
+   cards say "Because you like X, Y". Visited worlds out unless "Show visited worlds in For You" (Filters, Visited;
+   `feedVisited` in `vrcn_explorePersonal`). Fewer than 5 visited worlds with author tags: `popularity` +
+   `featured=false` (VRChat's Trending row), said in the note. Waits for the visit history before asking. Search in
+   For You moves to Best match, like the live views.
 8. Share list export/import.
 
 ## Sources

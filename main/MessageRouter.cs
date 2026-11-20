@@ -1563,13 +1563,7 @@ public partial class AppShell
                     // have, and platform. Only author and content-warning tags and the three platforms are passed on.
                     var exTags = ExploreTagList(msg["tags"]);
                     var exNotags = ExploreTagList(msg["notags"]);
-                    var (exPlatform, exNoPlatform) = (msg["platform"]?.ToString() ?? "") switch
-                    {
-                        "quest" => ("android", (string?)null),
-                        "pc"    => ("standalonewindows", "android"),
-                        "ios"   => ("ios", (string?)null),
-                        _       => ((string?)null, (string?)null),
-                    };
+                    var (exPlatform, exNoPlatform) = ExplorePlatformArgs(msg["platform"]?.ToString());
                     _ = Task.Run(async () =>
                     {
                         var exSpec = exIsRow ? await GetExploreRowAsync(exView)
@@ -1588,6 +1582,37 @@ public partial class AppShell
                         {
                             view = exView, query = exQuery, offset = exOffset, ok = rows != null, sig = exSig,
                             hasMore = list.Count >= ExplorePageSize, worlds = list,
+                        }));
+                    });
+                    break;
+                }
+
+                case "vrcExploreForYou":
+                {
+                    // Explore "For You" (step 7): one page of Hot worlds for each top tag of the user's own taste
+                    // profile (5 at most), or VRChat's Trending when the history is too thin. Same platform and
+                    // hidden-tag filters as the other views; stops at the first failed request (429 and the like).
+                    var fyTags = ExploreTagList(msg["profileTags"]).Where(t => t.StartsWith("author_tag_")).Take(5).ToList();
+                    var fyFresh = msg["fresh"]?.Value<bool>() ?? false;
+                    var fyKey = msg["key"]?.ToString() ?? "";
+                    if (fyKey.Length > 400) break;
+                    var fySig = msg["sig"]?.ToString() ?? "";
+                    var fyNotags = ExploreTagList(msg["notags"]);
+                    var (fyPlatform, fyNoPlatform) = ExplorePlatformArgs(msg["platform"]?.ToString());
+                    _ = Task.Run(async () =>
+                    {
+                        var fyResults = new List<object>();
+                        var fyFailed = false;
+                        foreach (var tag in fyTags.Count > 0 ? fyTags.Select(t => (string?)t).ToList() : new List<string?> { null })
+                        {
+                            var rows = await _core.World.ExploreWorldsAsync("", tag == null ? "popularity" : "heat", tag, ForYouPageSize, 0,
+                                fyFresh, fyNotags.Count > 0 ? string.Join(",", fyNotags) : null, fyPlatform, fyNoPlatform, featured: tag == null ? false : null);
+                            if (rows == null) { fyFailed = true; break; }
+                            fyResults.Add(new { tag = tag ?? "", worlds = rows.OfType<JObject>().Select(ExploreRow).ToList() });
+                        }
+                        Invoke(() => SendToJS("vrcExploreForYou", new
+                        {
+                            key = fyKey, sig = fySig, ok = !fyFailed || fyResults.Count > 0, fallback = fyTags.Count == 0, results = fyResults,
                         }));
                     });
                     break;
@@ -4819,6 +4844,17 @@ public partial class AppShell
         ["labs"]      = ("labsPublicationDate", "system_labs"),
         ["favorites"] = ("favorites", null),
         ["random"]    = ("shuffle", null),
+    };
+
+    private const int ForYouPageSize = 50;
+
+    /// <summary>Explore's platform filter as GET /worlds platform / noplatform.</summary>
+    private static (string? platform, string? noplatform) ExplorePlatformArgs(string? choice) => choice switch
+    {
+        "quest" => ("android", null),
+        "pc"    => ("standalonewindows", "android"),
+        "ios"   => ("ios", null),
+        _       => (null, null),
     };
 
     // VRChat's own world rows (GET /config dynamicWorldRows) as Explore views "row:<index>". sortHeading becomes a

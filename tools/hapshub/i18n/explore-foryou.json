@@ -1,0 +1,45 @@
+{
+  "worlds.explore.views.foryou": {
+    "en": "For You", "de": "Für dich", "es": "Para ti", "fr": "Pour vous", "ja": "おすすめ", "ko": "추천",
+    "ru": "Для вас", "uk": "Для вас", "zh-CN": "为你推荐", "zh-TW": "為你推薦"
+  },
+  "worlds.explore.foryou.why": {
+    "en": "Because you like {tags}", "de": "Weil du {tags} magst", "es": "Porque te gusta {tags}", "fr": "Car vous aimez {tags}",
+    "ja": "{tags} が好きなあなたに", "ko": "{tags}을(를) 좋아해서", "ru": "Вам нравится {tags}", "uk": "Вам подобається {tags}",
+    "zh-CN": "因为你喜欢 {tags}", "zh-TW": "因為你喜歡 {tags}"
+  },
+  "worlds.explore.foryou.why_new": {
+    "en": "Something new", "de": "Etwas Neues", "es": "Algo nuevo", "fr": "Quelque chose de nouveau", "ja": "新しいもの",
+    "ko": "새로운 월드", "ru": "Что-то новое", "uk": "Щось нове", "zh-CN": "新鲜内容", "zh-TW": "新鮮內容"
+  },
+  "worlds.explore.foryou.note": {
+    "en": "Picked from the tags of worlds you visit, favorite and like: {tags}. Refresh for a new mix.",
+    "de": "Ausgewählt nach den Tags der Welten, die du besuchst, favorisierst und magst: {tags}. Aktualisieren mischt neu.",
+    "es": "Elegidos por las etiquetas de los mundos que visitas, guardas en favoritos y te gustan: {tags}. Actualiza para otra mezcla.",
+    "fr": "Choisis d'après les tags des mondes que vous visitez, mettez en favori et aimez : {tags}. Actualisez pour un autre mélange.",
+    "ja": "訪れた・お気に入りにした・いいねしたワールドのタグから選んでいます: {tags}。更新すると組み合わせが変わります。",
+    "ko": "방문하고 즐겨찾기하고 좋아한 월드의 태그로 골랐습니다: {tags}. 새로 고치면 새로 섞습니다.",
+    "ru": "Подобрано по тегам миров, которые вы посещаете, добавляете в избранное и лайкаете: {tags}. Обновите для новой подборки.",
+    "uk": "Дібрано за тегами світів, які ви відвідуєте, додаєте в обране й вподобуєте: {tags}. Оновіть для нової добірки.",
+    "zh-CN": "根据你访问、收藏和点赞的世界的标签挑选：{tags}。刷新可换一批。",
+    "zh-TW": "根據你造訪、收藏和按讚的世界的標籤挑選：{tags}。重新整理可換一批。"
+  },
+  "worlds.explore.foryou.note_fallback": {
+    "en": "Not enough visit history yet (fewer than {n} visited worlds with tags), so this is VRChat's Trending. It fills in as you visit worlds.",
+    "de": "Noch zu wenig Besuchsverlauf (weniger als {n} besuchte Welten mit Tags), daher VRChats „Im Trend“. Das füllt sich, während du Welten besuchst.",
+    "es": "Aún no hay bastante historial (menos de {n} mundos visitados con etiquetas), así que esto es Tendencia de VRChat. Se completa a medida que visitas mundos.",
+    "fr": "Pas encore assez d'historique (moins de {n} mondes visités avec des tags), voici donc les Tendances de VRChat. Cela se remplit à mesure que vous visitez des mondes.",
+    "ja": "訪問履歴がまだ足りません（タグ付きの訪問ワールドが{n}件未満）。そのためVRChatのトレンドを表示しています。ワールドを訪れるほど充実します。",
+    "ko": "방문 기록이 아직 부족해서(태그 있는 방문 월드 {n}개 미만) VRChat 트렌딩을 보여 줍니다. 월드를 방문할수록 채워집니다.",
+    "ru": "Пока мало истории посещений (меньше {n} посещённых миров с тегами), поэтому здесь «В тренде» VRChat. Подборка наполнится по мере посещений.",
+    "uk": "Поки замало історії відвідувань (менше {n} відвіданих світів із тегами), тому тут «У тренді» VRChat. Добірка наповниться з відвідуваннями.",
+    "zh-CN": "访问记录还不够（带标签的已访问世界少于 {n} 个），所以这里显示 VRChat 的“趋势”。随着你访问世界会逐渐丰富。",
+    "zh-TW": "造訪記錄還不夠（有標籤的已造訪世界少於 {n} 個），所以這裡顯示 VRChat 的「趨勢」。隨著你造訪世界會逐漸豐富。"
+  },
+  "worlds.explore.foryou.show_visited": {
+    "en": "Show visited worlds in For You", "de": "Besuchte Welten in „Für dich“ zeigen", "es": "Mostrar mundos visitados en Para ti",
+    "fr": "Afficher les mondes visités dans Pour vous", "ja": "おすすめに訪問済みのワールドも表示", "ko": "추천에 방문한 월드도 표시",
+    "ru": "Показывать посещённые миры в «Для вас»", "uk": "Показувати відвідані світи в «Для вас»", "zh-CN": "在“为你推荐”中显示已访问的世界",
+    "zh-TW": "在「為你推薦」中顯示已造訪的世界"
+  }
+}

@@ -705,6 +705,101 @@ section('explore ai', async main => {
         JSON.stringify({ all: got.all, badge: got.markBadge, panel: got.panel, unmarked: got.unmarked, stored: got.stored, sent: got.sent }));
 });
 
+section('explore for you', async main => {
+    // Item 14 step 7. For You: a tag profile from visits (time and recency), favorites and likes; dislikes and hidden
+    // tags count against. One request per top tag, scored and mixed here; visited worlds out unless switched on;
+    // Trending when the history is too thin; waits for the visit history; kept 30 minutes.
+    const got = await main.json(`(() => {
+        const sent = [];
+        const realSend = sendToCS;
+        window.sendToCS = m => { sent.push(m); };
+        const ids = () => _explore.shown.map(w => w.id).join(',');
+        const real = { visited: _visitedWorldsData, loaded: _visitedWorldsLoaded, asked: _explore.askedVisited, fav: favWorldsData, store: localStorage.getItem('vrcn_explorePersonal') };
+        const out = {};
+        const day = 86400000, now = Date.now();
+        const iso = d => new Date(now - d * day).toISOString();
+        const V = (id, tags, secs, ago) => ({ id, name: id, tags, worldTimeSeconds: secs, worldLastVisited: iso(ago) });
+        const visits = [V('wrld_v1', ['author_tag_chill', 'author_tag_photo'], 7200, 1), V('wrld_v2', ['author_tag_chill'], 3600, 2),
+            V('wrld_v3', ['author_tag_chill', 'author_tag_dance'], 600, 5), V('wrld_v4', ['author_tag_photo'], 1800, 3),
+            V('wrld_v5', ['author_tag_horror'], 60, 400), V('wrld_v6', ['author_tag_chill'], 100, 10)];
+        try {
+            exploreClearFilters();
+            Object.assign(_explorePersonal, { liked: {}, disliked: { wrld_zz: { tags: ['author_tag_horror'], at: 1 } }, worlds: {}, authors: {},
+                tags: ['author_tag_dance'], showHidden: false, ai: {}, aiAuthors: {}, feedVisited: false });
+            _exploreSavePersonal();
+            favWorldsData = [];
+            _visitedWorldsData = visits; _visitedWorldsLoaded = true; _explore.askedVisited = true;
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = '';
+            document.getElementById('searchWorldsInput').value = '';
+            showTab(NAV_ITEMS_DEF.worlds?.tab ?? 1);
+            setWorldFilter('explore');
+            setExploreView('foryou');
+            const ask = sent.filter(m => m.action === 'vrcExploreForYou').pop();
+            out.ask = ask ? ask.profileTags.join() : 'none';
+            out.btn = document.getElementById('exploreView_foryou').classList.contains('active');
+            const W = (id, authorId, tags, ago, favorites = 1) => ({ id, name: 'W ' + id.slice(5), authorId, authorName: authorId, tags, occupants: 1, favorites,
+                publicationDate: ago == null ? '' : iso(ago) });
+            _handleBackendMessage('vrcExploreForYou', { key: 'stale', sig: ask?.sig, ok: true, fallback: false, results: [{ tag: 'x', worlds: [W('wrld_old', 'usr_o', [], 1)] }] });
+            out.staleIgnored = _explore.shown.length === 0;
+            _handleBackendMessage('vrcExploreForYou', { key: ask?.key, sig: ask?.sig, ok: true, fallback: false, results: [
+                { tag: 'author_tag_chill', worlds: [W('wrld_f1', 'usr_a', ['author_tag_chill', 'author_tag_photo'], 10, 100), W('wrld_f2', 'usr_a', ['author_tag_chill'], 1000, 5000),
+                    W('wrld_f3', 'usr_a', ['author_tag_chill'], 100, 10), W('wrld_v2', 'usr_b', ['author_tag_chill'], 20),
+                    W('wrld_f5', 'usr_c', ['author_tag_chill', 'author_tag_horror'], 5)] },
+                { tag: 'author_tag_photo', worlds: [W('wrld_f6', 'usr_d', ['author_tag_photo'], 1), W('wrld_f1', 'usr_a', ['author_tag_chill', 'author_tag_photo'], 10, 100),
+                    W('wrld_f7', 'usr_e', ['author_tag_photo'], null), W('wrld_f8', 'usr_f', ['author_tag_dance'], 2)] } ] });
+            out.feed = ids();
+            const card = id => [...document.querySelectorAll('#searchWorldsResults .vrcn-content-card')].find(c => (c.getAttribute('onclick') || '').includes(id));
+            out.why1 = card('wrld_f1')?.querySelector('.explore-why')?.textContent.trim() || '';
+            out.why6 = card('wrld_f6')?.querySelector('.explore-why')?.textContent.trim() || '';
+            out.note = document.getElementById('exploreNote').textContent;
+            exploreFeedVisited(true);
+            out.withVisited = ids();
+            exploreFeedVisited(false);
+            setExploreView('hot'); setExploreView('foryou');
+            out.asks = sent.filter(m => m.action === 'vrcExploreForYou').length;
+
+            // Too little history: Trending, said so.
+            _visitedWorldsData = visits.slice(0, 2);
+            exploreRefresh();
+            const ask2 = sent.filter(m => m.action === 'vrcExploreForYou').pop();
+            out.ask2 = (ask2?.profileTags || ['?']).join() + '|' + ask2?.fresh;
+            _handleBackendMessage('vrcExploreForYou', { key: ask2?.key, sig: ask2?.sig, ok: true, fallback: true, results: [{ tag: '', worlds: [W('wrld_t1', 'usr_t', [], 3), W('wrld_t2', 'usr_t', [], 4)] }] });
+            out.fallback = ids() + '|' + /Trending/.test(document.getElementById('exploreNote').textContent) + '|' + document.querySelectorAll('#searchWorldsResults .explore-why').length;
+
+            // It waits for the visit history before asking.
+            _explore.entries = {}; _visitedWorldsLoaded = false;
+            setExploreView('hot'); setExploreView('foryou');
+            const before = sent.filter(m => m.action === 'vrcExploreForYou').length;
+            renderVisitedWorlds(visits);
+            out.waited = before + '>' + sent.filter(m => m.action === 'vrcExploreForYou').length;
+            out.stored = JSON.parse(localStorage.getItem('vrcn_explorePersonal') || '{}').feedVisited;
+            return out;
+        } finally {
+            window.sendToCS = realSend;
+            exploreClearFilters();
+            if (real.store == null) localStorage.removeItem('vrcn_explorePersonal'); else localStorage.setItem('vrcn_explorePersonal', real.store);
+            Object.assign(_explorePersonal, _exploreLoadPersonal());
+            _exploreLikedMemo = null;
+            favWorldsData = real.fav;
+            _visitedWorldsData = real.visited; _visitedWorldsLoaded = real.loaded; _explore.askedVisited = real.asked;
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = '';
+            setWorldFilter('favorites');
+        }
+    })()`);
+    check('Explore For You: asks about the top tags of visits, favorites and likes; dislikes and hidden tags stay out',
+        got.ask === 'author_tag_chill,author_tag_photo' && got.btn && got.staleIgnored, JSON.stringify({ ask: got.ask, btn: got.btn, stale: got.staleIgnored }));
+    check('Explore For You: scored and mixed (two per author, a new world every fifth card), visited and hidden out, each card says why',
+        got.feed === 'wrld_f1,wrld_f3,wrld_f5,wrld_f6,wrld_f7' && /Because you like/.test(got.why1) && /,/.test(got.why1) && /Something new/.test(got.why6)
+            && /Picked from the tags/.test(got.note),
+        JSON.stringify({ feed: got.feed, why1: got.why1, why6: got.why6, note: got.note }));
+    check('Explore For You: visited worlds can be switched on; going back within 30 minutes asks nothing',
+        got.withVisited === 'wrld_f1,wrld_v2,wrld_f3,wrld_f5,wrld_f6,wrld_f7' && got.asks === 1 && got.stored === false,
+        JSON.stringify({ visited: got.withVisited, asks: got.asks, stored: got.stored }));
+    check('Explore For You: too little history shows Trending and says so; it waits for the visit history',
+        got.ask2 === '|true' && got.fallback === 'wrld_t1,wrld_t2|true|0' && got.waited === '2>3',
+        JSON.stringify({ ask2: got.ask2, fallback: got.fallback, waited: got.waited }));
+});
+
 section('avatar filters (issue 10)', async main => {
     const got = await main.json(`(() => {
         const mk = (id, extra) => ({ id, name: id, releaseStatus: 'public', authorName: 'Someone', tags: [], ...extra });
