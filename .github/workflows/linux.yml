@@ -58,7 +58,7 @@ jobs:
           tail -n 60 "$RUNNER_TEMP/run.log"
           # Handled errors (no network sign-in here, no VRChat) can leave entries too, so they're shown, not failed on.
           for f in $(find "$HAPSHUB_DATA_DIR" "$HOME/.config/HapsHub" -path "*Crashes*" -type f 2>/dev/null); do
-            echo "::warning::Crash entry $(basename "$f")"; tail -n 40 "$f"
+            echo "::warning::Crash entry $(basename "$f")"; sed -n "/Exception ───/,/Threads ───/p" "$f" | head -n 80
           done
           # 124 means timeout stopped it while it was still running, which is what should happen.
           if [ "$code" -ne 124 ]; then echo "::error::HapsHub exited by itself with code $code"; exit 1; fi
@@ -121,6 +121,6 @@ jobs:
           set -e
           tail -n 60 run.log
           for f in $(find /home/tester -path "*Crashes*" -type f 2>/dev/null); do
-            echo "::warning::Crash entry $(basename "$f")"; tail -n 40 "$f"
+            echo "::warning::Crash entry $(basename "$f")"; sed -n "/Exception ───/,/Threads ───/p" "$f" | head -n 80
           done
           if [ "$code" -ne 124 ]; then echo "::error::HapsHub exited by itself on Arch with code $code"; exit 1; fi
