@@ -49,10 +49,18 @@ It needs Windows 10 or 11 with Microsoft's WebView2 runtime, which Windows norma
 
 ### Linux (test build)
 
-1. Download `HapsHub-<version>-linux-x64.tar.gz` from [Releases](https://github.com/HapyrV/HapsHub/releases).
-2. Unpack it and start it: `tar -xzf HapsHub-*-linux-x64.tar.gz && ./HapsHub/run-hapshub.sh`
-3. If it doesn't open, `run-hapshub.sh` lists the missing system libraries and the command to install them
-   (WebKitGTK 4.1, GTK 3 and libnotify).
+1. Install what it needs. Arch, Manjaro, EndeavourOS, CachyOS:
+
+   ```sh
+   sudo pacman -S --needed webkit2gtk-4.1 gtk3 libnotify ffmpeg libpulse
+   ```
+
+   Ubuntu, Debian, Mint, Pop!_OS: `sudo apt install libwebkit2gtk-4.1-0 libgtk-3-0 libnotify4 ffmpeg pulseaudio-utils`.
+   Fedora: `sudo dnf install webkit2gtk4.1 gtk3 libnotify ffmpeg pulseaudio-utils`.
+   `ffmpeg` and `libpulse`/`pulseaudio-utils` are only for YouTube Tunnel; add `wine` for VRCT and other Windows apps.
+2. Download `HapsHub-<version>-linux-x64.tar.gz` from [Releases](https://github.com/HapyrV/HapsHub/releases).
+3. Unpack it and start it: `tar -xzf HapsHub-*-linux-x64.tar.gz && ./HapsHub/run-hapshub.sh`
+4. If it doesn't open, run `run-hapshub.sh` from a terminal: it lists any missing system libraries.
 
 Your data is kept in `~/.config/HapsHub`. On Linux a few things work differently:
 

@@ -65,8 +65,14 @@ jobs:
 
       - name: Hub self-test
         run: |
-          set -o pipefail
-          dotnet run --project tools/hapshub/hub-selftest -c Release 2>&1 | tail -n 30
+          set +e
+          dotnet run --project tools/hapshub/hub-selftest -c Release > "$RUNNER_TEMP/selftest.log" 2>&1
+          code=$?
+          set -e
+          tail -n 15 "$RUNNER_TEMP/selftest.log"
+          echo "--- every failed check, with the lines after it ---"
+          grep -A 8 "^FAIL" "$RUNNER_TEMP/selftest.log" || true
+          exit $code
 
       - name: Pack
         run: |
@@ -79,3 +85,42 @@ jobs:
           name: HapsHub-${{ env.VERSION }}-linux-x64
           path: HapsHub-*-linux-x64.tar.gz
           retention-days: 30
+
+  # Runs the same tar.gz on Arch Linux, with only the packages the README tells Arch users to install.
+  arch:
+    needs: linux
+    runs-on: ubuntu-24.04
+    container: archlinux:latest
+    timeout-minutes: 20
+    steps:
+      - name: Install what the README lists for Arch, plus the test display
+        run: |
+          pacman -Syu --noconfirm --needed webkit2gtk-4.1 gtk3 libnotify ffmpeg libpulse \
+            xorg-server-xvfb xorg-xauth dbus which tar gzip
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: HapsHub-*-linux-x64
+          merge-multiple: true
+
+      - name: Unpack
+        run: tar -xzf HapsHub-*-linux-x64.tar.gz
+
+      - name: Every library the app loads is there
+        run: |
+          missing=$(ldd HapsHub/Photino.Native.so HapsHub/libnfd.so HapsHub/libSkiaSharp.so HapsHub/libe_sqlite3.so | grep "not found" || true)
+          if [ -n "$missing" ]; then echo "::error::Missing libraries on Arch: $missing"; exit 1; fi
+
+      - name: Starts and keeps running for 45 seconds
+        run: |
+          useradd -m tester
+          chown -R tester HapsHub
+          set +e
+          su tester -c 'cd ~ && dbus-run-session -- xvfb-run -a -s "-screen 0 1600x900x24" timeout 45 '"$PWD"'/HapsHub/run-hapshub.sh' > run.log 2>&1
+          code=$?
+          set -e
+          tail -n 60 run.log
+          for f in $(find /home/tester -path "*Crashes*" -type f 2>/dev/null); do
+            echo "::warning::Crash entry $(basename "$f")"; tail -n 40 "$f"
+          done
+          if [ "$code" -ne 124 ]; then echo "::error::HapsHub exited by itself on Arch with code $code"; exit 1; fi

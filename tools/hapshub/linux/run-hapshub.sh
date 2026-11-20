@@ -7,9 +7,9 @@ if [ -n "$missing" ]; then
     echo "HapsHub needs these system libraries, which aren't installed:"
     echo "$missing"
     echo
-    echo "Ubuntu, Debian, Mint, Pop!_OS:  sudo apt install libwebkit2gtk-4.1-0 libgtk-3-0 libnotify4"
-    echo "Fedora:                         sudo dnf install webkit2gtk4.1 gtk3 libnotify"
-    echo "Arch, Manjaro, EndeavourOS:     sudo pacman -S webkit2gtk-4.1 gtk3 libnotify"
+    echo "Arch, Manjaro, EndeavourOS, CachyOS:  sudo pacman -S --needed webkit2gtk-4.1 gtk3 libnotify"
+    echo "Ubuntu, Debian, Mint, Pop!_OS:        sudo apt install libwebkit2gtk-4.1-0 libgtk-3-0 libnotify4"
+    echo "Fedora:                               sudo dnf install webkit2gtk4.1 gtk3 libnotify"
     exit 1
 fi
 
