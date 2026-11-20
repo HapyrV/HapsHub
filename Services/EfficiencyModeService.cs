@@ -67,7 +67,9 @@ public static class EfficiencyModeService
     {
         if (!OperatingSystem.IsWindows() || _focused == focused) return;
         _focused = focused;
+#if WINDOWS
         if (_enabled) System.Threading.Tasks.Task.Run(ApplyNow);
+#endif
     }
 
     private static bool Throttle => _enabled && !_focused;

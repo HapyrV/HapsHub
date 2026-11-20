@@ -1,5 +1,12 @@
 # HapsHub
 
+[![Based on VRCNext](https://img.shields.io/badge/based%20on-VRCNext-7c4dff?style=for-the-badge)](https://github.com/shinyflvre/VRCNext)
+
+> [!IMPORTANT]
+> **HapsHub is based on [VRCNext](https://github.com/shinyflvre/VRCNext) by shinyflvre and the VRCNext contributors.**
+> It's a fork with extra tools on top; the launcher, friends, worlds, groups, avatars and most of the app are
+> VRCNext's work. If you like HapsHub, star VRCNext and support them.
+
 **HapsHub is heavily based on [VRCNext](https://github.com/shinyflvre/VRCNext). Go support their work.**
 VRCNext is the original VRChat launcher and manager, made by shinyflvre and the VRCNext contributors. Almost everything
 here is theirs; HapsHub adds a set of tools on top. If you like it, star VRCNext on GitHub or support them on
