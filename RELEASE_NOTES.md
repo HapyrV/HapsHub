@@ -1,6 +1,6 @@
 ﻿# HapsHub 1.0.0
 
-The first release of HapsHub, built on VRCNext 2027.2.0. HapsHub is heavily based on VRCNext: go support their work.
+The first release of HapsHub, built on VRCNext 2027.2.0, with dozens of HapsHub features and systems on top. Thanks to shinyflvre and the VRCNext contributors for the base.
 
 **New**
 - Plugins (Settings > Plugins): switch off what you don't use. The first run asks what you use and ticks what's installed.

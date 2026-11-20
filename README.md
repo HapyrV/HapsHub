@@ -3,15 +3,13 @@
 [![Based on VRCNext](https://img.shields.io/badge/based%20on-VRCNext-7c4dff?style=for-the-badge)](https://github.com/shinyflvre/VRCNext)
 
 > [!IMPORTANT]
-> **HapsHub is based on [VRCNext](https://github.com/shinyflvre/VRCNext) by shinyflvre and the VRCNext contributors.**
-> It's a fork with extra tools on top; the launcher, friends, worlds, groups, avatars and most of the app are
-> VRCNext's work. If you like HapsHub, star VRCNext and support them.
+> **HapsHub is built on [VRCNext](https://github.com/shinyflvre/VRCNext)**, the VRChat launcher and manager by
+> shinyflvre and the VRCNext contributors. HapsHub started as a VRCNext fork and has since grown dozens of its own
+> features and systems, listed below. If you like the VRCNext base, star VRCNext on GitHub or support them on
+> [Patreon](https://www.patreon.com/cw/Shinyflvres).
 
-**HapsHub is heavily based on [VRCNext](https://github.com/shinyflvre/VRCNext). Go support their work.**
-VRCNext is the original VRChat launcher and manager, made by shinyflvre and the VRCNext contributors. Almost everything
-here is theirs; HapsHub adds a set of tools on top. If you like it, star VRCNext on GitHub or support them on
-[Patreon](https://www.patreon.com/cw/Shinyflvres). Please don't take HapsHub problems to VRCNext's Discord or issue
-tracker: report them [here](https://github.com/HapyrV/HapsHub/issues) instead.
+Please don't take HapsHub problems to VRCNext's Discord or issue tracker: report them
+[here](https://github.com/HapyrV/HapsHub/issues) instead.
 
 HapsHub is not made, endorsed or supported by VRChat Inc. VRChat is a trademark of VRChat Inc.
 
