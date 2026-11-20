@@ -4563,7 +4563,7 @@
   "page.help.39": "Глобус с друзьями, расставленными по данным профилей: флаг, откуда они, или язык. Найдите друга или укажите его страну сами — ваш выбор всегда важнее.",
   "hub.profile.needs_vrcplus": "VRChat позволяет менять картинку и баннер только с VRC+.",
   "hub.vrct.pairs_empty": "Пары языков, которыми вы пользуетесь, появятся здесь — в один клик.",
-  "hub.map.search": "Найти друга…",
+  "hub.map.search": "Найти друга или страну…",
   "hub.map.not_placed": "Нет на карте",
   "hub.map.set_pin": "Указать страну",
   "hub.map.change_pin": "Изменить страну",
@@ -4892,5 +4892,7 @@
   "worlds.explore.lists.toast_imported_ai": "Импортирован «{name}»: миров {n}, отметок ИИ {ai}.",
   "worlds.explore.lists.bad_code": "Это не код и не файл списка HapsHub.",
   "worlds.explore.lists.too_many": "Можно хранить {n} списков. Сначала удалите один.",
-  "worlds.explore.lists.too_big": "Не удалось сохранить список: он слишком большой."
+  "worlds.explore.lists.too_big": "Не удалось сохранить список: он слишком большой.",
+  "hub.map.search_country": "Поиск страны…",
+  "hub.map.no_country": "Нет страны с таким названием."
 }

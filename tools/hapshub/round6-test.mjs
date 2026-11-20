@@ -1267,14 +1267,17 @@ section('map', async main => {
     const jinwoo = await search('jinwoo');
     check('E2: an unplaced friend says so and offers to set a country', jinwoo.length === 1 && jinwoo[0].off && jinwoo[0].set && jinwoo[0].why === 'Not on the map', JSON.stringify(jinwoo));
     await main.eval(`document.querySelector('#wmapResults .wmap-set-btn').click()`);
-    check('E3: the country picker opens', await main.eval(`!!document.querySelector('#wmapResults #wmapPinSelect') && document.querySelectorAll('#wmapPinSelect option').length > 150`));
+    check('E3: the country picker opens', await main.eval(`!!document.querySelector('#wmapResults #wmapPinSearch') && document.querySelectorAll('#wmapPinList .wmap-pin-choice').length > 150`));
+    // Its search narrows the list from the start of a word, and Enter picks the first country left.
+    await main.eval(`(() => { const s = document.getElementById('wmapPinSearch'); s.value = 'ger'; s.dispatchEvent(new Event('input')); })()`);
+    check('E3: the country search finds Germany only for "ger"', JSON.stringify(await main.json(`[...document.querySelectorAll('#wmapPinList .wmap-pin-choice')].filter(b => !b.hidden).map(b => b.dataset.code)`)) === '["DE"]');
     await search('i');
     await main.eval(`wmapPinEdit('mapjk')`);
     const side = await main.json(`(() => { const r = document.querySelector('#tab39 .wmap-side').getBoundingClientRect(); return { x: r.left, y: r.top, width: r.width, height: r.height }; })()`);
     await main.screenshot(join(tmpdir(), 'hapshub-round6-map.png'), side);
     await search('jinwoo');
     await main.eval(`wmapPinEdit('mapjk')`);
-    await main.eval(`(() => { const s = document.getElementById('wmapPinSelect'); s.value = 'KR'; s.dispatchEvent(new Event('change')); })()`);
+    await main.eval(`(() => { const s = document.getElementById('wmapPinSearch'); s.value = 'south korea'; s.dispatchEvent(new Event('input')); s.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' })); })()`);
     await sleep(400);
     const afterSet = await main.json(`({ place: hubWorldPlace(vrcFriendsData.find(f => f.id === 'mapjk')), selected: _wmap.selected, row: document.querySelector('#wmapResults .wmap-result small')?.textContent, saved: JSON.parse(localStorage.getItem('hapshub.map.pins') || '{}').mapjk })`);
     check('E3: setting a country places the friend, says "set by you" and turns the globe there', afterSet.place?.code === 'KR' && afterSet.place?.how === 'manual' && afterSet.selected === 'KR' && afterSet.row?.endsWith('set by you') && afterSet.saved === 'KR', JSON.stringify(afterSet));

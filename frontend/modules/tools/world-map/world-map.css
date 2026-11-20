@@ -41,5 +41,15 @@
 .wmap-set-btn, .wmap-clear-btn { flex-shrink: 0; padding: 3px 9px; font-size: calc(11px + var(--fs-off, 0px)); }
 .wmap-pin-btn { flex-shrink: 0; }
 .wmap-pin-edit { display: flex; align-items: center; gap: 6px; margin: 2px 0 6px 34px; }
-.wmap-pin-edit select { flex: 1; min-width: 0; }
+.wmap-pin-search { flex: 1; min-width: 0; margin-bottom: 0; }
+/* An input in a flex row won't shrink below its default width (about 20 characters), so wide fonts pushed it out of the panel. */
+.wmap-search .vrcn-input, .wmap-pin-search .vrcn-input { flex: 1 1 0; min-width: 0; width: 100%; }
+.wmap-pin-list { display: flex; flex-direction: column; gap: 1px; max-height: 190px; overflow-y: auto; margin: 0 0 6px 34px; padding-right: 4px; }
+.wmap-pin-choice { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border: 0; border-radius: 6px; background: transparent; color: var(--tx1); font: inherit; font-size: calc(12px + var(--fs-off, 0px)); text-align: left; cursor: pointer; flex-shrink: 0; }
+.wmap-pin-choice[hidden] { display: none; }
+.wmap-pin-choice:hover { background: var(--bg-hover); }
+.wmap-pin-choice.is-on { background: var(--bg-hover); color: var(--accent-lt, var(--accent)); }
+.wmap-pin-choice .wmap-flag { flex-shrink: 0; width: 26px; padding: 1px 0; border-radius: 4px; background: var(--bg-input); color: var(--tx2); font-size: calc(10px + var(--fs-off, 0px)); font-weight: 700; text-align: center; }
+.wmap-pin-choice .wmap-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wmap-none[hidden] { display: none; }
 .wmap-none { padding: 4px 6px; font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx2); }

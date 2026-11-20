@@ -4559,7 +4559,7 @@
   "page.help.39": "一个标出好友位置的地球，依据他们资料中的国旗、自述来自哪里或语言来放置。可以搜索好友，也可以自己设定好友的国家；你的设定始终优先。",
   "hub.profile.needs_vrcplus": "VRChat 仅允许 VRC+ 用户更换头像和横幅。",
   "hub.vrct.pairs_empty": "你使用过的语言对会显示在这里，一键即可选择。",
-  "hub.map.search": "查找好友…",
+  "hub.map.search": "查找好友或国家…",
   "hub.map.not_placed": "不在地图上",
   "hub.map.set_pin": "设置国家",
   "hub.map.change_pin": "更改国家",
@@ -4888,5 +4888,7 @@
   "worlds.explore.lists.toast_imported_ai": "已导入“{name}”：{n} 个世界，{ai} 个 AI 标记。",
   "worlds.explore.lists.bad_code": "这不是 HapsHub 的列表代码或文件。",
   "worlds.explore.lists.too_many": "最多可保留 {n} 个列表。请先删除一个。",
-  "worlds.explore.lists.too_big": "无法保留此列表：它太大了。"
+  "worlds.explore.lists.too_big": "无法保留此列表：它太大了。",
+  "hub.map.search_country": "搜索国家…",
+  "hub.map.no_country": "没有这个名字的国家。"
 }

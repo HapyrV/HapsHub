@@ -324,7 +324,7 @@ function wmapSelect(code, keep) {
 
 function wmapSearch() {
     _wmap.editing = null;
-    _wmapDrawResults();
+    _wmapDrawSide();
 }
 
 /** A search result was chosen: turn the globe to them, or offer to set a country when they have none. */
@@ -337,16 +337,42 @@ function wmapGoTo(friendId) {
 function wmapPinEdit(friendId) {
     _wmap.editing = _wmap.editing === friendId ? null : friendId;
     _wmapDrawResults();
-    document.getElementById('wmapPinSelect')?.focus();
+    document.getElementById('wmapPinSearch')?.focus();
 }
 
-function _wmapCountryChoices(selected) {
+/** The country picker's search: hides the countries whose name (in the app's language or English) or code doesn't match. */
+function wmapPinFilter(text) {
+    const query = String(text || '').trim().toLowerCase();
+    let shown = 0;
+    document.querySelectorAll('#wmapPinList .wmap-pin-choice').forEach(btn => {
+        btn.hidden = !!query && !(' ' + btn.dataset.find).includes(' ' + query);   // from the start of a word
+        if (!btn.hidden) shown++;
+    });
+    const none = document.getElementById('wmapPinNone');
+    if (none) none.hidden = shown > 0;
+}
+
+/** Enter in the country search picks the first country still shown. */
+function wmapPinPickFirst(friendId) {
+    const first = [...document.querySelectorAll('#wmapPinList .wmap-pin-choice')].find(btn => !btn.hidden);
+    if (first) wmapSetPin(friendId, first.dataset.code);
+}
+
+function _wmapCountryChoices(friendId, selected) {
     let display = null;
     try { display = new Intl.DisplayNames([typeof getLanguageLocale === 'function' ? getLanguageLocale() : 'en'], { type: 'region' }); } catch { /* old engine */ }
     return HUB_WORLD_COUNTRIES.filter(c => c.c)
-        .map(c => ({ code: c.c, name: display?.of(c.c) || c.n }))
+        .map(c => ({ code: c.c, name: display?.of(c.c) || c.n, en: c.n || '' }))
         .sort((a, b) => a.name.localeCompare(b.name))
-        .map(c => `<option value="${c.code}"${c.code === selected ? ' selected' : ''}>${esc(c.name)}</option>`).join('');
+        .map(c => `<button class="wmap-pin-choice${c.code === selected ? ' is-on' : ''}" data-code="${c.code}" data-find="${esc((c.name + ' ' + c.en + ' ' + c.code).toLowerCase())}" onclick="wmapSetPin('${friendId}', '${c.code}')"><span class="wmap-flag">${c.code}</span><span class="wmap-name">${esc(c.name)}</span></button>`).join('');
+}
+
+/** Countries matching the main search box (name or code); null when the box is empty or nothing matches. */
+function _wmapCountryMatches() {
+    const query = (document.getElementById('wmapSearch')?.value || '').trim().toLowerCase();
+    if (!query) return null;
+    const hits = new Set([..._wmap.places.keys()].filter(code => code.toLowerCase() === query || (' ' + (_wmapCountry(code)?.n || '').toLowerCase()).includes(' ' + query)));
+    return hits.size ? hits : null;
 }
 
 function _wmapDrawResults() {
@@ -368,8 +394,9 @@ function _wmapDrawResults() {
                     : `<button class="vrcn-button wmap-set-btn" onclick="wmapPinEdit('${id}')">${esc(label)}</button>`}</div>`;
         if (_wmap.editing !== friend.id) return row;
         return row + `<div class="wmap-pin-edit">
-            <select class="vrcn-dropdown" id="wmapPinSelect" onchange="wmapSetPin('${id}', this.value || null)"><option value="">${esc(t('hub.map.pick_country', 'Choose a country…'))}</option>${_wmapCountryChoices(pins[friend.id])}</select>
-            ${pins[friend.id] ? `<button class="vrcn-button wmap-clear-btn" onclick="wmapSetPin('${id}', null)">${esc(t('hub.map.clear_pin', 'Clear'))}</button>` : ''}</div>`;
+            <div class="search-bar-row wmap-pin-search"><span class="msi search-ico">search</span><input type="text" id="wmapPinSearch" class="vrcn-input" placeholder="${esc(t('hub.map.search_country', 'Search countries…'))}" oninput="wmapPinFilter(this.value)" onkeydown="if(event.key==='Enter')wmapPinPickFirst('${id}')" autocomplete="off" spellcheck="false"></div>
+            ${pins[friend.id] ? `<button class="vrcn-button wmap-clear-btn" onclick="wmapSetPin('${id}', null)">${esc(t('hub.map.clear_pin', 'Clear'))}</button>` : ''}</div>
+            <div class="wmap-pin-list" id="wmapPinList">${_wmapCountryChoices(id, pins[friend.id])}<div class="wmap-none" id="wmapPinNone" hidden>${esc(t('hub.map.no_country', 'No country with that name.'))}</div></div>`;
     }).join('') || `<div class="wmap-none">${esc(t('hub.map.no_results', 'No friend with that name.'))}</div>`;
     // Friend updates redraw the side list often; leave the results alone so an open country list stays open.
     if (box._html === html) return;
@@ -384,7 +411,9 @@ function _wmapDrawSide() {
     const placed = [..._wmap.places.values()].reduce((sum, l) => sum + l.length, 0);
     summary.textContent = tf('hub.map.summary', { placed, countries: _wmap.places.size, unplaced: _wmap.unplaced },
         '{placed} friends in {countries} countries. {unplaced} more don\'t say where they are.');
-    const rows = [..._wmap.places.entries()].sort((a, b) => b[1].length - a[1].length).map(([code, friends]) => {
+    // Typing a country's name in the search box narrows the list to it (friend names still show above).
+    const matches = _wmapCountryMatches();
+    const rows = [..._wmap.places.entries()].filter(([code]) => !matches || matches.has(code)).sort((a, b) => b[1].length - a[1].length).map(([code, friends]) => {
         const country = _wmapCountry(code);
         const open = _wmap.selected === code;
         const people = open ? `<div class="wmap-friends">${friends.map(place => `<button class="wmap-friend${place.how === 'manual' ? ' is-manual' : ''}" onclick="openFriendDetail('${esc(place.friend.id)}')">

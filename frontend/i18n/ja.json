@@ -4559,7 +4559,7 @@
   "page.help.39": "プロフィールの情報（国旗、出身地の記載、言語）からフレンドを配置した地球儀です。フレンドを検索したり、国を自分で設定したりできます。自分で設定した国が常に優先されます。",
   "hub.profile.needs_vrcplus": "画像とバナーの変更は VRC+ でのみ可能です。",
   "hub.vrct.pairs_empty": "使った言語の組み合わせがここに表示され、ワンクリックで選べます。",
-  "hub.map.search": "フレンドを検索…",
+  "hub.map.search": "フレンドや国を検索…",
   "hub.map.not_placed": "地図にいません",
   "hub.map.set_pin": "国を設定",
   "hub.map.change_pin": "国を変更",
@@ -4888,5 +4888,7 @@
   "worlds.explore.lists.toast_imported_ai": "「{name}」を取り込みました: {n} ワールド、AIの印 {ai} 件。",
   "worlds.explore.lists.bad_code": "HapsHubのリストのコードやファイルではありません。",
   "worlds.explore.lists.too_many": "保存できるリストは{n}件までです。先に1件削除してください。",
-  "worlds.explore.lists.too_big": "このリストは大きすぎて保存できません。"
+  "worlds.explore.lists.too_big": "このリストは大きすぎて保存できません。",
+  "hub.map.search_country": "国を検索…",
+  "hub.map.no_country": "その名前の国はありません。"
 }

@@ -1,0 +1,14 @@
+{
+  "hub.map.search": {
+    "en": "Find a friend or country…", "de": "Freund oder Land suchen…", "es": "Buscar un amigo o país…", "fr": "Chercher un ami ou un pays…", "ja": "フレンドや国を検索…",
+    "ko": "친구나 국가 검색…", "ru": "Найти друга или страну…", "uk": "Знайти друга або країну…", "zh-CN": "查找好友或国家…", "zh-TW": "尋找好友或國家…"
+  },
+  "hub.map.search_country": {
+    "en": "Search countries…", "de": "Länder suchen…", "es": "Buscar países…", "fr": "Chercher un pays…", "ja": "国を検索…",
+    "ko": "국가 검색…", "ru": "Поиск страны…", "uk": "Пошук країни…", "zh-CN": "搜索国家…", "zh-TW": "搜尋國家…"
+  },
+  "hub.map.no_country": {
+    "en": "No country with that name.", "de": "Kein Land mit diesem Namen.", "es": "Ningún país con ese nombre.", "fr": "Aucun pays de ce nom.", "ja": "その名前の国はありません。",
+    "ko": "그 이름의 국가가 없습니다.", "ru": "Нет страны с таким названием.", "uk": "Немає країни з такою назвою.", "zh-CN": "没有这个名字的国家。", "zh-TW": "沒有這個名稱的國家。"
+  }
+}

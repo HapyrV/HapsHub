@@ -4559,7 +4559,7 @@
   "page.help.39": "Ein Globus deiner Freunde, platziert nach dem, was ihre Profile zeigen: eine Flagge, woher sie laut Profil kommen, oder eine Sprache. Suche einen Freund oder lege sein Land selbst fest; deine Angabe gilt immer.",
   "hub.profile.needs_vrcplus": "VRChat erlaubt das Ändern von Bild und Banner nur mit VRC+.",
   "hub.vrct.pairs_empty": "Sprachpaare, die du nutzt, erscheinen hier – jeweils mit einem Klick.",
-  "hub.map.search": "Freund suchen…",
+  "hub.map.search": "Freund oder Land suchen…",
   "hub.map.not_placed": "Nicht auf der Karte",
   "hub.map.set_pin": "Land festlegen",
   "hub.map.change_pin": "Land ändern",
@@ -4888,5 +4888,7 @@
   "worlds.explore.lists.toast_imported_ai": "„{name}“ importiert: {n} Welten, {ai} KI-Markierungen.",
   "worlds.explore.lists.bad_code": "Das ist kein HapsHub-Listencode und keine Listendatei.",
   "worlds.explore.lists.too_many": "Du kannst {n} Listen behalten. Lösche zuerst eine.",
-  "worlds.explore.lists.too_big": "Diese Liste ist zu groß zum Behalten."
+  "worlds.explore.lists.too_big": "Diese Liste ist zu groß zum Behalten.",
+  "hub.map.search_country": "Länder suchen…",
+  "hub.map.no_country": "Kein Land mit diesem Namen."
 }
