@@ -42,6 +42,15 @@ async Task Check(string name, Func<Task> test)
     }
 }
 
+// For checks that hold a file with a Windows share lock. Linux doesn't enforce those against renames or SQLite,
+// so there the app's write simply succeeds and the situation being tested can't happen.
+Task WindowsCheck(string name, Func<Task> test)
+{
+    if (OperatingSystem.IsWindows()) return Check(name, test);
+    Console.WriteLine($"skip  {name} (Windows file locks only)");
+    return Task.CompletedTask;
+}
+
 static void Assert(bool condition, string message)
 {
     if (!condition) throw new Exception(message);
@@ -136,7 +145,7 @@ await Check("atomic: backup receives the previous version, first write needs non
     return Task.CompletedTask;
 });
 
-await Check("atomic: a locked target throws after retrying and keeps old contents", () =>
+await WindowsCheck("atomic: a locked target throws after retrying and keeps old contents", () =>
 {
     var dir = Fresh("atomic-locked");
     var path = Path.Combine(dir, "state.json");
@@ -279,7 +288,7 @@ await Check("db: a damaged page in a real database is caught and kept", () =>
     return Task.CompletedTask;
 });
 
-await Check("db: a locked file is reported, not treated as damage", () =>
+await WindowsCheck("db: a locked file is reported, not treated as damage", () =>
 {
     var dir = Fresh("db-locked");
     var path = Path.Combine(dir, "hub.db");
@@ -738,7 +747,7 @@ await Check("steam: if Steam won't close, nothing is written and it isn't force-
     await registry.StopAllAsync(TimeSpan.FromSeconds(5));
 });
 
-await Check("steam: a failed write still reopens Steam and reports it", async () =>
+await WindowsCheck("steam: a failed write still reopens Steam and reports it", async () =>
 {
     var (registry, module, steam, _, path) = await StartSteam("steam-locked");
     FileStream? hold = null;
