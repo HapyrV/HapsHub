@@ -72,6 +72,10 @@
 .explore-saved-name { flex: 1; }
 .explore-saved-pin, .explore-saved-del { padding: 4px 6px; }
 .explore-saved-item .msi { font-size: 16px; }
+.explore-list-count { margin-left: 6px; font-size: calc(11px + var(--fs-off, 0px)); color: var(--tx3, rgba(255,255,255,.55)); }
+.explore-list-code, .explore-list-name { width: 100%; box-sizing: border-box; margin-bottom: 6px; resize: vertical; font-size: calc(12px + var(--fs-off, 0px)); }
+.explore-list-btns { display: flex; gap: 6px; margin: 6px 0 4px; }
+.explore-list-btns .msi { font-size: 16px; }
 .vrcn-content-card.explore-hidden .cc-bg { filter: grayscale(.8) brightness(.6); }
 [data-wid].explore-hidden:not(.vrcn-content-card) { opacity: .5; }
 .explore-personal-title { margin-top: 10px; }

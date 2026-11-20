@@ -1618,6 +1618,55 @@ public partial class AppShell
                     break;
                 }
 
+                case "vrcExploreFillWorlds":
+                {
+                    // Explore lists (step 8): pictures and numbers for imported worlds that came without them.
+                    var efIds = (msg["ids"] as JArray ?? new JArray()).Select(t => t?.ToString() ?? "")
+                        .Where(id => ExploreWorldIdRx.IsMatch(id)).Distinct().Take(50).ToList();
+                    if (efIds.Count == 0) break;
+                    _ = Task.Run(async () =>
+                    {
+                        var efRows = await _core.World.GetWorldsByIdsAsync(efIds);
+                        var efList = efRows.OfType<JObject>().Select(ExploreRow).ToList();
+                        Invoke(() => SendToJS("vrcExploreFill", new { worlds = efList }));
+                    });
+                    break;
+                }
+
+                case "exploreListSave":
+                {
+                    // Explore lists (step 8): the user's Liked worlds as a .json file they choose where to keep.
+                    var elText = msg["text"]?.ToString() ?? "";
+                    if (elText.Length == 0 || elText.Length > 5_000_000) break;
+                    var elDlg = Dialog.FileSave("json");
+                    if (!elDlg.IsOk) break;
+                    var elPath = elDlg.Path.EndsWith(".json", StringComparison.OrdinalIgnoreCase) ? elDlg.Path : elDlg.Path + ".json";
+                    var elOk = true;
+                    try { System.IO.File.WriteAllText(elPath, elText); }
+                    catch (Exception ex) { elOk = false; SendToJS("log", new { msg = $"Explore list save failed: {ex.Message}", color = "err" }); }
+                    SendToJS("exploreListFile", new { kind = "saved", ok = elOk });
+                    break;
+                }
+
+                case "exploreListOpen":
+                {
+                    var eoDlg = Dialog.FileOpen("json,txt");
+                    if (!eoDlg.IsOk) break;
+                    string eoText;
+                    try
+                    {
+                        if (new System.IO.FileInfo(eoDlg.Path).Length > 3_000_000) throw new InvalidOperationException("file is larger than 3 MB");
+                        eoText = System.IO.File.ReadAllText(eoDlg.Path);
+                    }
+                    catch (Exception ex)
+                    {
+                        SendToJS("log", new { msg = $"Explore list open failed: {ex.Message}", color = "err" });
+                        eoText = "";
+                    }
+                    SendToJS("exploreListFile", new { kind = "opened", text = eoText });
+                    break;
+                }
+
                 case "vrcExploreRows":
                     // Explore: the rows VRChat itself shows in game, for the "VRChat rows" menu (step 5).
                     _ = Task.Run(async () =>
@@ -4864,6 +4913,8 @@ public partial class AppShell
     private readonly SortedDictionary<int, (string id, ExploreRowSpec spec)> _exploreRowsByIndex = new();
     private IEnumerable<KeyValuePair<string, ExploreRowSpec>> _exploreRows
         => _exploreRowsByIndex.Values.Select(x => new KeyValuePair<string, ExploreRowSpec>(x.id, x.spec));
+    private static readonly System.Text.RegularExpressions.Regex ExploreWorldIdRx =
+        new(@"^wrld_[A-Za-z0-9-]{1,80}$", System.Text.RegularExpressions.RegexOptions.Compiled);
     private static readonly System.Text.RegularExpressions.Regex ExploreRowIdRx =
         new(@"^row:\d{1,3}$", System.Text.RegularExpressions.RegexOptions.Compiled);
     private static readonly System.Text.RegularExpressions.Regex ExploreRowTagRx =

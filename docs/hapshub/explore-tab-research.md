@@ -189,7 +189,17 @@ VRChat has no AI label in the API and declined to add one (28 Oct 2026). HapsHub
    `feedVisited` in `vrcn_explorePersonal`). Fewer than 5 visited worlds with author tags: `popularity` +
    `featured=false` (VRChat's Trending row), said in the note. Waits for the visit history before asking. Search in
    For You moves to Best match, like the live views.
-8. Share list export/import.
+8. Share list export/import. **Done 2026-11-20.**
+   In the Saved panel, under the saved searches. Share: the Liked worlds under a name, as a code
+   (`HAPSLIST1.` + base64url of the JSON) copied to the clipboard, or a .json file (C# `exploreListSave`, save
+   dialog); "Include my AI marks" adds the marked world ids. A list carries `{ v: 1, name, worlds: [{ id, name,
+   authorId, authorName, tags (author tags, 12), capacity, thumbnailImageUrl }], ai? }`; pictures only from VRChat's
+   image hosts (api.vrchat.cloud, assets.vrchat.com, files.vrchat.cloud), so an imported list can't load anything from
+   elsewhere; HapsHub's local image-cache URLs are left out. Import: paste a code or open a file (C# `exploreListOpen`,
+   3 MB at most); every field is checked again; "Also take its AI marks" adds them to the user's marks. Up to 10 lists
+   of 500 worlds in localStorage `vrcn_exploreLists`; each opens as the view `list:<id>` (search narrows it, the hide
+   list does not apply, like Liked); worlds without a picture are asked for once per run (`vrcExploreFillWorlds`, 50
+   at most, C#'s cached GetWorldsByIdsAsync, four at a time); those pictures are shown, not stored.
 
 ## Sources
 

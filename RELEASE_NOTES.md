@@ -19,6 +19,7 @@ The first release of HapsHub, built on VRCNext 2027.2.0. HapsHub is heavily base
 - Explore, VRChat rows and saved searches: open the same world rows VRChat shows in game, save a view with its search and filters under a name, and pick which view or saved search Explore opens on.
 - Explore AI filter: a "Maybe AI" badge guessed from a world's tags and text (never stated as fact), right-click to mark a world or a whole author as AI, and hide guesses and marks or only your marks. Kept on your PC only.
 - Explore For You: a feed picked from the tags of worlds you visit, favorite and like, with newer worlds getting a fair chance, at most two per creator, and a note on each card saying why it is there.
+- Explore lists: share your Liked worlds as a code or a file (with your AI marks if you like), and import lists from friends; each opens as its own view.
 
 **Fixed**
 - Scrolling in Settings dropped half its frames.

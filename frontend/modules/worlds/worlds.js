@@ -304,13 +304,14 @@ function renderMyWorlds(worlds) {
 // views are pages of GET /worlds (vrcExploreWorlds). Search text searches VRChat in the API views and only narrows
 // the loaded list in the live views. Pages are kept a few minutes, so going back to a view does not call VRChat again.
 const _EXPLORE_LIVE = { active: 'popular', discover: 'discover' };   // view -> vrcGetWorldDiscover mode
-const _EXPLORE_LOCAL = { liked: true };                              // views built here from the user's own lists
+// Views built here from the user's own lists: Liked, and lists imported from a code or file ("list:<id>").
+function _exploreIsLocal(view) { return view === 'liked' || (typeof view === 'string' && view.startsWith('list:')); }
 const _EXPLORE_TTL_MS = 5 * 60 * 1000;
 const _explore = { view: 'active', query: '', page: 0, entries: {}, shown: [] };
 
 // API pages are keyed by view, text and the filters VRChat applies (sig); live and local views by view only.
 function _exploreKey(view, query, sig = _exploreServerSig()) {
-    if (_EXPLORE_LIVE[view] || _EXPLORE_LOCAL[view]) return view;
+    if (_EXPLORE_LIVE[view] || _exploreIsLocal(view)) return view;
     if (view === 'foryou') return view + '|' + sig;   // For You ignores the search text
     return view + '|' + String(query || '').toLowerCase() + '|' + sig;
 }
@@ -319,7 +320,7 @@ function _exploreEntry(view = _explore.view, query = _explore.query, sig) {
     const key = _exploreKey(view, query, sig);
     const e = _explore.entries[key]
         || (_explore.entries[key] = { worlds: null, offset: 0, hasMore: false, loading: false, failed: false, at: 0 });
-    if (_EXPLORE_LOCAL[view]) { e.worlds = _exploreLikedList(); e.at = Date.now(); }
+    if (_exploreIsLocal(view)) { e.worlds = view === 'liked' ? _exploreLikedList() : _exploreListWorlds(view); e.at = Date.now(); }
     return e;
 }
 
@@ -344,7 +345,7 @@ function _exploreFetch(view, query, offset, fresh, chain = 0) {
 
 /** Loads the current view if it has nothing yet (or an API page went stale); fresh = the Refresh button. */
 function _exploreEnsure(fresh) {
-    if (_EXPLORE_LOCAL[_explore.view]) { if (fresh && worldFilter === 'explore') renderExplore(); return; }
+    if (_exploreIsLocal(_explore.view)) { _exploreListFill(_explore.view); if (fresh && worldFilter === 'explore') renderExplore(); return; }
     if (_explore.view === 'foryou') { _exploreForYouEnsure(fresh); return; }
     const e = _exploreEntry();
     if (e.loading) return;
@@ -377,7 +378,7 @@ function exploreSearch() {
 function exploreRefresh() { _exploreReadQuery(); _exploreEnsure(true); }
 
 function exploreLoadMore() {
-    if (_EXPLORE_LIVE[_explore.view] || _EXPLORE_LOCAL[_explore.view] || _explore.view === 'foryou') return;
+    if (_EXPLORE_LIVE[_explore.view] || _exploreIsLocal(_explore.view) || _explore.view === 'foryou') return;
     const e = _exploreEntry();
     if (e.loading || !e.hasMore) return;
     _exploreFetch(_explore.view, _explore.query, e.offset, false);
@@ -434,6 +435,7 @@ function _exploreSyncUi() {
     document.querySelectorAll('#exploreViewBtns [id^="exploreView_"]')
         .forEach(b => b.classList.toggle('active', b.id === 'exploreView_' + _explore.view));
     document.getElementById('exploreRowsBtn')?.classList.toggle('active', _explore.view.startsWith('row:'));
+    document.getElementById('exploreSavedBtn')?.classList.toggle('active', _explore.view.startsWith('list:'));
     const rel = document.getElementById('exploreView_relevance');
     if (rel) rel.style.display = _explore.query ? '' : 'none';
     const loading = _exploreEntry().loading;
@@ -464,7 +466,11 @@ function _exploreSyncUi() {
             live && _explore.query
                 ? tf('worlds.explore.note_live_filter', { query: _explore.query }, 'Showing live worlds whose name, author or tags contain "{query}". Press Search to search all worlds.')
                 : '',
-            _EXPLORE_LOCAL[view] && _explore.query
+            view.startsWith('list:') ? _exploreListNote(view) : '',
+            view.startsWith('list:') && _explore.query
+                ? tf('worlds.explore.lists.note_filter', { query: _explore.query }, 'Showing worlds in this list whose name, author or tags contain "{query}".')
+                : '',
+            view === 'liked' && _explore.query
                 ? tf('worlds.explore.personal.note_liked_filter', { query: _explore.query }, 'Showing liked worlds whose name, author or tags contain "{query}".')
                 : '',
             hidden > 0 ? tf('worlds.explore.filters.note_hidden', { hidden, total: all.length }, 'Filters hide {hidden} of {total} loaded worlds.') : '',
@@ -483,7 +489,7 @@ function _exploreVisible(e = _exploreEntry(), view = _explore.view) {
     if (_explorePersonalHiding(view)) list = list.filter(w => !_exploreHiddenWhy(w));
     if (view === 'foryou' && !_explorePersonal.feedVisited) list = list.filter(w => !_exploreVisited(w));
     const q = _explore.query.toLowerCase();
-    if (q && (_EXPLORE_LIVE[view] || _EXPLORE_LOCAL[view])) list = list.filter(w => (w.name || '').toLowerCase().includes(q)
+    if (q && (_EXPLORE_LIVE[view] || _exploreIsLocal(view))) list = list.filter(w => (w.name || '').toLowerCase().includes(q)
         || (w.authorName || '').toLowerCase().includes(q)
         || _wlAuthorTags(w).some(tag => tag.toLowerCase().includes(q)));
     return _exploreSorted(list);
@@ -502,7 +508,8 @@ function renderExplore() {
     if (!list || list.length === 0) {
         setPaginator('worldExplorePaginatorBar', '');
         el.classList.add('search-grid');
-        if (Array.isArray(list) && _EXPLORE_LOCAL[_explore.view] && !e.worlds.length) el.innerHTML = emptyStateHtml('mood', t('worlds.explore.personal.empty_liked', 'No liked worlds yet. Right-click a world in Explore and choose Like.'));
+        if (Array.isArray(list) && _explore.view === 'liked' && !e.worlds.length) el.innerHTML = emptyStateHtml('mood', t('worlds.explore.personal.empty_liked', 'No liked worlds yet. Right-click a world in Explore and choose Like.'));
+        else if (Array.isArray(list) && _exploreIsLocal(_explore.view) && !e.worlds.length) el.innerHTML = emptyStateHtml('format_list_bulleted', t('worlds.explore.lists.empty_list', 'This list has no worlds.'));
         else if (Array.isArray(list) && _exploreFilterCount()) el.innerHTML = emptyStateHtml('tune', t('worlds.explore.filters.none_match', 'No worlds match your filters'))
             + `<div class="explore-more"><button class="vrcn-button" onclick="exploreClearFilters()">${esc(t('worlds.explore.filters.clear', 'Clear filters'))}</button> ${moreBtn}</div>`;
         else if (Array.isArray(list) && e.worlds.length && _explorePersonalHiding(_explore.view)) el.innerHTML = emptyStateHtml('visibility_off', t('worlds.explore.personal.all_hidden', 'Every world loaded here is on your hide list.'))
@@ -673,7 +680,7 @@ function _explorePasses(w, view) {
     if (cap && f.capMax && cap > f.capMax) return false;
     if (f.lang !== 'any' && !_exploreLangs(w).has(f.lang)) return false;
     // Liked worlds are mostly visited ones, so the Liked view keeps them.
-    if (f.hideVisited && !_EXPLORE_LOCAL[view] && _exploreVisited(w)) return false;
+    if (f.hideVisited && view !== 'liked' && _exploreVisited(w)) return false;
     if (f.friendsOnly && !_exploreFriendsByWorld().has(w.id)) return false;
     if (f.ai !== 'all') {
         const ai = _exploreAiWhy(w);
@@ -995,13 +1002,13 @@ function _exploreHiddenWhy(w) {
 /** Whether the hide list takes worlds out of this view: not in Liked, not while "Show hidden worlds" is on. */
 function _explorePersonalHiding(view = _explore.view) {
     const p = _explorePersonal;
-    return !_EXPLORE_LOCAL[view] && !p.showHidden
+    return !_exploreIsLocal(view) && !p.showHidden
         && (p.tags.length > 0 || _exploreHas(p.disliked) || _exploreHas(p.worlds) || _exploreHas(p.authors));
 }
 
 /** List view: the rows get the same dimming as the cards while "Show hidden worlds" is on, with the reason as tooltip. */
 function _exploreMarkListRows(el, list) {
-    if (!_explorePersonal.showHidden || _EXPLORE_LOCAL[_explore.view]) return;
+    if (!_explorePersonal.showHidden || _exploreIsLocal(_explore.view)) return;
     const byId = new Map(list.map(w => [w.id, w]));
     el.querySelectorAll('[data-wid]').forEach(row => {
         const w = byId.get(row.dataset.wid);
@@ -1018,7 +1025,7 @@ function _exploreCardOpts(w) {
     const p = _explorePersonal;
     const badges = [];
     if (p.liked[w.id]) badges.push(`<span class="explore-badge liked" title="${P('badge_liked', 'Liked')}"><span class="msi">mood</span></span>`);
-    const why = p.showHidden && !_EXPLORE_LOCAL[_explore.view] ? _exploreHiddenWhy(w) : '';
+    const why = p.showHidden && !_exploreIsLocal(_explore.view) ? _exploreHiddenWhy(w) : '';
     if (why) badges.push(why === 'disliked'
         ? `<span class="explore-badge hidden"><span class="msi">do_not_disturb</span>${P('badge_disliked', 'Disliked')}</span>`
         : `<span class="explore-badge hidden"><span class="msi">visibility_off</span>${P('badge_hidden', 'Hidden')}</span>`);
@@ -1390,10 +1397,11 @@ const _EXPLORE_VIEW_NAMES = { active: 'Active now', foryou: 'For You', discover:
 const _exploreRowsState = { list: null, loading: false, failed: false };
 const _exploreSaved = _exploreLoadSaved();
 
-function _exploreViewOk(v) { return typeof v === 'string' && (_EXPLORE_START_VIEWS.includes(v) || v === 'relevance' || /^row:\d{1,3}$/.test(v)); }
+function _exploreViewOk(v) { return typeof v === 'string' && (_EXPLORE_START_VIEWS.includes(v) || v === 'relevance' || /^row:\d{1,3}$/.test(v) || /^list:[a-z0-9]{1,16}$/.test(v)); }
 
 function _exploreViewLabel(v) {
     if (v.startsWith('row:')) return _exploreRowName(v);
+    if (v.startsWith('list:')) return _exploreLists.lists[v.slice(5)]?.name || t('worlds.explore.lists.untitled', 'Shared list');
     return t('worlds.explore.views.' + v, _EXPLORE_VIEW_NAMES[v] || v);
 }
 
@@ -1509,7 +1517,8 @@ function _exploreSavedHtml() {
         <div class="explore-saved-list">${items || `<div class="explore-personal-sum">${S('empty', 'Nothing saved yet.')}</div>`}</div>
         <div class="av-more-row"><input id="exploreSavedName" type="text" class="vrcn-input" maxlength="40" placeholder="${S('name_placeholder', 'Name this search')}" onkeydown="if(event.key==='Enter')exploreSaveCurrent()"><button class="vrcn-button" onclick="exploreSaveCurrent()">${S('save', 'Save')}</button></div>
         <div class="av-more-row"><span>${S('start', 'Explore opens on')}</span><select id="exploreStartSel" class="vrcn-dropdown" onchange="exploreSetStart(this.value)">${starts}</select></div>
-        <div class="explore-filter-hint">${S('hint', 'Saves the view, the search text and the filters. Kept on this computer only.')}</div>`;
+        <div class="explore-filter-hint">${S('hint', 'Saves the view, the search text and the filters. Kept on this computer only.')}</div>
+        ${_exploreListsHtml()}`;
 }
 
 function exploreToggleSaved(btn) {
@@ -1555,7 +1564,8 @@ function exploreApplySaved(i) {
     if (!x) return;
     _exploreClosePanel('exploreSavedPanel');
     if (worldFilter !== 'explore') setWorldFilter('explore');
-    setExploreView(_exploreUseSaved(x));
+    const view = _exploreUseSaved(x);
+    setExploreView(view.startsWith('list:') && !_exploreLists.lists[view.slice(5)] ? 'active' : view);
 }
 
 function exploreDeleteSaved(i) {
@@ -1587,7 +1597,217 @@ function _exploreApplyStart() {
     const x = st.startsWith('saved:') ? _exploreSaved.list.find(s => 'saved:' + s.name === st) : null;
     if (x) _explore.view = _exploreUseSaved(x);
     else if (_EXPLORE_START_VIEWS.includes(st)) _explore.view = st;
+    if (_explore.view.startsWith('list:') && !_exploreLists.lists[_explore.view.slice(5)]) _explore.view = 'active';
     _explore.page = 0;
+}
+
+// ---- Explore: share and import world lists (item 14, step 8) ----
+// Liked worlds go out as a code (HAPSLIST1. + base64url of the JSON) or a .json file, with the user's AI marks if
+// ticked. A list carries world ids, names, creators, author tags and capacity; pictures only from VRChat's own image
+// hosts, so a list can't make HapsHub load anything from elsewhere. Imported lists open as views "list:<id>" and are
+// kept in localStorage vrcn_exploreLists; their missing pictures are asked for once per run (50 worlds at most).
+const _EXPLORE_LIST_CODE = 'HAPSLIST1.';
+const _EXPLORE_LISTS_MAX = 10;
+const _EXPLORE_LIST_WORLDS_MAX = 500;
+const _EXPLORE_LIST_IMG = /^https:\/\/(?:api\.vrchat\.cloud|assets\.vrchat\.com|files\.vrchat\.cloud)\/[^\s'"()<>]{1,400}$/;
+const _exploreLists = _exploreLoadLists();
+const _exploreListFilled = new Set();
+
+function _exploreListText(v, max) { return typeof v === 'string' ? v.trim().slice(0, max) : ''; }
+
+/** One world as a list carries it; anything else is dropped. */
+function _exploreListWorld(w) {
+    if (!w || !_exploreIdOk(w.id, 'wrld_')) return null;
+    const img = typeof w.thumbnailImageUrl === 'string' && _EXPLORE_LIST_IMG.test(w.thumbnailImageUrl) ? w.thumbnailImageUrl : '';
+    return {
+        id: w.id, name: _exploreListText(w.name, 120), authorId: _exploreIdOk(w.authorId) ? w.authorId : '', authorName: _exploreListText(w.authorName, 80),
+        tags: (Array.isArray(w.tags) ? w.tags : []).filter(x => typeof x === 'string' && x.startsWith('author_tag_') && _exploreTagOk(x)).slice(0, 12),
+        capacity: _exploreCap(w.capacity), thumbnailImageUrl: img, imageUrl: img,
+    };
+}
+
+/** A list from a code or a file's JSON; null when it is neither. */
+function _exploreParseList(text) {
+    text = String(text || '').trim();
+    if (!text || text.length > 3000000) return null;
+    let obj;
+    try {
+        if (text.startsWith(_EXPLORE_LIST_CODE)) {
+            const b64 = text.slice(_EXPLORE_LIST_CODE.length).replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/');
+            const bin = atob(b64 + '='.repeat((4 - b64.length % 4) % 4));
+            obj = JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0))));
+        } else obj = JSON.parse(text);
+    } catch { return null; }
+    if (!obj || typeof obj !== 'object' || obj.v !== 1 || !Array.isArray(obj.worlds)) return null;
+    const seen = new Set();
+    const worlds = [];
+    for (const x of obj.worlds) {
+        const w = _exploreListWorld(x);
+        if (!w || seen.has(w.id)) continue;
+        seen.add(w.id);
+        worlds.push(w);
+        if (worlds.length >= _EXPLORE_LIST_WORLDS_MAX) break;
+    }
+    const ai = [...new Set((Array.isArray(obj.ai) ? obj.ai : []).filter(id => _exploreIdOk(id, 'wrld_')))].slice(0, _EXPLORE_KEEP.ai);
+    return { name: _exploreListText(obj.name, 60), worlds, ai };
+}
+
+function _exploreLoadLists() {
+    const out = { lists: {} };
+    try {
+        const s = JSON.parse(localStorage.getItem('vrcn_exploreLists') || '{}') || {};
+        const entries = Object.entries(s.lists && typeof s.lists === 'object' && !Array.isArray(s.lists) ? s.lists : {})
+            .filter(([id, x]) => /^[a-z0-9]{1,16}$/.test(id) && x && Array.isArray(x.worlds))
+            .sort((a, b) => (Number(b[1].at) || 0) - (Number(a[1].at) || 0)).slice(0, _EXPLORE_LISTS_MAX);
+        for (const [id, x] of entries)
+            out.lists[id] = { name: _exploreListText(x.name, 60) || 'List', at: Number(x.at) || 0,
+                worlds: x.worlds.map(_exploreListWorld).filter(Boolean).slice(0, _EXPLORE_LIST_WORLDS_MAX) };
+    } catch { }
+    return out;
+}
+
+function _exploreSaveLists() {
+    try { localStorage.setItem('vrcn_exploreLists', JSON.stringify(_exploreLists)); return true; }
+    catch { return false; }
+}
+
+function _exploreListWorlds(view) {
+    const x = _exploreLists.lists[String(view).slice(5)];
+    return x ? x.worlds.map(w => ({ occupants: 0, favorites: 0, ...w, thumbnailImageUrl: w.thumbnailImageUrl || w._img || '' })) : [];
+}
+
+function _exploreListNote(view) {
+    const x = _exploreLists.lists[view.slice(5)];
+    return x ? tf('worlds.explore.lists.note', { name: x.name, n: x.worlds.length }, 'List: {name}, {n} worlds.') : '';
+}
+
+/** Imported worlds without a picture: ask VRChat about them once per run (50 at most, C# goes four at a time and caches). */
+function _exploreListFill(view) {
+    if (!view.startsWith('list:') || _exploreListFilled.has(view)) return;
+    const x = _exploreLists.lists[view.slice(5)];
+    if (!x) return;
+    _exploreListFilled.add(view);
+    const ids = x.worlds.filter(w => !w.thumbnailImageUrl).map(w => w.id).slice(0, 50);
+    if (ids.length) sendToCS({ action: 'vrcExploreFillWorlds', ids });
+}
+
+function onExploreFill(payload) {
+    const byId = new Map((Array.isArray(payload?.worlds) ? payload.worlds : []).filter(w => w && w.id).map(w => [w.id, w]));
+    if (!byId.size) return;
+    for (const x of Object.values(_exploreLists.lists)) x.worlds = x.worlds.map(w => {
+        const got = byId.get(w.id);
+        if (!got) return w;
+        // Pictures from VRChat come back as HapsHub's own image cache; they are shown, not kept in the list.
+        return { ...w, name: w.name || _exploreListText(got.name, 120), authorName: w.authorName || _exploreListText(got.authorName, 80),
+            capacity: w.capacity || _exploreCap(got.capacity), _img: typeof got.thumbnailImageUrl === 'string' ? got.thumbnailImageUrl : '',
+            occupants: Number(got.occupants) || 0, favorites: Number(got.favorites) || 0 };
+    });
+    if (worldFilter === 'explore' && _explore.view.startsWith('list:')) renderExplore();
+}
+
+/** Liked worlds as a list object, newest like first. */
+function _exploreLikedAsList() {
+    const name = _exploreListText(document.getElementById('exploreListName')?.value, 60) || t('worlds.explore.lists.default_name', 'My liked worlds');
+    const list = { v: 1, name, worlds: _exploreLikedList().map(_exploreListWorld).filter(Boolean) };
+    if (document.getElementById('exploreListGiveAi')?.checked) list.ai = Object.keys(_explorePersonal.ai);
+    return list;
+}
+
+function _exploreListCode(list) {
+    const bytes = new TextEncoder().encode(JSON.stringify(list));
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return _EXPLORE_LIST_CODE + btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function exploreCopyList() {
+    const list = _exploreLikedAsList();
+    if (!list.worlds.length) return;
+    navigator.clipboard.writeText(_exploreListCode(list))
+        .then(() => showToast(true, tf('worlds.explore.lists.toast_copied', { n: list.worlds.length }, 'List code copied ({n} worlds).')))
+        .catch(() => showToast(false, t('worlds.explore.lists.toast_copy_failed', 'Could not copy to the clipboard.')));
+}
+
+function exploreSaveListFile() {
+    const list = _exploreLikedAsList();
+    if (list.worlds.length) sendToCS({ action: 'exploreListSave', text: JSON.stringify(list, null, 1) });
+}
+
+function exploreOpenListFile() { sendToCS({ action: 'exploreListOpen' }); }
+
+function exploreImportList() {
+    const box = document.getElementById('exploreListCode');
+    if (_exploreImportText(box?.value || '') && box) box.value = '';
+}
+
+function onExploreListFile(payload) {
+    if (payload?.kind === 'opened') _exploreImportText(payload.text || '');
+    else if (payload?.kind === 'saved') showToast(!!payload.ok, payload.ok ? t('worlds.explore.lists.toast_saved', 'List saved.') : t('worlds.explore.lists.toast_save_failed', 'Could not save the list.'));
+}
+
+/** Adds a list from a code or file text; with "Also take its AI marks" its marks join the user's. */
+function _exploreImportText(text) {
+    const list = _exploreParseList(text);
+    if (!list) { showToast(false, t('worlds.explore.lists.bad_code', 'That is not a HapsHub list code or file.')); return false; }
+    if (Object.keys(_exploreLists.lists).length >= _EXPLORE_LISTS_MAX) {
+        showToast(false, tf('worlds.explore.lists.too_many', { n: _EXPLORE_LISTS_MAX }, 'You can keep {n} lists. Delete one first.'));
+        return false;
+    }
+    let id;
+    do id = Math.random().toString(36).slice(2, 10); while (_exploreLists.lists[id]);
+    const name = list.name || t('worlds.explore.lists.untitled', 'Shared list');
+    _exploreLists.lists[id] = { name, at: Date.now(), worlds: list.worlds };
+    if (!_exploreSaveLists()) {
+        delete _exploreLists.lists[id];
+        showToast(false, t('worlds.explore.lists.too_big', 'Could not keep this list: it is too big.'));
+        return false;
+    }
+    let ai = 0;
+    if (document.getElementById('exploreListTakeAi')?.checked) {
+        const names = new Map(list.worlds.map(w => [w.id, w.name]));
+        for (const wid of list.ai) if (!_explorePersonal.ai[wid]) { _explorePut('ai', wid, { name: names.get(wid) || '', authorId: '' }); ai++; }
+        if (ai) _exploreSavePersonal();
+    }
+    showToast(true, ai ? tf('worlds.explore.lists.toast_imported_ai', { name, n: list.worlds.length, ai }, 'Imported "{name}": {n} worlds, {ai} AI marks.')
+        : tf('worlds.explore.lists.toast_imported', { name, n: list.worlds.length }, 'Imported "{name}": {n} worlds.'));
+    _exploreRefreshPanel('exploreSavedPanel', _exploreSavedHtml);
+    if (worldFilter === 'explore') { _exploreSyncUi(); renderExplore(); }
+    return true;
+}
+
+function exploreOpenList(id) {
+    if (!_exploreLists.lists[id]) return;
+    _exploreClosePanel('exploreSavedPanel');
+    if (worldFilter !== 'explore') setWorldFilter('explore');
+    setExploreView('list:' + id);
+}
+
+function exploreDeleteList(id) {
+    if (!_exploreLists.lists[id]) return;
+    delete _exploreLists.lists[id];
+    _exploreSaveLists();
+    delete _explore.entries['list:' + id];
+    if (_explore.view === 'list:' + id) setExploreView('active');
+    _exploreRefreshPanel('exploreSavedPanel', _exploreSavedHtml);
+}
+
+function _exploreListsHtml() {
+    const S = (key, fallback) => esc(t('worlds.explore.lists.' + key, fallback));
+    const items = Object.entries(_exploreLists.lists).sort((a, b) => b[1].at - a[1].at).map(([id, x]) => `<div class="explore-saved-item">
+            <button class="vrcn-button explore-saved-name${_explore.view === 'list:' + id ? ' active' : ''}" onclick="exploreOpenList('${id}')" title="${esc(x.name)}">${esc(x.name)} <span class="explore-list-count">${x.worlds.length}</span></button>
+            <button class="vrcn-button explore-saved-del" onclick="exploreDeleteList('${id}')" title="${S('delete', 'Delete this list')}"><span class="msi">close</span></button></div>`).join('');
+    const liked = Object.keys(_explorePersonal.liked).length;
+    const off = liked ? '' : ' disabled';
+    return `<div class="av-more-title explore-personal-title">${S('title', 'Shared lists')}</div>
+        <div class="explore-saved-list">${items || `<div class="explore-personal-sum">${S('empty', 'No lists imported yet.')}</div>`}</div>
+        <textarea id="exploreListCode" class="vrcn-input explore-list-code" rows="2" placeholder="${S('paste', 'Paste a list code here')}"></textarea>
+        <label class="explore-cw"><input type="checkbox" id="exploreListTakeAi"> <span>${S('take_ai', 'Also take its AI marks')}</span></label>
+        <div class="explore-list-btns"><button class="vrcn-button" onclick="exploreImportList()"><span class="msi">upload</span> ${S('import', 'Import')}</button><button class="vrcn-button" onclick="exploreOpenListFile()"><span class="msi">upload_file</span> ${S('open_file', 'Open file')}</button></div>
+        <div class="av-more-title explore-personal-title">${esc(tf('worlds.explore.lists.share_title', { n: liked }, 'Share your Liked worlds ({n})'))}</div>
+        <input id="exploreListName" type="text" class="vrcn-input explore-list-name" maxlength="60" placeholder="${S('name_placeholder', 'List name')}" value="${S('default_name', 'My liked worlds')}">
+        <label class="explore-cw"><input type="checkbox" id="exploreListGiveAi"> <span>${S('give_ai', 'Include my AI marks')}</span></label>
+        <div class="explore-list-btns"><button class="vrcn-button" onclick="exploreCopyList()"${off}><span class="msi">content_copy</span> ${S('copy', 'Copy code')}</button><button class="vrcn-button" onclick="exploreSaveListFile()"${off}><span class="msi">download</span> ${S('save_file', 'Save file')}</button></div>
+        <div class="explore-filter-hint">${S('hint', 'A list holds world IDs, names, creators and tags, plus your AI marks if ticked. Imported lists open as views here and stay on this computer.')}</div>`;
 }
 
 function _wdGroupOptionLabel(g) {

@@ -800,6 +800,116 @@ section('explore for you', async main => {
         JSON.stringify({ ask2: got.ask2, fallback: got.fallback, waited: got.waited }));
 });
 
+section('explore lists', async main => {
+    // Item 14 step 8. Liked worlds go out as a code or a file (AI marks if ticked); imported lists open as views,
+    // pictures only from VRChat's own hosts, missing ones asked for once. Kept in localStorage vrcn_exploreLists.
+    const got = JSON.parse(await main.eval(`(async () => {
+        const sent = [];
+        const realSend = sendToCS;
+        window.sendToCS = m => { sent.push(m); };
+        const clip = navigator.clipboard.writeText;
+        let copied = '';
+        navigator.clipboard.writeText = async text => { copied = text; };
+        const ids = () => _explore.shown.map(w => w.id).join(',');
+        const real = { store: localStorage.getItem('vrcn_explorePersonal'), lists: localStorage.getItem('vrcn_exploreLists') };
+        const out = {};
+        try {
+            exploreClearFilters();
+            Object.assign(_explorePersonal, { liked: {
+                wrld_l1: { name: 'Lake', authorId: 'usr_a', authorName: 'Ann', tags: ['author_tag_chill', 'system_approved'], capacity: 20, at: 2,
+                    thumbnailImageUrl: 'https://api.vrchat.cloud/api/1/image/file_1/1/256' },
+                wrld_l2: { name: 'Café', authorId: 'usr_b', authorName: 'Bo', tags: [], at: 1, thumbnailImageUrl: 'http://localhost:5000/img/x.png' } },
+                disliked: {}, worlds: {}, authors: {}, tags: [], showHidden: false, ai: { wrld_l1: { name: 'Lake', at: 1 } }, aiAuthors: {}, feedVisited: false });
+            _exploreSavePersonal();
+            for (const id of Object.keys(_exploreLists.lists)) delete _exploreLists.lists[id];
+            _exploreSaveLists();
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = '';
+            document.getElementById('searchWorldsInput').value = '';
+            showTab(NAV_ITEMS_DEF.worlds?.tab ?? 1);
+            setWorldFilter('explore');
+            const btn = document.getElementById('exploreSavedBtn');
+            exploreToggleSaved(btn);
+            const panel = document.getElementById('exploreSavedPanel');
+            out.panel = /Share your Liked worlds \\(2\\)/.test(panel.textContent) && /No lists imported yet/.test(panel.textContent);
+            panel.querySelector('#exploreListName').value = 'Cozy';
+            panel.querySelector('#exploreListGiveAi').checked = true;
+            exploreCopyList();
+            await new Promise(r => setTimeout(r, 30));
+            out.code = copied.slice(0, 10);
+            const back = _exploreParseList(copied);
+            out.parsed = back ? [back.name, back.worlds.map(w => w.id + ':' + (w.thumbnailImageUrl ? 'img' : '-') + ':' + w.tags.join('+')).join(' '), back.ai.join()].join('|') : 'null';
+            exploreSaveListFile();
+            const save = sent.find(m => m.action === 'exploreListSave');
+            out.file = !!save && JSON.parse(save.text).v === 1 && JSON.parse(save.text).worlds.length === 2;
+
+            // Import: the code, with its AI marks; the list opens as a view and asks for the missing picture once.
+            _explorePersonal.ai = {};
+            panel.querySelector('#exploreListCode').value = copied;
+            panel.querySelector('#exploreListTakeAi').checked = true;
+            exploreImportList();
+            const listIds = Object.keys(_exploreLists.lists);
+            out.imported = listIds.length + '|' + Object.keys(_explorePersonal.ai).join() + '|' + panel.querySelectorAll('.explore-saved-list .explore-saved-name').length;
+            exploreOpenList(listIds[0]);
+            out.view = _explore.view === 'list:' + listIds[0];
+            out.shown = ids();
+            out.note = document.getElementById('exploreNote').textContent;
+            out.savedActive = btn.classList.contains('active');
+            const fill = sent.filter(m => m.action === 'vrcExploreFillWorlds');
+            out.fill = fill.map(m => m.ids.join()).join('/');
+            _handleBackendMessage('vrcExploreFill', { worlds: [{ id: 'wrld_l2', name: 'Café', thumbnailImageUrl: 'http://localhost:5000/img/x2.png', occupants: 4, favorites: 7 }] });
+            const card = [...document.querySelectorAll('#searchWorldsResults .vrcn-content-card')].find(c => (c.getAttribute('onclick') || '').includes('wrld_l2'));
+            out.filled = (card?.querySelector('.cc-bg')?.getAttribute('style') || '').includes('x2.png');
+            setExploreView('hot'); setExploreView('list:' + listIds[0]);
+            out.fillOnce = sent.filter(m => m.action === 'vrcExploreFillWorlds').length;
+
+            // A file's JSON imports too; junk does not; pictures from other hosts are dropped.
+            _handleBackendMessage('exploreListFile', { kind: 'opened', text: JSON.stringify({ v: 1, name: 'Friend picks', worlds: [
+                { id: 'wrld_x1', name: 'X', thumbnailImageUrl: 'https://evil.example/p.png' }, { id: 'bad id' }, { id: 'wrld_x1' }] }) });
+            const friend = Object.values(_exploreLists.lists).find(x => x.name === 'Friend picks');
+            out.json = friend ? friend.worlds.map(w => w.id + ':' + (w.thumbnailImageUrl || '-')).join() : 'none';
+            const n = Object.keys(_exploreLists.lists).length;
+            exploreOpenListFile();
+            out.openAsk = sent.some(m => m.action === 'exploreListOpen');
+            panel.querySelector('#exploreListCode').value = 'HAPSLIST1.notbase64!!';
+            exploreImportList();
+            _handleBackendMessage('exploreListFile', { kind: 'opened', text: '{"v":2}' });
+            out.junk = Object.keys(_exploreLists.lists).length === n;
+
+            // Deleting the open list goes back to Active now; bad stored lists are dropped when read back.
+            exploreOpenList(listIds[0]);
+            exploreDeleteList(listIds[0]);
+            out.afterDelete = _explore.view + '|' + Object.keys(_exploreLists.lists).length;
+            localStorage.setItem('vrcn_exploreLists', JSON.stringify({ lists: { ok1: { name: 'Ok', at: 1, worlds: [{ id: 'wrld_o' }, { id: 'nope' }] }, 'BAD!': { name: 'x', worlds: [] }, nolist: { name: 'y' } } }));
+            const re = _exploreLoadLists();
+            out.reload = Object.entries(re.lists).map(([id, x]) => id + ':' + x.worlds.map(w => w.id).join('+')).join();
+            out.sentVrc = sent.filter(m => /^vrcExplore/.test(m.action) && m.action !== 'vrcExploreFillWorlds' && m.action !== 'vrcExploreWorlds').map(m => m.action);
+            return JSON.stringify(out);
+        } finally {
+            window.sendToCS = realSend;
+            navigator.clipboard.writeText = clip;
+            exploreClearFilters();
+            _exploreClosePanel('exploreSavedPanel');
+            if (real.store == null) localStorage.removeItem('vrcn_explorePersonal'); else localStorage.setItem('vrcn_explorePersonal', real.store);
+            if (real.lists == null) localStorage.removeItem('vrcn_exploreLists'); else localStorage.setItem('vrcn_exploreLists', real.lists);
+            Object.assign(_explorePersonal, _exploreLoadPersonal());
+            _exploreLikedMemo = null;
+            _exploreLists.lists = _exploreLoadLists().lists;
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = '';
+            setWorldFilter('favorites');
+        }
+    })()`));
+    check('Explore lists: Liked worlds go out as a code (and a file) with names, creators, author tags, VRChat pictures only, AI marks if ticked',
+        got.panel && got.code === 'HAPSLIST1.' && got.parsed === 'Cozy|wrld_l1:img:author_tag_chill wrld_l2:-:|wrld_l1' && got.file,
+        JSON.stringify({ panel: got.panel, code: got.code, parsed: got.parsed, file: got.file }));
+    check('Explore lists: importing a code adds the list and its AI marks; it opens as a view and fills a missing picture once',
+        got.imported === '1|wrld_l1|1' && got.view && got.shown === 'wrld_l1,wrld_l2' && /List: Cozy, 2 worlds/.test(got.note) && got.savedActive
+            && got.fill === 'wrld_l2' && got.filled && got.fillOnce === 1,
+        JSON.stringify({ imported: got.imported, view: got.view, shown: got.shown, note: got.note, active: got.savedActive, fill: got.fill, filled: got.filled, once: got.fillOnce }));
+    check('Explore lists: a file imports, junk does not, other picture hosts are dropped, deleting the open list goes back, bad stored lists are dropped',
+        got.json === 'wrld_x1:-' && got.openAsk && got.junk && got.afterDelete === 'active|1' && got.reload === 'ok1:wrld_o' && got.sentVrc.length === 0,
+        JSON.stringify({ json: got.json, open: got.openAsk, junk: got.junk, del: got.afterDelete, reload: got.reload, sent: got.sentVrc }));
+});
+
 section('avatar filters (issue 10)', async main => {
     const got = await main.json(`(() => {
         const mk = (id, extra) => ({ id, name: id, releaseStatus: 'public', authorName: 'Someone', tags: [], ...extra });

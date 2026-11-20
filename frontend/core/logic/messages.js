@@ -1086,6 +1086,12 @@ case 'vrcNews':
             case 'vrcExploreForYou':
                 if (typeof onExploreForYou === 'function') onExploreForYou(payload);
                 break;
+            case 'vrcExploreFill':
+                if (typeof onExploreFill === 'function') onExploreFill(payload);
+                break;
+            case 'exploreListFile':
+                if (typeof onExploreListFile === 'function') onExploreListFile(payload);
+                break;
             case 'vrcExploreRows':
                 if (typeof onExploreRows === 'function') onExploreRows(payload);
                 break;
