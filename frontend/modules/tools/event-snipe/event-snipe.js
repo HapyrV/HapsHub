@@ -64,8 +64,8 @@ function snipeSelectGroup(id, name, iconUrl) {
 
 function snipeBuildBtnHtml() {
     return _snipeRunning
-        ? `<span class="msi" style="font-size:16px;">stop</span> Stop`
-        : `<span class="msi" style="font-size:16px;">play_arrow</span> Start`;
+        ? `<span class="msi" style="font-size:16px;">stop</span> ${esc(t('common.stop', 'Stop'))}`
+        : `<span class="msi" style="font-size:16px;">play_arrow</span> ${esc(t('common.start', 'Start'))}`;
 }
 
 function snipeSyncStateUi() {

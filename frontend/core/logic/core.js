@@ -2860,6 +2860,9 @@ function initAllVnSelects() {
     document.querySelectorAll('select:not([data-no-vn])').forEach(initVnSelect);
 }
 
+// After a language switch the options carry their new words; the shown labels follow them.
+document.documentElement.addEventListener('languagechange', () => document.querySelectorAll('select').forEach(s => s._vnRefresh?.()));
+
 // === Force FFC All ===
 function forceFfcAll() {
     const btn = document.getElementById('btnForceFfc');

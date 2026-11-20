@@ -516,7 +516,7 @@ function lgvRowHtml(e) {
         oncontextmenu="lgvRowMenu(event, ${e.lineNumber})">
         <div class="lgv-check"><span class="msi ${sel ? 'lgv-chk-on' : 'lgv-chk-off'}">${sel ? 'check_circle' : 'radio_button_unchecked'}</span></div>
         <div class="lgv-time">${esc(e.timestamp)}</div>
-        <div><span class="vrcn-badge ${lgvBadgeClass(e.level)}">${esc(e.level)}</span></div>
+        <div><span class="vrcn-badge ${lgvBadgeClass(e.level)}">${esc(t('log_viewer.level.' + String(e.level || '').toLowerCase(), e.level))}</span></div>
         <div class="lgv-cat" title="${esc(cat)}">${esc(cat)}</div>
         <div class="lgv-msg">${lgvHighlight(e.message)}${cont}</div>
     </div>`;

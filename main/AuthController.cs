@@ -222,6 +222,8 @@ public class AuthController
 
             case "setupReady":
                 _lastSentLanguage = null;
+                // Puts back an autostart entry that went missing while the setting is still on.
+                if (_core.Settings.StartWithWindows) ApplyStartWithWindows(true);
                 _core.SendToJS("setPlatform", new { isLinux = !OperatingSystem.IsWindows() });
                 var detectedPath = _core.Settings.VrcPath;
                 if (string.IsNullOrWhiteSpace(detectedPath) || !File.Exists(detectedPath) || !PathSafety.IsSafeVrcPath(detectedPath))
@@ -2535,12 +2537,11 @@ public class AuthController
             var i18nDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "frontend", "i18n");
             var path = Path.Combine(i18nDir, $"{language}.json");
             var fallbackPath = Path.Combine(i18nDir, "en.json");
-            var json = File.Exists(path)
-                ? File.ReadAllText(path)
-                : File.Exists(fallbackPath)
-                    ? File.ReadAllText(fallbackPath)
-                    : "{}";
-            var translations = JObject.Parse(json);
+            // English sits under every language, so a key a language hasn't translated yet shows in English
+            // instead of blank (Ukrainian came from upstream without HapsHub's own keys).
+            var translations = File.Exists(fallbackPath) ? JObject.Parse(File.ReadAllText(fallbackPath)) : new JObject();
+            if (language != "en" && File.Exists(path))
+                translations.Merge(JObject.Parse(File.ReadAllText(path)), new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Replace });
             _core.SendToJS("translationData", new { language, translations });
             _lastSentLanguage = language;
         }
@@ -2555,6 +2556,9 @@ public class AuthController
 
     internal static void ApplyStartWithWindows(bool enable)
     {
+        // A test copy (its own data folder) must never touch the real app's autostart entry: every settings save
+        // used to call this with its own "off" and delete the entry the user's real copy had made.
+        if (HapsHub.Core.HubPaths.IsOverridden) return;
 #if WINDOWS
         using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
             @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);

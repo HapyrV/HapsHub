@@ -383,6 +383,9 @@ section('explore personal', async main => {
             exploreShowHidden(true);
             out.shown = ids();
             out.marked = document.querySelectorAll('#searchWorldsResults .explore-hidden').length;
+            setWorldsViewMode('list');
+            out.listMarked = document.querySelectorAll('#searchWorldsResults [data-wid].explore-hidden').length;
+            setWorldsViewMode('grid');
             out.dislikeBadge = !!card('wrld_e')?.querySelector('.explore-badge.hidden');
             out.likedBadge = !!card('wrld_a')?.querySelector('.explore-badge.liked');
             exploreToggleFilters(document.getElementById('exploreFilterBtn'));
@@ -440,10 +443,10 @@ section('explore personal', async main => {
             && got.afterTag === 'wrld_a' && got.afterWorld === 'wrld_a',
         JSON.stringify({ author: got.afterAuthor, note: got.note, dislike: got.afterDislike, checked: got.likedMenuChecked, tag: got.afterTag, world: got.afterWorld }));
     check('Explore personal: "Show hidden worlds" brings them back marked, and the Filters panel lists and unhides',
-        got.shown === 'wrld_a,wrld_b,wrld_c,wrld_d,wrld_e' && got.marked === 4 && got.dislikeBadge && got.likedBadge
+        got.shown === 'wrld_a,wrld_b,wrld_c,wrld_d,wrld_e' && got.marked === 4 && got.listMarked === 4 && got.dislikeBadge && got.likedBadge
             && /1 worlds, 1 authors, 0 tags\. Disliked: 1/.test(got.panelSum) && got.panelChips.join() === 'author:usr_y' && got.panelBoxes.join() === 'true,true'
             && got.panelAfter === 0 && got.afterUnhide === 'wrld_a,wrld_c,wrld_d',
-        JSON.stringify({ shown: got.shown, marked: got.marked, dis: got.dislikeBadge, liked: got.likedBadge, sum: got.panelSum, chips: got.panelChips, boxes: got.panelBoxes, after: got.panelAfter, unhide: got.afterUnhide }));
+        JSON.stringify({ shown: got.shown, marked: got.marked, listMarked: got.listMarked, dis: got.dislikeBadge, liked: got.likedBadge, sum: got.panelSum, chips: got.panelChips, boxes: got.panelBoxes, after: got.panelAfter, unhide: got.afterUnhide }));
     check('Explore personal: the Liked view lists liked worlds, search narrows it, unliking empties it, and nothing goes to VRChat',
         got.liked === 'wrld_a' && got.likedCard && got.likedSearch === 'liked/' && got.likedEmpty && got.sentAfter.length === 0,
         JSON.stringify({ liked: got.liked, card: got.likedCard, search: got.likedSearch, empty: got.likedEmpty, sent: got.sentAfter }));

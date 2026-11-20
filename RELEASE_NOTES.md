@@ -21,3 +21,8 @@ The first release of HapsHub, built on VRCNext 2027.2.0. HapsHub is heavily base
 - Apps shown in HapsHub's pages stayed open, or popped out, when HapsHub closed.
 - Eagle and VRCT stayed blank inside their pages.
 - Pages added by HapsHub had no title in the top bar.
+- "Start with Windows" could switch itself off: a second copy of HapsHub removed the startup entry. HapsHub puts it back on its next start while the setting is on.
+- Ukrainian showed blank labels where a text had no Ukrainian yet; they now show in English.
+- Worlds > Explore list view didn't dim the worlds you hid.
+- Dropdowns kept their old language after switching languages.
+- Text left in English in other languages: the VRCT page, the first-run plugin picks, game log entries in Timeline, Event Snipe, the log viewer, Action Flow's toolbar, plugin names in Settings and some tooltips.

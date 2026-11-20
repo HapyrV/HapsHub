@@ -57,6 +57,7 @@
 .explore-badge.liked { padding: 2px 5px; color: var(--accent-lt, #fff); }
 .explore-badge.hidden { background: rgba(239,83,80,.7); }
 .vrcn-content-card.explore-hidden .cc-bg { filter: grayscale(.8) brightness(.6); }
+[data-wid].explore-hidden:not(.vrcn-content-card) { opacity: .5; }
 .explore-personal-title { margin-top: 10px; }
 .explore-personal-sum { font-size: calc(12px + var(--fs-off, 0px)); color: var(--tx2); margin-bottom: 6px; }
 .explore-personal-chips { display: flex; flex-wrap: wrap; gap: 4px; max-height: 96px; overflow-y: auto; margin-bottom: 6px; }

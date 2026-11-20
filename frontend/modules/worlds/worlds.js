@@ -507,7 +507,7 @@ function renderExplore() {
         return;
     }
     if (lvViewMode('worlds') === 'list' && lvReady()) {
-        lvKeepScroll(el, () => _worldsListPage(el, list, _explore.page, 'worldExplorePaginatorBar', 'exploreGoPage', p => { _explore.page = p; }));
+        lvKeepScroll(el, () => { _worldsListPage(el, list, _explore.page, 'worldExplorePaginatorBar', 'exploreGoPage', p => { _explore.page = p; }); _exploreMarkListRows(el, list); });
         if (more) el.insertAdjacentHTML('beforeend', more);
         return;
     }
@@ -923,6 +923,19 @@ function _explorePersonalHiding(view = _explore.view) {
     const p = _explorePersonal;
     return !_EXPLORE_LOCAL[view] && !p.showHidden
         && (p.tags.length > 0 || _exploreHas(p.disliked) || _exploreHas(p.worlds) || _exploreHas(p.authors));
+}
+
+/** List view: the rows get the same dimming as the cards while "Show hidden worlds" is on, with the reason as tooltip. */
+function _exploreMarkListRows(el, list) {
+    if (!_explorePersonal.showHidden || _EXPLORE_LOCAL[_explore.view]) return;
+    const byId = new Map(list.map(w => [w.id, w]));
+    el.querySelectorAll('[data-wid]').forEach(row => {
+        const w = byId.get(row.dataset.wid);
+        const why = w ? _exploreHiddenWhy(w) : '';
+        if (!why) return;
+        row.classList.add('explore-hidden');
+        row.title = why === 'disliked' ? t('worlds.explore.personal.badge_disliked', 'Disliked') : t('worlds.explore.personal.badge_hidden', 'Hidden');
+    });
 }
 
 /** Badges and an extra class for an Explore card: Liked, Hidden/Disliked (while shown), Visited. */

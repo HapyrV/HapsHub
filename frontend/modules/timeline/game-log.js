@@ -11,11 +11,35 @@ const GL_META = {
     gl_video_url:       { icon: 'play_circle',         color: 'var(--warn)',   label: 'Video'       },
     gl_screenshot:      { icon: 'photo_camera',       color: 'var(--cyan)',   label: 'Screenshot'  },
     gl_portal:          { icon: 'blur_circular',      color: '#AB47BC',       label: 'Portal'      },
+    gl_portal_spawn:    { icon: 'blur_on',            color: '#AB47BC',       label: 'Portal opened' },
     gl_avatar_blocked:  { icon: 'block',              color: 'var(--warn)',   label: 'Blocked'     },
     gl_image_error:     { icon: 'broken_image',       color: 'var(--err)',    label: 'Error'       },
     gl_connection_lost: { icon: 'wifi_off',           color: 'var(--err)',    label: 'Disconnect'  },
     gl_instance_closed: { icon: 'lock',               color: 'var(--warn)',   label: 'Closed'      },
 };
+
+// Labels follow the interface language (gamelog.type.<name>); the English above is the fallback.
+for (const [type, meta] of Object.entries(GL_META)) {
+    const fallback = meta.label;
+    Object.defineProperty(meta, 'label', { enumerable: true, get: () => (typeof t === 'function' ? t('gamelog.type.' + type.slice(3), fallback) : fallback) });
+}
+
+// The log watcher writes these messages in English; show them in the interface language.
+const GL_MESSAGES = {
+    'Portal used': 'gamelog.msg.portal_used',
+    'Portal opened': 'gamelog.msg.portal_opened',
+    'Avatar blocked (perf limit)': 'gamelog.msg.avatar_blocked',
+    'Connection lost': 'gamelog.msg.connection_lost',
+    'Instance closed': 'gamelog.msg.instance_closed',
+};
+
+function glMessage(ev) {
+    const msg = ev.message || '';
+    if (typeof t !== 'function') return msg;
+    if (GL_MESSAGES[msg]) return t(GL_MESSAGES[msg], msg);
+    if (ev.type === 'gl_image_error' && msg.startsWith('Image failed: ')) return tf('gamelog.msg.image_failed', { host: msg.slice(14) }, msg);
+    return msg;
+}
 
 const GL_FILTER_GROUPS = {
     all:        null,
@@ -91,7 +115,7 @@ function buildGlListHtml(entries) {
         rows += tlTableRow('gamelog', '', {
             dt:    `<td class="tl-list-dt">${esc(`${dateStr} | ${timeStr}`)}</td>`,
             type:  `<td class="tl-list-type"><span class="msi tl-list-icon" style="color:${meta.color}">${meta.icon}</span><span>${esc(meta.label)}</span></td>`,
-            event: `<td class="tl-list-detail">${esc(ev.message || '')}${ev.detail ? `<span class="tl-list-na" style="margin-left:6px;font-size:calc(10px + var(--fs-off, 0px));">${esc(ev.detail.length > 80 ? ev.detail.slice(0, 80) + '…' : ev.detail)}</span>` : ''}</td>`,
+            event: `<td class="tl-list-detail">${esc(glMessage(ev))}${ev.detail ? `<span class="tl-list-na" style="margin-left:6px;font-size:calc(10px + var(--fs-off, 0px));">${esc(ev.detail.length > 80 ? ev.detail.slice(0, 80) + '…' : ev.detail)}</span>` : ''}</td>`,
         });
     });
 
@@ -144,7 +168,7 @@ function buildGlCard(ev, meta) {
         <div class="tl-time-col"><span class="tl-time">${esc(time)}</span><span class="tl-date">${esc(date)}</span></div>
     </div>`;
     const body = `<div class="tl-card-body"><div class="tl-card-info">
-        <div class="tl-main-label">${esc(ev.message || '')}</div>${detail}
+        <div class="tl-main-label">${esc(glMessage(ev))}</div>${detail}
     </div></div>`;
     return `<div class="tl-card">${header}${body}</div>`;
 }
