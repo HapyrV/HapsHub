@@ -4810,5 +4810,12 @@
   "hub.plugin.status-schedule.desc": "按计划更改你的状态和状态文字。",
   "hub.plugin.media-relay.desc": "将你的新截图发送到 Discord。",
   "hub.plugin.chatbox.desc": "在你的 VRChat 聊天框中显示时间、音乐和统计数据。",
-  "hub.plugin.chatbox.name": "自定义聊天框"
+  "hub.plugin.chatbox.name": "自定义聊天框",
+  "worlds.explore.active.friends": "好友",
+  "worlds.explore.active.friends_only": "只看现在有好友的世界",
+  "worlds.explore.active.order": "排序",
+  "worlds.explore.active.order_default": "VRChat 的顺序",
+  "worlds.explore.active.order_people": "当前人数",
+  "worlds.explore.active.order_friends": "有好友的优先",
+  "worlds.explore.active.friends_here": "当前在此的好友：{names}"
 }

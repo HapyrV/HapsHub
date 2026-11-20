@@ -454,6 +454,68 @@ section('explore personal', async main => {
         got.stored === 'wrld_e|wrld_b||' && got.reload === 'wrld_ok|author_tag_ok|false', JSON.stringify({ stored: got.stored, reload: got.reload }));
 });
 
+section('explore active', async main => {
+    // Item 14 step 4. Cards say which friends are in the world now (from the friends list, no request); the loaded worlds
+    // can be ordered by people there now or friends first, and narrowed to worlds where friends are.
+    const got = await main.json(`(() => {
+        const sent = [];
+        const realSend = sendToCS;
+        window.sendToCS = m => { sent.push(m); };
+        const ids = () => _explore.shown.map(w => w.id).join(',');
+        const real = { friends: vrcFriendsData, order: localStorage.getItem('vrcn_exploreOrder') };
+        const out = {};
+        try {
+            exploreClearFilters();
+            exploreSetOrder('default');
+            vrcFriendsData = [{ id: 'usr_1', displayName: 'Ann', location: 'wrld_b:123~region(eu)' }, { id: 'usr_2', displayName: 'Bob', location: 'wrld_b:999' },
+                { id: 'usr_3', displayName: 'Cy', location: 'wrld_c:1' }, { id: 'usr_4', displayName: 'Dee', location: 'private' }, { id: 'usr_5', displayName: 'Eve', location: 'offline' }];
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = ''; _explore.askedVisited = true;
+            document.getElementById('searchWorldsInput').value = '';
+            showTab(NAV_ITEMS_DEF.worlds?.tab ?? 1);
+            setWorldFilter('explore');
+            setExploreView('popular');
+            const ask = sent.find(m => m.action === 'vrcExploreWorlds');
+            const W = (id, occupants) => ({ id, name: 'World ' + id.slice(5), authorId: 'usr_x', authorName: 'Xan', tags: [], capacity: 16, occupants, favorites: 1 });
+            _handleBackendMessage('vrcExploreResults', { view: 'popular', query: '', offset: 0, ok: true, hasMore: false, sig: ask?.sig,
+                worlds: [W('wrld_a', 5), W('wrld_b', 2), W('wrld_c', 9), W('wrld_d', 0)] });
+            const before = sent.length;
+            const card = id => [...document.querySelectorAll('#searchWorldsResults .vrcn-content-card')].find(c => (c.getAttribute('onclick') || '').includes(id));
+            out.badges = ['wrld_a', 'wrld_b', 'wrld_c'].map(id => card(id)?.querySelector('.explore-badge.friends')?.lastChild?.textContent.trim() || '');
+            out.title = card('wrld_b')?.querySelector('.explore-badge.friends')?.title || '';
+            exploreSetOrder('people'); out.people = ids();
+            exploreSetOrder('friends'); out.friends = ids();
+            out.savedOrder = localStorage.getItem('vrcn_exploreOrder');
+            exploreSetOrder('default'); out.plain = ids();
+            exploreSetFilter('friendsOnly', true);
+            out.only = ids();
+            out.count = document.querySelector('#exploreFilterBtn .explore-filter-count')?.textContent;
+            out.saved = JSON.parse(localStorage.getItem('vrcn_exploreFilters') || '{}').friendsOnly;
+            exploreToggleFilters(document.getElementById('exploreFilterBtn'));
+            const panel = document.getElementById('exploreFilterPanel');
+            out.panel = [!!panel.querySelector('#exploreFriendsOnly:checked'), panel.querySelector('#exploreOrder')?.options.length || 0];
+            exploreToggleFilters(document.getElementById('exploreFilterBtn'));
+            out.sent = sent.slice(before).map(m => m.action);
+            return out;
+        } finally {
+            window.sendToCS = realSend;
+            exploreClearFilters();
+            vrcFriendsData = real.friends;
+            if (real.order == null) localStorage.removeItem('vrcn_exploreOrder'); else localStorage.setItem('vrcn_exploreOrder', real.order);
+            _exploreOrder = 'default';
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = '';
+            setWorldFilter('favorites');
+        }
+    })()`);
+    check('Explore active: cards count the friends in each world now, names in the tooltip',
+        got.badges.join() === ',2,1' && got.title === 'Friends here now: Ann, Bob', JSON.stringify({ badges: got.badges, title: got.title }));
+    check('Explore active: order by people now or friends first, saved; VRChat order back',
+        got.people === 'wrld_c,wrld_a,wrld_b,wrld_d' && got.friends === 'wrld_b,wrld_c,wrld_a,wrld_d' && got.savedOrder === 'friends' && got.plain === 'wrld_a,wrld_b,wrld_c,wrld_d',
+        JSON.stringify({ people: got.people, friends: got.friends, saved: got.savedOrder, plain: got.plain }));
+    check('Explore active: "only worlds where friends are" filters, counts, is saved, sits in the panel, and sends nothing',
+        got.only === 'wrld_b,wrld_c' && got.count === '1' && got.saved === true && got.panel.join() === 'true,3' && got.sent.length === 0,
+        JSON.stringify({ only: got.only, count: got.count, saved: got.saved, panel: got.panel, sent: got.sent }));
+});
+
 section('avatar filters (issue 10)', async main => {
     const got = await main.json(`(() => {
         const mk = (id, extra) => ({ id, name: id, releaseStatus: 'public', authorName: 'Someone', tags: [], ...extra });

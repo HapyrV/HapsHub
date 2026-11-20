@@ -4810,5 +4810,12 @@
   "hub.plugin.status-schedule.desc": "Changes your status and status text on a schedule.",
   "hub.plugin.media-relay.desc": "Sends your new screenshots to Discord.",
   "hub.plugin.chatbox.desc": "Shows the time, music and stats in your VRChat chatbox.",
-  "hub.plugin.chatbox.name": "Custom Chatbox"
+  "hub.plugin.chatbox.name": "Custom Chatbox",
+  "worlds.explore.active.friends": "Friends",
+  "worlds.explore.active.friends_only": "Only worlds where friends are now",
+  "worlds.explore.active.order": "Order",
+  "worlds.explore.active.order_default": "VRChat's order",
+  "worlds.explore.active.order_people": "People here now",
+  "worlds.explore.active.order_friends": "Friends here first",
+  "worlds.explore.active.friends_here": "Friends here now: {names}"
 }

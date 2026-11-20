@@ -152,7 +152,11 @@ VRChat has no AI label in the API and declined to add one (28 Oct 2026). HapsHub
    Icons: the icon font is a subset, so missing ones were swapped for ones it has (Trending `moving`, New
    `new_releases`, Labs `emoji_objects`, Random `shuffle`, Liked `mood`, Dislike `do_not_disturb`, empty filters
    `tune`). `python tools/fetch-fonts.py` would add the originals but downloads every font again.
-4. Active now (people in the world, friends there).
+4. Active now: people in the world, friends there. **Done 2026-11-20.**
+   Cards carry a green badge with the number of friends in the world now (names in the tooltip), from the friends
+   list HapsHub already keeps; no request. Filters gets "Only worlds where friends are now" (a filter: counted, saved,
+   cleared, chains the next page like the others) and an Order select that is not a filter: VRChat's order, People
+   here now (`occupants`), Friends here first (then people). Order is kept in localStorage `vrcn_exploreOrder`.
 5. VRChat rows from `/config`, saved searches, default view.
 6. AI filter.
 7. For You.

@@ -1,4 +1,4 @@
-"""Adds interface text to all nine language files at once.
+"""Adds interface text to all ten language files at once.
 
     python -I tools/hapshub/add-i18n.py tools/hapshub/i18n/<feature>.json [--update]
 
@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-LANGUAGES = ["en", "de", "es", "fr", "ja", "ko", "ru", "zh-CN", "zh-TW"]
+LANGUAGES = ["en", "de", "es", "fr", "ja", "ko", "ru", "uk", "zh-CN", "zh-TW"]
 
 
 def main() -> int:

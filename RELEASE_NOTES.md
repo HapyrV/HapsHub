@@ -15,6 +15,7 @@ The first release of HapsHub, built on VRCNext 2027.2.0. HapsHub is heavily base
 - Worlds > Explore replaces Discover and Search: browse all public worlds by Active now, Discover, Hot, Trending, Popular, New, Community Labs, Most favorited or Random, and search from the same bar.
 - Explore filters: platform (Quest/Android, PC only, iOS), hide content warnings, tag chips from your favorite and visited worlds (click to show only, again to hide), published within, capacity and language.
 - Explore, just for you: a Visited badge and "hide worlds I have visited", right-click a world to like or dislike it or hide it, its author or a tag, and a Liked view. Kept on your PC only, never sent to VRChat.
+- Explore, Active now: cards show how many friends are in each world right now, "only worlds where friends are", and order by people there now or friends first.
 
 **Fixed**
 - Scrolling in Settings dropped half its frames.

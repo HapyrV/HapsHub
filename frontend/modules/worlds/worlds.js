@@ -475,10 +475,10 @@ function _exploreVisible(e = _exploreEntry(), view = _explore.view) {
     let list = _exploreFilterCount() ? all.filter(w => _explorePasses(w, view)) : all;
     if (_explorePersonalHiding(view)) list = list.filter(w => !_exploreHiddenWhy(w));
     const q = _explore.query.toLowerCase();
-    if (!q || !(_EXPLORE_LIVE[view] || _EXPLORE_LOCAL[view])) return list;
-    return list.filter(w => (w.name || '').toLowerCase().includes(q)
+    if (q && (_EXPLORE_LIVE[view] || _EXPLORE_LOCAL[view])) list = list.filter(w => (w.name || '').toLowerCase().includes(q)
         || (w.authorName || '').toLowerCase().includes(q)
         || _wlAuthorTags(w).some(tag => tag.toLowerCase().includes(q)));
+    return _exploreSorted(list);
 }
 
 function renderExplore() {
@@ -527,7 +527,7 @@ const _EXPLORE_VIEW_TAG = { labs: 'system_labs' };          // the tag a view it
 const _EXPLORE_CHAIN_MAX = 3;                               // requests one click may send when filters hide most of a page
 const _EXPLORE_MIN_GAIN = 12;                               // fewer new worlds than this after filtering: fetch the next page
 const _EXPLORE_TAG_MAX = 10;
-const _EXPLORE_FILTER_DEFAULT = { platform: 'any', hideContent: [], tagsIn: [], tagsOut: [], age: 0, capMin: 0, capMax: 0, lang: 'any', hideVisited: false };
+const _EXPLORE_FILTER_DEFAULT = { platform: 'any', hideContent: [], tagsIn: [], tagsOut: [], age: 0, capMin: 0, capMax: 0, lang: 'any', hideVisited: false, friendsOnly: false };
 const _EXPLORE_LANG_TAGS = {
     en: ['english', 'en', 'eng'],
     ja: ['japanese', 'japan', 'jp', 'ja', '日本語', '日本'],
@@ -568,6 +568,7 @@ function _exploreLoadFilters() {
         f.capMax = _exploreCap(s.capMax);
         if (_EXPLORE_LANGS.includes(s.lang)) f.lang = s.lang;
         f.hideVisited = s.hideVisited === true;
+        f.friendsOnly = s.friendsOnly === true;
     } catch { }
     return f;
 }
@@ -589,7 +590,7 @@ function _exploreServerSig() { const p = _exploreServerParams(); return [p.platf
 function _exploreFilterCount() {
     const f = _exploreFilters;
     return [f.platform !== 'any', f.hideContent.length > 0, f.tagsIn.length > 0, f.tagsOut.length > 0, f.age > 0,
-        f.capMin > 0 || f.capMax > 0, f.lang !== 'any', f.hideVisited].filter(Boolean).length;
+        f.capMin > 0 || f.capMax > 0, f.lang !== 'any', f.hideVisited, f.friendsOnly].filter(Boolean).length;
 }
 
 function _explorePlatforms(w) {
@@ -657,6 +658,7 @@ function _explorePasses(w, view) {
     if (f.lang !== 'any' && !_exploreLangs(w).has(f.lang)) return false;
     // Liked worlds are mostly visited ones, so the Liked view keeps them.
     if (f.hideVisited && !_EXPLORE_LOCAL[view] && _exploreVisited(w)) return false;
+    if (f.friendsOnly && !_exploreFriendsByWorld().has(w.id)) return false;
     return true;
 }
 
@@ -685,6 +687,7 @@ function exploreSetFilter(key, value) {
     else if (key === 'capMin' || key === 'capMax') f[key] = _exploreCap(value);
     else if (key === 'lang') f.lang = _EXPLORE_LANGS.includes(value) ? value : 'any';
     else if (key === 'hideVisited') f.hideVisited = value === true || value === 'true';
+    else if (key === 'friendsOnly') f.friendsOnly = value === true || value === 'true';
     else return;
     _exploreFiltersChanged();
 }
@@ -785,6 +788,7 @@ function _exploreLangName(code) {
 function _exploreFilterHtml() {
     const f = _exploreFilters;
     const L = (key, fallback) => esc(t('worlds.explore.filters.' + key, fallback));
+    const A = (key, fallback) => esc(t('worlds.explore.active.' + key, fallback));
     const opt = (v, label, cur) => `<option value="${v}"${String(v) === String(cur) ? ' selected' : ''}>${esc(label)}</option>`;
     const ages = _EXPLORE_AGES.map(d => opt(d, d < 365 ? tf('worlds.explore.filters.age_days', { n: d }, 'Last {n} days')
         : d === 365 ? t('worlds.explore.filters.age_year', 'Last year')
@@ -809,6 +813,10 @@ function _exploreFilterHtml() {
             <input id="exploreTagInput" type="text" class="vrcn-input" maxlength="64" placeholder="${L('tag_placeholder', 'e.g. chill, then Enter')}" onkeydown="if(event.key==='Enter')exploreAddTag(this.value)"></div>
         <div class="av-more-row"><span>${L('visited', 'Visited')}</span>
             <label class="explore-cw"><input type="checkbox" id="exploreHideVisited"${f.hideVisited ? ' checked' : ''} onchange="exploreSetFilter('hideVisited', this.checked)"> <span>${L('hide_visited', 'Hide worlds I have visited')}</span></label></div>
+        <div class="av-more-row"><span>${A('friends', 'Friends')}</span>
+            <label class="explore-cw"><input type="checkbox" id="exploreFriendsOnly"${f.friendsOnly ? ' checked' : ''} onchange="exploreSetFilter('friendsOnly', this.checked)"> <span>${A('friends_only', 'Only worlds where friends are now')}</span></label></div>
+        <div class="av-more-row"><span>${A('order', 'Order')}</span>
+            <select id="exploreOrder" class="vrcn-dropdown" onchange="exploreSetOrder(this.value)">${opt('default', t('worlds.explore.active.order_default', "VRChat's order"), _exploreOrder)}${opt('people', t('worlds.explore.active.order_people', 'People here now'), _exploreOrder)}${opt('friends', t('worlds.explore.active.order_friends', 'Friends here first'), _exploreOrder)}</select></div>
         <div class="explore-filter-hint">${L('hint', 'VRChat applies platform, warnings and tags to all worlds. Published, capacity and language check the worlds loaded so far; language is a best guess from tags and text.')}</div>
         ${_explorePersonalHtml()}
         <div class="av-more-foot"><button class="vrcn-button" onclick="exploreClearFilters()">${L('clear', 'Clear filters')}</button></div>`;
@@ -833,6 +841,46 @@ function exploreToggleFilters(btn) {
     panel.style.left = Math.round(Math.max(8, Math.min(r.right - 380, innerWidth - 388))) + 'px';
     panel.style.maxHeight = Math.max(200, Math.round(innerHeight - r.bottom - 18)) + 'px';   // the hide list makes it tall
     panel.style.display = 'block';
+}
+
+// ---- Explore: Active now (item 14, step 4) ----
+// Cards say which friends are in the world now, from the friends list HapsHub already keeps (no request). The loaded
+// worlds can be ordered by people there now or friends first, and narrowed to worlds where friends are.
+const _EXPLORE_ORDERS = ['default', 'people', 'friends'];
+let _exploreOrder = (() => { try { const v = localStorage.getItem('vrcn_exploreOrder'); return _EXPLORE_ORDERS.includes(v) ? v : 'default'; } catch { return 'default'; } })();
+let _exploreFriendsMemo = { src: null, len: -1, at: 0, map: new Map() };
+
+/** World id -> names of the friends in it now. Rebuilt when the friends list changes, at most every few seconds. */
+function _exploreFriendsByWorld() {
+    const src = typeof vrcFriendsData !== 'undefined' && Array.isArray(vrcFriendsData) ? vrcFriendsData : [];
+    const m = _exploreFriendsMemo;
+    if (m.src === src && m.len === src.length && Date.now() - m.at < 5000) return m.map;
+    const map = new Map();
+    for (const f of src) {
+        const loc = typeof f?.location === 'string' ? f.location : '';
+        if (!loc.startsWith('wrld_')) continue;
+        const wid = loc.split(':')[0];
+        if (!map.has(wid)) map.set(wid, []);
+        map.get(wid).push(String(f.displayName || f.id || ''));
+    }
+    _exploreFriendsMemo = { src, len: src.length, at: Date.now(), map };
+    return map;
+}
+
+/** The order picked in Filters: VRChat's, people in the world now, or friends there first (then people). */
+function _exploreSorted(list) {
+    if (_exploreOrder === 'default' || list.length < 2) return list;
+    const people = w => Number(w.occupants) || 0;
+    const friends = _exploreOrder === 'friends' ? _exploreFriendsByWorld() : null;
+    const nf = w => friends ? (friends.get(w.id)?.length || 0) : 0;
+    return list.map((w, i) => [w, i]).sort((a, b) => nf(b[0]) - nf(a[0]) || people(b[0]) - people(a[0]) || a[1] - b[1]).map(x => x[0]);
+}
+
+function exploreSetOrder(value) {
+    _exploreOrder = _EXPLORE_ORDERS.includes(value) ? value : 'default';
+    try { localStorage.setItem('vrcn_exploreOrder', _exploreOrder); } catch { }
+    _explore.page = 0;
+    if (worldFilter === 'explore') renderExplore();
 }
 
 // ---- Explore personal tools (item 14, step 3) ----
@@ -948,6 +996,8 @@ function _exploreCardOpts(w) {
     if (why) badges.push(why === 'disliked'
         ? `<span class="explore-badge hidden"><span class="msi">do_not_disturb</span>${P('badge_disliked', 'Disliked')}</span>`
         : `<span class="explore-badge hidden"><span class="msi">visibility_off</span>${P('badge_hidden', 'Hidden')}</span>`);
+    const friends = _exploreFriendsByWorld().get(w.id);
+    if (friends) badges.push(`<span class="explore-badge friends" title="${esc(tf('worlds.explore.active.friends_here', { names: friends.join(', ') }, 'Friends here now: {names}'))}"><span class="msi">group</span>${friends.length}</span>`);
     if (_exploreVisited(w)) {
         const n = Number(w.worldVisitCount) || 0;
         const title = n ? esc(tf('worlds.explore.personal.visits', { n }, 'Visits: {n}')) : P('badge_visited', 'Visited');

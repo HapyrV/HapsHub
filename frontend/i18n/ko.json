@@ -4810,5 +4810,12 @@
   "hub.plugin.status-schedule.desc": "일정에 따라 상태와 상태 메시지를 바꿉니다.",
   "hub.plugin.media-relay.desc": "새 스크린샷을 Discord로 보냅니다.",
   "hub.plugin.chatbox.desc": "VRChat 채팅박스에 시간, 음악, 통계를 표시합니다.",
-  "hub.plugin.chatbox.name": "커스텀 채팅"
+  "hub.plugin.chatbox.name": "커스텀 채팅",
+  "worlds.explore.active.friends": "친구",
+  "worlds.explore.active.friends_only": "지금 친구가 있는 월드만",
+  "worlds.explore.active.order": "정렬",
+  "worlds.explore.active.order_default": "VRChat 순서",
+  "worlds.explore.active.order_people": "지금 있는 인원",
+  "worlds.explore.active.order_friends": "친구 있는 곳 먼저",
+  "worlds.explore.active.friends_here": "지금 있는 친구: {names}"
 }

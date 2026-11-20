@@ -4810,5 +4810,12 @@
   "hub.plugin.status-schedule.desc": "Ändert deinen Status und Statustext nach Zeitplan.",
   "hub.plugin.media-relay.desc": "Sendet deine neuen Screenshots an Discord.",
   "hub.plugin.chatbox.desc": "Zeigt Uhrzeit, Musik und Statistiken in deiner VRChat-Chatbox.",
-  "hub.plugin.chatbox.name": "Custom Chatbox"
+  "hub.plugin.chatbox.name": "Custom Chatbox",
+  "worlds.explore.active.friends": "Freunde",
+  "worlds.explore.active.friends_only": "Nur Welten, in denen gerade Freunde sind",
+  "worlds.explore.active.order": "Reihenfolge",
+  "worlds.explore.active.order_default": "Wie bei VRChat",
+  "worlds.explore.active.order_people": "Leute gerade dort",
+  "worlds.explore.active.order_friends": "Freunde zuerst",
+  "worlds.explore.active.friends_here": "Freunde gerade hier: {names}"
 }

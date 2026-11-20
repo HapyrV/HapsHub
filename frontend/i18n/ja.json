@@ -4810,5 +4810,12 @@
   "hub.plugin.status-schedule.desc": "スケジュールに合わせてステータスとステータス文を変更します。",
   "hub.plugin.media-relay.desc": "新しいスクリーンショットを Discord に送ります。",
   "hub.plugin.chatbox.desc": "VRChat のチャットボックスに時刻、音楽、統計を表示します。",
-  "hub.plugin.chatbox.name": "カスタムチャットボックス"
+  "hub.plugin.chatbox.name": "カスタムチャットボックス",
+  "worlds.explore.active.friends": "フレンド",
+  "worlds.explore.active.friends_only": "フレンドが今いるワールドだけ",
+  "worlds.explore.active.order": "並び順",
+  "worlds.explore.active.order_default": "VRChatの順",
+  "worlds.explore.active.order_people": "今いる人数",
+  "worlds.explore.active.order_friends": "フレンドがいる順",
+  "worlds.explore.active.friends_here": "今いるフレンド: {names}"
 }

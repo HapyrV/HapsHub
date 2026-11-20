@@ -4814,5 +4814,12 @@
   "hub.plugin.status-schedule.desc": "Меняет ваш статус и текст статуса по расписанию.",
   "hub.plugin.media-relay.desc": "Отправляет ваши новые скриншоты в Discord.",
   "hub.plugin.chatbox.desc": "Показывает время, музыку и статистику в вашем чатбоксе VRChat.",
-  "hub.plugin.chatbox.name": "Кастомный чатбокс"
+  "hub.plugin.chatbox.name": "Кастомный чатбокс",
+  "worlds.explore.active.friends": "Друзья",
+  "worlds.explore.active.friends_only": "Только миры, где сейчас есть друзья",
+  "worlds.explore.active.order": "Порядок",
+  "worlds.explore.active.order_default": "Как в VRChat",
+  "worlds.explore.active.order_people": "Сейчас людей",
+  "worlds.explore.active.order_friends": "Сначала с друзьями",
+  "worlds.explore.active.friends_here": "Друзья здесь сейчас: {names}"
 }
