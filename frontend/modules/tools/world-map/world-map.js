@@ -354,10 +354,10 @@ function _wmapDrawResults() {
     if (!box) return;
     const query = (document.getElementById('wmapSearch')?.value || '').trim().toLowerCase();
     box.hidden = !query;
-    if (!query) { box.innerHTML = ''; return; }
+    if (!query) { box.innerHTML = ''; box._html = ''; return; }
     const pins = _wmapPins();
     const found = _wmapFriends().filter(f => (f.displayName || '').toLowerCase().includes(query)).slice(0, 8);
-    box.innerHTML = found.map(friend => {
+    const html = found.map(friend => {
         const id = esc(friend.id);
         const place = hubWorldPlace(friend, pins);
         const flag = place ? _wmapFlag(place.code) + ' ' : '';
@@ -371,6 +371,10 @@ function _wmapDrawResults() {
             <select class="vrcn-dropdown" id="wmapPinSelect" onchange="wmapSetPin('${id}', this.value || null)"><option value="">${esc(t('hub.map.pick_country', 'Choose a country…'))}</option>${_wmapCountryChoices(pins[friend.id])}</select>
             ${pins[friend.id] ? `<button class="vrcn-button wmap-clear-btn" onclick="wmapSetPin('${id}', null)">${esc(t('hub.map.clear_pin', 'Clear'))}</button>` : ''}</div>`;
     }).join('') || `<div class="wmap-none">${esc(t('hub.map.no_results', 'No friend with that name.'))}</div>`;
+    // Friend updates redraw the side list often; leave the results alone so an open country list stays open.
+    if (box._html === html) return;
+    box._html = html;
+    box.innerHTML = html;
 }
 
 function _wmapDrawSide() {

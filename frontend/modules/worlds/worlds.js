@@ -579,7 +579,7 @@ function _exploreCleanFilters(s) {
     const f = { ..._EXPLORE_FILTER_DEFAULT, hideContent: [], tagsIn: [], tagsOut: [] };
     try {
         s = s && typeof s === 'object' && !Array.isArray(s) ? s : {};
-        const list = (v, ok) => [...new Set(Array.isArray(v) ? v : [])].filter(ok).slice(0, _EXPLORE_TAG_MAX);
+        const list = (v, ok) => [...new Set((Array.isArray(v) ? v : []).map(x => typeof x === 'string' ? x.toLowerCase() : x))].filter(ok).slice(0, _EXPLORE_TAG_MAX);
         if (['quest', 'pc', 'ios'].includes(s.platform)) f.platform = s.platform;
         f.hideContent = list(s.hideContent, x => _EXPLORE_CONTENT.includes(x));
         f.tagsIn = list(s.tagsIn, _exploreTagOk);
@@ -656,14 +656,16 @@ function _exploreLangs(w) {
 /** Whether a world passes the filters. Lenient where a world lacks the data (no platform list, no date, no capacity). */
 function _explorePasses(w, view) {
     const f = _exploreFilters;
-    const tags = Array.isArray(w.tags) ? w.tags : [];
+    // VRChat is asked for lowercase tags, and some worlds carry author tags with capitals: compare without case.
+    const tags = (Array.isArray(w.tags) ? w.tags : []).map(x => String(x).toLowerCase());
+    const has = x => tags.includes(String(x).toLowerCase());
     if (f.tagsIn.length) {
-        if (!f.tagsIn.some(x => tags.includes(x))) return false;
+        if (!f.tagsIn.some(has)) return false;
         // The view's own tags go in the same "any of" list, so check the world really has one of them.
         const own = _exploreViewTags(view);
-        if (own.length && !own.some(x => tags.includes(x))) return false;
+        if (own.length && !own.some(has)) return false;
     }
-    if (f.tagsOut.some(x => tags.includes(x)) || f.hideContent.some(x => tags.includes(x))) return false;
+    if (f.tagsOut.some(has) || f.hideContent.some(has)) return false;
     if (f.platform !== 'any') {
         const p = _explorePlatforms(w);
         if (p.length) {
@@ -730,6 +732,7 @@ function exploreToggleContent(tag, on) {
 
 /** Tag chip click: off -> only worlds with the tag -> hide worlds with the tag -> off. */
 function exploreCycleTag(tag) {
+    tag = String(tag || '').toLowerCase();
     if (!_exploreTagOk(tag)) return;
     const f = _exploreFilters;
     if (f.tagsIn.includes(tag)) {
@@ -774,7 +777,7 @@ function _exploreChipTags() {
     for (const list of lists) for (const w of (Array.isArray(list) ? list : [])) {
         if (!w || !w.id || seen.has(w.id)) continue;
         seen.add(w.id);
-        for (const tag of new Set(Array.isArray(w.tags) ? w.tags : []))
+        for (const tag of new Set((Array.isArray(w.tags) ? w.tags : []).map(x => String(x).toLowerCase())))
             if (tag.startsWith('author_tag_') && _exploreTagOk(tag)) counts.set(tag, (counts.get(tag) || 0) + 1);
     }
     const top = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(x => x[0])

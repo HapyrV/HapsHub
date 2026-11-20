@@ -70,7 +70,7 @@
 #tab2.active > .tab-toolbar,
 #tab4.active > .tab-toolbar { flex-shrink: 0; }
 
-#worldFavArea, #worldDiscoverArea, #worldMineArea, #worldRecentArea, #worldSearchArea,
+#worldFavArea, #worldExploreArea, #worldMineArea, #worldRecentArea,
 #groupMineArea, #groupSearchArea, #groupInstancesArea,
 #avatarOwnArea, #avatarFavArea, #avatarRecentArea, #avatarRoseArea, #avatarSearchArea {
     flex: 1;
@@ -78,7 +78,7 @@
     display: flex;
     flex-direction: column;
 }
-#worldFavArea > .tab-toolbar-body, #worldSearchArea > .tab-toolbar-body, #worldDiscoverArea > .tab-toolbar-body,
+#worldFavArea > .tab-toolbar-body, #worldExploreArea > .tab-toolbar-body,
 #groupMineArea > .tab-toolbar-body, #groupSearchArea > .tab-toolbar-body,
 #groupInstancesArea > .tab-toolbar-body,
 #avatarOwnArea > .tab-toolbar-body, #avatarFavArea > .tab-toolbar-body,

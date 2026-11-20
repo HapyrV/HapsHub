@@ -2801,7 +2801,8 @@ function initVnSelect(el) {
             panel.style.left = 'auto'; panel.style.right = '0';
         }
         vnPanelAnchor(wrap, panel, below);
-        if (!wrap.closest('.tt-scroll') && wrap.closest('.modal-box')) portalOut(below);
+        // In a dialog or a small scrolling box (data-vn-portal) the list would be clipped: it floats above the page instead.
+        if (!wrap.closest('.tt-scroll') && wrap.closest('.modal-box, [data-vn-portal]')) portalOut(below);
         setTimeout(() => document.addEventListener('click', onOutside, { once: true }), 0);
     }
 

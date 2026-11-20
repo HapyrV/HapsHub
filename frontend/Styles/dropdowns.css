@@ -139,7 +139,7 @@ div.vn-select {
     font-size: calc(12px + var(--fs-off, 0px));
 }
 
-#worldSearchArea .vn-select .vn-select-trigger {
+#worldExploreArea .vn-select .vn-select-trigger {
     font-size: calc(12px + var(--fs-off, 0px));
     line-height: 32px;
 }
