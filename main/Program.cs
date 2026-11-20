@@ -120,16 +120,13 @@ static class Program
     static void ApplyLinuxRenderingEnvironment()
     {
         if (!OperatingSystem.IsLinux()) return;
+        // Turning WebKit's DMA-BUF renderer off copies every frame through system memory, so a full-screen window
+        // lags even on a fast GPU. It used to be forced on every NVIDIA PC; now WebKit picks (distros that need the
+        // NVIDIA workaround, like Debian and Ubuntu, build it into WebKit), and it's only turned off when asked:
+        // by the user's own environment, run-hapshub.sh --safe-graphics, or Settings > Force Software Rendering.
         const string key = "WEBKIT_DISABLE_DMABUF_RENDERER";
-        var current = Environment.GetEnvironmentVariable(key);
-        if (File.Exists("/proc/driver/nvidia/version"))
-        {
-            if (current != "1") SetNativeEnvironmentVariable(key, "1");
-        }
-        else if (string.IsNullOrEmpty(current) && IsLinuxSoftwareRenderingEnabled())
-        {
-            SetNativeEnvironmentVariable(key, "1");
-        }
+        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable(key))) return;
+        if (IsLinuxSoftwareRenderingEnabled()) SetNativeEnvironmentVariable(key, "1");
     }
 
     static void SetNativeEnvironmentVariable(string key, string value)

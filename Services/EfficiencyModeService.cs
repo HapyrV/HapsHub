@@ -65,10 +65,14 @@ public static class EfficiencyModeService
     /// <summary>Call when the main window gains or loses focus.</summary>
     public static void SetFocused(bool focused)
     {
-        if (!OperatingSystem.IsWindows() || _focused == focused) return;
+        if (_focused == focused) return;
         _focused = focused;
 #if WINDOWS
         if (_enabled) System.Threading.Tasks.Task.Run(ApplyNow);
+#else
+        // Linux: batch scheduling also covers WebKit's web and GPU processes, which draw the window, so it lagged
+        // and answered late while in use. Same rule as Windows: full speed while focused.
+        if (_enabled && OperatingSystem.IsLinux()) System.Threading.Tasks.Task.Run(ApplyLinux);
 #endif
     }
 
@@ -138,7 +142,7 @@ public static class EfficiencyModeService
     {
         lock (_linuxLock)
         {
-            if (_enabled)
+            if (Throttle)
             {
                 var initialPass = !_linuxInitialPassDone;
                 foreach (var pid in GetLinuxDescendants(Environment.ProcessId).Prepend(Environment.ProcessId))

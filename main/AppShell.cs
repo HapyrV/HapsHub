@@ -586,9 +586,9 @@ public partial class AppShell
             .SetAutoSuspendOnMinimize(_settings.ReducedBackgroundUsage
                 ? Photino.NET.PhotinoSuspendableResources.Rendering | Photino.NET.PhotinoSuspendableResources.Gpu
                 : Photino.NET.PhotinoSuspendableResources.None)
+#endif
             .RegisterFocusInHandler((_, _) => EfficiencyModeService.SetFocused(true))
             .RegisterFocusOutHandler((_, _) => EfficiencyModeService.SetFocused(false))
-#endif
 #if !WINDOWS
             .SetBrowserControlInitParameters(OperatingSystem.IsLinux() ? "{\"photino.cacheModel\":\"documentBrowser\",\"photino.memoryLimitMB\":1536}" : null!)
             .RegisterWindowClosingHandler((_, _) => _windowCtrl.HandleWindowClosing())

@@ -61,6 +61,9 @@ It needs Windows 10 or 11 with Microsoft's WebView2 runtime, which Windows norma
 2. Download `HapsHub-<version>-linux-x64.tar.gz` from [Releases](https://github.com/HapyrV/HapsHub/releases).
 3. Unpack it and start it: `tar -xzf HapsHub-*-linux-x64.tar.gz && ./HapsHub/run-hapshub.sh`
 4. If it doesn't open, run `run-hapshub.sh` from a terminal: it lists any missing system libraries.
+   If the window opens blank or flickers (some NVIDIA drivers), start it with `./HapsHub/run-hapshub.sh --safe-graphics`,
+   then turn on Settings > Performance > Force Software Rendering to keep it that way. It's slower, so only use it
+   if you need it.
 
 Your data is kept in `~/.config/HapsHub`. On Linux a few things work differently:
 
