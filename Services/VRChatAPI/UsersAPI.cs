@@ -89,6 +89,10 @@ public class UsersAPI(VRChatApiService ctx)
         return null;
     }
 
+    /// <summary>The world rows VRChat shows in game (Spotlight, New &amp; Noteworthy, ...), from /config; null when it failed.</summary>
+    public async Task<JArray?> GetDynamicWorldRowsAsync()
+        => (await GetConfigAsync())?["dynamicWorldRows"] as JArray;
+
     public async Task<JArray?> GetUserReportOptionsAsync()
     {
         var config = await GetConfigAsync();

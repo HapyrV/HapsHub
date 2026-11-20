@@ -1083,6 +1083,9 @@ case 'vrcNews':
             case 'vrcExploreResults':
                 if (typeof onExploreResults === 'function') onExploreResults(payload);
                 break;
+            case 'vrcExploreRows':
+                if (typeof onExploreRows === 'function') onExploreRows(payload);
+                break;
             case 'recentSeenPlayers':
                 if (typeof renderRecentSeen === 'function') renderRecentSeen(payload.players);
                 break;

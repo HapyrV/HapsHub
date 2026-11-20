@@ -157,7 +157,18 @@ VRChat has no AI label in the API and declined to add one (28 Oct 2026). HapsHub
    list HapsHub already keeps; no request. Filters gets "Only worlds where friends are now" (a filter: counted, saved,
    cleared, chains the next page like the others) and an Order select that is not a filter: VRChat's order, People
    here now (`occupants`), Friends here first (then people). Order is kept in localStorage `vrcn_exploreOrder`.
-5. VRChat rows from `/config`, saved searches, default view.
+5. VRChat rows from `/config`, saved searches, default view. **Done 2026-11-20.**
+   "VRChat rows" asks C# once (`vrcExploreRows`, when the menu first opens; reopening after a failure asks again).
+   C# reads `dynamicWorldRows` from the cached /config and keeps rows whose `sortHeading` maps to a GET /worlds sort
+   (featured = `sort=order&featured=true`, trending = popularity + `featured=false`, heat + `featured=false`, updated,
+   created, publication, labs, shuffle; the mapping VRCX uses) and whose `sortOwnership` is "any"; `sortOrder`
+   ascending is kept, `tag` (comma list, plain tag names only) is added to the request like Labs' tag. Each row is the
+   view `row:<index>`; C# looks the row up again (loading /config if needed) when a page is asked for, so the page
+   never sends sort or tag itself. Chips widening the tag list are checked against the row's tags like Labs.
+   Not checked signed in: the real rows /config returns today and whether each maps to the same worlds as in game.
+   Saved: name the current view, search text and filters (30 at most, same name replaces); click to put them back;
+   the pin or "Explore opens on" picks the view or saved search Explore opens on the first time in a run. localStorage
+   `vrcn_exploreSaved`; malformed entries are dropped when read.
 6. AI filter.
 7. For You.
 8. Share list export/import.

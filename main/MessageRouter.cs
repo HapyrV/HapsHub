@@ -1555,12 +1555,13 @@ public partial class AppShell
                     var exOffset = Math.Max(0, msg["offset"]?.Value<int>() ?? 0);
                     var exFresh = msg["fresh"]?.Value<bool>() ?? false;
                     var exSig = msg["sig"]?.ToString() ?? "";   // the page's filter key, sent back as is
-                    if (!ExploreViews.TryGetValue(exView, out var exSpec)) break;
+                    // "row:N" = one of VRChat's own rows (step 5), looked up in /config when the page is asked for.
+                    var exIsRow = ExploreRowIdRx.IsMatch(exView);
+                    if (!exIsRow && !ExploreViews.ContainsKey(exView)) break;
                     if (exView == "relevance" && exQuery.Length == 0) break;
                     // Filters VRChat can apply itself (step 2): tags the world must have one of, tags it must not
                     // have, and platform. Only author and content-warning tags and the three platforms are passed on.
                     var exTags = ExploreTagList(msg["tags"]);
-                    if (exSpec.tag != null) exTags.Insert(0, exSpec.tag);
                     var exNotags = ExploreTagList(msg["notags"]);
                     var (exPlatform, exNoPlatform) = (msg["platform"]?.ToString() ?? "") switch
                     {
@@ -1571,9 +1572,17 @@ public partial class AppShell
                     };
                     _ = Task.Run(async () =>
                     {
-                        var rows = await _core.World.ExploreWorldsAsync(exQuery, exSpec.sort,
-                            exTags.Count > 0 ? string.Join(",", exTags) : null, ExplorePageSize, exOffset, exFresh,
-                            exNotags.Count > 0 ? string.Join(",", exNotags) : null, exPlatform, exNoPlatform);
+                        var exSpec = exIsRow ? await GetExploreRowAsync(exView)
+                            : new ExploreRowSpec(ExploreViews[exView].sort, ExploreViews[exView].tag, null, false, "");
+                        JArray? rows = null;
+                        if (exSpec != null)
+                        {
+                            if (exSpec.Tag != null) exTags.Insert(0, exSpec.Tag);
+                            rows = await _core.World.ExploreWorldsAsync(exQuery, exSpec.Sort,
+                                exTags.Count > 0 ? string.Join(",", exTags) : null, ExplorePageSize, exOffset, exFresh,
+                                exNotags.Count > 0 ? string.Join(",", exNotags) : null, exPlatform, exNoPlatform,
+                                exSpec.Featured, exSpec.Ascending);
+                        }
                         var list = (rows ?? new JArray()).OfType<JObject>().Select(ExploreRow).ToList();
                         Invoke(() => SendToJS("vrcExploreResults", new
                         {
@@ -1583,6 +1592,18 @@ public partial class AppShell
                     });
                     break;
                 }
+
+                case "vrcExploreRows":
+                    // Explore: the rows VRChat itself shows in game, for the "VRChat rows" menu (step 5).
+                    _ = Task.Run(async () =>
+                    {
+                        var erOk = await LoadExploreRowsAsync();
+                        List<object> erList;
+                        lock (_exploreRowsLock)
+                            erList = _exploreRows.Select(kv => (object)new { id = kv.Key, name = kv.Value.Name, tag = kv.Value.Tag ?? "" }).ToList();
+                        Invoke(() => SendToJS("vrcExploreRows", new { ok = erOk, rows = erList }));
+                    });
+                    break;
 
                 case "vrcSearchGroups":
                     await _groups.HandleMessage(action, msg);
@@ -4799,6 +4820,72 @@ public partial class AppShell
         ["favorites"] = ("favorites", null),
         ["random"]    = ("shuffle", null),
     };
+
+    // VRChat's own world rows (GET /config dynamicWorldRows) as Explore views "row:<index>". sortHeading becomes a
+    // GET /worlds sort the way VRChat's client and VRCX read it; rows about the user's own worlds or favorites are left out.
+    private sealed record ExploreRowSpec(string Sort, string? Tag, bool? Featured, bool Ascending, string Name);
+    private readonly object _exploreRowsLock = new();
+    private readonly SortedDictionary<int, (string id, ExploreRowSpec spec)> _exploreRowsByIndex = new();
+    private IEnumerable<KeyValuePair<string, ExploreRowSpec>> _exploreRows
+        => _exploreRowsByIndex.Values.Select(x => new KeyValuePair<string, ExploreRowSpec>(x.id, x.spec));
+    private static readonly System.Text.RegularExpressions.Regex ExploreRowIdRx =
+        new(@"^row:\d{1,3}$", System.Text.RegularExpressions.RegexOptions.Compiled);
+    private static readonly System.Text.RegularExpressions.Regex ExploreRowTagRx =
+        new(@"^[A-Za-z0-9_-]{1,64}$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    internal static (string sort, bool? featured)? ExploreRowSort(string heading) => heading switch
+    {
+        "featured"    => ("order", true),
+        "trending"    => ("popularity", false),
+        "heat"        => ("heat", false),
+        "updated"     => ("updated", null),
+        "created"     => ("created", null),
+        "publication" => ("publicationDate", null),
+        "labs"        => ("labsPublicationDate", null),
+        "shuffle"     => ("shuffle", null),
+        _             => null,
+    };
+
+    /// <summary>Reads /config's rows; false when VRChat could not be asked (the rows known so far are kept).</summary>
+    private async Task<bool> LoadExploreRowsAsync()
+    {
+        var rows = await _core.Users.GetDynamicWorldRowsAsync();
+        if (rows == null) return false;
+        var specs = new SortedDictionary<int, (string id, ExploreRowSpec spec)>();
+        var position = 0;
+        foreach (var r in rows.OfType<JObject>())
+        {
+            var index = r["index"]?.Type == JTokenType.Integer ? r["index"]!.Value<int>() : position;
+            position++;
+            var ownership = r["sortOwnership"]?.ToString() ?? "any";
+            var sort = ExploreRowSort(r["sortHeading"]?.ToString() ?? "");
+            var name = (r["name"]?.ToString() ?? "").Trim();
+            if (sort == null || (ownership != "any" && ownership != "") || name.Length == 0 || index < 0 || index > 999 || specs.ContainsKey(index)) continue;
+            var tags = (r["tag"]?.ToString() ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(t => ExploreRowTagRx.IsMatch(t)).Take(5).ToList();
+            specs[index] = ("row:" + index, new ExploreRowSpec(sort.Value.sort, tags.Count > 0 ? string.Join(",", tags) : null,
+                sort.Value.featured, r["sortOrder"]?.ToString() == "ascending", name.Length > 60 ? name[..60] : name));
+        }
+        lock (_exploreRowsLock)
+        {
+            _exploreRowsByIndex.Clear();
+            foreach (var kv in specs) _exploreRowsByIndex[kv.Key] = kv.Value;
+        }
+        return true;
+    }
+
+    private ExploreRowSpec? FindExploreRow(string id)
+    {
+        lock (_exploreRowsLock) return _exploreRowsByIndex.Values.Where(x => x.id == id).Select(x => x.spec).FirstOrDefault();
+    }
+
+    private async Task<ExploreRowSpec?> GetExploreRowAsync(string id)
+    {
+        var hit = FindExploreRow(id);
+        if (hit != null) return hit;
+        await LoadExploreRowsAsync();
+        return FindExploreRow(id);
+    }
 
     // Explore filter tags: author tags (Chill, Photography, ...) and content warnings only, at most 20, sorted so the
     // same filters always give the same URL (and so the same cache entry).

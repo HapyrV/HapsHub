@@ -68,7 +68,7 @@ function setWorldFilter(filter) {
         sendToCS({ action: 'vrcGetMyWorlds' });
     }
     if (filter === 'recent') sendToCS({ action: 'vrcGetVisitedWorlds' });
-    if (filter === 'explore') { _exploreSyncUi(); _exploreEnsure(); _exploreAskChipSources(); }
+    if (filter === 'explore') { if (!_explore.started) _exploreApplyStart(); _exploreSyncUi(); _exploreEnsure(); _exploreAskChipSources(); }
 }
 
 let _visitedWorldsData = [];
@@ -429,6 +429,7 @@ function _exploreSyncUi() {
     const live = !!_EXPLORE_LIVE[_explore.view];
     document.querySelectorAll('#exploreViewBtns [id^="exploreView_"]')
         .forEach(b => b.classList.toggle('active', b.id === 'exploreView_' + _explore.view));
+    document.getElementById('exploreRowsBtn')?.classList.toggle('active', _explore.view.startsWith('row:'));
     const rel = document.getElementById('exploreView_relevance');
     if (rel) rel.style.display = _explore.query ? '' : 'none';
     const loading = _exploreEntry().loading;
@@ -454,6 +455,7 @@ function _exploreSyncUi() {
         const hidden = count && Array.isArray(all) ? all.length - passing.length : 0;
         const personal = Array.isArray(passing) && _explorePersonalHiding(view) ? passing.filter(w => _exploreHiddenWhy(w)).length : 0;
         const text = [
+            view.startsWith('row:') ? tf('worlds.explore.rows.note', { name: _exploreRowName(view) }, 'VRChat row: {name}.') : '',
             live && _explore.query
                 ? tf('worlds.explore.note_live_filter', { query: _explore.query }, 'Showing live worlds whose name, author or tags contain "{query}". Press Search to search all worlds.')
                 : '',
@@ -555,9 +557,15 @@ function _exploreTagOk(tag) { return typeof tag === 'string' && /^(author_tag_|c
 function _exploreCap(v) { const n = Math.floor(Number(v)); return Number.isFinite(n) && n > 0 ? Math.min(n, 999) : 0; }
 
 function _exploreLoadFilters() {
+    try { return _exploreCleanFilters(JSON.parse(localStorage.getItem('vrcn_exploreFilters') || '{}')); }
+    catch { return _exploreCleanFilters({}); }
+}
+
+/** Filters read back from storage or a saved search: anything unknown or malformed falls back to the default. */
+function _exploreCleanFilters(s) {
     const f = { ..._EXPLORE_FILTER_DEFAULT, hideContent: [], tagsIn: [], tagsOut: [] };
     try {
-        const s = JSON.parse(localStorage.getItem('vrcn_exploreFilters') || '{}') || {};
+        s = s && typeof s === 'object' && !Array.isArray(s) ? s : {};
         const list = (v, ok) => [...new Set(Array.isArray(v) ? v : [])].filter(ok).slice(0, _EXPLORE_TAG_MAX);
         if (['quest', 'pc', 'ios'].includes(s.platform)) f.platform = s.platform;
         f.hideContent = list(s.hideContent, x => _EXPLORE_CONTENT.includes(x));
@@ -637,8 +645,9 @@ function _explorePasses(w, view) {
     const tags = Array.isArray(w.tags) ? w.tags : [];
     if (f.tagsIn.length) {
         if (!f.tagsIn.some(x => tags.includes(x))) return false;
-        // The view's own tag goes in the same "any of" list, so check the world really has it.
-        if (_EXPLORE_VIEW_TAG[view] && !tags.includes(_EXPLORE_VIEW_TAG[view])) return false;
+        // The view's own tags go in the same "any of" list, so check the world really has one of them.
+        const own = _exploreViewTags(view);
+        if (own.length && !own.some(x => tags.includes(x))) return false;
     }
     if (f.tagsOut.some(x => tags.includes(x)) || f.hideContent.some(x => tags.includes(x))) return false;
     if (f.platform !== 'any') {
@@ -1135,6 +1144,218 @@ function _explorePersonalHtml() {
         ${chips ? `<div class="explore-personal-chips">${chips}</div>` : ''}
         <label class="explore-cw explore-personal-show"><input type="checkbox" id="exploreShowHidden"${p.showHidden ? ' checked' : ''} onchange="exploreShowHidden(this.checked)"> <span>${P('show_hidden', 'Show hidden worlds, marked, to bring them back')}</span></label>
         <div class="explore-filter-hint">${P('hint', 'Right-click a world in Explore to like or dislike it, or to hide it, everything by its author, or one of its tags. Kept on this computer only, never sent to VRChat.')}</div>`;
+}
+
+// ---- Explore: VRChat's rows, saved searches, the view Explore opens on (item 14, step 5) ----
+// "VRChat rows" lists the rows VRChat shows in game (GET /config dynamicWorldRows, asked for the first time the menu
+// opens); each is a view "row:<index>" that C# turns into its GET /worlds sort and tag. A saved search keeps the view,
+// the search text and the filters under a name; one view or saved search can be where Explore opens. Kept in
+// localStorage vrcn_exploreSaved, on this computer only.
+const _EXPLORE_SAVED_MAX = 30;
+const _EXPLORE_START_VIEWS = ['active', 'discover', 'hot', 'trending', 'popular', 'new', 'labs', 'favorites', 'random', 'liked'];
+const _EXPLORE_VIEW_NAMES = { active: 'Active now', discover: 'Discover', hot: 'Hot', trending: 'Trending', popular: 'Popular', new: 'New',
+    labs: 'Community Labs', favorites: 'Most favorited', random: 'Random', liked: 'Liked', relevance: 'Best match' };
+const _exploreRowsState = { list: null, loading: false, failed: false };
+const _exploreSaved = _exploreLoadSaved();
+
+function _exploreViewOk(v) { return typeof v === 'string' && (_EXPLORE_START_VIEWS.includes(v) || v === 'relevance' || /^row:\d{1,3}$/.test(v)); }
+
+function _exploreViewLabel(v) {
+    if (v.startsWith('row:')) return _exploreRowName(v);
+    return t('worlds.explore.views.' + v, _EXPLORE_VIEW_NAMES[v] || v);
+}
+
+/** The tags a view itself asks VRChat for (Labs, a VRChat row); filters check them again on what comes back. */
+function _exploreViewTags(view) {
+    if (_EXPLORE_VIEW_TAG[view]) return [_EXPLORE_VIEW_TAG[view]];
+    if (!view.startsWith('row:')) return [];
+    return _exploreRowsState.list?.find(r => r.id === view)?.tags || [];
+}
+
+function _exploreRowName(view) { return _exploreRowsState.list?.find(r => r.id === view)?.name || t('worlds.explore.rows.unknown', 'VRChat row'); }
+
+/** A panel under a toolbar button, closed by a click outside it. Returns null when the click closed it. */
+function _exploreOpenPanel(id, btn, width) {
+    let panel = document.getElementById(id);
+    if (panel && panel.style.display === 'block') { panel.style.display = 'none'; return null; }
+    if (!panel) {
+        panel = document.createElement('div');
+        panel.id = id;
+        panel.className = 'av-more-panel explore-filter-panel';
+        document.body.appendChild(panel);
+        document.addEventListener('mousedown', e => {
+            if (panel.style.display !== 'block' || panel.contains(e.target) || e.target.closest?.('#' + btn.id + ', .vn-select-panel, .vn-select')) return;
+            panel.style.display = 'none';
+        }, true);
+    }
+    const r = btn.getBoundingClientRect();
+    panel.style.width = width + 'px';
+    panel.style.top = Math.round(r.bottom + 6) + 'px';
+    panel.style.left = Math.round(Math.max(8, Math.min(r.left, innerWidth - width - 8))) + 'px';
+    panel.style.maxHeight = Math.max(200, Math.round(innerHeight - r.bottom - 18)) + 'px';
+    panel.style.display = 'block';
+    return panel;
+}
+
+function _exploreRefreshPanel(id, html) {
+    const panel = document.getElementById(id);
+    if (panel && panel.style.display === 'block') panel.innerHTML = html();
+}
+
+function _exploreClosePanel(id) { const panel = document.getElementById(id); if (panel) panel.style.display = 'none'; }
+
+function _exploreRowsHtml() {
+    const R = (key, fallback) => esc(t('worlds.explore.rows.' + key, fallback));
+    const st = _exploreRowsState;
+    const body = st.list?.length
+        ? st.list.map(r => `<button class="vrcn-button explore-row-item${_explore.view === r.id ? ' active' : ''}" data-view="${esc(r.id)}" onclick="exploreOpenRow(this.dataset.view)">${esc(r.name)}</button>`).join('')
+        : `<div class="explore-personal-sum">${st.loading ? R('loading', 'Asking VRChat for its rows...') : st.failed ? R('failed', 'Could not load VRChat\'s rows. Open this again to retry.') : R('empty', 'VRChat lists no rows HapsHub can show.')}</div>`;
+    return `<div class="av-more-title">${R('title', 'Rows VRChat shows in game')}</div>
+        <div class="explore-row-list">${body}</div>
+        <div class="explore-filter-hint">${R('hint', 'The same rows as VRChat\'s own world menu. Your filters still apply.')}</div>`;
+}
+
+function exploreToggleRows(btn) {
+    const panel = _exploreOpenPanel('exploreRowsPanel', btn, 300);
+    if (!panel) return;
+    const st = _exploreRowsState;
+    if (!st.list && !st.loading) {
+        st.loading = true;
+        st.failed = false;
+        sendToCS({ action: 'vrcExploreRows' });
+    }
+    panel.innerHTML = _exploreRowsHtml();
+}
+
+function onExploreRows(payload) {
+    const st = _exploreRowsState;
+    st.loading = false;
+    if (payload?.ok) st.list = (Array.isArray(payload.rows) ? payload.rows : [])
+        .filter(r => r && /^row:\d{1,3}$/.test(r.id) && typeof r.name === 'string' && r.name.trim())
+        .map(r => ({ id: r.id, name: r.name.trim().slice(0, 60), tags: String(r.tag || '').split(',').filter(Boolean) }));
+    else st.failed = true;
+    _exploreRefreshPanel('exploreRowsPanel', _exploreRowsHtml);
+    _exploreSyncUi();
+}
+
+function exploreOpenRow(id) {
+    if (!/^row:\d{1,3}$/.test(id)) return;
+    _exploreClosePanel('exploreRowsPanel');
+    setExploreView(id);
+}
+
+function _exploreLoadSaved() {
+    const out = { list: [], start: 'active' };
+    try {
+        const s = JSON.parse(localStorage.getItem('vrcn_exploreSaved') || '{}') || {};
+        const seen = new Set();
+        for (const x of Array.isArray(s.list) ? s.list : []) {
+            const name = typeof x?.name === 'string' ? x.name.trim().slice(0, 40) : '';
+            if (!name || seen.has(name.toLowerCase()) || !_exploreViewOk(x.view)) continue;
+            seen.add(name.toLowerCase());
+            out.list.push({ name, view: x.view, query: typeof x.query === 'string' ? x.query.slice(0, 100) : '', filters: _exploreCleanFilters(x.filters), at: Number(x.at) || 0 });
+            if (out.list.length >= _EXPLORE_SAVED_MAX) break;
+        }
+        if (typeof s.start === 'string' && (_EXPLORE_START_VIEWS.includes(s.start) || out.list.some(x => 'saved:' + x.name === s.start))) out.start = s.start;
+    } catch { }
+    return out;
+}
+
+function _exploreSaveSaved() { try { localStorage.setItem('vrcn_exploreSaved', JSON.stringify(_exploreSaved)); } catch { } }
+
+function _exploreSavedHtml() {
+    const S = (key, fallback) => esc(t('worlds.explore.saved.' + key, fallback));
+    const sv = _exploreSaved;
+    const items = sv.list.map((x, i) => `<div class="explore-saved-item">
+            <button class="vrcn-button explore-saved-name" onclick="exploreApplySaved(${i})" title="${esc(_exploreViewLabel(x.view) + (x.query ? ' · ' + x.query : ''))}">${esc(x.name)}</button>
+            <button class="vrcn-button explore-saved-pin${sv.start === 'saved:' + x.name ? ' active' : ''}" onclick="exploreTogglePin(${i})" title="${S('pin', 'Open Explore here')}"><span class="msi">push_pin</span></button>
+            <button class="vrcn-button explore-saved-del" onclick="exploreDeleteSaved(${i})" title="${S('delete', 'Delete')}"><span class="msi">close</span></button></div>`).join('');
+    const opt = (v, label) => `<option value="${esc(v)}"${sv.start === v ? ' selected' : ''}>${esc(label)}</option>`;
+    const starts = _EXPLORE_START_VIEWS.map(v => opt(v, _exploreViewLabel(v))).join('')
+        + sv.list.map(x => opt('saved:' + x.name, tf('worlds.explore.saved.start_item', { name: x.name }, 'Saved: {name}'))).join('');
+    return `<div class="av-more-title">${S('title', 'Saved searches')}</div>
+        <div class="explore-saved-list">${items || `<div class="explore-personal-sum">${S('empty', 'Nothing saved yet.')}</div>`}</div>
+        <div class="av-more-row"><input id="exploreSavedName" type="text" class="vrcn-input" maxlength="40" placeholder="${S('name_placeholder', 'Name this search')}" onkeydown="if(event.key==='Enter')exploreSaveCurrent()"><button class="vrcn-button" onclick="exploreSaveCurrent()">${S('save', 'Save')}</button></div>
+        <div class="av-more-row"><span>${S('start', 'Explore opens on')}</span><select id="exploreStartSel" class="vrcn-dropdown" onchange="exploreSetStart(this.value)">${starts}</select></div>
+        <div class="explore-filter-hint">${S('hint', 'Saves the view, the search text and the filters. Kept on this computer only.')}</div>`;
+}
+
+function exploreToggleSaved(btn) {
+    const panel = _exploreOpenPanel('exploreSavedPanel', btn, 340);
+    if (panel) panel.innerHTML = _exploreSavedHtml();
+}
+
+/** Saves the current view, search text and filters under the typed name (the same name replaces it). */
+function exploreSaveCurrent() {
+    const input = document.getElementById('exploreSavedName');
+    const name = (input?.value || '').trim().slice(0, 40);
+    if (!name) { showToast(false, t('worlds.explore.saved.need_name', 'Type a name first.')); return; }
+    _exploreReadQuery();
+    const sv = _exploreSaved;
+    const i = sv.list.findIndex(x => x.name.toLowerCase() === name.toLowerCase());
+    if (i < 0 && sv.list.length >= _EXPLORE_SAVED_MAX) {
+        showToast(false, tf('worlds.explore.saved.full', { n: _EXPLORE_SAVED_MAX }, 'You can keep {n} saved searches. Delete one first.'));
+        return;
+    }
+    const entry = { name, view: _explore.view, query: _explore.query, filters: _exploreCleanFilters(_exploreFilters), at: Date.now() };
+    if (i >= 0) {
+        if (sv.start === 'saved:' + sv.list[i].name) sv.start = 'saved:' + name;
+        sv.list[i] = entry;
+    } else sv.list.push(entry);
+    _exploreSaveSaved();
+    showToast(true, tf('worlds.explore.saved.toast_saved', { name }, '"{name}" saved.'));
+    _exploreRefreshPanel('exploreSavedPanel', _exploreSavedHtml);
+}
+
+/** Puts a saved search's filters and text back without loading anything; the caller shows the view. */
+function _exploreUseSaved(x) {
+    Object.assign(_exploreFilters, _exploreCleanFilters(x.filters));
+    _exploreSaveFilters();
+    _explore.query = x.query;
+    const input = document.getElementById('searchWorldsInput');
+    if (input) input.value = x.query;
+    _explore.page = 0;
+    return x.view === 'relevance' && !x.query ? 'active' : x.view;
+}
+
+function exploreApplySaved(i) {
+    const x = _exploreSaved.list[i];
+    if (!x) return;
+    _exploreClosePanel('exploreSavedPanel');
+    if (worldFilter !== 'explore') setWorldFilter('explore');
+    setExploreView(_exploreUseSaved(x));
+}
+
+function exploreDeleteSaved(i) {
+    const sv = _exploreSaved;
+    const x = sv.list[i];
+    if (!x) return;
+    sv.list.splice(i, 1);
+    if (sv.start === 'saved:' + x.name) sv.start = 'active';
+    _exploreSaveSaved();
+    _exploreRefreshPanel('exploreSavedPanel', _exploreSavedHtml);
+}
+
+function exploreSetStart(v) {
+    const sv = _exploreSaved;
+    sv.start = _EXPLORE_START_VIEWS.includes(v) || sv.list.some(x => 'saved:' + x.name === v) ? v : 'active';
+    _exploreSaveSaved();
+    _exploreRefreshPanel('exploreSavedPanel', _exploreSavedHtml);
+}
+
+function exploreTogglePin(i) {
+    const x = _exploreSaved.list[i];
+    if (x) exploreSetStart(_exploreSaved.start === 'saved:' + x.name ? 'active' : 'saved:' + x.name);
+}
+
+/** The first time Explore opens in a run: the view or saved search picked under "Explore opens on". */
+function _exploreApplyStart() {
+    _explore.started = true;
+    const st = _exploreSaved.start;
+    const x = st.startsWith('saved:') ? _exploreSaved.list.find(s => 'saved:' + s.name === st) : null;
+    if (x) _explore.view = _exploreUseSaved(x);
+    else if (_EXPLORE_START_VIEWS.includes(st)) _explore.view = st;
+    _explore.page = 0;
 }
 
 function _wdGroupOptionLabel(g) {

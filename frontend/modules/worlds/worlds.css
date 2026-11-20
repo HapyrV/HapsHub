@@ -57,6 +57,13 @@
 .explore-badge.liked { padding: 2px 5px; color: var(--accent-lt, #fff); }
 .explore-badge.hidden { background: rgba(239,83,80,.7); }
 .explore-badge.friends { background: rgba(76,175,80,.75); }
+.explore-row-list, .explore-saved-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; max-height: 45vh; overflow-y: auto; scrollbar-width: thin; }
+.explore-row-item, .explore-saved-name { justify-content: flex-start; text-align: left; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.explore-row-item.active, .explore-saved-pin.active { color: var(--accent-lt); border-color: var(--accent); }
+.explore-saved-item { display: flex; gap: 4px; }
+.explore-saved-name { flex: 1; }
+.explore-saved-pin, .explore-saved-del { padding: 4px 6px; }
+.explore-saved-item .msi { font-size: 16px; }
 .vrcn-content-card.explore-hidden .cc-bg { filter: grayscale(.8) brightness(.6); }
 [data-wid].explore-hidden:not(.vrcn-content-card) { opacity: .5; }
 .explore-personal-title { margin-top: 10px; }

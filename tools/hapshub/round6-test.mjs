@@ -516,6 +516,115 @@ section('explore active', async main => {
         JSON.stringify({ only: got.only, count: got.count, saved: got.saved, panel: got.panel, sent: got.sent }));
 });
 
+section('explore rows saved', async main => {
+    // Item 14 step 5. VRChat's own rows (asked for once, when the menu first opens), saved searches (view, text and
+    // filters under a name) and the view Explore opens on. Saved searches stay in localStorage.
+    const got = await main.json(`(() => {
+        const sent = [];
+        const realSend = sendToCS;
+        window.sendToCS = m => { sent.push(m); };
+        const ids = () => _explore.shown.map(w => w.id).join(',');
+        const real = { saved: localStorage.getItem('vrcn_exploreSaved'), rows: { ..._exploreRowsState }, started: _explore.started };
+        const out = {};
+        try {
+            exploreClearFilters();
+            Object.assign(_exploreRowsState, { list: null, loading: false, failed: false });
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = ''; _explore.askedVisited = true;
+            document.getElementById('searchWorldsInput').value = '';
+            showTab(NAV_ITEMS_DEF.worlds?.tab ?? 1);
+            setWorldFilter('explore');
+            const rowsBtn = document.getElementById('exploreRowsBtn');
+            exploreToggleRows(rowsBtn);
+            const panel = document.getElementById('exploreRowsPanel');
+            out.ask = sent.filter(m => m.action === 'vrcExploreRows').length;
+            out.loading = /Asking VRChat/.test(panel.textContent);
+            _handleBackendMessage('vrcExploreRows', { ok: true, rows: [{ id: 'row:0', name: 'Spotlight', tag: 'admin_spotlight' }, { id: 'row:4', name: 'Games', tag: '' }, { id: 'bad', name: 'x' }] });
+            out.items = [...panel.querySelectorAll('.explore-row-item')].map(b => b.textContent.trim() + '=' + b.dataset.view);
+            exploreToggleRows(rowsBtn); exploreToggleRows(rowsBtn);
+            out.askAgain = sent.filter(m => m.action === 'vrcExploreRows').length;
+            panel.querySelector('[data-view="row:0"]').click();
+            out.panelClosed = panel.style.display === 'none';
+            const ask = sent.filter(m => m.action === 'vrcExploreWorlds').pop();
+            out.rowAsk = ask ? ask.view : '';
+            out.rowActive = rowsBtn.classList.contains('active');
+            out.note = document.getElementById('exploreNote').textContent;
+            // A row's own tag is checked again when chips widen the "any of" list.
+            exploreCycleTag('author_tag_chill');
+            const ask2 = sent.filter(m => m.action === 'vrcExploreWorlds').pop();
+            _handleBackendMessage('vrcExploreResults', { view: 'row:0', query: '', offset: 0, ok: true, hasMore: false, sig: ask2?.sig, worlds: [
+                { id: 'wrld_s', name: 'S', tags: ['admin_spotlight', 'author_tag_chill'], occupants: 1, favorites: 1 },
+                { id: 'wrld_t', name: 'T', tags: ['author_tag_chill'], occupants: 1, favorites: 1 } ] });
+            out.rowWorlds = ids();
+            exploreClearFilters();
+
+            // Saved searches.
+            setExploreView('hot');
+            document.getElementById('searchWorldsInput').value = 'cozy';
+            exploreSetFilter('platform', 'quest');
+            const savedBtn = document.getElementById('exploreSavedBtn');
+            exploreToggleSaved(savedBtn);
+            const sp = document.getElementById('exploreSavedPanel');
+            out.savedEmpty = /Nothing saved yet/.test(sp.textContent);
+            sp.querySelector('#exploreSavedName').value = 'Cozy Quest';
+            exploreSaveCurrent();
+            out.savedItems = [...sp.querySelectorAll('.explore-saved-name')].map(b => b.textContent.trim());
+            const stored = JSON.parse(localStorage.getItem('vrcn_exploreSaved') || '{}');
+            out.stored = (stored.list || []).map(x => [x.name, x.view, x.query, x.filters?.platform].join('/')).join();
+            exploreClearFilters();
+            document.getElementById('searchWorldsInput').value = '';
+            setExploreView('active');
+            sp.querySelector('.explore-saved-name').click();
+            out.applied = [_explore.view, _explore.query, _exploreFilters.platform, document.getElementById('searchWorldsInput').value, sp.style.display].join('/');
+            // Explore opens on the pinned saved search the next time it opens in a run.
+            exploreToggleSaved(savedBtn);
+            sp.querySelector('.explore-saved-pin').click();
+            out.pinned = JSON.parse(localStorage.getItem('vrcn_exploreSaved')).start + '|' + sp.querySelector('#exploreStartSel').value;
+            exploreToggleSaved(savedBtn);
+            exploreClearFilters();
+            document.getElementById('searchWorldsInput').value = '';
+            _explore.view = 'active'; _explore.query = ''; _explore.started = false;
+            setWorldFilter('favorites'); setWorldFilter('explore');
+            out.started = [_explore.view, _explore.query, _exploreFilters.platform].join('/');
+            exploreSetStart('trending');
+            _explore.started = false; setWorldFilter('favorites'); setWorldFilter('explore');
+            out.startView = _explore.view;
+            exploreDeleteSaved(0);
+            out.afterDelete = _exploreSaved.list.length + '|' + _exploreSaved.start;
+            exploreSetStart('saved:nope');
+            out.badStart = _exploreSaved.start;
+            localStorage.setItem('vrcn_exploreSaved', JSON.stringify({ list: [{ name: 'Ok', view: 'new', query: 'x', filters: { platform: 'pc', age: 3 } }, { name: 'ok', view: 'hot' },
+                { name: 'Bad view', view: 'evil' }, { name: '', view: 'hot' }, { name: 'Row', view: 'row:12' }], start: 'saved:Gone' }));
+            const re = _exploreLoadSaved();
+            out.reload = re.list.map(x => x.name + ':' + x.view + ':' + x.filters.platform + ':' + x.filters.age).join() + '|' + re.start;
+            return out;
+        } finally {
+            window.sendToCS = realSend;
+            exploreClearFilters();
+            _exploreClosePanel('exploreRowsPanel'); _exploreClosePanel('exploreSavedPanel');
+            if (real.saved == null) localStorage.removeItem('vrcn_exploreSaved'); else localStorage.setItem('vrcn_exploreSaved', real.saved);
+            Object.assign(_exploreSaved, _exploreLoadSaved());
+            Object.assign(_exploreRowsState, real.rows);
+            _explore.started = real.started;
+            _explore.entries = {}; _explore.view = 'active'; _explore.query = '';
+            document.getElementById('searchWorldsInput').value = '';
+            setWorldFilter('favorites');
+        }
+    })()`);
+    check('Explore rows: the menu asks VRChat once, lists its rows, and a row opens as a view',
+        got.ask === 1 && got.loading && got.items.join() === 'Spotlight=row:0,Games=row:4' && got.askAgain === 1 && got.panelClosed
+            && got.rowAsk === 'row:0' && got.rowActive && /VRChat row: Spotlight/.test(got.note),
+        JSON.stringify({ ask: got.ask, loading: got.loading, items: got.items, again: got.askAgain, closed: got.panelClosed, view: got.rowAsk, active: got.rowActive, note: got.note }));
+    check('Explore rows: a row keeps only worlds with its own tag when tag chips widen the request', got.rowWorlds === 'wrld_s', got.rowWorlds);
+    check('Explore saved: saving keeps view, text and filters; clicking one puts them back',
+        got.savedEmpty && got.savedItems.join() === 'Cozy Quest' && got.stored === 'Cozy Quest/hot/cozy/quest' && got.applied === 'hot/cozy/quest/cozy/none',
+        JSON.stringify({ empty: got.savedEmpty, items: got.savedItems, stored: got.stored, applied: got.applied }));
+    check('Explore saved: Explore opens on the pinned search or view; deleting it falls back to Active now',
+        got.pinned === 'saved:Cozy Quest|saved:Cozy Quest' && got.started === 'hot/cozy/quest' && got.startView === 'trending' && got.afterDelete === '0|trending' && got.badStart === 'active',
+        JSON.stringify({ pinned: got.pinned, started: got.started, startView: got.startView, del: got.afterDelete, bad: got.badStart }));
+    check('Explore saved: bad saved searches are dropped when read back',
+        got.reload === 'Ok:new:pc:0,Row:row:12:any:0|active', got.reload);
+});
+
 section('avatar filters (issue 10)', async main => {
     const got = await main.json(`(() => {
         const mk = (id, extra) => ({ id, name: id, releaseStatus: 'public', authorName: 'Someone', tags: [], ...extra });
