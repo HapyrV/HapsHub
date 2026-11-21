@@ -38,7 +38,7 @@ public sealed class UpstreamWatchModule : IHubModule
 
     public static readonly IReadOnlyList<UpstreamSource> DefaultSources = new[]
     {
-        new UpstreamSource("vrcnext", "VRCNext", "shinyflvre/VRCNext", "main", "0bfb467f89caa21893769f6495abe334febe08a3"),
+        new UpstreamSource("vrcnext", "VRCNext", "shinyflvre/VRCNext", "main", "7589396256a73a4a0364f683d7788b69217fce12"),
         new UpstreamSource("vrcx", "VRCX", "vrcx-team/VRCX", "master", "30e00095b817117660180db96865e158e07d5c0a"),
         new UpstreamSource("spacecalibrator", "Space Calibrator", "hyblocker/OpenVR-SpaceCalibrator", "develop", null),
     };
