@@ -84,6 +84,7 @@ const SmartSearch = (() => {
         openMyReportsModal:        'modalMyReports',
         openPurchaseHistoryModal:  'modalPurchaseHistory',
         openRewardCodeModal:       'modalRewardCode',
+        openFreeStoreModal:        'modalFreeStore',
     };
     const TOOL_CONTROL_SEL = 'input[type="checkbox"], input[type="range"], select, input[type="text"], input[type="number"], input[type="password"], textarea';
     const TOOL_STOP_SEL = '.vrcn-panel-card, .modal-card, .modal-box, .tab';

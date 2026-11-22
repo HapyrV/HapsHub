@@ -334,6 +334,10 @@ public class AppSettings
     public bool ModernFolderLayout { get; set; } = true;
     public bool NavSidebarHoverText { get; set; } = true;
     public bool EnableVrcPlusDecorations { get; set; } = false;
+    // Free Store Items popup after sign-in. Off once the user ticks "Don't show this again".
+    public bool ShowFreeStoreItems { get; set; } = true;
+    // Free store listing ids already shown, per VRChat user id; the popup only returns for new ones.
+    public Dictionary<string, List<string>> FreeStoreSeenListings { get; set; } = new();
     public bool EnableProfileIconFrames { get; set; } = true;
     public bool SquareIconFrames { get; set; } = true;
     public bool EnableNameplateDecoration { get; set; } = true;

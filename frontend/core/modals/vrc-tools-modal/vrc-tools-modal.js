@@ -951,6 +951,111 @@ function onRedeemRewardResult(payload) {
     showToast(false, t('reward_code.failed', 'This code could not be redeemed'));
 }
 
+// Free Store Items: free VRChat store items the user hasn't claimed yet.
+let _fsItems = [];
+let _fsClaiming = false;
+let _fsDontShowAtOpen = false;
+
+function openFreeStoreModal() {
+    const overlay = document.getElementById('modalFreeStore');
+    if (!overlay) return;
+    overlay.style.display = 'flex';
+    fsLoad();
+}
+
+function closeFreeStoreModal() {
+    const overlay = document.getElementById('modalFreeStore');
+    if (overlay) overlay.style.display = 'none';
+    const dontShow = !!document.getElementById('fsDontShow')?.checked;
+    if (dontShow !== _fsDontShowAtOpen) {
+        _fsDontShowAtOpen = dontShow;
+        sendToCS({ action: 'vrcSetFreeStoreDontShow', dontShow });
+    }
+}
+
+function fsLoad() {
+    if (_fsClaiming) return;
+    _fsItems = [];
+    _fsRender(t('common.loading', 'Loading...'));
+    sendToCS({ action: 'vrcGetFreeStoreItems', auto: false });
+}
+
+function _fsRowHtml(item) {
+    const meta = item.subtitle || _toolHumanize(item.listingType || '');
+    return `<div class="fd-group-card" style="margin-bottom:0;cursor:default;">
+        ${_toolThumbHtml(item.imageUrl, 'redeem', false)}
+        <div class="fd-group-card-info">
+            <div class="fd-group-card-name">${esc(item.displayName || item.id || '')}</div>
+            ${meta ? `<div class="fd-group-card-meta">${esc(meta)}</div>` : ''}
+            ${item.error ? `<div class="fd-group-card-meta" style="color:#FF857A;">${esc(item.error)}</div>` : ''}
+        </div>
+    </div>`;
+}
+
+function _fsRender(message) {
+    const list = document.getElementById('fsList');
+    if (list) {
+        list.innerHTML = message || !_fsItems.length
+            ? `<div class="mt-empty">${esc(message || t('free_store.empty', 'No free items to claim right now.'))}</div>`
+            : _fsItems.map(_fsRowHtml).join('');
+    }
+    const btn = document.getElementById('fsClaimBtn');
+    if (btn) {
+        btn.disabled = _fsClaiming || !!message || !_fsItems.length;
+        btn.textContent = _fsClaiming ? t('free_store.claiming', 'Claiming...') : t('free_store.claim_all', 'Claim All');
+    }
+}
+
+function onFreeStoreItems(payload, attempt) {
+    const overlay = document.getElementById('modalFreeStore');
+    if (payload?.auto) {
+        // The sign-in check can land before the modal markup has loaded.
+        if (!overlay || !document.getElementById('fsList')) {
+            if ((attempt || 0) < 10) setTimeout(() => onFreeStoreItems(payload, (attempt || 0) + 1), 1000);
+            return;
+        }
+        if (!payload.items?.length || _fsClaiming) return;
+    } else if (!overlay || overlay.style.display === 'none') {
+        return;
+    }
+    if (!payload?.ok) {
+        _fsItems = [];
+        _fsRender(t('free_store.load_failed', 'Could not load the VRChat store'));
+        return;
+    }
+    _fsItems = (payload.items || []).map(item => ({ ...item, error: '' }));
+    _fsDontShowAtOpen = !!payload.dontShow;
+    const box = document.getElementById('fsDontShow');
+    if (box) box.checked = _fsDontShowAtOpen;
+    overlay.style.display = 'flex';
+    _fsRender();
+}
+
+function fsClaimAll() {
+    if (_fsClaiming || !_fsItems.length) return;
+    _fsClaiming = true;
+    _fsRender();
+    sendToCS({ action: 'vrcClaimFreeStoreItems', listingIds: _fsItems.map(item => item.id) });
+}
+
+function onFreeStoreClaimResult(payload) {
+    _fsClaiming = false;
+    const claimed = new Set(payload?.claimed || []);
+    const failed = payload?.failed || [];
+    if (claimed.size) {
+        showToast(true, tf('free_store.claimed', { count: claimed.size }, 'Claimed {count} free item(s)'));
+        if (typeof invResetInventoryItems === 'function') invResetInventoryItems();
+    }
+    if (failed.length) showToast(false, tf('free_store.claim_failed', { count: failed.length }, '{count} item(s) could not be claimed'));
+    _fsItems = _fsItems.filter(item => !claimed.has(item.id));
+    for (const f of failed) {
+        const item = _fsItems.find(i => i.id === f.id);
+        if (item) item.error = f.error || '';
+    }
+    if (!_fsItems.length && claimed.size) closeFreeStoreModal();
+    else _fsRender();
+}
+
 const PH_PAGE_SIZE = 20;
 const PH_FILTERS = [
     ['all', 'purchase_history.filter.all_types', 'All types'],

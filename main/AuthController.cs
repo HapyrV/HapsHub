@@ -1508,6 +1508,12 @@ public class AuthController
                 if (balance >= 0)
                     Invoke(() => _core.SendToJS("vrcCredits", new { balance }));
             });
+            // Free Store Items popup, once the app has settled after sign-in.
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(TimeSpan.FromSeconds(8));
+                if (_core.VrcApi.IsLoggedIn) await FreeStoreController.CheckAsync(_core, auto: true);
+            });
         }
 
     }
