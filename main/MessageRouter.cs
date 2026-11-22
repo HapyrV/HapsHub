@@ -542,6 +542,10 @@ public partial class AppShell
                     break;
 
                 case "setupReady":
+#if !WINDOWS
+                    // A first start opens the setup page, which sends this instead of "ready".
+                    Console.WriteLine("HapsHub: page loaded and connected.");
+#endif
                     _windowCtrl.InstallChrome();
                     await _authCtrl.HandleMessage(action, msg);
                     break;

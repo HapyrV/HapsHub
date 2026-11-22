@@ -78,7 +78,8 @@ jobs:
           done
           # 124 means timeout stopped it while it was still running, which is what should happen.
           if [ "$code" -ne 124 ]; then echo "::error::HapsHub exited by itself with code $code"; exit 1; fi
-          # The page sends "ready" once it has loaded; on Linux the backend prints this line when it arrives.
+          # The page sends "ready" once it has loaded ("setupReady" from the setup page a fresh start opens);
+          # on Linux the backend prints this line when either arrives.
           grep -q "HapsHub: page loaded and connected." "$RUNNER_TEMP/run.log" || { echo "::error::The page never reached the backend"; exit 1; }
 
       - name: Hub self-test
