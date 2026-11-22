@@ -184,7 +184,8 @@ async function search() {
   pending.clear();
   state.page = 0; state.done = false; state.items = []; state.active = -1; state.dl = null;
   state.searched = apiParams(state.f).toString();
-  $('#grid').replaceChildren();
+  // Keep the old cards (dimmed after a moment) until the new ones arrive, so the page doesn't blink empty.
+  $('#grid').classList.add('stale');
   await loadMore(id, true);
 }
 
@@ -201,11 +202,12 @@ async function loadMore(id = state.reqId, first = false) {
     const start = state.items.length;
     state.items.push(...res.items);
     state.done = state.items.length >= res.total || res.items.length === 0;
-    if (first) { state.facets = res.facets; renderSidebar(); renderChips(); renderTabs(); renderWarnings(res.warnings); }
+    if (first) { clearStale(); state.facets = res.facets; renderSidebar(); renderChips(); renderTabs(); renderWarnings(res.warnings); }
     $('#count').textContent = `${res.total.toLocaleString()} items · ${Math.round(res.tookMs)} ms`;
     $('#empty').hidden = res.total > 0;
     appendCards(res.items, start);
   } catch (e) {
+    if (first && id === state.reqId) clearStale();
     if (e.message !== 'auth') renderWarnings([e.message]);
   } finally {
     if (id === state.reqId) state.loading = false;
@@ -213,6 +215,7 @@ async function loadMore(id = state.reqId, first = false) {
   // keep filling until the sentinel is off-screen
   if (id === state.reqId && !state.done && sentinelVisible()) loadMore(id);
 }
+function clearStale() { $('#grid').replaceChildren(); $('#grid').classList.remove('stale'); }
 function sentinelVisible() { const r = $('#sentinel').getBoundingClientRect(); return r.top < innerHeight + 600; }
 
 function renderWarnings(w) {
@@ -231,7 +234,8 @@ function money(jpy) {
   if (jpy === 0) return 'Free';
   const cur = store.get('currency', 'JPY'), rate = state.rates[cur] ?? 1;
   const c = state.rates[cur] ? cur : 'JPY';
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency: c, maximumFractionDigits: c === 'JPY' || c === 'KRW' ? 0 : 2 }).format(jpy * (c === 'JPY' ? 1 : rate));
+  // Each currency's usual digits (JPY, KRW, VND, CLP… none; most others 2).
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency: c }).format(jpy * (c === 'JPY' ? 1 : rate));
 }
 function isNew(it) { return state.prevVisit && it.published && Date.parse(it.published) / 1000 > state.prevVisit; }
 
@@ -268,13 +272,32 @@ async function pollPending() {
 
 function gallery(images, thumb) {
   const hero = h('div', { class: 'hero' });
-  const show = (src, full = src) => hero.replaceChildren(h('img', { src, alt: '', referrerpolicy: 'no-referrer', onclick: () => window.open(full, '_blank', 'noopener,noreferrer'), title: 'Open full size' }));
-  if (images?.length) show(images[0].thumb, images[0].full);
-  else if (thumb) show(thumb);
-  else hero.append(h('span', { text: 'No images yet' }));
-  if (!images || images.length < 2) return hero;
-  return h('div', {}, hero, h('div', { class: 'strip' }, images.slice(0, 40).map((im) =>
-    h('img', { src: im.thumb, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer', onclick: () => show(im.thumb, im.full) }))));
+  const list = images?.length ? images.slice(0, 40) : thumb ? [{ thumb, full: thumb }] : [];
+  const show = (i) => hero.replaceChildren(h('img', { src: list[i].thumb, alt: '', referrerpolicy: 'no-referrer', title: 'View full size', onclick: () => openViewer(list, i) }));
+  if (list.length) show(0); else hero.append(h('span', { text: 'No images yet' }));
+  if (list.length < 2) return hero;
+  return h('div', {}, hero, h('div', { class: 'strip' }, list.map((im, i) =>
+    h('img', { src: im.thumb, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer', onclick: () => show(i) }))));
+}
+/** Full-size image viewer inside the app (left/right step through the item's images; Esc or a click outside closes). */
+function openViewer(images, start) {
+  let i = start;
+  const img = h('img', { alt: '', referrerpolicy: 'no-referrer' });
+  const count = h('span', { class: 'count' });
+  const orig = h('a', { class: 'orig', target: '_blank', rel: 'noopener noreferrer', text: 'Original ↗', title: 'Open the original image in a new tab' });
+  const show = () => { img.src = images[i].full || images[i].thumb; orig.href = img.src; count.textContent = images.length > 1 ? `${i + 1} / ${images.length}` : ''; };
+  const step = (d) => { i = (i + d + images.length) % images.length; show(); };
+  const arrow = (cls, text, d) => h('button', { class: cls, text, title: d < 0 ? 'Previous (←)' : 'Next (→)', onclick: (ev) => { ev.stopPropagation(); step(d); } });
+  const v = h('dialog', { class: 'viewer', onclose: () => v.remove(),
+    onclick: (ev) => { if (ev.target === v || ev.target.classList.contains('stage')) v.close(); },
+    // keys stay inside the viewer (Esc must not also close the drawer)
+    onkeydown: (ev) => { ev.stopPropagation(); if (ev.key === 'ArrowLeft') step(-1); else if (ev.key === 'ArrowRight') step(1); } },
+    h('div', { class: 'stage' }, img),
+    images.length > 1 ? [arrow('prev', '‹', -1), arrow('next', '›', 1)] : null,
+    h('div', { class: 'bar' }, count, orig, h('button', { text: '✕', title: 'Close (Esc)', onclick: () => v.close() })));
+  document.body.append(v);
+  show();
+  v.showModal();
 }
 function card(it, index, list = state.items, box = $('#grid')) {
   const badges = h('div', { class: 'badges' },
@@ -290,7 +313,7 @@ function card(it, index, list = state.items, box = $('#grid')) {
     onkeydown: (e) => { if (e.key === 'Enter' && e.target === e.currentTarget) openItem(index, list, box); } },
     thumb,
     h('div', { class: 'body' },
-      h('div', { class: 'title', text: it.title || `#${it.id}` }),
+      h('div', { class: 'title', translate: 'yes', text: it.title || `#${it.id}` }),
       h('div', { class: 'shop', text: it.shop || '' }),
       h('div', { class: 'meta' },
         h('span', { class: 'price', title: it.priceReason ? `Price: ${it.priceReason}` : null }, money(it.priceJpy),
@@ -333,7 +356,8 @@ function buildSidebar() {
     h('h3', {}, 'Likes'), h('div', { class: 'row' }, sb.likes),
     h('h3', {}, 'Rating'), sb.ratings,
     h('h3', {}, 'Works with'), sb.feats,
-    h('h3', {}, 'Released'), h('div', { class: 'row' }, sb.within), h('div', { class: 'row' }, sb.after, sb.before),
+    h('h3', {}, 'Released'), h('div', { class: 'row' }, sb.within),
+    h('div', { class: 'dates' }, h('label', {}, h('span', { text: 'From' }), sb.after), h('label', {}, h('span', { text: 'To' }), sb.before)),
     h('h3', {}, 'Adult content & status'), h('div', { class: 'row' }, sb.adult, sb.status),
     h('h3', {}, 'Hide'), sb.hideWord, sb.hidden,
     h('h3', {}, 'BOOTH category'), sb.bcats);
@@ -393,22 +417,7 @@ function facetRow({ label, count, sel, onclick, cls = '', extra = null }) {
 function renderSidebar() {
   const f = state.f, fc = state.facets, meta = state.meta;
   if (!fc || !meta) return;
-  // categories + subcategories of selected categories
-  const subCounts = Object.fromEntries(fc.subcategories.map((x) => [x.key, x.count]));
-  sb.cats.replaceChildren(...fc.categories.flatMap((c) => {
-    const sel = f.cat?.includes(c.key);
-    const rows = [facetRow({ label: c.name, count: c.count, sel, onclick: () => toggleIn('cat', c.key) })];
-    const mc = meta.categories.find((m) => m.key === c.key);
-    if ((sel || mc?.subcategories.some((s) => f.sub?.includes(s.key))) && mc) {
-      let group = null;
-      for (const s of mc.subcategories) {
-        if (s.group && s.group !== group) { group = s.group; rows.push(h('div', { class: 'subgroup', text: group })); }
-        const n = subCounts[s.key] ?? 0, ssel = f.sub?.includes(s.key);
-        if (n > 0 || ssel) rows.push(facetRow({ label: s.name, count: n, sel: ssel, cls: 'sub', onclick: () => toggleIn('sub', s.key) }));
-      }
-    }
-    return rows;
-  }));
+  renderCats();
   renderAvatars();
   sb.ratings.replaceChildren(...fc.ratings.map((r) => facetRow({ label: RATING_NAMES[r.key] || r.key, count: r.count, sel: r.selected, onclick: () => toggleIn('rating', r.key) })));
   sb.feats.replaceChildren(...fc.features.map((r) => facetRow({ label: FEATURE_NAMES[r.key] || r.key, count: r.count, sel: r.selected, onclick: () => toggleIn('feat', r.key) })));
@@ -431,6 +440,37 @@ function renderSidebar() {
   $('#sort').value = f.sort || (hasRelevance(f) ? 'relevance' : 'popular');
   document.querySelectorAll('#mode button').forEach((b) => b.classList.toggle('on', (b.dataset.mode || '') === (f.mode || '')));
   $('#myAvatarsBtn').classList.toggle('on', state.myAvatars.length > 0 && sameSet(f.avatar || [], state.myAvatars));
+}
+/** Category headers only open and close (no search); the rows inside filter. "All ..." picks the whole category. */
+function renderCats() {
+  const f = state.f, fc = state.facets, meta = state.meta;
+  const subCounts = Object.fromEntries(fc.subcategories.map((x) => [x.key, x.count]));
+  // Open at first: the categories the URL already filters on. After that only the headers open and close them.
+  sb.openCats ??= new Set(meta.categories.filter((m) => f.cat?.includes(m.key) || m.subcategories.some((s) => f.sub?.includes(s.key))).map((m) => m.key));
+  sb.cats.replaceChildren(...fc.categories.flatMap((c) => {
+    const mc = meta.categories.find((m) => m.key === c.key);
+    const catSel = !!f.cat?.includes(c.key), nSel = (mc?.subcategories || []).filter((s) => f.sub?.includes(s.key)).length;
+    const open = sb.openCats.has(c.key);
+    const head = h('div', { class: `facet cat-head ${c.count === 0 && !catSel && !nSel ? 'zero' : ''}`, role: 'button', tabindex: '0', 'aria-expanded': String(open),
+      onclick: () => toggleCat(c.key), onkeydown: (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); toggleCat(c.key); } } },
+      h('span', { class: 'caret', text: open ? '▾' : '▸' }), h('span', { text: c.name }),
+      catSel || nSel ? h('span', { class: 'dot', title: catSel ? 'Whole category selected' : `${nSel} selected` }) : null,
+      h('span', { class: 'n', text: c.count?.toLocaleString() ?? '' }));
+    if (!open || !mc) return [head];
+    const rows = [head, facetRow({ label: `All ${c.name}`, count: c.count, sel: catSel, cls: 'sub all', onclick: () => toggleIn('cat', c.key) })];
+    let group = null;
+    for (const s of mc.subcategories) {
+      const n = subCounts[s.key] ?? 0, ssel = f.sub?.includes(s.key);
+      if (!(n > 0 || ssel)) continue;
+      if ((s.group || null) !== group) { group = s.group || null; rows.push(h('div', { class: group ? 'subgroup' : 'subgroup end', text: group || '' })); }
+      rows.push(facetRow({ label: s.name, count: n, sel: ssel, cls: s.group ? 'sub in-group' : 'sub', onclick: () => toggleIn('sub', s.key) }));
+    }
+    return rows;
+  }));
+}
+function toggleCat(key) {
+  if (!sb.openCats.delete(key)) sb.openCats.add(key);
+  renderCats();
 }
 function round(x) { return Math.round(x * 100) / 100; }
 function priceChanged() {
@@ -535,7 +575,7 @@ async function openItem(index, list = state.dl?.list ?? state.items, box = state
       h('button', { class: 'btn', title: 'Next (→)', text: '→', onclick: () => openItem(index + 1) }),
       h('button', { class: 'btn close', title: 'Close (Esc)', text: '✕', onclick: closeDrawer, style: 'margin-left:auto' })),
     gallery(det.images, s.thumb),
-    h('h2', { text: s.title || `BOOTH item #${s.id}` }),
+    h('h2', { translate: 'yes', text: s.title || `BOOTH item #${s.id}` }),
     s.shop ? h('div', { class: 'shopline' },
       h('a', { href: '?view=shop&s=' + encodeURIComponent(s.shopSubdomain), text: s.shop, title: 'Shop page', onclick: (e) => { e.preventDefault(); go('shop', { s: s.shopSubdomain }); } }),
       h('a', { href: '#', class: 'muted', text: 'all items', onclick: (e) => { e.preventDefault(); setFilter('shop', s.shopSubdomain); } })) : '',
@@ -555,7 +595,7 @@ async function openItem(index, list = state.dl?.list ?? state.items, box = state
       s.features.length ? [h('dt', { text: 'Works with' }), h('dd', { text: s.features.map((f) => FEATURE_NAMES[f] || f).join(', ') })] : ''),
     det.variations.length > 1 ? [h('h4', { text: `${det.variations.length} variations` }),
       h('table', { class: 'vars' }, det.variations.map((v) => h('tr', {}, h('td', { text: v.name || '–' }), h('td', { class: 'num', text: money(v.price) }))))] : '',
-    det.description ? [h('h4', { text: 'Description' }), h('div', { class: 'desc collapsed', text: det.description, onclick: (e) => e.currentTarget.classList.toggle('collapsed') })] : '',
+    det.description ? [h('h4', { text: 'Description' }), h('div', { class: 'desc collapsed', translate: 'yes', text: det.description, onclick: (e) => e.currentTarget.classList.toggle('collapsed') })] : '',
     det.avatars.length ? [h('h4', { text: `Fits ${det.avatars.length} avatar${det.avatars.length > 1 ? 's' : ''}` }),
       h('div', { class: 'taglist' }, det.avatars.map((a) => h('button', { title: (a.verified ? 'Checked match' : 'Detected from the listing') + ' · open the avatar page', onclick: () => go('avatar', { slug: a.key }) },
         a.verified ? h('span', { class: 'v', text: '✓ ' }) : '', a.name)))] : '',
@@ -1187,6 +1227,18 @@ window.addEventListener('popstate', () => { readUrl(); render(); });
 
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
 
+// ---------- currency ----------
+const COMMON_CURRENCIES = ['JPY', 'USD', 'EUR', 'GBP', 'KRW', 'CNY', 'TWD', 'HKD', 'AUD', 'CAD'];
+function fillCurrencies() {
+  let names = null;
+  try { names = new Intl.DisplayNames(['en'], { type: 'currency' }); } catch { /* codes only */ }
+  const opt = (c) => h('option', { value: c, text: c, title: names?.of(c) || c });
+  const all = Object.keys(state.rates), common = COMMON_CURRENCIES.filter((c) => all.includes(c));
+  const rest = all.filter((c) => !common.includes(c)).sort();
+  $('#currency').replaceChildren(...(rest.length ? [h('optgroup', { label: 'Common' }, common.map(opt)), h('optgroup', { label: 'More' }, rest.map(opt))] : common.map(opt)));
+  $('#currency').title = `Currency (${all.length} available; rates update twice a day)`;
+}
+
 // ---------- start ----------
 function notice(text) {
   let n = $('#notice');
@@ -1261,7 +1313,7 @@ async function start() {
     state.rates = r.values;
   } catch { /* JPY only */ }
   const cur = store.get('currency', 'JPY');
-  $('#currency').replaceChildren(...Object.keys(state.rates).sort((a, b) => (a === 'JPY' ? -1 : b === 'JPY' ? 1 : a.localeCompare(b))).map((c) => h('option', { value: c, text: c })));
+  fillCurrencies();
   $('#currency').value = state.rates[cur] ? cur : 'JPY';
   readUrl();
   if (!state.f.adult && store.get('adult', 'safe') !== 'safe') { state.f.adult = store.get('adult'); writeUrl(false); }

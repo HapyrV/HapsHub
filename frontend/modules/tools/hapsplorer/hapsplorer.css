@@ -1,2 +1,5 @@
-.hx-page { position: absolute; inset: 0; display: flex; }
+/* The frame fills the tab's own area (inside .content's padding, so the sidebars and top bar never cover it),
+   like the app-embed pages. The page never scrolls; Hapsplorer scrolls inside the frame. */
+#tab40.active { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; }
+.hx-page { position: relative; display: flex; flex: 1 1 auto; min-height: 0; border-radius: 10px; overflow: hidden; }
 .hx-frame { flex: 1; width: 100%; height: 100%; border: 0; background: transparent; }
