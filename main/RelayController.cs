@@ -877,18 +877,7 @@ public class RelayController : IDisposable
 
     // Static process checks
 
-    private static bool AnyProcessAlive(string name)
-    {
-        if (OperatingSystem.IsLinux()) return LinuxProcessTable.IsRunning(name);
-        bool alive = false;
-        foreach (var p in Process.GetProcessesByName(name))
-        {
-            try { if (!alive && !p.HasExited) alive = true; }
-            catch { }
-            finally { p.Dispose(); }
-        }
-        return alive;
-    }
+    private static bool AnyProcessAlive(string name) => ProcessTable.IsRunning(name);
 
     public static bool IsVrcRunning()
     {
@@ -917,17 +906,12 @@ public class RelayController : IDisposable
             var bestStart = DateTime.MinValue;
             void Scan(string name)
             {
-                if (OperatingSystem.IsLinux())
+                foreach (var pid in ProcessTable.Pids(name))
                 {
-                    foreach (var pid in LinuxProcessTable.Pids(name))
-                    {
-                        try { Consider(Process.GetProcessById(pid)); }
-                        catch (ArgumentException) { }   // it ended since the last look
-                        catch (InvalidOperationException) { }
-                    }
-                    return;
+                    try { Consider(Process.GetProcessById(pid)); }
+                    catch (ArgumentException) { }   // it ended since the last look
+                    catch (InvalidOperationException) { }
                 }
-                foreach (var p in Process.GetProcessesByName(name)) Consider(p);
             }
             void Consider(Process p)
             {

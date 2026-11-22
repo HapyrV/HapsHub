@@ -23,6 +23,9 @@
     <DebugSymbols>true</DebugSymbols>
     <UseWindowsForms Condition="'$(_LinuxBuild)'!='true'">true</UseWindowsForms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- The page is HTML; only Windows Forms' own built-in messages came in other languages, as 13 folders of
+         .resources.dll files in the Windows download -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <!-- Define WINDOWS when targeting Windows (RID win-*), or when building on Windows without a specific RID (local dev build) -->
@@ -92,6 +95,8 @@
     <None Update="voice\**\*" Condition="'$(_LinuxBuild)'!='true'">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <!-- The speech model came out of a Unity project; its .meta files mean nothing to Vosk -->
+    <None Remove="voice\**\*.meta" />
     <None Include="Services\Assets\SystemTray\*.png" Condition="'$(_LinuxBuild)'!='true'" Link="tray\%(Filename)%(Extension)">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -120,6 +125,14 @@
     <ItemGroup>
       <_HubWindowsOnlyFile Include="@(ResolvedFileToPublish)" Condition="'%(Extension)' == '.exe' or '%(Extension)' == '.pdb' or ('%(Extension)' == '.dll' and ('%(Filename)' == 'Photino.Native' or '%(Filename)' == 'WebView2Loader' or '%(Filename)' == 'openvr_api' or '%(Filename)' == 'e_sqlite3' or '%(Filename)' == 'nfd' or '%(Filename)' == 'libSkiaSharp'))" />
       <ResolvedFileToPublish Remove="@(_HubWindowsOnlyFile)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- NativeFileDialogSharp ships nfd.dll with the linker's nfd.lib and nfd.exp and its nfd.pdb; only the .dll runs -->
+  <Target Name="DropBuildLeftoversFromWindowsPublish" AfterTargets="ComputeResolvedFilesToPublishList" Condition="'$(_LinuxBuild)'!='true'">
+    <ItemGroup>
+      <_HubBuildLeftover Include="@(ResolvedFileToPublish)" Condition="'%(Extension)' == '.lib' or '%(Extension)' == '.exp' or ('%(Extension)' == '.pdb' and '%(Filename)' == 'nfd')" />
+      <ResolvedFileToPublish Remove="@(_HubBuildLeftover)" />
     </ItemGroup>
   </Target>
 

@@ -14,6 +14,10 @@ dotnet publish "$root\VRCNext.csproj" -c Release -r win-x64 --self-contained tru
     -p:VRCNextHypeRateApiKey= -p:VRCNextVrcndbKey=
 if ($LASTEXITCODE -ne 0) { throw "The build failed." }
 
+# VRCNext.csproj leaves out linker files, other platforms' libraries and Unity leftovers; fail if any come back.
+$stray = Get-ChildItem $stage -Recurse -File -Include *.lib, *.exp, *.so, *.dylib, *.meta
+if ($stray) { throw "Files the download shouldn't have: $(($stray | ForEach-Object Name) -join ', ')" }
+
 # A portable marker would move the data beside the exe; the download must not have one.
 Remove-Item -Force -ErrorAction SilentlyContinue (Join-Path $stage 'portable.txt'), (Join-Path $stage 'source-commit.txt')
 foreach ($needed in 'HapsHub.exe', 'Photino.Native.dll', 'WebView2Loader.dll', 'frontend\index.html', 'LICENSE') {
