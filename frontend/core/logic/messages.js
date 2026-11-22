@@ -1415,6 +1415,12 @@ case 'vrcNews':
             case 'vrcPurchaseHistory':
                 if (typeof onPurchaseHistory === 'function') onPurchaseHistory(payload);
                 break;
+            case 'vrcFreeStoreItems':
+                if (typeof onFreeStoreItems === 'function') onFreeStoreItems(payload);
+                break;
+            case 'vrcFreeStoreClaimResult':
+                if (typeof onFreeStoreClaimResult === 'function') onFreeStoreClaimResult(payload);
+                break;
             case 'vrcCreditActivity':
                 if (typeof onCreditActivity === 'function') onCreditActivity(payload);
                 break;
