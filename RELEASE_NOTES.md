@@ -1,4 +1,22 @@
-﻿# HapsHub 1.0.0
+﻿# HapsHub 1.1.0
+
+Built on VRCNext 2027.2.2.
+
+**New**
+- Free Store Items: lists the free items in the VRChat stores that you don't own yet, with a Claim All button. It opens a few seconds after sign-in when there are items it hasn't shown you yet ("Don't show this again" turns that off).
+- Linux: the "hide to tray" setting, tray menus that say "Close HapsHub", and a one-file install. A message tells you when the tray helper can't start, and the README lists the packages to install for each distro.
+- Linux: Steam apps start through Proton, other Windows apps through Wine, and app pages open the app in its own window. YouTube Tunnel plays into a "HapsHub Tunnel Mic" virtual microphone.
+- From VRCNext 2027.2.2: VRCNDb's new address, signed VRCN+ requests, and Voice Fight / Kikitan XD switches that update the VR overlay.
+
+**Changed**
+- The Hapsplorer page stays inside the content area and matches the latest Hapsplorer interface.
+- HapsHub checks whether VRChat and SteamVR are running from one shared process list instead of a full system snapshot on every check, which saves work.
+- Linux: smoother window. Page messages no longer run on the drawing thread. NVIDIA PCs keep the faster renderer unless you start with `--safe-graphics` or turn on Settings > Force Software Rendering. Efficiency mode steps aside while the window is in use.
+
+**Fixed**
+- Linux: a crash report on every start when VRChat isn't installed (the automatic VRChat settings backup no longer runs without it).
+
+# HapsHub 1.0.0
 
 The first release of HapsHub, built on VRCNext 2027.2.0, with dozens of HapsHub features and systems on top. Thanks to shinyflvre and the VRCNext contributors for the base.
 
