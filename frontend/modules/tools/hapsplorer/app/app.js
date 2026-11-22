@@ -322,6 +322,9 @@ function card(it, index, list = state.items, box = $('#grid')) {
       it.features.length ? h('div', { class: 'feats' }, it.features.map((f) => h('span', { class: 'feat', text: FEATURE_NAMES[f] || f }))) : null));
 }
 
+// The top bar wraps to a second row when the window is narrow; the sticky sidebar and drawer sit below it.
+new ResizeObserver(([e]) => document.documentElement.style.setProperty('--top-h', `${Math.ceil(e.target.getBoundingClientRect().height)}px`)).observe(document.querySelector('header.top'));
+
 // ---------- sidebar ----------
 const sb = {};
 function buildSidebar() {
@@ -458,12 +461,30 @@ function renderCats() {
       h('span', { class: 'n', text: c.count?.toLocaleString() ?? '' }));
     if (!open || !mc) return [head];
     const rows = [head, facetRow({ label: `All ${c.name}`, count: c.count, sel: catSel, cls: 'sub all', onclick: () => toggleIn('cat', c.key) })];
-    let group = null;
+    // Keyword groups (e.g. Swimsuit) are dropdowns: closed at first, open when one of their rows is selected.
+    const groups = new Map(); // group name (or '' for none) -> visible subcategories, in first-seen order
     for (const s of mc.subcategories) {
       const n = subCounts[s.key] ?? 0, ssel = f.sub?.includes(s.key);
       if (!(n > 0 || ssel)) continue;
-      if ((s.group || null) !== group) { group = s.group || null; rows.push(h('div', { class: group ? 'subgroup' : 'subgroup end', text: group || '' })); }
-      rows.push(facetRow({ label: s.name, count: n, sel: ssel, cls: s.group ? 'sub in-group' : 'sub', onclick: () => toggleIn('sub', s.key) }));
+      const g = s.group || '';
+      if (!groups.has(g)) groups.set(g, []);
+      groups.get(g).push({ s, n, ssel });
+    }
+    const row = ({ s, n, ssel }) => facetRow({ label: s.name, count: n, sel: ssel, cls: s.group ? 'sub in-group' : 'sub', onclick: () => toggleIn('sub', s.key) });
+    let afterGroup = false;
+    for (const [g, subs] of groups) {
+      if (!g) { if (afterGroup) rows.push(h('div', { class: 'subgroup end' })); rows.push(...subs.map(row)); afterGroup = false; continue; }
+      const gk = `${c.key}/${g}`, nSelG = subs.filter((x) => x.ssel).length;
+      sb.openGroups ??= new Set();
+      if (nSelG && !sb.seenGroups?.has(gk)) { sb.openGroups.add(gk); (sb.seenGroups ??= new Set()).add(gk); }
+      const gOpen = sb.openGroups.has(gk);
+      const toggle = () => { if (!sb.openGroups.delete(gk)) sb.openGroups.add(gk); renderCats(); };
+      rows.push(h('div', { class: 'facet subgroup-head', role: 'button', tabindex: '0', 'aria-expanded': String(gOpen), onclick: toggle,
+        onkeydown: (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); toggle(); } } },
+        h('span', { class: 'caret', text: gOpen ? '▾' : '▸' }), h('span', { text: g }),
+        nSelG ? h('span', { class: 'dot', title: `${nSelG} selected` }) : null));
+      if (gOpen) rows.push(...subs.map(row));
+      afterGroup = true;
     }
     return rows;
   }));

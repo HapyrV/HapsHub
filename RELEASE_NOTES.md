@@ -9,7 +9,7 @@ Built on VRCNext 2027.2.2.
 - From VRCNext 2027.2.2: VRCNDb's new address, signed VRCN+ requests, and Voice Fight / Kikitan XD switches that update the VR overlay.
 
 **Changed**
-- The Hapsplorer page stays inside the content area and matches the latest Hapsplorer interface.
+- The Hapsplorer page stays inside the content area and matches the latest Hapsplorer interface. Its top bar wraps to a second row when space is short instead of piling buttons on top of each other, keyword groups such as Swimwear open and close like dropdowns, and prices and likes no longer get cut off on narrow cards.
 - HapsHub checks whether VRChat and SteamVR are running from one shared process list instead of a full system snapshot on every check, which saves work.
 - Linux: smoother window. Page messages no longer run on the drawing thread. NVIDIA PCs keep the faster renderer unless you start with `--safe-graphics` or turn on Settings > Force Software Rendering. Efficiency mode steps aside while the window is in use.
 
