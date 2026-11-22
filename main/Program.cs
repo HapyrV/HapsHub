@@ -20,6 +20,7 @@ static class Program
     {
         ApplyLinuxRenderingEnvironment();
         EnsureConfigRootExists();
+        RemoveOldLinuxLayoutFiles();
 
         if (args.Length >= 4 && args[0] == "--watchdog")
         {
@@ -127,6 +128,31 @@ static class Program
         const string key = "WEBKIT_DISABLE_DMABUF_RENDERER";
         if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable(key))) return;
         if (IsLinuxSoftwareRenderingEnabled()) SetNativeEnvironmentVariable(key, "1");
+    }
+
+    // Linux builds used to ship about 190 separate .NET files (.dll and runtime .so files); they now live inside the
+    // HapsHub program. Updating means unpacking over the old folder, which leaves the old files behind, so the first
+    // start of the newer build clears them away. Photino.Native.so, libSkiaSharp.so, libe_sqlite3.so and libnfd.so stay.
+    static void RemoveOldLinuxLayoutFiles()
+    {
+        if (!OperatingSystem.IsLinux()) return;
+#pragma warning disable IL3000 // Location is empty exactly when this is the one-file build, the only case to tidy up
+        if (!string.IsNullOrEmpty(typeof(Program).Assembly.Location)) return;
+#pragma warning restore IL3000
+        try
+        {
+            var dir = AppContext.BaseDirectory;
+            if (!File.Exists(Path.Combine(dir, "HapsHub.dll"))) return;
+            string[] leftovers = ["*.dll", "*.pdb", "HapsHub.deps.json", "HapsHub.runtimeconfig.json", "createdump",
+                "libSystem.*.so", "libclr*.so", "libcoreclr*.so", "libhost*.so", "libmscord*.so"];
+            foreach (var pattern in leftovers)
+                foreach (var file in Directory.EnumerateFiles(dir, pattern, SearchOption.TopDirectoryOnly))
+                {
+                    try { File.Delete(file); }
+                    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+                }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
     }
 
     static void SetNativeEnvironmentVariable(string key, string value)

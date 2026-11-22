@@ -394,6 +394,7 @@ public partial class AppShell
             _windowCtrl.SetHideFromTaskbar(false);
             _windowCtrl.ShowWindow();
             _core.SendToJS("log", new { msg = $"{message} Closing to tray has been disabled.", color = "warn" });
+            if (_settings.MinimizeToTray) SendToJS("toast", new { ok = false, msg = LinuxTrayMissingMessage });
         };
         _trayService.OnClose = () =>
         {
@@ -593,8 +594,13 @@ public partial class AppShell
             .SetBrowserControlInitParameters(OperatingSystem.IsLinux() ? "{\"photino.cacheModel\":\"documentBrowser\",\"photino.memoryLimitMB\":1536}" : null!)
             .RegisterWindowClosingHandler((_, _) => _windowCtrl.HandleWindowClosing())
 #endif
-            .RegisterWindowCreatedHandler((_, _) => _windowReady.TrySetResult())
-            .RegisterWebMessageReceivedHandler((_, message) => { _ = OnWebMessage(message); });
+            .RegisterWindowCreatedHandler((_, _) =>
+            {
+                // Runs on the window's thread, before WebKit starts drawing the page.
+                VRCNext.Services.Helpers.LinuxWebKit.UseDocumentBrowserCache();
+                _windowReady.TrySetResult();
+            })
+            .RegisterWebMessageReceivedHandler((_, message) => EnqueueWebMessage(message));
         if (File.Exists(iconPath)) windowBuilder.SetIconFile(iconPath);
 #if WINDOWS
         _window = windowBuilder.Load(startPage);
@@ -636,6 +642,11 @@ public partial class AppShell
         HubBranding.Changed += name => { try { _window.SetTitle(name); } catch (Exception ex) { CrashHandler.WriteEntry("hubAppName", ex); } };
         if (HubBranding.DisplayName != AppInfo.AppName) { try { _window.SetTitle(HubBranding.DisplayName); } catch { } }
         _ = RunJsDispatcherAsync();
+        if (_webMessageQueue != null)
+        {
+            Dialog.RunOnUiThread = action => _window.Invoke(action);
+            _ = Task.Run(() => RunWebMessageWorkerAsync(_webMessageQueue.Reader));
+        }
         _ = RunAutoBackupsAsync();
     #if !WINDOWS
         EfficiencyModeService.OnLog += message => _core.SendToJS("log", new { msg = message, color = "warn" });
@@ -1003,6 +1014,12 @@ public partial class AppShell
         _trayService?.Dispose();
     }
 
+#if !WINDOWS
+    private const string LinuxTrayMissingMessage =
+        "The tray icon couldn't start, so HapsHub stays open when closed. Install Python's AppIndicator support " +
+        "(the README lists the packages for each distro), then restart HapsHub.";
+#endif
+
     private void ApplyTraySetting(bool enabled, bool autoHide)
     {
         _trayService?.SetVisible(enabled);
@@ -1018,6 +1035,8 @@ public partial class AppShell
         trayAvailable = !enabled || _trayService?.IsReady == true;
         if (enabled && !trayAvailable)
             SendToJS("log", new { msg = "The Linux tray helper is not ready; HapsHub will remain visible when closed.", color = "warn" });
+        if (enabled && _trayService?.HasFailed == true)
+            SendToJS("toast", new { ok = false, msg = LinuxTrayMissingMessage });
 #endif
         _windowCtrl.SetHideFromTaskbar(enabled && trayAvailable);
         // On startup, auto-hide the window to tray immediately
@@ -1141,6 +1160,29 @@ public partial class AppShell
     private readonly TaskCompletionSource _windowReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly TaskCompletionSource _webViewReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private const int JsBatchMaxMessages = 100;
+
+    // Linux: GTK's main thread also draws the page and passes it every click, key and scroll, so a message handled
+    // there froze the whole window until its handler got to its first await (a database read, a file, a picture).
+    // Messages from the page are handled in order on one background thread instead. Windows keeps handling them
+    // where they arrive: WebView2 draws in its own process, so a busy UI thread doesn't stop the page there.
+    private readonly Channel<string>? _webMessageQueue = OperatingSystem.IsLinux()
+        ? Channel.CreateUnbounded<string>(new UnboundedChannelOptions { SingleReader = true, AllowSynchronousContinuations = false })
+        : null;
+
+    private void EnqueueWebMessage(string message)
+    {
+        if (_webMessageQueue == null || !_webMessageQueue.Writer.TryWrite(message)) _ = OnWebMessage(message);
+    }
+
+    private async Task RunWebMessageWorkerAsync(ChannelReader<string> reader)
+    {
+        await foreach (var message in reader.ReadAllAsync())
+        {
+            // Only the part before the handler's first await runs here, so the next message isn't held up by I/O.
+            try { _ = OnWebMessage(message); }
+            catch (Exception ex) { CrashHandler.WriteEntry("OnWebMessage", ex); }
+        }
+    }
 
     private async Task RunJsDispatcherAsync()
     {

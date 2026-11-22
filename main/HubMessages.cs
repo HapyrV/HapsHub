@@ -68,7 +68,7 @@ public partial class AppShell
                 var vrcxSource = VrcxHistoryModule.DefaultSource;
                 if (msg["choose"]?.Value<bool>() == true)
                 {
-                    var picked = NativeFileDialogSharp.Dialog.FileOpen("sqlite3,db");
+                    var picked = Dialog.FileOpen("sqlite3,db");
                     if (!picked.IsOk) return true;
                     vrcxSource = picked.Path;
                 }
@@ -76,7 +76,7 @@ public partial class AppShell
                 return true;
 
             case "hubExportNotes":
-                var savedTo = NativeFileDialogSharp.Dialog.FileSave("csv");
+                var savedTo = Dialog.FileSave("csv");
                 if (!savedTo.IsOk) return true;
                 var notesPath = savedTo.Path.EndsWith(".csv", StringComparison.OrdinalIgnoreCase) ? savedTo.Path : savedTo.Path + ".csv";
                 _ = Task.Run(() => RunNotesExport(notesPath));

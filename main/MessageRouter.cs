@@ -495,6 +495,8 @@ public partial class AppShell
                     StartStartupTrafficDiagnostics();
                     // Signal platform so the UI can hide unsupported controls.
 #if !WINDOWS
+                    // Shown in the terminal; Linux CI checks for it to know the page loaded and reached the backend.
+                    Console.WriteLine("HapsHub: page loaded and connected.");
                     _trayService?.Initialize(_window);
 #endif
                     SendToJS("setPlatform", new { isLinux = !OperatingSystem.IsWindows() });

@@ -692,8 +692,7 @@ public class RelayController : IDisposable
         try
         {
             // Steam may appear as either the launcher or its web helper on Linux.
-            return Process.GetProcessesByName("steam").Length > 0
-                || Process.GetProcessesByName("steamwebhelper").Length > 0;
+            return AnyProcessAlive("steam") || AnyProcessAlive("steamwebhelper");
         }
         catch { return false; }
     }
@@ -880,6 +879,7 @@ public class RelayController : IDisposable
 
     private static bool AnyProcessAlive(string name)
     {
+        if (OperatingSystem.IsLinux()) return LinuxProcessTable.IsRunning(name);
         bool alive = false;
         foreach (var p in Process.GetProcessesByName(name))
         {
@@ -917,22 +917,33 @@ public class RelayController : IDisposable
             var bestStart = DateTime.MinValue;
             void Scan(string name)
             {
-                foreach (var p in Process.GetProcessesByName(name))
+                if (OperatingSystem.IsLinux())
                 {
-                    try
+                    foreach (var pid in LinuxProcessTable.Pids(name))
                     {
-                        if (p.HasExited) continue;
-                        DateTime st;
-                        try { st = p.StartTime; } catch { st = DateTime.MinValue; }
-                        if (bestPid == 0 || (st != DateTime.MinValue && (bestStart == DateTime.MinValue || st < bestStart)))
-                        {
-                            bestPid = p.Id;
-                            bestStart = st;
-                        }
+                        try { Consider(Process.GetProcessById(pid)); }
+                        catch (ArgumentException) { }   // it ended since the last look
+                        catch (InvalidOperationException) { }
                     }
-                    catch { }
-                    finally { try { p.Dispose(); } catch { } }
+                    return;
                 }
+                foreach (var p in Process.GetProcessesByName(name)) Consider(p);
+            }
+            void Consider(Process p)
+            {
+                try
+                {
+                    if (p.HasExited) return;
+                    DateTime st;
+                    try { st = p.StartTime; } catch { st = DateTime.MinValue; }
+                    if (bestPid == 0 || (st != DateTime.MinValue && (bestStart == DateTime.MinValue || st < bestStart)))
+                    {
+                        bestPid = p.Id;
+                        bestStart = st;
+                    }
+                }
+                catch { }
+                finally { try { p.Dispose(); } catch { } }
             }
             Scan("VRChat");
 #if !WINDOWS

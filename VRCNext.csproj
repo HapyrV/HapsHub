@@ -30,6 +30,14 @@
     <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
   </PropertyGroup>
 
+  <!-- The Linux download is one HapsHub program beside the native .so libraries and the frontend, instead of about
+       190 .NET .dll files (they run on Linux too, but look like Windows files in the folder). ReadyToRun compiles
+       HapsHub's own code ahead of time, so starting doesn't wait on the JIT. Both only change dotnet publish. -->
+  <PropertyGroup Condition="'$(_LinuxBuild)'=='true' and '$(RuntimeIdentifier)' != ''">
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishReadyToRun>true</PublishReadyToRun>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.14" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
@@ -37,7 +45,6 @@
     <ProjectReference Include="external\photino.NET\Photino.NET\Photino.NET.csproj" />
     <PackageReference Include="NativeFileDialogSharp" Version="0.6.0-alpha" />
     <PackageReference Include="Rsync.Delta" Version="1.0.1" />
-    <PackageReference Include="System.Drawing.Common" Version="10.0.14" Condition="'$(_LinuxBuild)'=='true'" />
     <PackageReference Include="SkiaSharp" Version="2.88.8" />
     <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="2.88.8" Condition="'$(_LinuxBuild)'!='true'" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.8" Condition="'$(_LinuxBuild)'=='true'" />
@@ -106,6 +113,14 @@
       <Output TaskParameter="ExitCode" PropertyName="_HubSourceExit" />
     </Exec>
     <WriteLinesToFile Condition="'$(_HubSourceExit)' == '0'" File="$(OutDir)source-commit.txt" Lines="$(_HubSourceCommit)" Overwrite="true" />
+  </Target>
+
+  <!-- Photino.NET hands over its Windows libraries and its .pdb on every platform; the Linux build has no use for them -->
+  <Target Name="DropWindowsFilesFromLinuxPublish" AfterTargets="ComputeResolvedFilesToPublishList" Condition="'$(_LinuxBuild)'=='true'">
+    <ItemGroup>
+      <_HubWindowsOnlyFile Include="@(ResolvedFileToPublish)" Condition="'%(Extension)' == '.exe' or '%(Extension)' == '.pdb' or ('%(Extension)' == '.dll' and ('%(Filename)' == 'Photino.Native' or '%(Filename)' == 'WebView2Loader' or '%(Filename)' == 'openvr_api' or '%(Filename)' == 'e_sqlite3' or '%(Filename)' == 'nfd' or '%(Filename)' == 'libSkiaSharp'))" />
+      <ResolvedFileToPublish Remove="@(_HubWindowsOnlyFile)" />
+    </ItemGroup>
   </Target>
 
   <!-- Inject webhook key from build environment into a generated file -->

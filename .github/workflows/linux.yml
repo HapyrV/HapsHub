@@ -35,16 +35,18 @@ jobs:
           for f in HapsHub Photino.Native.so libnfd.so libe_sqlite3.so libSkiaSharp.so frontend/index.html; do
             test -e "$f" || { echo "::error::The build is missing $f"; exit 1; }
           done
-          # Windows-only leftovers.
-          rm -f *.exe openvr_api.dll e_sqlite3.dll nfd.dll libSkiaSharp.dll portable.txt source-commit.txt
+          rm -f portable.txt source-commit.txt
           rm -rf voice tray frameshot
+          # .NET's own files are inside the HapsHub program and the project leaves Windows files out; fail if any return.
+          extra=$(find . \( -iname '*.dll' -o -iname '*.exe' -o -iname '*.pdb' \) -printf '%P ')
+          if [ -n "$extra" ]; then echo "::error::Windows-looking files in the Linux build: $extra"; exit 1; fi
           chmod +x HapsHub
           cp ../../LICENSE ../../README.md ../../tools/hapshub/linux/run-hapshub.sh .
           chmod +x run-hapshub.sh
 
       - name: Every library the app loads is there
         run: |
-          missing=$(ldd out/HapsHub/Photino.Native.so out/HapsHub/libnfd.so | grep "not found" || true)
+          missing=$(ldd out/HapsHub/HapsHub out/HapsHub/Photino.Native.so out/HapsHub/libnfd.so | grep "not found" || true)
           if [ -n "$missing" ]; then echo "::error::Missing libraries: $missing"; exit 1; fi
 
       - name: Starts and keeps running for 45 seconds
@@ -62,6 +64,8 @@ jobs:
           done
           # 124 means timeout stopped it while it was still running, which is what should happen.
           if [ "$code" -ne 124 ]; then echo "::error::HapsHub exited by itself with code $code"; exit 1; fi
+          # The page sends "ready" once it has loaded; on Linux the backend prints this line when it arrives.
+          grep -q "HapsHub: page loaded and connected." "$RUNNER_TEMP/run.log" || { echo "::error::The page never reached the backend"; exit 1; }
 
       - name: Hub self-test
         run: |
@@ -124,3 +128,4 @@ jobs:
             echo "::warning::Crash entry $(basename "$f")"; sed -n "/Exception ───/,/Threads ───/p" "$f" | head -n 80
           done
           if [ "$code" -ne 124 ]; then echo "::error::HapsHub exited by itself on Arch with code $code"; exit 1; fi
+          grep -q "HapsHub: page loaded and connected." run.log || { echo "::error::The page never reached the backend on Arch"; exit 1; }

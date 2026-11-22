@@ -58,6 +58,10 @@ It needs Windows 10 or 11 with Microsoft's WebView2 runtime, which Windows norma
    Ubuntu, Debian, Mint, Pop!_OS: `sudo apt install libwebkit2gtk-4.1-0 libgtk-3-0 libnotify4 ffmpeg pulseaudio-utils`.
    Fedora: `sudo dnf install webkit2gtk4.1 gtk3 libnotify ffmpeg pulseaudio-utils`.
    `ffmpeg` and `libpulse`/`pulseaudio-utils` are only for YouTube Tunnel; add `wine` for VRCT and other Windows apps.
+   For the tray icon (Settings > System Tray > Hide in System Tray), also install Python's AppIndicator support:
+   Arch `python-gobject libayatana-appindicator`, Ubuntu/Debian `python3-gi gir1.2-ayatanaappindicator3-0.1`,
+   Fedora `python3-gobject libayatana-appindicator-gtk3`. On GNOME, tray icons also need the
+   "AppIndicator and KStatusNotifierItem Support" extension (Ubuntu has it already).
 2. Download `HapsHub-<version>-linux-x64.tar.gz` from [Releases](https://github.com/HapyrV/HapsHub/releases).
 3. Unpack it and start it: `tar -xzf HapsHub-*-linux-x64.tar.gz && ./HapsHub/run-hapshub.sh`
 4. If it doesn't open, run `run-hapshub.sh` from a terminal: it lists any missing system libraries.
@@ -73,6 +77,7 @@ Your data is kept in `~/.config/HapsHub`. On Linux a few things work differently
 | VRCT built in | VRCT's engine runs with Wine. Point Settings at `VRCT.exe` if it isn't in `~/.wine`. |
 | YouTube Tunnel | Needs `ffmpeg` and `pactl`. HapsHub adds a **HapsHub Tunnel Mic**: choose it as your microphone in VRChat. |
 | Launch switches | Steam copies start through Steam (Proton), other Windows apps with Wine. |
+| Tray icon | Uses Python with AppIndicator (packages above). Without them, HapsHub says so and stays open when closed. |
 | Updating | Download the new tar.gz and unpack it over the old folder. |
 
 **Moving from VRCNext**: HapsHub keeps its own data and doesn't touch VRCNext's. Both can be installed side by side.

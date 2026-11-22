@@ -95,7 +95,7 @@ public sealed class LinuxSystemTrayService : IDisposable
                     lambda icon, item: send_action("launch:vr"),
                     visible=lambda item: not state["vrc_running"],
                 ),
-                pystray.MenuItem("Close VRCN", lambda icon, item: send_action("quit")),
+                pystray.MenuItem("Close HapsHub", lambda icon, item: send_action("quit")),
             )
             icon = pystray.Icon(
                 "vrcnext",
@@ -181,7 +181,7 @@ public sealed class LinuxSystemTrayService : IDisposable
             vr_item = Gtk.MenuItem(label="Launch VRChat (VR)")
             vr_item.connect("activate", lambda item: send_action("launch:vr"))
             menu.append(vr_item)
-            close_item = Gtk.MenuItem(label="Close VRCN")
+            close_item = Gtk.MenuItem(label="Close HapsHub")
             close_item.connect("activate", lambda item: send_action("quit"))
             menu.append(close_item)
             menu.show_all()
@@ -269,6 +269,8 @@ public sealed class LinuxSystemTrayService : IDisposable
     public Action<string>? OnStatus { get; set; }
     public Action<string>? OnUnavailable { get; set; }
     public bool IsReady => _ready;
+    /// <summary>The helper couldn't start or stopped with an error, usually because its Python packages are missing.</summary>
+    public bool HasFailed { get; private set; }
 
     public void Initialize(PhotinoWindow window)
     {
@@ -321,6 +323,7 @@ public sealed class LinuxSystemTrayService : IDisposable
                 var exitCode = helper.ExitCode;
                 if (exitCode != 0)
                 {
+                    HasFailed = true;
                     var message = $"Linux tray helper exited with code {exitCode}.";
                     OnStatus?.Invoke(message);
                     OnUnavailable?.Invoke(message);
@@ -336,6 +339,7 @@ public sealed class LinuxSystemTrayService : IDisposable
         }
         catch (Exception ex)
         {
+            HasFailed = true;
             OnStatus?.Invoke($"Linux tray unavailable: {ex.Message}");
             OnUnavailable?.Invoke($"Linux tray unavailable: {ex.Message}");
             CrashHandler.WriteEntry("LinuxSystemTrayService.Initialize", ex);
