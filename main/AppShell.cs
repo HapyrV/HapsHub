@@ -30,6 +30,7 @@ public partial class AppShell
     private System.Threading.Timer? _memDiagTimer;
     private int _worldStatsOffsetMin; // random 0-10 min offset per session
     private bool _minimized;
+    private bool _startupTrayHideDone;
     private System.Threading.Timer? _vrcCacheTimer;
     private readonly HashSet<string> _vrcCacheScanned = new();
     private System.Threading.Timer? _amplitudeTimer;
@@ -1039,9 +1040,13 @@ public partial class AppShell
             SendToJS("toast", new { ok = false, msg = LinuxTrayMissingMessage });
 #endif
         _windowCtrl.SetHideFromTaskbar(enabled && trayAvailable);
-        // On startup, auto-hide the window to tray immediately
-        if (enabled && autoHide && trayAvailable && _windowReady.Task.IsCompleted && _core.Window != null)
+        // Start hidden in the tray only when started minimized (Start with Windows), and only once:
+        // opening HapsHub yourself shows the window, and a tray helper that restarts later doesn't hide it.
+        if (enabled && autoHide && _minimized && !_startupTrayHideDone && trayAvailable && _windowReady.Task.IsCompleted && _core.Window != null)
+        {
+            _startupTrayHideDone = true;
             _windowCtrl.HideWindow();
+        }
     }
 
     private void UpdateTrayUser(string name, string status, string statusDesc, string imageUrl)
