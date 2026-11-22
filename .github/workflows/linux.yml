@@ -53,8 +53,22 @@ jobs:
         run: |
           export HAPSHUB_DATA_DIR="$RUNNER_TEMP/hapshub-data"
           mkdir -p "$HAPSHUB_DATA_DIR"
+          dotnet tool install -g dotnet-stack > /dev/null 2>&1 || true
           set +e
-          dbus-run-session -- xvfb-run -a -s "-screen 0 1600x900x24" timeout 45 ./out/HapsHub/HapsHub > "$RUNNER_TEMP/run.log" 2>&1
+          dbus-run-session -- xvfb-run -a -s "-screen 0 1600x900x24" timeout 45 ./out/HapsHub/HapsHub > "$RUNNER_TEMP/run.log" 2>&1 &
+          runner=$!
+          sleep 35
+          # Not connected yet: show which processes run and where each of HapsHub's threads is waiting.
+          if ! grep -q "HapsHub: page loaded and connected." "$RUNNER_TEMP/run.log"; then
+            echo "--- processes ---"
+            ps -eo pid,ppid,stat,etime,args --forest | grep -iE 'HapsHub|WebKit|Xvfb|pkexec|apt|gst' | grep -v grep
+            pid=$(pgrep -x HapsHub | head -n 1)
+            if [ -n "$pid" ]; then
+              echo "--- HapsHub threads (pid $pid) ---"
+              DOTNET_ROLL_FORWARD=Major "$HOME/.dotnet/tools/dotnet-stack" report -p "$pid" 2>&1 | head -n 300
+            fi
+          fi
+          wait $runner
           code=$?
           set -e
           tail -n 60 "$RUNNER_TEMP/run.log"
