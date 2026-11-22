@@ -1,4 +1,9 @@
-﻿# HapsHub 1.1.0
+﻿# HapsHub 1.1.1
+
+**Fixed**
+- With "Minimize to tray" on, opening HapsHub only showed a tray icon and no window. The window now opens as usual; HapsHub only starts hidden in the tray when it starts with Windows.
+
+# HapsHub 1.1.0
 
 Built on VRCNext 2027.2.2.
 
