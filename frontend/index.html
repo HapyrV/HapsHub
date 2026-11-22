@@ -203,6 +203,7 @@
                                     <button class="tb-dd-item" data-keep-modal onclick="openMyReportsModal()"><span class="msi">gavel</span><span data-i18n="tb.vrchat.my_reports">My Reports</span></button>
                                     <button class="tb-dd-item" data-keep-modal onclick="openPurchaseHistoryModal()"><span class="msi">sell</span><span data-i18n="tb.vrchat.purchase_history">Purchase History</span></button>
                                     <button class="tb-dd-item" data-keep-modal onclick="openRewardCodeModal()"><span class="msi">redeem</span><span data-i18n="tb.vrchat.reward_code">Reward Code</span></button>
+                                    <button class="tb-dd-item" data-keep-modal onclick="openFreeStoreModal()"><span class="msi">card_giftcard</span><span data-i18n="tb.vrchat.free_store">Free Store Items</span></button>
                                 </div>
                             </div>
                             <div class="tb-dd-submenu">
@@ -698,6 +699,7 @@
     <div class="modal-overlay" id="modalMyReports" style="display:none;" onclick="if(event.target===this)closeMyReportsModal()"></div>
     <div class="modal-overlay" id="modalPurchaseHistory" style="display:none;" onclick="if(event.target===this)closePurchaseHistoryModal()"></div>
     <div class="modal-overlay" id="modalRewardCode" style="display:none;" onclick="if(event.target===this)closeRewardCodeModal()"></div>
+    <div class="modal-overlay" id="modalFreeStore" style="display:none;" onclick="if(event.target===this)closeFreeStoreModal()"></div>
     <div class="modal-overlay" id="modalReportUser" style="display:none;z-index:10010;" onclick="if(event.target===this)closeReportUserModal()"></div>
 
     <!-- Notification Toast (top-right, action feedback) -->
@@ -828,6 +830,7 @@
             modalMyReports:        'core/modals/vrc-tools-modal/my-reports-modal.html',
             modalPurchaseHistory:  'core/modals/vrc-tools-modal/purchase-history-modal.html',
             modalRewardCode:       'core/modals/vrc-tools-modal/reward-code-modal.html',
+            modalFreeStore:        'core/modals/vrc-tools-modal/free-store-modal.html',
             modalReportUser:       'core/modals/vrc-tools-modal/report-user-modal.html',
             dashLayoutModal:    'modules/dashboard/dash-layout.html',
             avFavPickerPanel:   'modules/avatars/fav-picker.html',

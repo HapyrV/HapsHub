@@ -1,0 +1,22 @@
+        <div class="modal-box" style="width:460px;max-width:90%;">
+            <div class="fd-modal-bar">
+                <div class="fd-modal-bar-crumbs"><span class="fd-modal-bar-title" data-i18n="free_store.title">Free Store Items</span></div>
+                <div class="fd-modal-bar-actions">
+                    <button class="btn-notif fd-action-btn" title="Refresh" data-i18n-title="common.refresh" onclick="fsLoad()"><span class="msi" style="font-size:20px;">refresh</span></button>
+                    <button class="btn-notif fd-action-btn" title="Close" data-i18n-title="common.close" onclick="closeFreeStoreModal()"><span class="msi" style="font-size:20px;">close</span></button>
+                </div>
+            </div>
+            <div class="modal-card">
+                <div class="modal-msg" style="margin:0 0 14px;" data-i18n="free_store.desc">These free items are available in the VRChat store.</div>
+                <div id="fsList" class="mt-list" style="max-height:50vh;overflow-y:auto;"></div>
+            </div>
+            <div class="modal-foot">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <label class="toggle"><input type="checkbox" id="fsDontShow"><div class="toggle-track"><div class="toggle-knob"></div></div></label>
+                    <span style="cursor:pointer;font-size:calc(12px + var(--fs-off, 0px));color:var(--tx1);" onclick="const c=document.getElementById('fsDontShow');if(c)c.checked=!c.checked;" data-i18n="free_store.dont_show">Don't show this again</span>
+                </div>
+                <div class="modal-foot-spacer"></div>
+                <button class="vrcn-button" onclick="closeFreeStoreModal()" data-i18n="common.close">Close</button>
+                <button class="vrcn-button vrcn-btn-primary" id="fsClaimBtn" onclick="fsClaimAll()" data-i18n="free_store.claim_all">Claim All</button>
+            </div>
+        </div>

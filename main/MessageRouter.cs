@@ -3760,6 +3760,30 @@ public partial class AppShell
                     });
                     break;
 
+                // Free Store Items
+                case "vrcGetFreeStoreItems":
+                {
+                    var fsAuto = msg["auto"]?.Value<bool>() ?? false;
+                    _ = Task.Run(() => FreeStoreController.CheckAsync(_core, fsAuto));
+                    break;
+                }
+
+                case "vrcClaimFreeStoreItems":
+                {
+                    var fsIds = (msg["listingIds"] as JArray ?? new JArray())
+                        .Select(t => t.ToString()).Where(s => s.Length > 0).ToList();
+                    _ = Task.Run(async () =>
+                    {
+                        await FreeStoreController.ClaimAsync(_core, fsIds);
+                        _cache.Delete(CacheHandler.KeyInventory);
+                    });
+                    break;
+                }
+
+                case "vrcSetFreeStoreDontShow":
+                    FreeStoreController.SetDontShow(_core, msg["dontShow"]?.Value<bool>() ?? false);
+                    break;
+
                 case "vrcGetMessageTemplates":
                 case "vrcUpdateMessageTemplate":
                 case "vrcRespondToNotification":
