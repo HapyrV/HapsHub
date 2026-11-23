@@ -63,6 +63,8 @@ public class WindowsTrayService : IDisposable
 
     // Callbacks (invoked on the CALLING thread — callers must marshal if needed)
     public Action? OnShowWindow;
+    /// <summary>Always shows the window (the popup's header). OnShowWindow is the icon click, which toggles.</summary>
+    public Action? OnOpenWindow;
     public Action<string>? OnStatusChange;   // VRC status key
     public Action? OnClose;
     public Action<bool>? OnLaunchVRChat;     // bool = vr
@@ -380,7 +382,7 @@ public class WindowsTrayService : IDisposable
     internal void RequestShowWindow()
     {
         _trayHelper?.Post(_ => _popup?.Close(), null);
-        OnShowWindow?.Invoke();
+        (OnOpenWindow ?? OnShowWindow)?.Invoke();
     }
 
     public void ShowNotification(string title, string subtitle, string imageUrl, string accentKey)

@@ -83,7 +83,8 @@ public sealed class LinuxSystemTrayService : IDisposable
                 for status, label in status_options
             ))
             menu = pystray.Menu(
-                pystray.MenuItem(display_profile, lambda icon, item: send_action("show"), default=True),
+                pystray.MenuItem("Open HapsHub", lambda icon, item: send_action("show"), default=True),
+                pystray.MenuItem(display_profile, lambda icon, item: send_action("show")),
                 pystray.MenuItem("Set Status", status_menu),
                 pystray.MenuItem(
                     "Launch VRChat (Desktop)",
@@ -155,6 +156,9 @@ public sealed class LinuxSystemTrayService : IDisposable
             )
             indicator.set_icon_theme_path(icon_directory)
             menu = Gtk.Menu()
+            open_item = Gtk.MenuItem(label="Open HapsHub")
+            open_item.connect("activate", lambda item: send_action("show"))
+            menu.append(open_item)
             profile_item = Gtk.MenuItem(label=display_profile())
             profile_item.connect("activate", lambda item: send_action("show"))
             menu.append(profile_item)
@@ -186,6 +190,7 @@ public sealed class LinuxSystemTrayService : IDisposable
             menu.append(close_item)
             menu.show_all()
             indicator.set_menu(menu)
+            indicator.set_secondary_activate_target(open_item)
             indicator.set_title("HapsHub")
             indicator.set_status(AppIndicator.IndicatorStatus.ACTIVE)
             updating_status[0] = True
@@ -221,6 +226,26 @@ public sealed class LinuxSystemTrayService : IDisposable
             GLib.timeout_add(500, lambda: (send_command("ready"), False)[1])
             Gtk.main()
             return quit_requested.is_set()
+
+        def tray_host_missing():
+            if os.environ.get("XDG_SESSION_TYPE", "").lower() != "wayland":
+                return False
+            try:
+                import gi
+                from gi.repository import Gio, GLib
+                bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+                reply = bus.call_sync(
+                    "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus", "NameHasOwner",
+                    GLib.Variant("(s)", ("org.kde.StatusNotifierWatcher",)), GLib.VariantType("(b)"),
+                    Gio.DBusCallFlags.NONE, 2000, None)
+                return not reply.unpack()[0]
+            except Exception:
+                return False
+
+        if tray_host_missing():
+            send_command("notray")
+            print("No system tray on this desktop: HapsHub stays in the taskbar when closed.", file=sys.stderr, flush=True)
+            sys.exit(0)
 
         try:
             run_pystray()
@@ -321,13 +346,9 @@ public sealed class LinuxSystemTrayService : IDisposable
                 if (_stopping) return;
                 _ready = false;
                 var exitCode = helper.ExitCode;
-                if (exitCode != 0)
-                {
-                    HasFailed = true;
-                    var message = $"Linux tray helper exited with code {exitCode}.";
-                    OnStatus?.Invoke(message);
-                    OnUnavailable?.Invoke(message);
-                }
+                if (exitCode != 0) HasFailed = true;
+                // Any exit while HapsHub runs leaves no tray icon, so a window hidden to the tray must come back.
+                ReportUnavailable($"Linux tray helper exited with code {exitCode}.");
             };
 
             if (!helper.Start())
@@ -340,8 +361,7 @@ public sealed class LinuxSystemTrayService : IDisposable
         catch (Exception ex)
         {
             HasFailed = true;
-            OnStatus?.Invoke($"Linux tray unavailable: {ex.Message}");
-            OnUnavailable?.Invoke($"Linux tray unavailable: {ex.Message}");
+            ReportUnavailable($"Linux tray unavailable: {ex.Message}");
             CrashHandler.WriteEntry("LinuxSystemTrayService.Initialize", ex);
             StopHelper();
         }
@@ -550,6 +570,10 @@ public sealed class LinuxSystemTrayService : IDisposable
                     case "show":
                         OnShowWindow?.Invoke();
                         break;
+                    case "notray":
+                        _ready = false;
+                        ReportUnavailable("There is no system tray on this desktop (on GNOME, install the AppIndicator extension).");
+                        break;
                     default:
                         if (command.StartsWith("status:", StringComparison.Ordinal))
                         {
@@ -580,6 +604,16 @@ public sealed class LinuxSystemTrayService : IDisposable
                 client?.Dispose();
             }
         }
+    }
+
+    private int _unavailableReported;
+
+    /// <summary>Tells HapsHub once that the tray can't be used, so it shows the window and stops closing to the tray.</summary>
+    private void ReportUnavailable(string message)
+    {
+        if (_stopping || Interlocked.Exchange(ref _unavailableReported, 1) == 1) return;
+        OnStatus?.Invoke(message);
+        OnUnavailable?.Invoke(message);
     }
 
     private void SendHelperCommand(string command)
@@ -640,17 +674,23 @@ public sealed class LinuxSystemTrayService : IDisposable
 
 internal static class LinuxGtkWindow
 {
+    // The GTK window found the first time. The title can change while the window is hidden (renaming the app),
+    // so showing it again must not depend on finding it by title.
+    private static IntPtr _handle;
+
     public static void SetVisible(PhotinoWindow window, bool visible)
     {
         window.Invoke(() =>
         {
-            var handle = FindWindow(window.Title);
+            if (_handle == IntPtr.Zero || !IsToplevel(_handle)) _handle = FindWindow(window.Title);
+            var handle = _handle;
             if (handle == IntPtr.Zero)
                 throw new InvalidOperationException("Unable to find the HapsHub GTK window.");
 
             if (visible)
             {
                 gtk_widget_show_all(handle);
+                gtk_window_deiconify(handle);
                 gtk_window_present(handle);
             }
             else
@@ -660,29 +700,40 @@ internal static class LinuxGtkWindow
         });
     }
 
+    /// <summary>By title first; if no title matches, the only normal (not popup) top-level window there is.</summary>
     private static IntPtr FindWindow(string title)
     {
+        IntPtr byTitle = IntPtr.Zero, onlyNormal = IntPtr.Zero;
+        int normalCount = 0;
+        foreach (var w in Toplevels())
+        {
+            if (byTitle == IntPtr.Zero && string.Equals(Marshal.PtrToStringUTF8(gtk_window_get_title(w)), title, StringComparison.Ordinal))
+                byTitle = w;
+            if (gtk_window_get_window_type(w) == 0 /* GTK_WINDOW_TOPLEVEL */) { normalCount++; onlyNormal = w; }
+        }
+        return byTitle != IntPtr.Zero ? byTitle : normalCount == 1 ? onlyNormal : IntPtr.Zero;
+    }
+
+    private static bool IsToplevel(IntPtr handle) => Toplevels().Contains(handle);
+
+    private static List<IntPtr> Toplevels()
+    {
+        var result = new List<IntPtr>();
         var windows = gtk_window_list_toplevels();
         try
         {
-            var current = windows;
-            while (current != IntPtr.Zero)
+            for (var current = windows; current != IntPtr.Zero;)
             {
                 var listItem = Marshal.PtrToStructure<GList>(current);
-                if (listItem.Data != IntPtr.Zero)
-                {
-                    var nativeTitle = gtk_window_get_title(listItem.Data);
-                    if (string.Equals(Marshal.PtrToStringUTF8(nativeTitle), title, StringComparison.Ordinal))
-                        return listItem.Data;
-                }
+                if (listItem.Data != IntPtr.Zero) result.Add(listItem.Data);
                 current = listItem.Next;
             }
-            return IntPtr.Zero;
         }
         finally
         {
             if (windows != IntPtr.Zero) g_list_free(windows);
         }
+        return result;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -707,6 +758,12 @@ internal static class LinuxGtkWindow
 
     [DllImport("libgtk-3.so.0", CallingConvention = CallingConvention.Cdecl)]
     private static extern void gtk_window_present(IntPtr window);
+
+    [DllImport("libgtk-3.so.0", CallingConvention = CallingConvention.Cdecl)]
+    private static extern void gtk_window_deiconify(IntPtr window);
+
+    [DllImport("libgtk-3.so.0", CallingConvention = CallingConvention.Cdecl)]
+    private static extern int gtk_window_get_window_type(IntPtr window);
 
     [DllImport("libglib-2.0.so.0", CallingConvention = CallingConvention.Cdecl)]
     private static extern void g_list_free(IntPtr list);

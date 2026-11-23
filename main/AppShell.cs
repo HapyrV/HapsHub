@@ -335,6 +335,7 @@ public partial class AppShell
         // System tray
         _trayService = new WindowsTrayService();
         _trayService.OnShowWindow = () => _windowCtrl.ToggleWindowVisibility();
+        _trayService.OnOpenWindow = () => _windowCtrl.BringToFront();
         _trayService.OnStatusChange = status =>
         {
             var currentDesc = _vrcApi.CurrentUserRaw?["statusDescription"]?.ToString() ?? "";
@@ -373,7 +374,8 @@ public partial class AppShell
         _core.OnTrayThemeUpdate = colors => _trayService?.UpdateTheme(colors);
 #else
         _trayService = new LinuxSystemTrayService();
-        _trayService.OnShowWindow = () => _windowCtrl.ToggleWindowVisibility();
+        // "Open HapsHub" always shows the window; toggling would hide a window that is open behind others.
+        _trayService.OnShowWindow = () => _windowCtrl.ShowWindow();
         _trayService.OnStatusChange = status =>
         {
             var currentDesc = _vrcApi.CurrentUserRaw?["statusDescription"]?.ToString() ?? "";
@@ -395,7 +397,8 @@ public partial class AppShell
             _windowCtrl.SetHideFromTaskbar(false);
             _windowCtrl.ShowWindow();
             _core.SendToJS("log", new { msg = $"{message} Closing to tray has been disabled.", color = "warn" });
-            if (_settings.MinimizeToTray) SendToJS("toast", new { ok = false, msg = LinuxTrayMissingMessage });
+            if (_settings.MinimizeToTray)
+                SendToJS("toast", new { ok = false, msg = _trayService?.HasFailed == true ? LinuxTrayMissingMessage : $"{message} HapsHub stays open when you close it." });
         };
         _trayService.OnClose = () =>
         {
@@ -1065,16 +1068,12 @@ public partial class AppShell
     {
         if (string.Equals(url.Trim(), DeepLinkService.ShowCommand, StringComparison.OrdinalIgnoreCase))
         {
-#if WINDOWS
             try { _windowCtrl?.BringToFront(); } catch { }
-#endif
             return;
         }
         var parsed = DeepLinkService.Parse(url);
         if (parsed == null) return;
-#if WINDOWS
         try { _windowCtrl?.BringToFront(); } catch { }
-#endif
         if (_deepLinkReady) DispatchDeepLink(url);
         else _pendingDeepLink = url;
     }

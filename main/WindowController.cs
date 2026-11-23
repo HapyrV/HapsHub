@@ -283,9 +283,12 @@ public class WindowController
         _linuxWindowHidden = true;
     }
 
+    /// <summary>
+    /// Shows the window and brings it to the front, whatever state it is in: hidden to the tray, minimized by the
+    /// window manager, or behind other windows. Used by the tray, a second launch and deep links.
+    /// </summary>
     public void ShowWindow()
     {
-        if (!_linuxWindowHidden) return;
         var window = _core.Window;
         if (window == null) return;
         if (OperatingSystem.IsLinux()) LinuxGtkWindow.SetVisible(window, true);
@@ -293,20 +296,14 @@ public class WindowController
         _linuxWindowHidden = false;
     }
 
+    public void BringToFront() => ShowWindow();
+
     public void ToggleWindowVisibility()
     {
         var window = _core.Window;
         if (window == null) return;
-        if (_linuxWindowHidden)
-        {
-            if (OperatingSystem.IsLinux()) LinuxGtkWindow.SetVisible(window, true);
-            else window.SetMinimized(false);
-            _linuxWindowHidden = false;
-        }
-        else
-        {
-            HideWindow();
-        }
+        if (_linuxWindowHidden) ShowWindow();
+        else HideWindow();
     }
 
     public bool HandleWindowClosing()
