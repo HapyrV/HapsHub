@@ -484,11 +484,32 @@ public class AuthController
             case "installUpdate":
                 _ = Task.Run(async () =>
                 {
-                    await _core.UpdateService.DownloadAsync(p =>
-                        Invoke(() => _core.SendToJS("updateProgress", p)));
+                    var upd = _core.UpdateService;
+                    // Linux, a build from source or a folder HapsHub can't write to: the download page instead.
+                    if (!upd.CanSelfUpdate)
+                    {
+                        Invoke(() => { upd.OpenReleasePage(); _core.SendToJS("updateFailed", new { msg = (string?)null }); });
+                        return;
+                    }
+                    try
+                    {
+                        await upd.DownloadAsync(p => Invoke(() => _core.SendToJS("updateProgress", p)));
+                    }
+                    catch (Exception ex)
+                    {
+                        CrashHandler.WriteEntry("UpdateService.Download", ex);
+                        Invoke(() => _core.SendToJS("updateFailed", new { msg = ex.Message }));
+                        return;
+                    }
                     Invoke(() => _core.SendToJS("updateReady", null));
                     await Task.Delay(800);
-                    Invoke(() => _core.UpdateService.ApplyAndRestart());
+                    Invoke(() =>
+                    {
+                        if (!upd.ApplyAndRestart()) { _core.SendToJS("updateFailed", new { msg = (string?)null }); return; }
+                        // The helper waits for HapsHub to close, copies the new files and starts it again.
+                        WindowController.AllowNextClose();
+                        _core.Window?.Close();
+                    });
                 });
                 break;
 
@@ -694,7 +715,15 @@ public class AuthController
             await Task.Delay(3000);
             var version = await _core.UpdateService.CheckAsync();
             if (version != null)
+            {
                 Invoke(() => _core.SendToJS("updateAvailable", new { version }));
+                // Fetch it in the background now, so updating is one click that only restarts HapsHub.
+                if (_core.UpdateService.CanSelfUpdate)
+                {
+                    try { await _core.UpdateService.DownloadAsync(null); }
+                    catch (Exception ex) { CrashHandler.WriteEntry("UpdateService.BackgroundDownload", ex); }
+                }
+            }
         });
     }
 

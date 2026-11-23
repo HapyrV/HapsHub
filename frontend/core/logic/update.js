@@ -84,10 +84,6 @@ function settingsCheckUpdate() {
 }
 
 function settingsInstallUpdate() {
-    if (window._isLinuxUi) {
-        sendToCS({ action: 'openUrl', url: 'https://github.com/shinyflvre/VRCNext/releases/latest' });
-        return;
-    }
     if (_updateInstalling) return;
     _updateInstalling = true;
     _updatePhase = 'starting';
@@ -130,10 +126,6 @@ function toggleUpdatePanel() {
 }
 
 function startUpdate() {
-    if (window._isLinuxUi) {
-        sendToCS({ action: 'openUrl', url: 'https://github.com/shinyflvre/VRCNext/releases/latest' });
-        return;
-    }
     if (_updateInstalling) return;
     _updateInstalling = true;
     _updatePhase = 'starting';
@@ -156,6 +148,22 @@ function onUpdateProgress(pct) {
     _updatePhase = 'downloading';
     setUpdProgress(true, pct);
     _setUpdCardProgress(pct);
+}
+
+// The update couldn't install here (download page opened instead), or the download failed: back to "update available".
+function onUpdateFailed(msg) {
+    _updateInstalling = false;
+    _updatePhase = 'ready';
+    _updatePct = 0;
+    setUpdProgress(false);
+    const btn = document.getElementById('updBtn');
+    if (btn) btn.disabled = false;
+    const sbtn = document.getElementById('setUpdInstallBtn');
+    if (sbtn) sbtn.disabled = false;
+    const wrap = document.getElementById('setUpdProgressWrap');
+    if (wrap) wrap.style.display = 'none';
+    rerenderUpdateTranslations();
+    if (msg) showToast(false, msg);
 }
 
 function onUpdateReady() {

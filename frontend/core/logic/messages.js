@@ -1184,6 +1184,7 @@ case 'vrcNews':
             case 'updateAvailable':      showUpdateAvailable(payload.version); break;
             case 'updateProgress':       onUpdateProgress(payload); break;
             case 'updateReady':          onUpdateReady(); break;
+            case 'updateFailed':         onUpdateFailed(payload?.msg); break;
             case 'hubUpstream':          onHubUpstream(payload); break;
             case 'hubModules':           onHubModules(payload); break;
             case 'hubPlugins':           if (typeof onHubPlugins === 'function') onHubPlugins(payload); break;
