@@ -1,4 +1,15 @@
-﻿# HapsHub 1.1.2
+﻿# HapsHub 1.1.3
+
+**New**
+- Hapsplorer: word searches can be sorted by "Best match", which puts the closest matches first. Searches also match full-width letters and hiragana/katakana spellings, and are faster.
+
+**Fixed**
+- Windows: a maximized window was cut off at the edges (the top bar and window buttons were partly off-screen). It now fits the screen exactly.
+- The "What's new" popup showed VRCNext's links. It now shows HapsHub, with Star on GitHub and Report a bug, and credits VRCNext.
+- The sidebar always showed "v1.0.0" under the HapsHub name. It now shows the version you're running.
+- Hapsplorer: signing in while the Hapsplorer server was unreachable said your key wasn't valid. It now says the server is offline, and your key is kept.
+
+# HapsHub 1.1.2
 
 **New**
 - Updates install themselves on Windows: when a new version is out, HapsHub downloads it in the background and checks it, and "Download & Install" just restarts into it. Your settings and data stay as they are. (This is the last update you need to install by hand.)
