@@ -1,4 +1,16 @@
-﻿# HapsHub 1.1.3
+﻿# HapsHub 1.1.4
+
+Built on VRCNext 2027.2.4.
+
+**New**
+- From VRCNext 2027.2.4: set content tags such as Sexually Suggestive or Graphic Violence on your own avatars in the avatar details, and on several at once with **Bulk Content Tag** in the Avatars edit mode.
+- Time Spent counts group joins and time from your whole visit history, so groups match the timeline.
+
+**Fixed**
+- Settings > "Automatic updates" didn't do anything: HapsHub still checked for updates at startup and downloaded them in the background. Turning it off now stops both ("Check for updates" in Settings still works). On Linux, updates are only announced; "Download & Install" opens the download page.
+- Time Spent > Groups: a visit with no recorded leave time (for example after VRChat crashed) no longer counts as lasting until now, which could add months to a group.
+
+# HapsHub 1.1.3
 
 **New**
 - Hapsplorer: word searches can be sorted by "Best match", which puts the closest matches first. Searches also match full-width letters and hiragana/katakana spellings, and are faster.
