@@ -1006,6 +1006,9 @@ function _handleBackendMessage(type, payload) {
                 { const ac = document.getElementById('avatarDetailContent');
                   if (ac) ac.innerHTML = `<div style="padding:30px;text-align:center;color:var(--err);">${esc(payload.error || t('avatars.error.loading_detail', 'Error loading avatar'))}</div><div style="text-align:center;margin-top:10px;"><button class="vrcn-button-round" onclick="closeAvatarDetail()">${t('common.close', 'Close')}</button></div>`; }
                 break;
+            case 'appVersion':
+                { const el = document.querySelector('.logo-sub'); if (el && payload) el.textContent = 'v' + payload; }
+                break;
             case 'customColors':
                 loadCustomThemes(payload);
                 break;

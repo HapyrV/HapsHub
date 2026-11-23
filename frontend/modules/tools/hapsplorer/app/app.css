@@ -136,7 +136,7 @@ dialog input { width: 100%; padding: 8px 10px; border-radius: 9px; border: 1px s
   .views { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
   .search { flex-basis: 100%; }
   .views button { white-space: nowrap; flex: none; }
-  #filtersBtn { order: 1; } #sort { order: 2; flex: 1 1 90px; min-width: 0; } #myAvatarsBtn { order: 3; } #themeBtn { order: 4; }
+  #filtersBtn { order: 1; } #sort { order: 2; flex: 1 0 auto; } #myAvatarsBtn { order: 3; } #themeBtn { order: 4; }
   #currency { display: none; }
   /* Filters: a sheet from the left with its own header; the avatar filter comes first. */
   .sidebar { display: none; position: fixed; z-index: 41; top: 0; left: 0; width: min(92vw, 400px); height: 100dvh;

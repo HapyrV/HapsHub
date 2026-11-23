@@ -682,6 +682,7 @@ public class AuthController
             }
             catch { }
         }
+        _core.SendToJS("appVersion", AppInfo.Version);
         _core.SendToJS("loadSettings", _core.Settings);
         _core.SendToJS("dateTimeFormat", new
         {

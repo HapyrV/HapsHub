@@ -91,6 +91,9 @@ function madeForOn(f = state.f) { return f.avatar?.length === 1 && f.fit !== 'al
 function apiParams(f, page) {
   const p = toParams(f, page);
   p.delete('fit');
+  // Best match is the default for any search here; the server only assumes it for meaning/similar
+  // (older clients without the option keep their likes order), so ask for it.
+  if ((f.q || f.similar) && !f.sort) p.set('sort', 'relevance');
   if (madeForOn(f)) p.set('maxav', String(MADE_FOR_MAX));
   hideParams(p, f.shop);
   return p;

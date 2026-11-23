@@ -154,8 +154,18 @@ public sealed class HubHapsplorerModule : IHubModule
         if (await Pick(s, ct) is not { } up) { await Offline(ctx.Response, s); return; }
         using var r = new HttpRequestMessage(HttpMethod.Get, new Uri(up, "/api/me"));
         r.Headers.Add(KeyHeader, key);
-        using var answer = await _http.SendAsync(r, ct);
-        if (!answer.IsSuccessStatusCode) { await Json(ctx.Response, new { error = "That key isn't valid." }, 401); return; }
+        HttpResponseMessage answer;
+        try { answer = await _http.SendAsync(r, ct); }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException && !ct.IsCancellationRequested)
+        {
+            _checked = default;
+            await Offline(ctx.Response, s);
+            return;
+        }
+        using var _ = answer;
+        // Only a refusal means a bad key; an offline or failing server is reported as that.
+        if (answer.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden) { await Json(ctx.Response, new { error = "That key isn't valid." }, 401); return; }
+        if (!answer.IsSuccessStatusCode) { _checked = default; await Offline(ctx.Response, s); return; }
         s.Key = key;
         Save(s);
         await Text(ctx.Response, await answer.Content.ReadAsStringAsync(ct), "application/json");
