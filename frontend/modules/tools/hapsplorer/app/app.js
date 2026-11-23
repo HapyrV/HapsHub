@@ -3,7 +3,7 @@
 
 const $ = (s) => document.querySelector(s);
 const LIST_KEYS = ['cat', 'sub', 'avatar', 'tag', 'rawtag', 'bcat', 'rating', 'feat'];
-const SCALAR_KEYS = ['q', 'mode', 'similar', 'shop', 'minprice', 'maxprice', 'minlikes', 'adult', 'status', 'within', 'after', 'before', 'sort', 'seed', 'verified'];
+const SCALAR_KEYS = ['q', 'mode', 'similar', 'shop', 'minprice', 'maxprice', 'minlikes', 'adult', 'status', 'within', 'after', 'before', 'sort', 'seed', 'verified', 'fit'];
 const PAGE = 60;
 /** The API version this page was written for; the server says which range it accepts (/api/health). */
 const API_VERSION = 1;
@@ -85,8 +85,13 @@ function readUrl() {
   state.f = f;
 }
 /** Item search params plus this browser's hidden shops and words (sent so counts and paging stay right; never in the URL). */
+/** With one avatar picked, show what was made for it (listed for at most this many avatars) unless "Everything that fits" is chosen. */
+const MADE_FOR_MAX = 3;
+function madeForOn(f = state.f) { return f.avatar?.length === 1 && f.fit !== 'all'; }
 function apiParams(f, page) {
   const p = toParams(f, page);
+  p.delete('fit');
+  if (madeForOn(f)) p.set('maxav', String(MADE_FOR_MAX));
   hideParams(p, f.shop);
   return p;
 }
@@ -350,10 +355,12 @@ function buildSidebar() {
   sb.hideWord = h('input', { class: 'find', type: 'search', placeholder: 'Hide items with a word…', title: 'Press Enter. Items whose title or tags contain it are hidden (this browser only).',
     onkeydown: (e) => { if (e.key === 'Enter') { addHiddenWord(e.target.value); e.target.value = ''; } } });
   sb.hidden = h('div');
-  sb.itemsBox = h('div', {},
-    h('h3', {}, 'Category'), sb.cats,
-    h('h3', {}, 'Avatar', h('button', { onclick: openAvatarsDialog, text: 'My avatars ✎' })), sb.avatarFind, sb.avatars,
-    h('label', { class: 'row' }, sb.verified, 'Only checked matches'),
+  sb.itemsBox = h('div', { class: 'items-box' },
+    h('div', { class: 'sheet-head mobile-only' }, h('b', { text: 'Filters' }), h('button', { class: 'primary', text: 'Show items', onclick: () => openFilters(false) })),
+    h('div', { class: 'sb-cat' }, h('h3', {}, 'Category'), sb.cats),
+    h('div', { class: 'sb-avatar' },
+      h('h3', {}, 'Avatar', h('button', { onclick: openAvatarsDialog, text: 'My avatars ✎' })), sb.avatarFind, sb.avatars,
+      h('label', { class: 'row' }, sb.verified, 'Only checked matches')),
     h('h3', {}, 'Tags'), sb.tagFind, sb.tagSuggest,
     h('h3', {}, sb.priceLabel), h('div', { class: 'row' }, sb.minp, '–', sb.maxp),
     h('h3', {}, 'Likes'), h('div', { class: 'row' }, sb.likes),
@@ -571,6 +578,28 @@ function renderChips() {
   for (const [k, fmt] of Object.entries(scalar)) if (f[k]) chips.push(h('button', { class: 'chip', title: 'Remove', onclick: () => (k === 'adult' ? setAdult('safe') : setFilter(k, null)) }, fmt(f[k]), ' ×'));
   if (chips.length > 1) chips.push(h('button', { class: 'chip clear', text: 'Clear all', onclick: () => { state.f = { ...(f.sort ? { sort: f.sort, seed: f.seed } : {}), ...(f.adult ? { adult: f.adult } : {}) }; showItems(true); } }));
   $('#chips').replaceChildren(...chips);
+  renderHint();
+}
+/** Under the result count: "made for this avatar" switch, or turning a search for an avatar's name into the avatar filter. */
+function renderHint() {
+  const f = state.f, meta = state.meta, box = $('#hint');
+  if (!box || !meta) return;
+  const parts = [];
+  if (f.avatar?.length === 1) {
+    const name = meta.avatars.find((a) => a.key === f.avatar[0])?.name || f.avatar[0];
+    const pick = (fit) => setFilter('fit', fit);
+    parts.push(h('div', { class: 'seg fit', role: 'group', 'aria-label': 'Which items' },
+      h('button', { class: madeForOn() ? 'on' : '', title: `Items listed for ${MADE_FOR_MAX} avatars or fewer`, text: `Made for ${name}`, onclick: () => pick(null) }),
+      h('button', { class: madeForOn() ? '' : 'on', title: 'Also items that list many avatars (poses, accessories, textures)', text: 'Everything that fits', onclick: () => pick('all') })));
+  }
+  const q = (f.q || '').trim().toLowerCase();
+  if (q && f.mode !== 'meaning' && !f.avatar?.length) {
+    const av = meta.avatars.find((a) => a.name.toLowerCase() === q || a.key === q || (a.nameJa || '') === f.q.trim());
+    if (av) parts.push(h('button', { class: 'pill suggest-avatar', onclick: () => { delete state.f.q; delete state.f.fit; state.f.avatar = [av.key]; showItems(true); } },
+      `${av.name} is an avatar: show items for ${av.name}`));
+  }
+  box.replaceChildren(...parts);
+  box.hidden = !parts.length;
 }
 
 // ---------- drawer ----------
@@ -1212,7 +1241,14 @@ $('#views').addEventListener('click', (e) => {
 });
 $('#exportLink').addEventListener('click', (e) => { e.preventDefault(); exportData(); });
 $('#importLink').addEventListener('click', (e) => { e.preventDefault(); importData(); });
-$('#filtersBtn').addEventListener('click', () => $('#sidebar').classList.toggle('open'));
+/** Phones: the filters are a sheet over the page, closed by its button, the backdrop or Escape. */
+function openFilters(on) {
+  $('#sidebar').classList.toggle('open', on);
+  document.body.classList.toggle('filters-open', on);
+}
+$('#filtersBtn').addEventListener('click', () => openFilters(!$('#sidebar').classList.contains('open')));
+$('#backdrop').addEventListener('click', () => openFilters(false));
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && document.body.classList.contains('filters-open')) openFilters(false); });
 function rerenderCards() { $('#grid').replaceChildren(...state.items.map((it, i) => card(it, i))); }
 
 document.addEventListener('keydown', (e) => {

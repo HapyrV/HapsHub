@@ -39,9 +39,10 @@
     <button id="updBadge" class="upd" hidden title="BOOTH updater"></button>
     <select id="currency" title="Currency"></select>
     <button id="themeBtn" class="icon" title="Theme">◐</button>
-    <button id="filtersBtn" class="icon mobile-only" title="Filters">☰</button>
+    <button id="filtersBtn" class="pill mobile-only" title="Filters">☰ Filters</button>
   </header>
 
+  <div id="backdrop" class="backdrop"></div>
   <div class="layout">
     <aside id="sidebar" class="sidebar" aria-label="Filters"></aside>
     <main class="main">
@@ -51,6 +52,7 @@
           <span id="count" class="count"></span>
           <div id="chips" class="chips"></div>
         </div>
+        <div id="hint" class="hint" hidden></div>
         <div id="warnings" class="warnings" hidden></div>
         <div id="grid" class="grid"></div>
         <div id="sentinel" class="sentinel"></div>

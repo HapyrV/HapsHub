@@ -131,12 +131,36 @@ dialog input { width: 100%; padding: 8px 10px; border-radius: 9px; border: 1px s
 }
 @media (max-width: 760px) {
   .layout { grid-template-columns: 1fr; }
-  .sidebar { display: none; position: fixed; z-index: 25; width: 85vw; left: 0; box-shadow: 4px 0 20px rgb(0 0 0 / .25); }
+  /* The top bar scrolls away instead of taking a third of a phone screen. */
+  .top { position: static; padding: 8px 10px; }
+  .views { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .search { flex-basis: 100%; }
+  .views button { white-space: nowrap; flex: none; }
+  #filtersBtn { order: 1; } #sort { order: 2; flex: 1 1 90px; min-width: 0; } #myAvatarsBtn { order: 3; } #themeBtn { order: 4; }
+  #currency { display: none; }
+  /* Filters: a sheet from the left with its own header; the avatar filter comes first. */
+  .sidebar { display: none; position: fixed; z-index: 41; top: 0; left: 0; width: min(92vw, 400px); height: 100dvh;
+    padding: 0 14px 80px; box-shadow: 4px 0 20px rgb(0 0 0 / .35); }
   .sidebar.open { display: block; }
+  .backdrop { position: fixed; inset: 0; z-index: 40; background: rgb(0 0 0 / .45); }
+  body.filters-open { overflow: hidden; }
+  body.filters-open .backdrop { display: block; }
+  .items-box { display: flex; flex-direction: column; }
+  .items-box > .sheet-head { order: -2; }
+  .items-box > .sb-avatar { order: -1; }
+  .sheet-head.mobile-only { display: flex; position: sticky; top: 0; z-index: 2; justify-content: space-between; align-items: center;
+    padding: 12px 0 10px; background: var(--panel); border-bottom: 1px solid var(--line); font-size: 16px; }
+  .facet { padding: 7px 6px; }
   .mobile-only { display: inline-block; }
-  #myAvatarsBtn, #currency { display: none; }
   .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+  .hint .seg { flex: 1 1 auto; }
+  .hint .seg button { flex: 1; }
+  .drawer { top: 0; height: 100dvh; width: 100vw; z-index: 42; }
 }
+.backdrop { display: none; }
+.hint { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: -2px 0 10px; }
+.hint .seg { display: inline-flex; }
+.suggest-avatar { background: var(--chip); color: var(--chip-ink); border-color: transparent; }
 
 .strip { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; }
 .strip img { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; cursor: pointer; flex: none; background: var(--panel-2); }
