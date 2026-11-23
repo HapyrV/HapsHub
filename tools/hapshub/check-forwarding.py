@@ -23,7 +23,7 @@ GATED = {
 HOSTS = re.compile(r"avtr\.icu/|avtrdb\.com/|vrcnext\.com/|VrcndbBase\b.*\+|\{VrcndbBase\}")
 KNOWN = re.compile(
     r"/avatar/ingest|upload-bulk|\{VrcndbBase\}/\{endpoint\}|hit\.php|like\.php|vrcnplus\.php"  # gated sends
-    r"|/resolve|/search|/similar/|/api/query|avatar\.php|wiki\.vrcnext\.com"  # lookups, kept on by decision
+    r"|/resolve|/search|/similar/|/api/(vrcn/)?query|avatar\.php|wiki\.vrcnext\.com"  # lookups, kept on by decision
 )
 
 problems = []

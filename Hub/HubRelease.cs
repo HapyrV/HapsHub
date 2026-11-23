@@ -13,7 +13,7 @@ public static class HubRelease
     public const string IssuesUrl = RepoUrl + "/issues/new";
 
     /// <summary>The VRCNext release HapsHub is built on, shown beside its own version.</summary>
-    public const string UpstreamVersion = "2027.2.2";
+    public const string UpstreamVersion = "2027.2.4";
 
     public static string TagApi(string version) => $"https://api.github.com/repos/{Repo}/releases/tags/v{version}";
 }
