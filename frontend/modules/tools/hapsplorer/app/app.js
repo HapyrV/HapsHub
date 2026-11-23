@@ -180,7 +180,7 @@ function toggleIn(k, v) {
   const cur = state.f[k] || [];
   setFilter(k, cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]);
 }
-function hasRelevance(f = state.f) { return !!f.similar || (f.mode === 'meaning' && !!f.q); }
+function hasRelevance(f = state.f) { return !!f.similar || !!f.q; }
 function sameSet(a, b) { return a.length === b.length && a.every((x) => b.includes(x)); }
 
 // ---------- search ----------
