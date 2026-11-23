@@ -1,4 +1,15 @@
-﻿# HapsHub 1.1.1
+﻿# HapsHub 1.1.2
+
+**New**
+- Updates install themselves on Windows: when a new version is out, HapsHub downloads it in the background and checks it, and "Download & Install" just restarts into it. Your settings and data stay as they are. (This is the last update you need to install by hand.)
+- Hapsplorer: with one avatar picked, "Made for <avatar>" shows what was made for it and hides poses, accessories and textures that list dozens of avatars ("Everything that fits" shows them again). Searching an avatar's name offers to filter by that avatar.
+
+**Fixed**
+- Linux: no way to open the window again after closing it to the tray. The tray menu now has "Open HapsHub" (also middle-click), opening HapsHub again or a vrcn:// link brings the window back, and on a desktop without a tray (GNOME without the AppIndicator extension) HapsHub stays open instead of disappearing.
+- Windows: clicking your profile in the tray popup hid the window if it was already open; it now always opens it.
+- Linux: "Download & Install" opened the wrong project's download page.
+
+# HapsHub 1.1.1
 
 **Fixed**
 - With "Minimize to tray" on, opening HapsHub only showed a tray icon and no window. The window now opens as usual; HapsHub only starts hidden in the tray when it starts with Windows.

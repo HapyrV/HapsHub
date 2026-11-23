@@ -4,7 +4,7 @@ public static class AppInfo
 {
     public const string AppName = HubPaths.AppName;
     /// <summary>HapsHub's own version. The VRCNext release it's built on is HubRelease.UpstreamVersion.</summary>
-    public const string Version = "1.1.1";
+    public const string Version = "1.1.2";
     public const string ContactEmail = "hapyr.businesss@gmail.com";
     public const string UserAgent = $"{AppName}/{Version} ({ContactEmail})";
 
