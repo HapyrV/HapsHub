@@ -99,6 +99,43 @@ jobs:
           tar -czf "HapsHub-$version-linux-x64.tar.gz" -C out HapsHub
           echo "VERSION=$version" >> "$GITHUB_ENV"
 
+      # Runs the script UpdateService writes for "Download & Install": it must copy the new files over the install
+      # folder and start HapsHub again from there.
+      - name: Self-update replaces the files and restarts HapsHub
+        run: |
+          work="$RUNNER_TEMP/upd"
+          rm -rf "$work"; mkdir -p "$work/install" "$work/updates/new"
+          tar -xzf HapsHub-*-linux-x64.tar.gz -C "$work/install" --strip-components=1
+          tar -xzf HapsHub-*-linux-x64.tar.gz -C "$work/updates/new"
+          echo new > "$work/updates/new/HapsHub/update-marker.txt"
+          python3 - Services/UpdateService.cs > "$work/apply-update.sh" <<'PY'
+          import sys, textwrap
+          s = open(sys.argv[1], encoding="utf-8-sig").read()
+          a = s.index('"""', s.index('"apply-update.sh"')) + 3
+          print(textwrap.dedent(s[a:s.index('"""', a)]).strip("\n"))
+          PY
+          export HAPSHUB_DATA_DIR="$RUNNER_TEMP/upd-data"
+          mkdir -p "$HAPSHUB_DATA_DIR"
+          sleep 3 & app=$!
+          set +e
+          # $1 script, $2 HapsHub's pid, $3 new files, $4 install folder, $5 updates folder (as UpdateService passes them).
+          dbus-run-session -- xvfb-run -a -s "-screen 0 1600x900x24" sh -c '
+            sh "$1" "$2" "$3" "$4" "$5"
+            for i in $(seq 1 30); do pgrep -x HapsHub > /dev/null && break; sleep 1; done
+            sleep 5
+            pid=$(pgrep -x HapsHub | head -n 1)
+            code=1
+            [ -n "$pid" ] && case "$(readlink "/proc/$pid/exe")" in "$4"/*) code=0 ;; esac
+            pkill -x HapsHub
+            exit $code' sh "$work/apply-update.sh" "$app" "$work/updates/new/HapsHub" "$work/install" "$work/updates"
+          code=$?
+          set -e
+          cat "$work/updates/apply-update.log"
+          [ "$code" -eq 0 ] || { echo "::error::HapsHub didn't start again from the install folder after the update"; exit 1; }
+          test -f "$work/install/update-marker.txt" || { echo "::error::The new files weren't copied"; exit 1; }
+          test ! -e "$work/updates/new" || { echo "::error::The downloaded update wasn't cleaned up"; exit 1; }
+          test -x "$work/install/HapsHub" || { echo "::error::HapsHub lost its executable bit"; exit 1; }
+
       - uses: actions/upload-artifact@v4
         with:
           name: HapsHub-${{ env.VERSION }}-linux-x64

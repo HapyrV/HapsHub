@@ -14,6 +14,6 @@
     "zh-CN": "只会提醒你有新版本。想更新时从 GitHub 下载，不会自动安装。",
     "zh-TW": "只會提醒你有新版本。想更新時從 GitHub 下載，不會自動安裝。"
   },
-  "update.download_install": { "en": "Open the download page", "de": "Downloadseite öffnen", "es": "Abrir la página de descarga", "fr": "Ouvrir la page de téléchargement", "ja": "ダウンロードページを開く", "ko": "다운로드 페이지 열기", "ru": "Открыть страницу загрузки", "zh-CN": "打开下载页面", "zh-TW": "開啟下載頁面" },
+  "update.download_install": {"en": "Download & Install", "de": "Herunterladen & Installieren", "es": "Descargar e instalar", "fr": "Télécharger et installer", "ja": "ダウンロードしてインストール", "ko": "다운로드 & 설치", "ru": "Установить", "uk": "Завантажити та встановити", "zh-CN": "下载并安装", "zh-TW": "下載並安裝"},
   "update.ready_suffix": { "en": "is out.", "de": "ist erschienen.", "es": "ya está disponible.", "fr": "est sortie.", "ja": "が公開されました。", "ko": "이(가) 나왔습니다.", "ru": "уже вышла.", "zh-CN": "已发布。", "zh-TW": "已發布。" }
 }

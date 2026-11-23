@@ -78,7 +78,7 @@ Your data is kept in `~/.config/HapsHub`. On Linux a few things work differently
 | YouTube Tunnel | Needs `ffmpeg` and `pactl`. HapsHub adds a **HapsHub Tunnel Mic**: choose it as your microphone in VRChat. |
 | Launch switches | Steam copies start through Steam (Proton), other Windows apps with Wine. |
 | Tray icon | Uses Python with AppIndicator (packages above). Without them, HapsHub says so and stays open when closed. |
-| Updating | Download the new tar.gz and unpack it over the old folder. |
+| Updating | Same as on Windows: HapsHub downloads the new version and "Download & Install" restarts into it. The folder you unpacked HapsHub into must be writable by you. |
 
 **Moving from VRCNext**: HapsHub keeps its own data and doesn't touch VRCNext's. Both can be installed side by side.
 

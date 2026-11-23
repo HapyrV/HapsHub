@@ -1,12 +1,14 @@
+﻿using System.Formats.Tar;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
 namespace VRCNext.Services;
 
-// Checks HapsHub's own GitHub releases. On a Windows zip install it downloads the new zip, checks it against the
-// SHA-256 GitHub lists for it, unpacks it next to the data folder, and after HapsHub closes copies it over the
-// install folder and starts HapsHub again (like VRCX's "download, then restart to update").
-// Anywhere else (Linux, a build from source, a folder HapsHub can't write to) it opens the download page instead.
+// Checks HapsHub's own GitHub releases. On a Windows zip or Linux tar.gz install it downloads the new archive, checks
+// it against the SHA-256 GitHub lists for it, unpacks it next to the data folder, and after HapsHub closes copies it
+// over the install folder and starts HapsHub again (like VRCX's "download, then restart to update").
+// Anywhere else (a build from source, an AppImage, a folder HapsHub can't write to) it opens the download page.
 // The helper script also stops HapsHub's own helper processes (watchdog, VR overlay) that run from the same folder.
 // VRCNext's releases must never be installed: Velopack would replace this app with the stock upstream build.
 public class UpdateService
@@ -16,8 +18,8 @@ public class UpdateService
 
     private string? _ghReleaseUrl;
     private string? _version;
-    private string? _zipUrl;
-    private string? _zipSha256;
+    private string? _assetUrl;
+    private string? _assetSha256;
     private string? _stagedDir;
     private Task? _downloadTask;
     private Action<int>? _progress;
@@ -48,32 +50,45 @@ public class UpdateService
 
             _ghReleaseUrl = json["html_url"]?.ToString() ?? $"{RepoUrl}/releases/latest";
             _version = tag;
-            _zipUrl = _zipSha256 = null;
+            _assetUrl = _assetSha256 = null;
+            var suffix = AssetSuffix;
             foreach (var asset in json["assets"] as Newtonsoft.Json.Linq.JArray ?? new())
             {
                 var name = asset["name"]?.ToString() ?? "";
-                if (!name.EndsWith("-win-x64.zip", StringComparison.OrdinalIgnoreCase)) continue;
-                _zipUrl = asset["browser_download_url"]?.ToString();
+                if (suffix == null || !name.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) continue;
+                _assetUrl = asset["browser_download_url"]?.ToString();
                 var digest = asset["digest"]?.ToString() ?? "";
-                _zipSha256 = digest.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase) ? digest[7..].ToLowerInvariant() : null;
+                _assetSha256 = digest.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase) ? digest[7..].ToLowerInvariant() : null;
             }
             return tag;
         }
         catch { return null; }
     }
 
-    /// <summary>The folder HapsHub.exe runs from.</summary>
+    /// <summary>The release download this copy updates from: the Windows zip or the Linux tar.gz (x64 only).</summary>
+    private static string? AssetSuffix =>
+        RuntimeInformation.OSArchitecture != Architecture.X64 ? null
+        : OperatingSystem.IsWindows() ? "-win-x64.zip"
+        : OperatingSystem.IsLinux() ? "-linux-x64.tar.gz"
+        : null;
+
+    /// <summary>The program file inside the install folder.</summary>
+    private static string ProgramName => OperatingSystem.IsWindows() ? "HapsHub.exe" : "HapsHub";
+
+    /// <summary>The folder HapsHub runs from.</summary>
     private static string InstallDir => Path.GetDirectoryName(Environment.ProcessPath ?? AppContext.BaseDirectory) ?? AppContext.BaseDirectory;
 
     /// <summary>
-    /// True when this copy can update itself: Windows, a downloaded release (not built from source, which updates
-    /// with git), a release zip with a checksum to check, and a folder HapsHub may write to.
+    /// True when this copy can update itself: Windows or Linux, a downloaded release (not built from source, which
+    /// updates with git, and not an AppImage), a release archive with a checksum to check, and a folder HapsHub may
+    /// write to.
     /// </summary>
     public bool CanSelfUpdate
     {
         get
         {
-            if (!OperatingSystem.IsWindows() || _zipUrl == null || _zipSha256 == null) return false;
+            if (AssetSuffix == null || _assetUrl == null || _assetSha256 == null) return false;
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPIMAGE"))) return false;
             var dir = InstallDir;
             if (HapsHub.Core.SourceUpdate.RepositoryOf(dir) != null) return false;
             if (File.Exists(Path.Combine(dir, HapsHub.Core.SourceUpdate.StampFile))) return false;
@@ -111,10 +126,10 @@ public class UpdateService
         var root = UpdatesDir;
         if (Directory.Exists(root)) { try { Directory.Delete(root, recursive: true); } catch { } }
         Directory.CreateDirectory(root);
-        var zipPath = Path.Combine(root, $"HapsHub-{_version}-win-x64.zip");
+        var zipPath = Path.Combine(root, $"HapsHub-{_version}{AssetSuffix}");
 
         using (var http = NewClient(TimeSpan.FromMinutes(20)))
-        using (var response = await http.GetAsync(_zipUrl, HttpCompletionOption.ResponseHeadersRead))
+        using (var response = await http.GetAsync(_assetUrl, HttpCompletionOption.ResponseHeadersRead))
         {
             response.EnsureSuccessStatusCode();
             var total = response.Content.Headers.ContentLength ?? 0;
@@ -135,13 +150,24 @@ public class UpdateService
         string hash;
         await using (var file = File.OpenRead(zipPath))
             hash = Convert.ToHexStringLower(await SHA256.HashDataAsync(file));
-        if (hash != _zipSha256)
+        if (hash != _assetSha256)
             throw new InvalidDataException("The downloaded update doesn't match the checksum on GitHub, so it wasn't installed.");
 
         var staged = Path.Combine(root, "new");
-        ZipFile.ExtractToDirectory(zipPath, staged);
-        if (!File.Exists(Path.Combine(staged, "HapsHub.exe")))
-            throw new InvalidDataException("The downloaded update has no HapsHub.exe, so it wasn't installed.");
+        if (zipPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            ZipFile.ExtractToDirectory(zipPath, staged);
+        else
+        {
+            Directory.CreateDirectory(staged);
+            await using var file = File.OpenRead(zipPath);
+            await using var gz = new GZipStream(file, CompressionMode.Decompress);
+            await TarFile.ExtractToDirectoryAsync(gz, staged, overwriteFiles: false);
+        }
+        // The Windows zip holds the files themselves; the Linux tar.gz holds a HapsHub folder.
+        if (!File.Exists(Path.Combine(staged, ProgramName)) && File.Exists(Path.Combine(staged, "HapsHub", ProgramName)))
+            staged = Path.Combine(staged, "HapsHub");
+        if (!File.Exists(Path.Combine(staged, ProgramName)))
+            throw new InvalidDataException($"The downloaded update has no {ProgramName}, so it wasn't installed.");
         File.Delete(zipPath);
         _stagedDir = staged;
         onProgress(100);
@@ -158,6 +184,8 @@ public class UpdateService
             OpenReleasePage();
             return false;
         }
+
+        if (!OperatingSystem.IsWindows()) return ApplyAndRestartUnix();
 
         var script = Path.Combine(UpdatesDir, "apply-update.ps1");
         File.WriteAllText(script, """
@@ -190,6 +218,64 @@ public class UpdateService
             };
             foreach (var a in new[] { "-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File", script,
                          "-AppPid", Environment.ProcessId.ToString(), "-Staged", _stagedDir, "-Install", InstallDir.TrimEnd('\\') })
+                psi.ArgumentList.Add(a);
+            System.Diagnostics.Process.Start(psi);
+            return true;
+        }
+        catch
+        {
+            OpenReleasePage();
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Linux: a detached shell script waits for HapsHub and its helpers to close, copies the new files over the
+    /// install folder (permissions kept) and starts HapsHub again in its own session. Its log is apply-update.log.
+    /// </summary>
+    private bool ApplyAndRestartUnix()
+    {
+        var script = Path.Combine(UpdatesDir, "apply-update.sh");
+        File.WriteAllText(script, """
+            #!/bin/sh
+            app_pid="$1"; staged="$2"; install="$3"; root="$4"
+            exec >"$root/apply-update.log" 2>&1
+            trap '' HUP
+            echo "Updating $install from $staged"
+            i=0
+            while kill -0 "$app_pid" 2>/dev/null && [ $i -lt 60 ]; do sleep 1; i=$((i+1)); done
+            # HapsHub's own helpers (watchdog, VR overlay) run the same program from the install folder.
+            running() {
+                for p in /proc/[0-9]*; do
+                    exe=$(readlink "$p/exe" 2>/dev/null) || continue
+                    case "$exe" in "$install"/*) echo "${p#/proc/}" ;; esac
+                done
+            }
+            i=0
+            while [ -n "$(running)" ] && [ $i -lt 20 ]; do sleep 1; i=$((i+1)); done
+            left=$(running)
+            [ -n "$left" ] && kill -9 $left
+            sleep 1
+            if cp -Rpf "$staged/." "$install/"; then
+                echo "copied"
+                rm -rf "$root/new"
+            else
+                echo "copy failed"
+            fi
+            chmod +x "$install/HapsHub" "$install/run-hapshub.sh" 2>/dev/null
+            cd "$install" || exit 1
+            if command -v setsid >/dev/null 2>&1; then
+                setsid "$install/HapsHub" </dev/null >/dev/null 2>&1 &
+            else
+                nohup "$install/HapsHub" </dev/null >/dev/null 2>&1 &
+            fi
+            echo "started"
+            """.ReplaceLineEndings("\n"));
+
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo { FileName = "/bin/sh", UseShellExecute = false };
+            foreach (var a in new[] { script, Environment.ProcessId.ToString(), _stagedDir!, InstallDir.TrimEnd('/'), UpdatesDir })
                 psi.ArgumentList.Add(a);
             System.Diagnostics.Process.Start(psi);
             return true;

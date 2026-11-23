@@ -485,7 +485,7 @@ public class AuthController
                 _ = Task.Run(async () =>
                 {
                     var upd = _core.UpdateService;
-                    // Linux, a build from source or a folder HapsHub can't write to: the download page instead.
+                    // A build from source, an AppImage or a folder HapsHub can't write to: the download page instead.
                     if (!upd.CanSelfUpdate)
                     {
                         Invoke(() => { upd.OpenReleasePage(); _core.SendToJS("updateFailed", new { msg = (string?)null }); });
