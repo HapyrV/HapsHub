@@ -727,24 +727,10 @@ public class AuthController
         });
     }
 
-    private const string ChangelogGroupId = "grp_36c812a1-0146-4eb8-ab73-4df11c7fc0e3";
-
     private async Task<object> BuildChangelogPayloadAsync(bool auto)
     {
         var notes = await FetchReleaseNotesAsync();
-        JObject? g = null;
-        try { g = await _core.Groups.GetGroupAsync(ChangelogGroupId); } catch { }
-        return new
-        {
-            version = AppInfo.Version,
-            notes,
-            auto,
-            groupName = g?["name"]?.ToString() ?? "VRCN",
-            groupIcon = ImageCacheHelper.GetGroupUrl(ChangelogGroupId, g?["iconUrl"]?.ToString(), authoritative: g != null),
-            groupBanner = ImageCacheHelper.GetGroupBannerUrl(ChangelogGroupId, g?["bannerUrl"]?.ToString(), authoritative: g != null),
-            groupMembers = g?["memberCount"]?.Value<int>() ?? 0,
-            groupJoined = g?["myMember"] != null && g["myMember"]!.Type != JTokenType.Null,
-        };
+        return new { version = AppInfo.Version, notes, auto };
     }
 
     private static string _cachedReleaseNotes = "";

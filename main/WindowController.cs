@@ -32,6 +32,9 @@ public class WindowController
     [DllImport("user32.dll")] private static extern bool ShowWindow(nint hWnd, int nCmdShow);
     [DllImport("user32.dll")] private static extern bool SetForegroundWindow(nint hWnd);
     [DllImport("user32.dll")] private static extern bool IsIconic(nint hWnd);
+    [DllImport("user32.dll")] private static extern bool IsZoomed(nint hWnd);
+    [DllImport("user32.dll")] private static extern nint MonitorFromWindow(nint hWnd, uint dwFlags);
+    [DllImport("user32.dll")] private static extern bool GetMonitorInfo(nint hMonitor, ref MONITORINFO lpmi);
     [DllImport("user32.dll")] private static extern bool IsWindowVisible(nint hWnd);
     [DllImport("user32.dll")] private static extern bool GetWindowPlacement(nint hWnd, ref WINDOWPLACEMENT lpwndpl);
     [DllImport("user32.dll")] private static extern bool FlashWindowEx(ref FLASHWINFO pwfi);
@@ -89,6 +92,8 @@ public class WindowController
     private struct MARGINS { public int leftWidth, rightWidth, topHeight, bottomHeight; }
     [StructLayout(LayoutKind.Sequential)]
     private struct RECT { public int Left, Top, Right, Bottom; }
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MONITORINFO { public int cbSize; public RECT rcMonitor, rcWork; public uint dwFlags; }
     [StructLayout(LayoutKind.Sequential)]
     private struct POINT { public int X, Y; }
     [StructLayout(LayoutKind.Sequential)]
@@ -171,7 +176,18 @@ public class WindowController
         }
 
         if (msg == WM_NCCALCSIZE && wParam == 1)
+        {
+            // No frame: the page fills the window. But Windows places a maximized window 8 px past every
+            // screen edge (where its frame would be), so the top bar, the window buttons and the bottom of
+            // the page were cut off. When maximized, the page gets exactly the monitor's work area instead.
+            if (IsZoomed(hWnd))
+            {
+                var mi = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+                if (GetMonitorInfo(MonitorFromWindow(hWnd, 2 /*MONITOR_DEFAULTTONEAREST*/), ref mi))
+                    Marshal.StructureToPtr(mi.rcWork, lParam, false); // NCCALCSIZE_PARAMS.rgrc[0] comes first
+            }
             return 0;
+        }
 
         if (msg == WM_SYSCOMMAND && _minimizeToTray)
         {
@@ -187,7 +203,8 @@ public class WindowController
         if (msg == WM_NCHITTEST)
         {
             var hit = DefSubclassProc(hWnd, msg, wParam, lParam);
-            if (hit == 1 /*HTCLIENT*/)
+            // A maximized window can't be resized, so its edges stay clickable (the window buttons sit in the corner).
+            if (hit == 1 /*HTCLIENT*/ && !IsZoomed(hWnd))
             {
                 const int border = 8;
                 int x = unchecked((short)(lParam.ToInt64() & 0xFFFF));

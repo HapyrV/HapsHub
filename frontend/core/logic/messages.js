@@ -562,9 +562,6 @@ function _handleBackendMessage(type, payload) {
                     if (payload.success && (payload.action === 'joinGroup' || payload.action === 'leaveGroup' || payload.groupJoined)) {
                         loadMyGroups();
                     }
-                    if (payload.action === 'joinGroup' && typeof onChangelogJoinResult === 'function') {
-                        onChangelogJoinResult(payload.success);
-                    }
                     // Re-enable friend action buttons if open
                     if (!['createGroupPost', 'acceptNotif', 'join'].includes(payload.action)) {
                         const fdActions = document.querySelector('#friendDetailContent .fd-actions');
