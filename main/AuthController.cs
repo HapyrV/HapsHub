@@ -711,7 +711,9 @@ public class AuthController
                 Invoke(() => _core.SendToJS("showChangelog", payload));
             });
         }
-        _ = Task.Run(async () =>
+        // Settings > Updates > "Check for updates on startup": off means no check and no background download
+        // (Check for updates in Settings still works).
+        if (_core.Settings.AutoUpdate) _ = Task.Run(async () =>
         {
             await Task.Delay(3000);
             var version = await _core.UpdateService.CheckAsync();
@@ -3068,20 +3070,7 @@ public class AuthController
         if (!_core.Cache.IsFresh(CacheHandler.KeyFavFriends, StartupCacheTtl)) _ = Task.Run(_friends.FetchAndCacheFavFriendsAsync);
         if (_core.PrefetchSharedContent != null) _ = Task.Run(_core.PrefetchSharedContent);
         _ = Task.Run(CollectWorldStatsIfMissingAsync);
-        if (_core.Settings.AutoUpdate) _ = Task.Run(AutoUpdateAsync);
         await Task.CompletedTask;
-    }
-
-    private async Task AutoUpdateAsync()
-    {
-        try
-        {
-            var version = await _core.UpdateService.CheckAsync();
-            if (version == null) return;
-
-            Invoke(() => _core.SendToJS("updateAvailable", new { version }));
-        }
-        catch { }
     }
 
     private async Task CollectWorldStatsIfMissingAsync()
